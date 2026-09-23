@@ -14,7 +14,7 @@ Crie um ou mais commits das mudanças atuais seguindo o padrão do projeto.
 ```
 
 - **tipo**: `feat` (nova funcionalidade), `fix` (correção), `refactor`, `style`, `test`, `docs`, `chore`.
-- **FID-XXXX**: número da task. **Derive automaticamente do nome da branch** (ex: branch `feature/FID-7538` → `FID-7538`). Se a branch não tiver um `FID-XXXX`, pergunte o número ao usuário antes de commitar.
+- **FID-XXXX**: número da task. **Derive automaticamente do nome da branch** (ex: branch `feature/FID-7538` → `FID-7538`). Se a branch não tiver um `FID-XXXX` (ex: `main`), **omita o escopo** e use apenas `<tipo>: <descrição>` — nunca pergunte o número ao usuário nem invente um.
 - **descrição** (linha de assunto): em **PT-BR**, curta, no infinitivo/substantivo descrevendo o que foi ajustado (ex: `ajustes para lançamento`, `correção de textos de carrossel`).
 - **corpo** (bullets): em **PT-BR**, detalha objetivamente o que foi desenvolvido/alterado — componentes, hooks, telas ou regras de negócio afetadas. Baseie-se estritamente no `git diff`, um bullet por mudança logicamente distinta. Omita o corpo apenas se a mudança for trivial o suficiente para caber inteiramente na linha de assunto (ex: ajuste de um texto, um `chore` pontual).
 
@@ -32,10 +32,18 @@ feat(FID-7538): adiciona card de corrida com contagem regressiva
 - Trata o estado de corrida encerrada exibindo mensagem alternativa no card
 ```
 
+Exemplo sem FID (branch sem task associada, ex: `main`):
+```
+feat: adiciona telas de autenticação
+
+- Cria os componentes AuthCard, Input, Toast e Link do design system
+- Adiciona as páginas /login, /recuperar-senha e /alterar-senha
+```
+
 ## Passos
 
 1. Rode `git status` e `git diff` (e `git diff --staged`) para entender exatamente o que mudou.
-2. Extraia o `FID-XXXX` da branch atual (`git branch --show-current`). Se não houver, pergunte ao usuário.
+2. Extraia o `FID-XXXX` da branch atual (`git branch --show-current`). Se não houver, siga sem escopo (`<tipo>: <descrição>`).
 3. Decida o(s) `tipo(s)` com base na natureza das mudanças. Se as mudanças forem heterogêneas (ex: uma feature + uma correção não relacionada), proponha **agrupar em commits separados** por escopo lógico e faça o `git add` seletivo de cada grupo.
 4. Escreva a linha de assunto em PT-BR resumindo objetivamente o que foi feito. Em seguida, escreva o corpo em bullets detalhando o que foi desenvolvido/alterado (componentes, hooks, telas, regras de negócio) — baseie-se estritamente no diff, não invente nem generalize demais. Pule o corpo apenas para mudanças triviais.
 5. Mostre ao usuário a(s) mensagem(ns) completas propostas (assunto + corpo) e confirme antes de commitar.
