@@ -55,6 +55,12 @@
       "skillPath": "skills/curated/hono/SKILL.md",
       "computedHash": "a23cd3d8f7da3134b79a14454f6e44bb0913390c30d4c278cafb529b3efce4c0"
     },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "ec48c58ca973b42c826d5d3be9069b7023d2361ebf7f89ee56b0bae7eb92390a"
+    },
     "inngest": {
       "source": "pedronauck/skills",
       "sourceType": "github",
