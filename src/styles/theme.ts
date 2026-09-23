@@ -2,10 +2,14 @@ export const theme = {
   colors: {
     primary: "#3366ff",
     primaryHover: "#254edb",
+    primarySoft: "#eaf0ff",
+    primarySofter: "#dce8ff",
     danger: "#e5484d",
     success: "#30a46c",
     background: "#ffffff",
     surface: "#f5f6f8",
+    glass: "rgba(255, 255, 255, 0.62)",
+    glassBorder: "rgba(255, 255, 255, 0.5)",
     text: "#111318",
     textMuted: "#6b7280",
     border: "#e2e4e9",
@@ -28,6 +32,11 @@ export const theme = {
     md: "8px",
     lg: "16px",
     full: "9999px",
+  },
+  shadows: {
+    sm: "0 1px 2px rgba(17, 19, 24, 0.06)",
+    md: "0 12px 32px -8px rgba(17, 19, 24, 0.16)",
+    glow: "0 20px 48px -12px rgba(51, 102, 255, 0.35)",
   },
   breakpoints: {
     sm: "480px",
