@@ -79,29 +79,29 @@ export const lightTheme: AppTheme = {
   },
 };
 
-// Tema escuro: "Ardósia Âmbar"
+// Tema escuro: "Grafite Coral"
 export const darkTheme: AppTheme = {
   ...shared,
   colors: {
-    primary: "#FFB454",
-    primaryHover: "#FFC97A",
-    primarySoft: "rgba(255, 180, 84, 0.16)",
-    primarySofter: "rgba(255, 180, 84, 0.28)",
-    onPrimary: "#1B1B1F",
-    danger: "#FF6B5E",
-    success: "#4FCB8D",
-    background: "#1B1B1F",
-    surface: "#242327",
-    glass: "rgba(36, 35, 39, 0.62)",
+    primary: "#FF7A5C",
+    primaryHover: "#FF9678",
+    primarySoft: "rgba(255, 122, 92, 0.16)",
+    primarySofter: "rgba(255, 122, 92, 0.28)",
+    onPrimary: "#1A1A1A",
+    danger: "#FF6B6B",
+    success: "#4FBE86",
+    background: "#1A1A1A",
+    surface: "#232323",
+    glass: "rgba(35, 35, 35, 0.62)",
     glassBorder: "rgba(255, 255, 255, 0.08)",
-    text: "#F5F1EA",
-    textMuted: "#A9A29A",
-    border: "#38363A",
+    text: "#F2F0EE",
+    textMuted: "#A3A19D",
+    border: "#383838",
   },
   shadows: {
     sm: "0 1px 2px rgba(0, 0, 0, 0.3)",
     md: "0 12px 32px -8px rgba(0, 0, 0, 0.5)",
-    glow: "0 20px 48px -12px rgba(255, 180, 84, 0.35)",
+    glow: "0 20px 48px -12px rgba(255, 122, 92, 0.35)",
   },
 };
 

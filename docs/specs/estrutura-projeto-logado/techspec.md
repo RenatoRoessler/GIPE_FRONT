@@ -89,7 +89,7 @@ Centralizar aqui evita duplicar a lista entre `Sidebar` e testes/outras specs qu
   - Props: `onMenuClick: () => void`.
   - Usa `useCurrentUser()`; renderiza skeleton (`Header.styles.ts`, bloco com `colors.surface`) enquanto `isLoading`, senão `Text` de boas-vindas com `user.name`.
   - Ícone de menu (mobile only, via CSS `display` no breakpoint) chama `onMenuClick`.
-  - Botão de alternância de tema (sol/lua) chama `toggleThemeMode()` do `useThemeMode` (ver `src/contexts/ThemeModeContext.tsx`) — troca entre `lightTheme` ("Confiança Azul") e `darkTheme` ("Ardósia Âmbar") definidos em `src/styles/theme.ts`, persistindo a escolha em `localStorage`.
+  - Botão de alternância de tema (sol/lua) chama `toggleThemeMode()` do `useThemeMode` (ver `src/contexts/ThemeModeContext.tsx`) — troca entre `lightTheme` ("Confiança Azul") e `darkTheme` ("Grafite Coral") definidos em `src/styles/theme.ts`, persistindo a escolha em `localStorage`.
   - Renderiza `UserMenu` à direita.
 
 - **`UserMenu`** (Client Component — estado local de aberto/fechado)
@@ -130,7 +130,7 @@ src/contexts/ThemeModeContext.tsx   # ThemeModeProvider (client) + useThemeMode(
 src/components/layout/Header/ThemeIcons.tsx   # ícones sol/lua inline
 ```
 
-- `src/styles/theme.ts` passa a exportar `lightTheme` ("Confiança Azul") e `darkTheme` ("Ardósia Âmbar") — mesma forma (`AppTheme`), valores diferentes. Novo token `colors.onPrimary` (texto/ícone sobre `colors.primary`) evita baixo contraste quando o primary é um amarelo/âmbar claro (tema escuro).
+- `src/styles/theme.ts` passa a exportar `lightTheme` ("Confiança Azul") e `darkTheme` ("Grafite Coral") — mesma forma (`AppTheme`), valores diferentes. Novo token `colors.onPrimary` (texto/ícone sobre `colors.primary`) evita baixo contraste quando o primary é um tom vivo/claro demais para texto branco (coral no tema escuro).
 - `ThemeModeProvider` (Client Component) guarda o modo atual (`"light" | "dark"`) em estado, inicia em `"light"` (evita mismatch de hidratação SSR) e sincroniza com `localStorage` (`gipe-theme-mode`) em um `useEffect` após montar. Envolve `children` com o `ThemeProvider` do styled-components, escolhendo `lightTheme`/`darkTheme` conforme o modo.
 - `src/lib/registry.tsx` trocou o `ThemeProvider` fixo por `ThemeModeProvider`, então toda a árvore (rotas públicas de auth e a área logada) passa a reagir ao tema escolhido — a troca é global, não só da área `(app)`.
 - `Header` consome `useThemeMode()` e renderiza um botão (ícone sol/lua) que chama `toggleThemeMode()`.

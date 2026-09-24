@@ -1,8 +1,10 @@
 "use client";
 
 import NextLink from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import gipeIcon from "@/app/icon.png";
 import { NAV_ITEMS } from "@/lib/nav";
 import { NavIcon } from "./NavIcons";
 import {
@@ -37,7 +39,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         onMouseLeave={() => setIsHovered(false)}
       >
         <Brand>
-          <BrandDot />
+          <BrandDot>
+            <Image src={gipeIcon} alt="" width={24} height={24} priority />
+          </BrandDot>
           <BrandName $expanded={isExpanded}>GIPE</BrandName>
         </Brand>
         <NavList>

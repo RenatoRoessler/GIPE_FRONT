@@ -61,15 +61,15 @@ export const Brand = styled.div`
 `;
 
 export const BrandDot = styled.span`
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
-  border-radius: ${({ theme }) => theme.radii.full};
-  background: linear-gradient(
-    135deg,
-    ${({ theme }) => theme.colors.primary} 50%,
-    ${({ theme }) => theme.colors.danger} 50%
-  );
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 `;
 
 export const BrandName = styled.span<{ $expanded: boolean }>`
