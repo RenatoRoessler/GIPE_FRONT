@@ -4,6 +4,7 @@ import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { clearToken } from "@/lib/auth";
 import {
   Avatar,
   Divider,
@@ -49,6 +50,7 @@ export function UserMenu() {
 
   function handleLogout() {
     setIsOpen(false);
+    clearToken();
     router.push("/login");
   }
 

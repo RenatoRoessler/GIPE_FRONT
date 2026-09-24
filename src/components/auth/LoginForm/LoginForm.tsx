@@ -1,7 +1,7 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SubmitEvent, useEffect, useState } from "react";
 import { AuthCard, Footer, Form } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -9,9 +9,11 @@ import { Link } from "@/components/ui/Link";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
+import { mockLogin, saveToken } from "@/lib/auth";
 import { formatCPF } from "@/lib/cpf";
 
 export function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { toast, showToast, dismissToast } = useToast();
   const [cpf, setCpf] = useState("");
@@ -26,14 +28,20 @@ export function LoginForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 900);
+    mockLogin(cpf, password)
+      .then(({ token }) => {
+        saveToken(token);
+        router.push("/dashboard");
+      })
+      .catch((err: Error) => {
+        setError(err.message);
+        setIsLoading(false);
+      });
   }
 
   return (
