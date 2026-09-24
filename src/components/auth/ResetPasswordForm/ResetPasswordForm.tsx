@@ -1,12 +1,14 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
 import { AuthCard, Footer, Form } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Link } from "@/components/ui/Link";
 import { Text } from "@/components/ui/Text";
+import { useAppForm, zodFieldErrors } from "@/components/form";
+import { mockResetPassword } from "@/lib/mockApi";
+import { resetPasswordSchema, ResetPasswordValues } from "@/lib/schemas/resetPassword";
 
 export interface ResetPasswordFormProps {
   token: string | null;
@@ -14,10 +16,26 @@ export interface ResetPasswordFormProps {
 
 export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const router = useRouter();
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [confirmError, setConfirmError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  const mutation = useMutation({
+    mutationFn: (values: ResetPasswordValues) => mockResetPassword(values.senha),
+    onSuccess: () => {
+      router.push("/login");
+    },
+  });
+
+  const form = useAppForm({
+    defaultValues: { senha: "", confirmarSenha: "" } as ResetPasswordValues,
+    validators: {
+      onChange: ({ value }) => {
+        const result = resetPasswordSchema.safeParse(value);
+        return result.success ? undefined : zodFieldErrors(result);
+      },
+    },
+    onSubmit: async ({ value }) => {
+      await mutation.mutateAsync(value);
+    },
+  });
 
   if (!token) {
     return (
@@ -32,47 +50,39 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     );
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (password !== confirmPassword) {
-      setConfirmError("As senhas não coincidem");
-      return;
-    }
-
-    setConfirmError(null);
-    setIsLoading(true);
-
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push("/login");
-    }, 900);
-  }
-
   return (
     <AuthCard title="Definir nova senha" subtitle="Escolha uma nova senha para acessar o GIPE.">
-      <Form onSubmit={handleSubmit}>
-        <Input
-          label="Nova senha"
-          type="password"
-          autoComplete="new-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          disabled={isLoading}
-          required
-        />
-        <Input
-          label="Confirmar senha"
-          type="password"
-          autoComplete="new-password"
-          value={confirmPassword}
-          onChange={(event) => setConfirmPassword(event.target.value)}
-          error={confirmError ?? undefined}
-          disabled={isLoading}
-          required
-        />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Salvando..." : "Alterar senha"}
+      <Form
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void form.handleSubmit();
+        }}
+      >
+        <form.AppField name="senha">
+          {(field) => (
+            <field.TextField
+              label="Nova senha"
+              type="password"
+              autoComplete="new-password"
+              disabled={mutation.isPending}
+              required
+            />
+          )}
+        </form.AppField>
+        <form.AppField name="confirmarSenha">
+          {(field) => (
+            <field.TextField
+              label="Confirmar senha"
+              type="password"
+              autoComplete="new-password"
+              disabled={mutation.isPending}
+              required
+            />
+          )}
+        </form.AppField>
+        <Button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? "Salvando..." : "Alterar senha"}
         </Button>
       </Form>
     </AuthCard>

@@ -1,25 +1,45 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SubmitEvent, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AuthCard, Footer, Form } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Link } from "@/components/ui/Link";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
+import { useAppForm, zodFieldErrors } from "@/components/form";
 import { useToast } from "@/hooks/useToast";
 import { mockLogin, saveToken } from "@/lib/auth";
 import { formatCPF } from "@/lib/cpf";
+import { loginSchema, LoginValues } from "@/lib/schemas/login";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast, showToast, dismissToast } = useToast();
-  const [cpf, setCpf] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: (values: LoginValues) => mockLogin(values.cpf, values.senha),
+    onSuccess: ({ token }) => {
+      saveToken(token);
+      router.push("/dashboard");
+    },
+  });
+
+  const form = useAppForm({
+    defaultValues: { cpf: "", senha: "" } as LoginValues,
+    validators: {
+      onChange: ({ value }) => {
+        const result = loginSchema.safeParse(value);
+        return result.success ? undefined : zodFieldErrors(result);
+      },
+    },
+    onSubmit: async ({ value }) => {
+      await mutation.mutateAsync(value);
+    },
+  });
 
   useEffect(() => {
     if (searchParams.get("cadastro") === "sucesso") {
@@ -28,47 +48,45 @@ export function LoginForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    mockLogin(cpf, password)
-      .then(({ token }) => {
-        saveToken(token);
-        router.push("/dashboard");
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-        setIsLoading(false);
-      });
-  }
-
   return (
     <AuthCard title="Entrar" subtitle="Acesse com seu CPF e senha.">
-      <Form onSubmit={handleSubmit}>
-        <Input
-          label="CPF"
-          placeholder="000.000.000-00"
-          inputMode="numeric"
-          autoComplete="username"
-          value={cpf}
-          onChange={(event) => setCpf(formatCPF(event.target.value))}
-          disabled={isLoading}
-          required
-        />
-        <Input
-          label="Senha"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          disabled={isLoading}
-          required
-        />
-        {error && <Text variant="error">{error}</Text>}
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Entrando..." : "Entrar"}
+      <Form
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void form.handleSubmit();
+        }}
+      >
+        <form.Field name="cpf">
+          {(field) => (
+            <Input
+              label="CPF"
+              placeholder="000.000.000-00"
+              inputMode="numeric"
+              autoComplete="username"
+              value={field.state.value}
+              onChange={(event) => field.handleChange(formatCPF(event.target.value))}
+              onBlur={field.handleBlur}
+              error={field.state.meta.isTouched ? field.state.meta.errors[0] : undefined}
+              disabled={mutation.isPending}
+              required
+            />
+          )}
+        </form.Field>
+        <form.AppField name="senha">
+          {(field) => (
+            <field.TextField
+              label="Senha"
+              type="password"
+              autoComplete="current-password"
+              disabled={mutation.isPending}
+              required
+            />
+          )}
+        </form.AppField>
+        {mutation.isError && <Text variant="error">{mutation.error.message}</Text>}
+        <Button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? "Entrando..." : "Entrar"}
         </Button>
       </Form>
       <Footer>

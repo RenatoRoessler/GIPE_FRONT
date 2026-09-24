@@ -1,17 +1,18 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { AdminUserStepFields } from "@/components/adesao/AdminUserStepFields";
 import { CompanyStepFields } from "@/components/adesao/CompanyStepFields";
+import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PageBackground } from "@/components/ui/PageBackground";
 import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
-import { isValidCNPJ } from "@/lib/cnpj";
-import { isValidCPF } from "@/lib/cpf";
-import { isValidEmail } from "@/lib/email";
+import { mockSaveOnboarding } from "@/lib/mockApi";
+import { adminUserSchema, companySchema } from "@/lib/schemas/adesao";
 import {
   AdminUserData,
   CompanyData,
@@ -22,96 +23,49 @@ import { Actions, Brand, ErrorBanner, Form, Header, TitleGroup } from "./Onboard
 
 const STEPS = ["Dados da empresa", "Usuário administrador"];
 
-type CompanyErrors = Partial<Record<keyof CompanyData, string>>;
-type AdminUserErrors = Partial<Record<keyof AdminUserData, string>>;
-
-function validateCompany(data: CompanyData): CompanyErrors {
-  const errors: CompanyErrors = {};
-
-  if (!data.cnpj.trim()) errors.cnpj = "Informe o CNPJ";
-  else if (!isValidCNPJ(data.cnpj)) errors.cnpj = "CNPJ inválido";
-
-  if (!data.razaoSocial.trim()) errors.razaoSocial = "Informe a razão social";
-  if (!data.nomeFantasia.trim()) errors.nomeFantasia = "Informe o nome fantasia";
-  if (!data.endereco.trim()) errors.endereco = "Informe o endereço";
-  if (!data.telefone.trim()) errors.telefone = "Informe o telefone";
-  if (!data.tipoEmpresa) errors.tipoEmpresa = "Selecione o tipo de empresa";
-
-  return errors;
-}
-
-function validateAdminUser(data: AdminUserData): AdminUserErrors {
-  const errors: AdminUserErrors = {};
-
-  if (!data.nome.trim()) errors.nome = "Informe o nome";
-  if (!data.sobrenome.trim()) errors.sobrenome = "Informe o sobrenome";
-
-  if (!data.email.trim()) errors.email = "Informe o e-mail";
-  else if (!isValidEmail(data.email)) errors.email = "E-mail inválido";
-
-  if (!data.cpf.trim()) errors.cpf = "Informe o CPF";
-  else if (!isValidCPF(data.cpf)) errors.cpf = "CPF inválido";
-
-  if (!data.senha) errors.senha = "Informe a senha";
-  else if (data.senha.length < 6) errors.senha = "A senha precisa ter ao menos 6 caracteres";
-
-  if (!data.repetirSenha) errors.repetirSenha = "Confirme a senha";
-  else if (data.repetirSenha !== data.senha) errors.repetirSenha = "As senhas não coincidem";
-
-  return errors;
-}
-
 export function OnboardingWizard() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [company, setCompany] = useState<CompanyData>(EMPTY_COMPANY_DATA);
-  const [adminUser, setAdminUser] = useState<AdminUserData>(EMPTY_ADMIN_USER_DATA);
-  const [companyErrors, setCompanyErrors] = useState<CompanyErrors>({});
-  const [adminUserErrors, setAdminUserErrors] = useState<AdminUserErrors>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
-  function updateCompany<Field extends keyof CompanyData>(field: Field, value: CompanyData[Field]) {
-    setCompany((prev) => ({ ...prev, [field]: value }));
-  }
+  const mutation = useMutation({
+    mutationFn: (payload: { company: CompanyData; adminUser: AdminUserData }) =>
+      mockSaveOnboarding({ cnpj: payload.company.cnpj, email: payload.adminUser.email }),
+    onSuccess: () => {
+      router.push("/login?cadastro=sucesso");
+    },
+  });
 
-  function updateAdminUser<Field extends keyof AdminUserData>(
-    field: Field,
-    value: AdminUserData[Field],
-  ) {
-    setAdminUser((prev) => ({ ...prev, [field]: value }));
-  }
-
-  function handleNext(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const errors = validateCompany(company);
-    setCompanyErrors(errors);
-
-    if (Object.keys(errors).length === 0) {
+  const companyForm = useAppForm({
+    defaultValues: EMPTY_COMPANY_DATA,
+    validators: {
+      onChange: ({ value }) => {
+        const result = companySchema.safeParse(value);
+        return result.success ? undefined : zodFieldErrors(result);
+      },
+    },
+    onSubmit: () => {
       setStep(2);
-    }
-  }
+    },
+  });
+
+  const adminUserForm = useAppForm({
+    defaultValues: EMPTY_ADMIN_USER_DATA,
+    validators: {
+      onChange: ({ value }) => {
+        const result = adminUserSchema.safeParse(value);
+        return result.success ? undefined : zodFieldErrors(result);
+      },
+    },
+    onSubmit: async ({ value }) => {
+      await mutation.mutateAsync({
+        company: companyForm.state.values,
+        adminUser: value,
+      });
+    },
+  });
 
   function handleBack() {
     setStep(1);
-  }
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const errors = validateAdminUser(adminUser);
-    setAdminUserErrors(errors);
-
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
-
-    setSubmitError(null);
-    setIsLoading(true);
-
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push("/login?cadastro=sucesso");
-    }, 1000);
   }
 
   return (
@@ -133,27 +87,39 @@ export function OnboardingWizard() {
         </Header>
 
         {step === 1 ? (
-          <Form onSubmit={handleNext}>
-            <CompanyStepFields value={company} errors={companyErrors} onChange={updateCompany} />
+          <Form
+            onSubmit={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              void companyForm.handleSubmit();
+            }}
+          >
+            <CompanyStepFields form={companyForm} />
             <Actions>
               <Button type="submit">Próximo</Button>
             </Actions>
           </Form>
         ) : (
-          <Form onSubmit={handleSubmit}>
-            {submitError && <ErrorBanner role="alert">{submitError}</ErrorBanner>}
-            <AdminUserStepFields
-              value={adminUser}
-              errors={adminUserErrors}
-              onChange={updateAdminUser}
-              disabled={isLoading}
-            />
+          <Form
+            onSubmit={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              void adminUserForm.handleSubmit();
+            }}
+          >
+            {mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
+            <AdminUserStepFields form={adminUserForm} disabled={mutation.isPending} />
             <Actions>
-              <Button type="button" variant="secondary" onClick={handleBack} disabled={isLoading}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleBack}
+                disabled={mutation.isPending}
+              >
                 Voltar
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Salvando..." : "Salvar"}
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? "Salvando..." : "Salvar"}
               </Button>
             </Actions>
           </Form>

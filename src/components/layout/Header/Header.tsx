@@ -1,7 +1,7 @@
 "use client";
 
 import { Text } from "@/components/ui/Text";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { useThemeMode } from "@/contexts/ThemeModeContext";
 import { UserMenu } from "@/components/layout/UserMenu";
 import { MoonIcon, SunIcon } from "./ThemeIcons";
