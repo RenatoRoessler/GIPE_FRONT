@@ -52,7 +52,7 @@ export const StyledButton = styled.button<{
       default:
         return css`
           background-color: ${theme.colors.primary};
-          color: white;
+          color: ${theme.colors.onPrimary};
 
           &:hover {
             background-color: ${theme.colors.primaryHover};

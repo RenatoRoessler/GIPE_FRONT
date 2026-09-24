@@ -37,7 +37,7 @@ export const Dot = styled.span<{ $status: "done" | "current" | "pending" }>`
     if ($status === "done") {
       return css`
         background-color: ${theme.colors.primary};
-        color: white;
+        color: ${theme.colors.onPrimary};
         border: 1px solid ${theme.colors.primary};
       `;
     }
