@@ -5,12 +5,19 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:hml": "dotenv -e .env.hml -- next build",
+    "build:azl": "dotenv -e .env.azl -- next build",
+    "build:prod": "dotenv -e .env.prod -- next build",
     "start": "next start",
+    "start:hml": "dotenv -e .env.hml -- next start",
+    "start:azl": "dotenv -e .env.azl -- next start",
+    "start:prod": "dotenv -e .env.prod -- next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@tanstack/react-form": "^1.33.5",
     "@tanstack/react-query": "^5.103.2",
+    "axios": "^1.20.0",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -22,6 +29,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-styled-components": "^2.3.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "typescript": "^5"
