@@ -8,14 +8,6 @@ export const Header = styled.div`
   gap: ${({ theme }) => theme.space[1]}px;
 `;
 
-export const Brand = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.primary};
-`;
-
 export const Form = styled.form`
   display: flex;
   flex-direction: column;

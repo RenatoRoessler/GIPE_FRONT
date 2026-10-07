@@ -2,9 +2,10 @@
 
 import { ReactNode } from "react";
 import { Card } from "@/components/ui/Card";
+import { Logo } from "@/components/ui/Logo";
 import { PageBackground } from "@/components/ui/PageBackground";
 import { Text } from "@/components/ui/Text";
-import { Brand, Header } from "./AuthCard.styles";
+import { Header } from "./AuthCard.styles";
 
 export interface AuthCardProps {
   title: string;
@@ -17,7 +18,7 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps) {
     <PageBackground>
       <Card maxWidth="400px">
         <Header>
-          <Brand>GIPE</Brand>
+          <Logo />
           <Text variant="heading" as="h1">
             {title}
           </Text>
