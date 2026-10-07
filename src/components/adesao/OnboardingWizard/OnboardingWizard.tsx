@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AdminUserStepFields } from "@/components/adesao/AdminUserStepFields";
@@ -12,6 +13,7 @@ import { Card } from "@/components/ui/Card";
 import { PageBackground } from "@/components/ui/PageBackground";
 import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
+import { useThemeMode } from "@/contexts/ThemeModeContext";
 import { saveAdesao } from "@/lib/api/services/adesao";
 import { adminUserSchema, businessHoursSchema, companySchema } from "@/lib/schemas/adesao";
 import {
@@ -22,7 +24,7 @@ import {
   EMPTY_BUSINESS_HOURS_DATA,
   EMPTY_COMPANY_DATA,
 } from "@/types/adesao";
-import { Actions, Brand, ErrorBanner, Form, Header, TitleGroup } from "./OnboardingWizard.styles";
+import { Actions, ErrorBanner, Form, Header, LogoWrapper, TitleGroup } from "./OnboardingWizard.styles";
 
 const STEPS = ["Dados da empresa", "Funcionamento", "Usuário titular"];
 
@@ -46,6 +48,8 @@ export function OnboardingWizard() {
     }
     stepDescriptionRef.current?.focus();
   }, [step]);
+
+  const { mode } = useThemeMode();
 
   const mutation = useMutation({
     mutationFn: (payload: {
@@ -110,7 +114,15 @@ export function OnboardingWizard() {
       <Card maxWidth="640px">
         <Header>
           <TitleGroup>
-            <Brand>GIPE</Brand>
+            <LogoWrapper $onDark={mode === "dark"}>
+              <Image
+                src="/assets/gipe-logo.png"
+                alt="GIPE — Gestão Inteligente de Estacionamentos"
+                width={173}
+                height={56}
+                priority
+              />
+            </LogoWrapper>
             <Text variant="heading" as="h1">
               Adesão ao sistema
             </Text>

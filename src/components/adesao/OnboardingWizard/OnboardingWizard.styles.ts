@@ -14,12 +14,13 @@ export const TitleGroup = styled.div`
   gap: ${({ theme }) => theme.space[1]}px;
 `;
 
-export const Brand = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.primary};
+// A logo tem texto azul-marinho: no tema escuro ganha uma base clara para manter a leitura.
+export const LogoWrapper = styled.div<{ $onDark: boolean }>`
+  align-self: center;
+  display: flex;
+  padding: ${({ theme, $onDark }) => ($onDark ? `${theme.space[1]}px ${theme.space[2]}px` : 0)};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background-color: ${({ theme, $onDark }) => ($onDark ? theme.colors.text : "transparent")};
 `;
 
 export const Form = styled.form`
