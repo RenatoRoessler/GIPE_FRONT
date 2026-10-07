@@ -11,7 +11,8 @@ import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { useToast } from "@/hooks/useToast";
-import { mockLogin, saveToken } from "@/lib/auth";
+import { login } from "@/lib/api/services/auth";
+import { clearToken, saveToken } from "@/lib/auth";
 import { formatCPF } from "@/lib/cpf";
 import { loginSchema, LoginValues } from "@/lib/schemas/login";
 
@@ -21,7 +22,11 @@ export function LoginForm() {
   const { toast, showToast, dismissToast } = useToast();
 
   const mutation = useMutation({
-    mutationFn: (values: LoginValues) => mockLogin(values.cpf, values.senha),
+    mutationFn: (values: LoginValues) => {
+      // Um novo login substitui a sessão; evita enviar token antigo na própria requisição.
+      clearToken();
+      return login(values.cpf, values.senha);
+    },
     onSuccess: ({ token }) => {
       saveToken(token);
       router.push("/dashboard");
@@ -84,7 +89,11 @@ export function LoginForm() {
             />
           )}
         </form.AppField>
-        {mutation.isError && <Text variant="error">{mutation.error.message}</Text>}
+        {mutation.isError && (
+          <Text variant="error" role="alert">
+            {mutation.error.message}
+          </Text>
+        )}
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? "Entrando..." : "Entrar"}
         </Button>
