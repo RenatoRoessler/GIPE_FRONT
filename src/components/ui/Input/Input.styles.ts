@@ -56,6 +56,14 @@ export const StyledInput = styled.input<{ $hasError: boolean }>`
     `}
 `;
 
+export type HintTone = "muted" | "success" | "danger";
+
+export const HintText = styled.span<{ $tone: HintTone }>`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme, $tone }) =>
+    $tone === "muted" ? theme.colors.textMuted : theme.colors[$tone]};
+`;
+
 export const ErrorText = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: ${({ theme }) => theme.colors.danger};
