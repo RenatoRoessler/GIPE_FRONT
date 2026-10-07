@@ -9,9 +9,11 @@ export type TextFieldProps = Omit<
   "value" | "onChange" | "onBlur" | "id" | "name"
 > & {
   label: string;
+  // Normaliza o valor digitado antes de gravar no formulário (ex.: máscara, só dígitos).
+  format?: (value: string) => string;
 };
 
-export function TextField({ label, ...props }: TextFieldProps) {
+export function TextField({ label, format, ...props }: TextFieldProps) {
   const field = useFieldContext<string>();
   const error = field.state.meta.isTouched ? field.state.meta.errors[0] : undefined;
 
@@ -20,7 +22,7 @@ export function TextField({ label, ...props }: TextFieldProps) {
       label={label}
       name={field.name}
       value={field.state.value}
-      onChange={(event) => field.handleChange(event.target.value)}
+      onChange={(event) => field.handleChange(format ? format(event.target.value) : event.target.value)}
       onBlur={field.handleBlur}
       error={typeof error === "string" ? error : error?.message}
       {...props}

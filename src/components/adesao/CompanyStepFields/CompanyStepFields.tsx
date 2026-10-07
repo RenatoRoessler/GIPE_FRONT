@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { formatCEP, isValidCEP } from "@/lib/cep";
 import { formatCNPJ } from "@/lib/cnpj";
+import { onlyDigits } from "@/lib/digits";
 import { ESTADOS } from "@/lib/estados";
 import { formatPhone } from "@/lib/phone";
 import { EMPTY_COMPANY_DATA, TIPO_EMPRESA_LABEL, TipoEmpresa } from "@/types/adesao";
@@ -146,7 +147,15 @@ export const CompanyStepFields = withForm({
           {(field) => <field.TextField label="Logradouro" disabled={disabled} required />}
         </form.AppField>
         <form.AppField name="numero">
-          {(field) => <field.TextField label="Número" disabled={disabled} required />}
+          {(field) => (
+            <field.TextField
+              label="Número"
+              inputMode="numeric"
+              format={onlyDigits}
+              disabled={disabled}
+              required
+            />
+          )}
         </form.AppField>
         <form.AppField name="bairro">
           {(field) => <field.TextField label="Bairro" disabled={disabled} required />}
@@ -173,6 +182,7 @@ export const CompanyStepFields = withForm({
             <field.TextField
               label="Vagas de moto"
               inputMode="numeric"
+              format={onlyDigits}
               disabled={disabled}
               required
             />
@@ -183,6 +193,7 @@ export const CompanyStepFields = withForm({
             <field.TextField
               label="Vagas de carro"
               inputMode="numeric"
+              format={onlyDigits}
               disabled={disabled}
               required
             />
