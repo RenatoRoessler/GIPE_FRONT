@@ -3,8 +3,9 @@
 import { withForm } from "@/components/form";
 import { Input } from "@/components/ui/Input";
 import { formatCPF } from "@/lib/cpf";
+import { formatPhone } from "@/lib/phone";
 import { EMPTY_ADMIN_USER_DATA } from "@/types/adesao";
-import { Grid } from "../shared/FormGrid.styles";
+import { Grid, GridItem } from "../shared/FormGrid.styles";
 
 export const AdminUserStepFields = withForm({
   defaultValues: EMPTY_ADMIN_USER_DATA,
@@ -12,17 +13,18 @@ export const AdminUserStepFields = withForm({
   render: function Render({ form, disabled }) {
     return (
       <Grid>
-        <form.AppField name="nome">
-          {(field) => <field.TextField label="Nome" disabled={disabled} required />}
-        </form.AppField>
-        <form.AppField name="sobrenome">
-          {(field) => <field.TextField label="Sobrenome" disabled={disabled} required />}
-        </form.AppField>
-        <form.AppField name="email">
-          {(field) => (
-            <field.TextField label="E-mail" type="email" disabled={disabled} required />
-          )}
-        </form.AppField>
+        <GridItem $span>
+          <form.AppField name="nome">
+            {(field) => (
+              <field.TextField
+                label="Nome completo"
+                autoComplete="name"
+                disabled={disabled}
+                required
+              />
+            )}
+          </form.AppField>
+        </GridItem>
         <form.Field name="cpf">
           {(field) => (
             <Input
@@ -38,6 +40,30 @@ export const AdminUserStepFields = withForm({
             />
           )}
         </form.Field>
+        <form.Field name="celular">
+          {(field) => (
+            <Input
+              label="Celular"
+              type="tel"
+              placeholder="(00) 00000-0000"
+              inputMode="tel"
+              autoComplete="tel"
+              value={field.state.value}
+              onChange={(event) => field.handleChange(formatPhone(event.target.value))}
+              onBlur={field.handleBlur}
+              error={field.state.meta.isTouched ? field.state.meta.errors[0] : undefined}
+              disabled={disabled}
+              required
+            />
+          )}
+        </form.Field>
+        <GridItem $span>
+          <form.AppField name="email">
+            {(field) => (
+              <field.TextField label="E-mail" type="email" disabled={disabled} required />
+            )}
+          </form.AppField>
+        </GridItem>
         <form.AppField name="senha">
           {(field) => (
             <field.TextField

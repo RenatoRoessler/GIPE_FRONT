@@ -15,10 +15,3 @@ export function mockResetPassword(senha: string): Promise<void> {
     setTimeout(resolve, 900);
   });
 }
-
-export function mockSaveOnboarding(payload: { cnpj: string; email: string }): Promise<void> {
-  void payload;
-  return new Promise((resolve) => {
-    setTimeout(resolve, 1000);
-  });
-}
