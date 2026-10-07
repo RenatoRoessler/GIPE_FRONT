@@ -1,9 +1,9 @@
 "use client";
 
-import { ElementType, HTMLAttributes } from "react";
+import { ComponentPropsWithRef, ElementType } from "react";
 import { StyledText, TextVariant } from "./Text.styles";
 
-export interface TextProps extends HTMLAttributes<HTMLParagraphElement> {
+export interface TextProps extends ComponentPropsWithRef<"p"> {
   variant?: TextVariant;
   as?: ElementType;
 }
