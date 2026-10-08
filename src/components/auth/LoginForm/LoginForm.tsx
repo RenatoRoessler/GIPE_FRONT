@@ -16,6 +16,15 @@ import { clearToken, saveToken } from "@/lib/auth";
 import { formatCPF } from "@/lib/cpf";
 import { loginSchema, LoginValues } from "@/lib/schemas/login";
 
+// Avisos exibidos ao chegar no login por outro fluxo (parâmetro de URL -> mensagem).
+const NOTICES: Record<string, Record<string, string>> = {
+  cadastro: { sucesso: "Cadastro concluído! Faça login para continuar." },
+  recuperacao: {
+    enviada: "Enviamos as instruções de recuperação para o seu e-mail.",
+  },
+  senha: { alterada: "Senha alterada! Faça login com a nova senha." },
+};
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,8 +56,12 @@ export function LoginForm() {
   });
 
   useEffect(() => {
-    if (searchParams.get("cadastro") === "sucesso") {
-      showToast("Cadastro concluído! Faça login para continuar.", "success");
+    for (const [param, messages] of Object.entries(NOTICES)) {
+      const message = messages[searchParams.get(param) ?? ""];
+      if (message) {
+        showToast(message, "success");
+        break;
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

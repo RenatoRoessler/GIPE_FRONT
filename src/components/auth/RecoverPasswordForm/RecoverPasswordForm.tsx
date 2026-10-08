@@ -2,29 +2,27 @@
 
 import { useStore } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { AuthCard, Footer, Form } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Link } from "@/components/ui/Link";
-import { Toast } from "@/components/ui/Toast";
+import { Text } from "@/components/ui/Text";
 import { useAppForm, zodFieldErrors } from "@/components/form";
-import { useToast } from "@/hooks/useToast";
-import { mockRecoverPassword } from "@/lib/mockApi";
-import { formatCPF } from "@/lib/cpf";
+import { requestPasswordReset } from "@/lib/api/services/auth";
 import { recoverPasswordSchema, RecoverPasswordValues } from "@/lib/schemas/recoverPassword";
 
 export function RecoverPasswordForm() {
-  const { toast, showToast, dismissToast } = useToast();
+  const router = useRouter();
 
   const mutation = useMutation({
-    mutationFn: (values: RecoverPasswordValues) => mockRecoverPassword(values.cpf),
+    mutationFn: (values: RecoverPasswordValues) => requestPasswordReset(values.email),
     onSuccess: () => {
-      showToast("Enviamos um e-mail com instruções para recuperação.", "success");
+      router.push("/login?recuperacao=enviada");
     },
   });
 
   const form = useAppForm({
-    defaultValues: { cpf: "" } as RecoverPasswordValues,
+    defaultValues: { email: "" } as RecoverPasswordValues,
     validators: {
       onChange: ({ value }) => {
         const result = recoverPasswordSchema.safeParse(value);
@@ -41,7 +39,7 @@ export function RecoverPasswordForm() {
   return (
     <AuthCard
       title="Recuperar senha"
-      subtitle="Informe seu CPF para receber o link de recuperação por e-mail."
+      subtitle="Informe o e-mail cadastrado para receber as instruções de recuperação."
     >
       <Form
         onSubmit={(event) => {
@@ -50,31 +48,31 @@ export function RecoverPasswordForm() {
           void form.handleSubmit();
         }}
       >
-        <form.Field name="cpf">
+        <form.AppField name="email">
           {(field) => (
-            <Input
-              label="CPF"
-              placeholder="000.000.000-00"
-              inputMode="numeric"
-              autoComplete="username"
-              value={field.state.value}
-              onChange={(event) => field.handleChange(formatCPF(event.target.value))}
-              onBlur={field.handleBlur}
+            <field.TextField
+              label="E-mail"
+              type="email"
+              placeholder="seu@email.com.br"
+              inputMode="email"
+              autoComplete="email"
               disabled={mutation.isPending}
               required
             />
           )}
-        </form.Field>
+        </form.AppField>
+        {mutation.isError && (
+          <Text variant="error" role="alert">
+            {mutation.error.message}
+          </Text>
+        )}
         <Button type="submit" disabled={!isFormValid || mutation.isPending}>
-          {mutation.isPending ? "Enviando..." : "Recuperar senha"}
+          {mutation.isPending ? "Enviando..." : "Recuperar minha senha"}
         </Button>
       </Form>
       <Footer>
         <Link href="/login">Voltar ao login</Link>
       </Footer>
-      {toast && (
-        <Toast message={toast.message} variant={toast.variant} onDismiss={dismissToast} />
-      )}
     </AuthCard>
   );
 }
