@@ -20,8 +20,18 @@ function git(args) {
     cwd: ROOT,
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
-    stdio: ["ignore", "pipe", "ignore"],
+    stdio: ["ignore", "pipe", "pipe"],
   });
+}
+
+// Registra no log de build o motivo de o histórico ficar incompleto, sem vazar credenciais de URLs.
+const URL_CREDENTIALS = /\/\/[^@/\s]+@/g;
+
+function warn(message, error) {
+  // Só stderr/código: a mensagem do erro do Node repete a linha de comando, que pode conter o token.
+  const reason = error ? String(error.stderr || "").trim() || `código ${error.status ?? error.code ?? "desconhecido"}` : "";
+  const detail = reason ? ` (${reason.replace(URL_CREDENTIALS, "//***@")})` : "";
+  console.warn(`[changelog] ${message}${detail}`);
 }
 
 function cleanDescription(body) {
@@ -58,6 +68,15 @@ export function parseGitLog(raw) {
   return { total, entries };
 }
 
+// Repositório privado: o clone raso do provedor de deploy costuma não guardar credencial.
+// GIT_FETCH_TOKEN (token somente leitura do GitHub) permite buscar o histórico completo.
+function authArgs() {
+  const token = process.env.GIT_FETCH_TOKEN;
+  if (!token) return [];
+  const basic = Buffer.from(`x-access-token:${token}`).toString("base64");
+  return ["-c", `http.extraheader=AUTHORIZATION: basic ${basic}`];
+}
+
 function isShallow() {
   return git(["rev-parse", "--is-shallow-repository"]).trim() === "true";
 }
@@ -65,13 +84,15 @@ function isShallow() {
 function readHistory() {
   if (isShallow()) {
     try {
-      git(["fetch", "--unshallow", "--quiet"]);
-    } catch {
+      git([...authArgs(), "fetch", "--unshallow", "--quiet"]);
+    } catch (error) {
       // Sem remote, rede ou permissão: segue com o histórico raso e marca como incompleto.
+      warn("não foi possível completar o histórico com git fetch --unshallow", error);
     }
   }
   const complete = !isShallow();
   const { total, entries } = parseGitLog(git(["log", GIT_LOG_FORMAT]));
+  if (!complete) warn(`histórico raso: apenas ${total} commits disponíveis, versão marcada como indisponível`);
   return { complete: complete && total > 0, total, entries };
 }
 
@@ -102,8 +123,9 @@ export function generateChangelog() {
     let files;
     try {
       files = buildFiles(readHistory());
-    } catch {
+    } catch (error) {
       // Sem git ou sem .git: mantém o que já foi gerado.
+      warn("não foi possível ler o histórico do git", error);
       if (existsSync(VERSION_FILE) && existsSync(CHANGELOG_FILE)) return;
       files = buildFiles({ complete: false, total: 0, entries: [] });
     }
