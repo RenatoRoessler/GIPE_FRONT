@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useState } from "react";
+import { AppFooter } from "@/components/layout/AppFooter";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Content, Layout, Main } from "./AppShell.styles";
@@ -18,6 +19,7 @@ export function AppShell({ children }: AppShellProps) {
       <Content>
         <Header onMenuClick={() => setIsSidebarOpen(true)} />
         <Main>{children}</Main>
+        <AppFooter />
       </Content>
     </Layout>
   );
