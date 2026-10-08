@@ -7,6 +7,8 @@
 
 > Adaptações em relação ao template da skill `cria-techspec`: o projeto não usa `src/features`, Zustand, Jest nem prefixo `I` em interfaces (ver `CLAUDE.md` e `src/types/adesao.ts`). A spec segue a estrutura real do repositório (`src/components`, `src/lib`, `src/types`, styled-components) e o fluxo de testes descrito em "Estratégia de testes". Não há `GUIDELINE.md` no repositório; valeram `AGENTS.md`, `CLAUDE.md` e a documentação do Next.js em `node_modules/next/dist/docs/`.
 
+> **Revisão (2026-10-08): geração deixou de ser em build.** Em produção (Vercel, clone raso) a versão saía como "indisponível". Os JSON de `src/generated/` agora são **versionados** e regenerados pela skill `commit` ao fim de cada chamada (`npm run generate:changelog -- --next`), em um commit `chore(changelog)` separado e sempre o último. O `next.config.ts` não chama mais o script, e foram removidos o `git fetch --unshallow` e o `GIT_FETCH_TOKEN`; com histórico raso o script se recusa a gravar. O `--next` soma 1 para contar o próprio commit de changelog e é idempotente quando o `HEAD` já é esse commit. Commits feitos fora da skill deixam a versão defasada até a próxima chamada. As seções 1, 7, 10 e 11 abaixo descrevem a abordagem original e valem apenas no que não conflita com esta revisão.
+
 ---
 
 ## 1. Visão Técnica

@@ -30,6 +30,10 @@ Referências: ./prd.md, ./techspec.md
   - Arquivos: `src/components/layout/AppFooter/{AppFooter.tsx,AppFooter.styles.ts,index.ts}`, `src/components/layout/AppShell/AppShell.tsx`
   - Pronto quando: o rodapé aparece depois do `Main`, mostra `v1.0.N` como link para `/atualizacoes#v{highlight}` (ou `/atualizacoes` sem entradas); com `complete: false` mostra "Versão indisponível" com link para a página; usa o `Link` do design system, foco visível por teclado e só tokens do tema; não aparece em login, adesão, recuperar e alterar senha.
 
+- [x] T9 — Revisão: JSON versionados e regenerados pela skill `commit`
+  - Arquivos: `scripts/generate-changelog.mjs`, `next.config.ts`, `.gitignore`, `.claude/skills/commit/SKILL.md`
+  - Pronto quando: o script grava `src/generated/*.json` só com repositório completo e aceita `--next` (idempotente se o `HEAD` for `chore(changelog)`); o `next.config.ts` não chama mais o script; `src/generated` não está no `.gitignore`; a skill `commit` termina cada chamada com o commit `chore(changelog)`; a versão gravada é igual ao total de commits depois desse commit.
+
 - [ ] T8 — Verificação final
   - Arquivos: —
   - Pronto quando: `npm run lint` e `yarn next build` passam; `version` = `1.0.<git rev-list --count HEAD>`; no navegador (desktop e 375px, temas claro e escuro) o rodapé aparece em todas as telas logadas, o clique abre a página com a entrada mais recente destacada, recarregar mantém a página, a lista vazia e o estado "indisponível" (simulando `complete: false`) funcionam, e a navegação por teclado funciona; o JSON gerado não contém autor nem e-mail. Pendente fora do código: validar a contagem em um deploy de preview na Vercel (histórico raso).
