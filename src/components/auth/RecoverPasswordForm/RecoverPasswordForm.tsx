@@ -34,7 +34,11 @@ export function RecoverPasswordForm() {
     },
   });
 
-  const isFormValid = useStore(form.store, (state) => state.isFormValid);
+  // Calculado pelo schema: isFormValid é verdadeiro antes de qualquer digitação.
+  const isFormValid = useStore(
+    form.store,
+    (state) => recoverPasswordSchema.safeParse(state.values).success,
+  );
 
   return (
     <AuthCard
