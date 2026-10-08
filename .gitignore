@@ -43,3 +43,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# gerado em build a partir do git (scripts/generate-changelog.mjs)
+/src/generated

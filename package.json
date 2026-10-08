@@ -12,7 +12,8 @@
     "start:hml": "dotenv -e .env.hml -- next start",
     "start:azl": "dotenv -e .env.azl -- next start",
     "start:prod": "dotenv -e .env.prod -- next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:changelog": "node scripts/generate-changelog.mjs"
   },
   "dependencies": {
     "@tanstack/react-form": "^1.33.5",
