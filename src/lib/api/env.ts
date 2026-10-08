@@ -22,7 +22,7 @@ function readEnv() {
   const result = envSchema.safeParse({
     APP_ENV: rawAppEnv || "dev",
     API_URL: process.env.NEXT_PUBLIC_API_URL,
-    TIMEOUT_MS: process.env.NEXT_PUBLIC_API_TIMEOUT_MS || 15000,
+    TIMEOUT_MS: process.env.NEXT_PUBLIC_API_TIMEOUT_MS || 30000,
   });
 
   if (!result.success) {
