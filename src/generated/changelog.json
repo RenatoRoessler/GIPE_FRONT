@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.48",
+      "type": "feat",
+      "scope": "auth",
+      "title": "recuperação de senha por e-mail integrada ao backend",
+      "description": "A tela \"Esqueci minha senha\" agora pede apenas o e-mail cadastrado e\nenvia a solicitação de recuperação de verdade. Se o e-mail não for\nencontrado, a tela avisa e permite corrigir; se o envio der certo, o\nusuário volta ao login com a confirmação.\n\nA tela de alterar senha, aberta pelo link recebido por e-mail, passa a\ngravar a nova senha (mínimo de 6 caracteres) e mostra \"Link inválido\"\ncom a opção de pedir um novo link quando o código não vale mais. Ao\nconcluir, o login exibe o aviso de senha alterada.\n\nO código do link deixa de ser repassado a outros sites pelo navegador, e\nos envios simulados foram removidos.",
+      "date": "2026-10-08T20:32:25-03:00"
+    },
+    {
       "version": "1.0.44",
       "type": "fix",
       "scope": "changelog",
