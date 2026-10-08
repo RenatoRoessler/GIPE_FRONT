@@ -28,7 +28,7 @@ Hoje o botão "Esqueci minha senha" do login leva a uma tela que pede o CPF, mas
 - Acesso a essa tela pelo botão "Esqueci minha senha" do login.
 - Validação do e-mail antes do envio.
 - Envio real da solicitação ao backend, com mensagem de confirmação e retorno ao login.
-- Tela de alterar senha (aberta pelo link recebido por e-mail) funcionando de verdade: grava a nova senha no backend.
+- Tela de alterar senha (aberta pelo link recebido por e-mail) funcionando de verdade: grava a nova senha no backend, com campos de senha e de repetir senha e exigência de senha segura, com checklist de regras ao vivo.
 - Tratamento de falhas de comunicação e de link inválido ou expirado.
 
 ### Fora do Escopo
@@ -73,8 +73,11 @@ A tela tem apenas um campo de e-mail e o botão "Recuperar minha senha".
 - Dado que o link é inválido, expirado ou já utilizado, quando abro a tela ou tento salvar, então vejo a mensagem de que o link não é mais válido e uma opção para solicitar um novo link.
 - Dado que abro a tela de alterar senha sem o código do link, quando ela carrega, então vejo a mensagem de link inválido e a opção para solicitar novo link.
 - Dado que ocorre falha de comunicação ao salvar, quando clico em "Alterar senha", então vejo mensagem compreensível, mantenho o que digitei e posso tentar de novo.
-- **[A DEFINIR]** regra de senha (mínimo de caracteres e complexidade); premissa: a mesma já usada nas telas de cadastro e alteração de senha atuais (mínimo de 6 caracteres) até o backend informar a regra.
-- **[A DEFINIR]** contrato do backend para a redefinição (endereço e dados esperados); precisa ser informado antes da implementação desta parte.
+- Dado que digito a nova senha, quando o campo muda, então vejo uma lista de regras que vai sendo marcada conforme eu cumpro cada uma: mínimo de 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um símbolo. Cada regra tem texto próprio, e o estado "cumprida" ou "pendente" não depende só de cor.
+- Dado que a senha não cumpre todas as regras, quando tento salvar, então o envio é bloqueado e a mensagem do campo indica o que falta.
+- Dado que a senha cumpre todas as regras e é igual à confirmação, quando olho o botão "Alterar senha", então ele está habilitado.
+- Dado que o backend recusa a nova senha por não atender à política dele, quando recebo a resposta, então vejo a mensagem do backend, mantenho o que digitei e posso corrigir. **[A DEFINIR]** se a política do backend é mais rígida que a da tela; a premissa é que a regra da tela é a mínima exigida.
+- Contrato confirmado do backend: a redefinição recebe o código do link e a nova senha. O código vem no endereço do link e nunca é exibido.
 
 ### RF-05: Substituição da tela por CPF
 **Critério de aceite:**
@@ -90,7 +93,7 @@ A tela tem apenas um campo de e-mail e o botão "Recuperar minha senha".
 - **Performance:** a confirmação aparece assim que o backend responde; limite de espera da requisição conforme o padrão do sistema, com mensagem de erro ao estourar.
 - **Acessibilidade:** WCAG 2.2 nível AA; campo com rótulo, erro associado ao campo, foco visível, mensagens anunciadas a leitores de tela e fluxo completo por teclado.
 - **Compatibilidade:** navegadores atuais em desktop e mobile, temas claro e escuro.
-- **Segurança:** a tela informa quando o e-mail não está cadastrado (decisão de produto, que facilita a correção de erros de digitação, mas permite descobrir quais e-mails têm conta); o código do link é de uso temporário e não deve ser exibido nem registrado em logs; a senha nunca é exibida nem registrada. **[A DEFINIR]** limite de tentativas por e-mail ou endereço, a cargo do backend.
+- **Segurança:** a tela informa quando o e-mail não está cadastrado (decisão de produto, que facilita a correção de erros de digitação, mas permite descobrir quais e-mails têm conta); o código do link é de uso temporário e não deve ser exibido nem registrado em logs; a senha nunca é exibida nem registrada. **[A DEFINIR]** limite de tentativas por e-mail ou endereço, a cargo do backend. A nova senha precisa ser forte (8+ caracteres com maiúscula, minúscula, número e símbolo); a confirmação serve só para conferência e não é enviada ao backend.
 
 ## 7. Fluxos Principais
 
@@ -130,7 +133,7 @@ A tela tem apenas um campo de e-mail e o botão "Recuperar minha senha".
 
 | Dependência/Risco | Impacto | Mitigação |
 |-------------------|---------|-----------|
-| Contrato do backend para redefinir a senha ainda não informado | Alto | Obter endereço e formato dos dados antes de implementar o RF-04 |
+| Política de senha do backend pode ser diferente da exibida na tela | Médio | Exibir a mensagem do backend quando recusar e alinhar a regra com o time de backend |
 | O e-mail precisa levar a um link que abra a tela de alterar senha com o código esperado | Alto | Alinhar com o backend o endereço do link em cada ambiente (homologação, azul, produção) |
 | Avisar que o e-mail não foi encontrado permite descobrir quais e-mails têm conta (enumeração) | Médio | Aceito por decisão de produto; pedir limite de tentativas ao backend e monitorar abusos |
 | Usuário não recebe o e-mail (spam, e-mail desatualizado) | Médio | Texto orientando a verificar a caixa de spam; reenvio fica para uma próxima versão |
