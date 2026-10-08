@@ -1,5 +1,10 @@
-// Gera src/generated/{version,changelog}.json a partir do histórico do git, em tempo de build.
-// Nunca lança exceção: qualquer falha resulta em manter os arquivos existentes ou no estado "incompleto".
+// Gera src/generated/{version,changelog}.json a partir do histórico do git.
+// Os arquivos são versionados: quem roda este script é a skill `commit`, depois de criar os commits.
+// Uso: npm run generate:changelog [-- --next]
+//
+// --next: soma 1 à versão para contar o commit "chore(changelog)" que a skill criará logo em seguida,
+//         de modo que a versão gravada seja igual ao total de commits depois desse commit.
+//         Se o HEAD já for esse commit, nada é somado (a execução fica idempotente).
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -12,6 +17,7 @@ const CHANGELOG_FILE = path.join(OUT_DIR, "changelog.json");
 
 const GIT_LOG_FORMAT = "--format=%H%x1f%aI%x1f%s%x1f%b%x1e";
 const CONVENTIONAL_SUBJECT = /^(feat|fix)(?:\(([^)]+)\))?(!)?:\s*(.+)$/;
+const CHANGELOG_COMMIT_SUBJECT = /^chore\(changelog\):/;
 const FOOTER_LINE = /^(co-authored-by|signed-off-by):/i;
 const VERSION_PREFIX = "1.0.";
 
@@ -24,16 +30,6 @@ function git(args) {
   });
 }
 
-// Registra no log de build o motivo de o histórico ficar incompleto, sem vazar credenciais de URLs.
-const URL_CREDENTIALS = /\/\/[^@/\s]+@/g;
-
-function warn(message, error) {
-  // Só stderr/código: a mensagem do erro do Node repete a linha de comando, que pode conter o token.
-  const reason = error ? String(error.stderr || "").trim() || `código ${error.status ?? error.code ?? "desconhecido"}` : "";
-  const detail = reason ? ` (${reason.replace(URL_CREDENTIALS, "//***@")})` : "";
-  console.warn(`[changelog] ${message}${detail}`);
-}
-
 function cleanDescription(body) {
   return body
     .split(/\r?\n/)
@@ -43,6 +39,7 @@ function cleanDescription(body) {
 }
 
 // Função pura: recebe a saída de `git log` no formato GIT_LOG_FORMAT (mais recente primeiro).
+// A versão de cada entrada é a posição do commit no histórico: o mais antigo é 1.0.1.
 export function parseGitLog(raw) {
   const records = raw
     .split("\x1e")
@@ -68,74 +65,46 @@ export function parseGitLog(raw) {
   return { total, entries };
 }
 
-// Repositório privado: o clone raso do provedor de deploy costuma não guardar credencial.
-// GIT_FETCH_TOKEN (token somente leitura do GitHub) permite buscar o histórico completo.
-function authArgs() {
-  const token = process.env.GIT_FETCH_TOKEN;
-  if (!token) return [];
-  const basic = Buffer.from(`x-access-token:${token}`).toString("base64");
-  return ["-c", `http.extraheader=AUTHORIZATION: basic ${basic}`];
-}
-
-function isShallow() {
-  return git(["rev-parse", "--is-shallow-repository"]).trim() === "true";
-}
-
-function readHistory() {
-  if (isShallow()) {
-    try {
-      git([...authArgs(), "fetch", "--unshallow", "--quiet"]);
-    } catch (error) {
-      // Sem remote, rede ou permissão: segue com o histórico raso e marca como incompleto.
-      warn("não foi possível completar o histórico com git fetch --unshallow", error);
-    }
-  }
-  const complete = !isShallow();
-  const { total, entries } = parseGitLog(git(["log", GIT_LOG_FORMAT]));
-  if (!complete) warn(`histórico raso: apenas ${total} commits disponíveis, versão marcada como indisponível`);
-  return { complete: complete && total > 0, total, entries };
-}
-
-function buildFiles({ complete, total, entries }) {
-  return {
-    version: {
-      complete,
-      version: complete ? `${VERSION_PREFIX}${total}` : null,
-      total,
-      highlight: complete ? (entries[0]?.version ?? null) : null,
-    },
-    changelog: { complete, entries },
-  };
-}
-
-// Grava só quando o conteúdo mudou (evita recompilações em `next dev`) e de forma atômica.
+// Grava só quando o conteúdo mudou e de forma atômica. Retorna true se o arquivo foi alterado.
 function writeIfChanged(file, data) {
   const content = `${JSON.stringify(data, null, 2)}\n`;
-  if (existsSync(file) && readFileSync(file, "utf8") === content) return;
+  if (existsSync(file) && readFileSync(file, "utf8") === content) return false;
   const tmp = `${file}.${process.pid}.tmp`;
   writeFileSync(tmp, content, "utf8");
   renameSync(tmp, file);
+  return true;
 }
 
-export function generateChangelog() {
-  try {
-    mkdirSync(OUT_DIR, { recursive: true });
-    let files;
-    try {
-      files = buildFiles(readHistory());
-    } catch (error) {
-      // Sem git ou sem .git: mantém o que já foi gerado.
-      warn("não foi possível ler o histórico do git", error);
-      if (existsSync(VERSION_FILE) && existsSync(CHANGELOG_FILE)) return;
-      files = buildFiles({ complete: false, total: 0, entries: [] });
-    }
-    writeIfChanged(VERSION_FILE, files.version);
-    writeIfChanged(CHANGELOG_FILE, files.changelog);
-  } catch {
-    // Nunca impede dev/build.
+export function generateChangelog({ next = false } = {}) {
+  // Com histórico raso a contagem seria errada: recusa em vez de gravar um número incorreto.
+  if (git(["rev-parse", "--is-shallow-repository"]).trim() === "true") {
+    throw new Error("repositório raso: rode `git fetch --unshallow` antes de gerar a versão");
   }
+
+  const { total, entries } = parseGitLog(git(["log", GIT_LOG_FORMAT]));
+  if (total === 0) throw new Error("nenhum commit encontrado");
+
+  const headIsChangelogCommit = CHANGELOG_COMMIT_SUBJECT.test(git(["log", "-1", "--format=%s"]).trim());
+  const version = total + (next && !headIsChangelogCommit ? 1 : 0);
+
+  mkdirSync(OUT_DIR, { recursive: true });
+  const versionChanged = writeIfChanged(VERSION_FILE, {
+    complete: true,
+    version: `${VERSION_PREFIX}${version}`,
+    total: version,
+    highlight: entries[0]?.version ?? null,
+  });
+  const changelogChanged = writeIfChanged(CHANGELOG_FILE, { complete: true, entries });
+
+  return { version: `${VERSION_PREFIX}${version}`, changed: versionChanged || changelogChanged };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  generateChangelog();
+  try {
+    const { version, changed } = generateChangelog({ next: process.argv.includes("--next") });
+    console.log(`[changelog] versão ${version} ${changed ? "atualizada" : "já estava atualizada"}`);
+  } catch (error) {
+    console.error(`[changelog] ${error instanceof Error ? error.message : error}`);
+    process.exitCode = 1;
+  }
 }
