@@ -94,7 +94,7 @@ Campos: nome completo, CPF, e-mail, celular, senha e confirmação de senha.
 
 ## 6. Requisitos Não-Funcionais
 
-- **Performance:** o envio deve indicar progresso imediatamente; o tempo limite segue o padrão da camada de comunicação (15 s).
+- **Performance:** o envio deve indicar progresso imediatamente; o tempo limite segue o padrão da camada de comunicação (30 s).
 - **Acessibilidade:** WCAG 2.2 nível AA: rótulos em todos os campos, erros anunciados, navegação por teclado na etapa dos 7 dias, estado dos toggles perceptível sem depender só de cor.
 - **Compatibilidade:** desktop e mobile responsivo, como no fluxo atual; a etapa de horários deve ser usável em tela estreita.
 - **Segurança:** a senha não é exibida em mensagens de erro; dados sensíveis não são registrados em log. **Atenção:** o backend usa HTTP sem criptografia, e a senha trafega nesse canal (ver riscos).

@@ -15,7 +15,7 @@ O valor entregue é interno ao time: reduzir o esforço e o risco das próximas 
 
 ## 2. Contexto e Motivação
 
-Hoje todas as telas (login, gestão de usuários etc.) operam com dados mockados. O backend já está disponível em `http://157.151.11.120:5000/api/v1/` e a próxima etapa é integrá-lo. Antes disso, é necessário estabelecer a base de comunicação, evitando retrabalho e inconsistências entre as integrações futuras.
+Hoje todas as telas (login, gestão de usuários etc.) operam com dados mockados. O backend já está disponível em `https://api.gipepark.com.br/api/v1/` e a próxima etapa é integrá-lo. Antes disso, é necessário estabelecer a base de comunicação, evitando retrabalho e inconsistências entre as integrações futuras.
 
 ## 3. Usuários-Alvo
 
@@ -29,7 +29,7 @@ Hoje todas as telas (login, gestão de usuários etc.) operam com dados mockados
 
 ### Dentro do Escopo
 - Definição de 3 ambientes: **homologação (hml)**, **Azure (azl)** e **produção (prod)**, cada um com seu próprio endereço de backend configurável.
-- Endereço do backend inicialmente igual nos 3 ambientes: `http://157.151.11.120:5000/api/v1/`.
+- Endereço do backend inicialmente igual nos 3 ambientes: `https://api.gipepark.com.br/api/v1/`.
 - Mecanismo para escolher o ambiente ativo sem alterar código, com arquivos de configuração separados por ambiente.
 - Serviço central de comunicação com o backend (cliente HTTP via axios), com endereço base e tempo limite padrão.
 - Envio automático do token de autenticação da sessão nas requisições.
@@ -131,5 +131,5 @@ Hoje todas as telas (login, gestão de usuários etc.) operam com dados mockados
 ## 10. Referências
 
 - `docs/specs/input.md` (descrição original)
-- Backend: `http://157.151.11.120:5000/api/v1/`
+- Backend: `https://api.gipepark.com.br/api/v1/`
 - Specs relacionadas: `docs/specs/refactor-base-tecnica/`, `docs/specs/login-funcional/`, `docs/specs/autenticacao/`

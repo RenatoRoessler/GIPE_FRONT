@@ -8,7 +8,7 @@ Referências: ./prd.md, ./techspec.md
 
 - [x] T2 — Criar arquivos de ambiente e liberar versionamento
   - Arquivos: `.env.hml`, `.env.azl`, `.env.prod`, `.env.example`, `.env.local` (não versionado), `.gitignore`
-  - Pronto quando: cada `.env.<amb>` define `NEXT_PUBLIC_APP_ENV`, `NEXT_PUBLIC_API_URL` (`http://157.151.11.120:5000/api/v1`) e `NEXT_PUBLIC_API_TIMEOUT_MS`; `.gitignore` tem as exceções `!.env.hml`, `!.env.azl`, `!.env.prod`, `!.env.example`; `git status` lista os 4 arquivos versionáveis e não lista `.env.local`.
+  - Pronto quando: cada `.env.<amb>` define `NEXT_PUBLIC_APP_ENV`, `NEXT_PUBLIC_API_URL` (`https://api.gipepark.com.br/api/v1`) e `NEXT_PUBLIC_API_TIMEOUT_MS`; `.gitignore` tem as exceções `!.env.hml`, `!.env.azl`, `!.env.prod`, `!.env.example`; `git status` lista os 4 arquivos versionáveis e não lista `.env.local`.
 
 - [x] T3 — Adicionar scripts por ambiente
   - Arquivos: `package.json`
@@ -16,7 +16,7 @@ Referências: ./prd.md, ./techspec.md
 
 - [x] T4 — Criar leitura e validação das variáveis de ambiente
   - Arquivos: `src/lib/api/env.ts`
-  - Pronto quando: valida com zod `APP_ENV` (`dev|hml|azl|prod`), `API_URL` (URL, sem `/` final) e `TIMEOUT_MS` (número positivo, padrão 15000), acessando `process.env.NEXT_PUBLIC_*` por referência literal; sem `APP_ENV` assume `dev` com `console.warn`; URL ausente/inválida lança erro citando a variável; `npm run lint` passa.
+  - Pronto quando: valida com zod `APP_ENV` (`dev|hml|azl|prod`), `API_URL` (URL, sem `/` final) e `TIMEOUT_MS` (número positivo, padrão 30000), acessando `process.env.NEXT_PUBLIC_*` por referência literal; sem `APP_ENV` assume `dev` com `console.warn`; URL ausente/inválida lança erro citando a variável; `npm run lint` passa.
 
 - [x] T5 — Criar tipos base da API
   - Arquivos: `src/lib/api/types.ts`

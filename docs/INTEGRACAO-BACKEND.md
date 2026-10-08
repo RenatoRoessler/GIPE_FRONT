@@ -14,8 +14,8 @@ Camada de comunicação em `src/lib/api/` (axios + erros padronizados). Specs: `
 Variáveis (veja `.env.example`):
 
 - `NEXT_PUBLIC_APP_ENV`: `dev | hml | azl | prod` (ausente → `dev`, com aviso no console).
-- `NEXT_PUBLIC_API_URL`: URL base do backend, sem barra final. Hoje igual nos 3 ambientes: `http://157.151.11.120:5000/api/v1`.
-- `NEXT_PUBLIC_API_TIMEOUT_MS`: tempo limite das requisições (padrão 15000).
+- `NEXT_PUBLIC_API_URL`: URL base do backend, sem barra final. Hoje igual nos 3 ambientes: `https://api.gipepark.com.br/api/v1`.
+- `NEXT_PUBLIC_API_TIMEOUT_MS`: tempo limite das requisições (padrão 30000).
 
 Os valores `NEXT_PUBLIC_*` são embutidos no **build**: cada ambiente precisa do seu próprio build. Se uma variável obrigatória faltar ou for inválida, a aplicação falha com erro citando qual é.
 

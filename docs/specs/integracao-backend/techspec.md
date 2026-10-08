@@ -19,8 +19,8 @@ Next.js só carrega nativamente `.env`, `.env.local`, `.env.development` e `.env
   - `.env.hml`, `.env.azl`, `.env.prod`, cada um com:
     ```
     NEXT_PUBLIC_APP_ENV=hml
-    NEXT_PUBLIC_API_URL=http://157.151.11.120:5000/api/v1
-    NEXT_PUBLIC_API_TIMEOUT_MS=15000
+    NEXT_PUBLIC_API_URL=https://api.gipepark.com.br/api/v1
+    NEXT_PUBLIC_API_TIMEOUT_MS=30000
     ```
   - `.env.example` documentando as variáveis.
   - `.env.local` (não versionado) para o desenvolvimento local, apontando para o mesmo endereço.
@@ -41,7 +41,7 @@ src/lib/api/
     health.example.ts   # exemplo mínimo de serviço (ver abaixo)
   index.ts        # reexporta api, ApiError, tipos
 ```
-- **`env.ts`**: schema zod (`APP_ENV: "hml"|"azl"|"prod"|"dev"`, `API_URL: url`, `TIMEOUT_MS: coerce number positivo, default 15000`). Acessa as variáveis por referência literal (`process.env.NEXT_PUBLIC_API_URL`), pois lookups dinâmicos não são embutidos no bundle. Se `APP_ENV` ausente, assume `dev` e emite `console.warn` (RF-01). Se a URL estiver ausente/inválida, lança erro nomeando a variável. Remove `/` final da URL para evitar `//` nas rotas.
+- **`env.ts`**: schema zod (`APP_ENV: "hml"|"azl"|"prod"|"dev"`, `API_URL: url`, `TIMEOUT_MS: coerce number positivo, default 30000`). Acessa as variáveis por referência literal (`process.env.NEXT_PUBLIC_API_URL`), pois lookups dinâmicos não são embutidos no bundle. Se `APP_ENV` ausente, assume `dev` e emite `console.warn` (RF-01). Se a URL estiver ausente/inválida, lança erro nomeando a variável. Remove `/` final da URL para evitar `//` nas rotas.
 - **`client.ts`**: `axios.create({ baseURL, timeout, headers: { Accept: "application/json" } })`.
   - Interceptor de request: lê o cookie `AUTH_COOKIE_NAME` (`src/lib/auth.ts`) e, se existir, define `Authorization: Bearer <token>`. Leitura via helper novo `getToken()` em `src/lib/auth.ts` (guarda `typeof document === "undefined"`). Sem token, segue sem o header.
   - Interceptor de response (erro): converte qualquer `AxiosError` em `ApiError` via `normalizeError` e rejeita com ele. Em 401, apenas sinaliza `kind: "unauthorized"`. **Não** redireciona nem limpa a sessão aqui; isso fica para a task de login real (ver Decisões).
