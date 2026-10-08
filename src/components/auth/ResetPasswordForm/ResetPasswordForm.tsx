@@ -1,14 +1,19 @@
 "use client";
 
+import { useStore } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { AuthCard, Footer, Form } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
 import { Link } from "@/components/ui/Link";
+import { PasswordRequirements } from "@/components/ui/PasswordRequirements";
 import { Text } from "@/components/ui/Text";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { resetPassword } from "@/lib/api/services/auth";
 import { resetPasswordSchema, ResetPasswordValues } from "@/lib/schemas/resetPassword";
+
+// Respostas do backend que indicam código do link inválido, vencido ou já usado.
+const INVALID_LINK_KINDS = new Set(["not_found", "unauthorized", "forbidden"]);
 
 export interface ResetPasswordFormProps {
   token: string | null;
@@ -38,8 +43,14 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     },
   });
 
-  // Sem código no endereço ou recusado pelo backend (resetPassword normaliza os 4xx em "validation").
-  const isInvalidLink = !token || (mutation.isError && mutation.error.kind === "validation");
+  const senha = useStore(form.store, (state) => state.values.senha);
+  // Calculado pelo schema: isFormValid é verdadeiro antes de qualquer digitação.
+  const canSubmit = useStore(
+    form.store,
+    (state) => resetPasswordSchema.safeParse(state.values).success,
+  );
+
+  const isInvalidLink = !token || (mutation.isError && INVALID_LINK_KINDS.has(mutation.error.kind));
 
   if (isInvalidLink) {
     return (
@@ -74,10 +85,11 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             />
           )}
         </form.AppField>
+        <PasswordRequirements value={senha} />
         <form.AppField name="confirmarSenha">
           {(field) => (
             <field.TextField
-              label="Confirmar senha"
+              label="Repetir senha"
               type="password"
               autoComplete="new-password"
               disabled={mutation.isPending}
@@ -90,10 +102,15 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             {mutation.error.message}
           </Text>
         )}
-        <Button type="submit" disabled={mutation.isPending}>
+        <Button type="submit" disabled={!canSubmit || mutation.isPending}>
           {mutation.isPending ? "Salvando..." : "Alterar senha"}
         </Button>
       </Form>
+      {mutation.isError && (
+        <Footer>
+          <Link href="/recuperar-senha">Solicitar novo link</Link>
+        </Footer>
+      )}
     </AuthCard>
   );
 }

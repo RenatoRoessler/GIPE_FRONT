@@ -46,10 +46,9 @@ export async function requestPasswordReset(email: string): Promise<void> {
   }
 }
 
-const INVALID_LINK_KINDS = new Set(["validation", "not_found", "unauthorized", "forbidden"]);
-
-// [A DEFINIR] com o backend: endpoint e campos da redefinição são uma suposição, concentrada aqui.
-// Erros 4xx são tratados como link inválido/expirado (kind "validation"), mantendo a mensagem do backend.
+// Redefine a senha com o código do link. A confirmação de senha não é enviada.
+// Rejeita com ApiError sem normalizar: o formulário decide pelo kind (401/403/404 = link inválido;
+// 400/422 = mensagem do backend). O token e a senha nunca são logados.
 export async function resetPassword({
   token,
   senha,
@@ -57,12 +56,5 @@ export async function resetPassword({
   token: string;
   senha: string;
 }): Promise<void> {
-  try {
-    await api.post("/autenticacao/redefinir-senha", { token, novaSenha: senha });
-  } catch (error) {
-    if (error instanceof ApiError && INVALID_LINK_KINDS.has(error.kind)) {
-      throw new ApiError("validation", error.message, error.status, error.details);
-    }
-    throw error;
-  }
+  await api.post("/autenticacao/redefinir-senha", { token, novaSenha: senha });
 }
