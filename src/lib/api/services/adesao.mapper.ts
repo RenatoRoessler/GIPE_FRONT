@@ -48,6 +48,36 @@ export interface AdesaoInput {
   adminUser: AdminUserData;
 }
 
+export type EnderecoPayload = AdesaoPayload["empresa"]["endereco"];
+export type HorarioPayload = AdesaoPayload["horarios"][number];
+
+export function toEnderecoPayload(company: CompanyData): EnderecoPayload {
+  return {
+    logradouro: company.logradouro.trim(),
+    bairro: company.bairro.trim(),
+    numero: company.numero.trim(),
+    cidade: company.cidade.trim(),
+    estado: company.estado,
+    cep: formatCEP(company.cep),
+  };
+}
+
+export function toHorariosPayload(
+  hours: BusinessHoursData,
+  formatTime: (time: string) => string = (time) => time,
+): HorarioPayload[] {
+  return hours.horarios.map((day, index) => {
+    const hasHours = day.aberto && !day.aberto24Horas;
+    return {
+      aberto: day.aberto,
+      aberto24Horas: day.aberto && day.aberto24Horas,
+      diaDaSemana: DIAS_SEMANA[index].codigo,
+      horarioAbertura: hasHours ? formatTime(day.horarioAbertura) : null,
+      horarioFechamento: hasHours ? formatTime(day.horarioFechamento) : null,
+    };
+  });
+}
+
 // Único ponto que traduz o formulário para o contrato do backend.
 // Formatos seguem o exemplo recebido: documentos/telefones só com dígitos, CEP com hífen.
 export function toAdesaoPayload({ company, hours, adminUser }: AdesaoInput): AdesaoPayload {
@@ -58,27 +88,11 @@ export function toAdesaoPayload({ company, hours, adminUser }: AdesaoInput): Ade
       cnpj: onlyDigits(company.cnpj),
       tipoEmpresa: company.tipoEmpresa as TipoEmpresa,
       telefone: onlyDigits(company.telefone),
-      endereco: {
-        logradouro: company.logradouro.trim(),
-        bairro: company.bairro.trim(),
-        numero: company.numero.trim(),
-        cidade: company.cidade.trim(),
-        estado: company.estado,
-        cep: formatCEP(company.cep),
-      },
+      endereco: toEnderecoPayload(company),
       quantidadeVagasMoto: Number(company.quantidadeVagasMoto),
       quantidadeVagasCarro: Number(company.quantidadeVagasCarro),
     },
-    horarios: hours.horarios.map((day, index) => {
-      const hasHours = day.aberto && !day.aberto24Horas;
-      return {
-        aberto: day.aberto,
-        aberto24Horas: day.aberto && day.aberto24Horas,
-        diaDaSemana: DIAS_SEMANA[index].codigo,
-        horarioAbertura: hasHours ? day.horarioAbertura : null,
-        horarioFechamento: hasHours ? day.horarioFechamento : null,
-      };
-    }),
+    horarios: toHorariosPayload(hours),
     usuario: {
       nome: adminUser.nome.trim(),
       cpf: onlyDigits(adminUser.cpf),

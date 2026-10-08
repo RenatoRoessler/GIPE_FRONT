@@ -9,6 +9,7 @@ import { CompanyStepFields } from "@/components/adesao/CompanyStepFields";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Logo } from "@/components/ui/Logo";
 import { PageBackground } from "@/components/ui/PageBackground";
 import { Stepper } from "@/components/ui/Stepper";
@@ -23,7 +24,7 @@ import {
   EMPTY_BUSINESS_HOURS_DATA,
   EMPTY_COMPANY_DATA,
 } from "@/types/adesao";
-import { Actions, ErrorBanner, Form, Header, TitleGroup } from "./OnboardingWizard.styles";
+import { Actions, Form, Header, TitleGroup } from "./OnboardingWizard.styles";
 
 const STEPS = ["Dados da empresa", "Funcionamento", "Usuário titular"];
 
