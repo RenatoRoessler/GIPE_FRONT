@@ -1,0 +1,181 @@
+{
+  "complete": true,
+  "entries": [
+    {
+      "version": "1.0.44",
+      "type": "fix",
+      "scope": "changelog",
+      "title": "corrige a versão indisponível em produção",
+      "description": "A versão e o histórico de atualizações dependiam do git no momento do\nbuild, mas a hospedagem clona só os últimos commits e a versão aparecia\ncomo \"Versão indisponível\". Agora os arquivos de versão e de histórico\nficam guardados no próprio repositório e são atualizados a cada commit,\nentão a produção apenas lê o que já está pronto.\n\nO gerador deixou de rodar no build, não tenta mais completar o histórico\npela rede e se recusa a gravar quando o repositório está incompleto, em\nvez de gravar um número errado.",
+      "date": "2026-10-08T20:18:03-03:00"
+    },
+    {
+      "version": "1.0.43",
+      "type": "fix",
+      "scope": "changelog",
+      "title": "registra o motivo do histórico incompleto e aceita token de leitura",
+      "description": "Em produção (Vercel, clone raso) o rodapé mostrava \"Versão indisponível\"\nsem nenhum indício da causa, pois a falha do git fetch --unshallow era\nengolida. Agora o script registra no log de build por que o histórico\nficou incompleto, mascarando credenciais de URLs.\n\nPara repositórios privados, a variável opcional GIT_FETCH_TOKEN (token\nsomente leitura do GitHub) é enviada como cabeçalho de autorização no\nfetch, permitindo obter o histórico completo. As mensagens de erro usam\napenas stderr/código de saída para não repetir a linha de comando e\nvazar o token.",
+      "date": "2026-10-08T20:11:52-03:00"
+    },
+    {
+      "version": "1.0.41",
+      "type": "feat",
+      "scope": null,
+      "title": "adiciona página de atualizações e versão no rodapé",
+      "description": "- Cria a página /atualizacoes com a lista de novidades e correções, destacando a entrada apontada pela URL\n- Cria o ChangelogList com versão, tipo, escopo, data, título e descrição de cada entrada\n- Cria o AppFooter, exibido no AppShell, com a versão atual como link para a página\n- Mostra \"Versão indisponível\" e um aviso quando o histórico do git está incompleto\n- Separa lib/version.ts de lib/changelog.ts para o rodapé não levar a lista completa ao bundle do cliente",
+      "date": "2026-10-08T20:06:13-03:00"
+    },
+    {
+      "version": "1.0.38",
+      "type": "feat",
+      "scope": "empresa",
+      "title": "adiciona a tela Minha Empresa",
+      "description": "Nova rota /minha-empresa, com item no menu, que carrega os dados da\nempresa (GET /Empresa) e permite editá-los (PUT /Empresa) em duas\nseções de accordion: dados da empresa e funcionamento. Reaproveita os\ncampos e validações da adesão, bloqueia o CNPJ, valida as duas seções\nno salvar abrindo a que tiver erro, permite descartar alterações e\nmostra skeleton durante o carregamento.",
+      "date": "2026-10-08T17:47:06-03:00"
+    },
+    {
+      "version": "1.0.37",
+      "type": "feat",
+      "scope": "ui",
+      "title": "adiciona componentes Accordion e Skeleton",
+      "description": "Accordion acessível (aria-expanded/aria-controls, painel oculto mas\nmontado para preservar valores) e Skeleton com shimmer que respeita\nprefers-reduced-motion, ambos usando apenas tokens do tema.",
+      "date": "2026-10-08T17:47:06-03:00"
+    },
+    {
+      "version": "1.0.32",
+      "type": "feat",
+      "scope": "auth",
+      "title": "integra o login ao backend",
+      "description": "O login passa a autenticar em POST /autenticacao/login, enviando o CPF só\ncom dígitos e usando o accessToken da resposta como sessão. Credencial\nrecusada (401) mostra \"CPF ou senha inválidos.\"; falhas de rede, timeout e\nservidor usam as mensagens da camada de API.\n\n- novo service login em src/lib/api/services/auth.ts\n- LoginForm limpa o cookie antigo antes de logar e anuncia o erro\n  com role=\"alert\"\n- loginSchema valida o dígito verificador do CPF\n- remove mockLogin e a credencial fixa de src/lib/auth.ts",
+      "date": "2026-10-07T09:52:03-03:00"
+    },
+    {
+      "version": "1.0.30",
+      "type": "feat",
+      "scope": "ui",
+      "title": "adiciona componente Logo e usa nas telas de login e adesão",
+      "description": "Extrai a logo do GIPE para um componente do design system, centralizado\ne com base clara no tema escuro, e o usa no AuthCard (login, recuperação\ne redefinição de senha) no lugar do texto \"GIPE\". A adesão passa a usar o\nmesmo componente, removendo o código duplicado do cabeçalho.",
+      "date": "2026-10-07T09:45:27-03:00"
+    },
+    {
+      "version": "1.0.29",
+      "type": "feat",
+      "scope": "auth",
+      "title": "protege todas as rotas e define o dashboard como home",
+      "description": "Sem login, qualquer rota fora de /adesao, /login, /recuperar-senha e\n/alterar-senha redireciona para /login, inclusive rotas inexistentes. O\nproxy passa a cobrir todas as rotas, exceto arquivos estáticos e a pasta\nassets, para o logo continuar visível na adesão.\n\nLogado, a raiz (/) e qualquer rota inexistente redirecionam para\n/dashboard, a nova home. A página Hero deixa de ser usada na raiz.",
+      "date": "2026-10-07T09:38:09-03:00"
+    },
+    {
+      "version": "1.0.28",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "exibe o logo do GIPE no topo do cartão de adesão",
+      "description": "Substitui o texto \"GIPE\" pelo logo oficial (next/image), centralizado\nacima do título. No tema escuro o logo ganha uma base clara, pois o\ntexto dele é azul-marinho e perderia contraste no fundo escuro.",
+      "date": "2026-10-07T09:05:02-03:00"
+    },
+    {
+      "version": "1.0.26",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "restringe número e vagas a dígitos",
+      "description": "Número, Vagas de moto e Vagas de carro descartam qualquer caractere não\nnumérico ao digitar ou colar. O TextField ganha a prop opcional format,\nque normaliza o valor antes de gravar no formulário.",
+      "date": "2026-10-07T08:45:09-03:00"
+    },
+    {
+      "version": "1.0.25",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "preenche o endereço automaticamente pelo CEP",
+      "description": "Ao completar 8 dígitos no CEP da etapa \"Dados da empresa\", consulta o\nViaCEP e preenche logradouro, bairro, cidade e estado. Campos que a\nconsulta não trouxe mantêm o que o usuário digitou e o número nunca é\npreenchido.\n\n- fetchAddressByCep usa fetch próprio, sem o token do backend, com\n  timeout de 8 s e validação da resposta com zod\n- useCepLookup cancela a busca anterior ao mudar o CEP ou desmontar\n- Input ganha hint/hintTone, anunciado por leitores de tela, para os\n  estados buscando, preenchido, não encontrado e falha\n- falhas e CEP inexistente não bloqueiam o preenchimento manual",
+      "date": "2026-10-07T08:45:09-03:00"
+    },
+    {
+      "version": "1.0.22",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "integra o fluxo de adesão ao backend com 3 etapas",
+      "description": "- Envia empresa, horários e usuário titular em um único POST /Adesao pela camada src/lib/api, com mapper puro (adesao.mapper.ts) que isola o contrato do backend: documentos e telefones só com dígitos, CEP com hífen, horários null em dias fechados ou 24 horas e sem repetirSenha\n- Etapa da empresa passa a coletar endereço em 6 campos e vagas de moto e carro\n- Nova etapa \"Funcionamento\" com os 7 dias (aberto, 24 horas, abertura e fechamento) e atalho para copiar a segunda-feira\n- Etapa do titular passa a ter nome completo e celular\n- Schemas, máscaras de telefone/CEP e lista de UFs; zodFieldErrors suporta caminhos de array\n- Erro do backend aparece no banner, botões ficam desabilitados durante o envio e o foco vai para a descrição da nova etapa\n- Remove mockSaveOnboarding\n- Códigos dos dias (1 = domingo) e formatos dos campos são suposições a confirmar com o backend (DIAS_SEMANA e mapper)",
+      "date": "2026-10-06T21:10:24-03:00"
+    },
+    {
+      "version": "1.0.21",
+      "type": "feat",
+      "scope": "ui",
+      "title": "adiciona Switch ao design system e suporte a ref no Text",
+      "description": "- Cria o componente Switch (role=\"switch\", aria-checked, alvo de toque de 44px, foco visível) apenas com tokens do tema\n- Cria SwitchField e o registra em useAppForm para campos booleanos\n- Text passa a aceitar ref, usado para mover o foco ao trocar de etapa na adesão",
+      "date": "2026-10-06T21:10:24-03:00"
+    },
+    {
+      "version": "1.0.19",
+      "type": "feat",
+      "scope": "api",
+      "title": "adiciona camada de comunicação com o backend",
+      "description": "- Cria src/lib/api com cliente axios (baseURL e timeout por ambiente, validados com zod), tipos base e ApiError com normalizeError cobrindo 401, 403, 404, 400/422, 5xx, rede e timeout\n- Anexa o token do cookie como Authorization: Bearer via getToken() em auth.ts; o 401 é apenas classificado, sem limpar sessão nem redirecionar\n- Registra ApiError como erro padrão do TanStack Query e evita retry para unauthorized, forbidden, not_found e validation\n- Inclui service de exemplo (health.example.ts); nenhuma tela foi migrada dos mocks",
+      "date": "2026-10-06T20:45:54-03:00"
+    },
+    {
+      "version": "1.0.17",
+      "type": "feat",
+      "scope": null,
+      "title": "refatora formulários e camada de dados com zod e tanstack",
+      "description": "- Adiciona zod, @tanstack/react-query e @tanstack/react-form como dependências\n- Cria camada reutilizável de formulário em src/components/form (useAppForm, withForm, TextField, SelectField, zodFieldErrors)\n- Cria schemas zod em src/lib/schemas (login, recuperar senha, alterar senha, adesão), reaproveitando isValidCPF/isValidCNPJ/isValidEmail via refine\n- Migra LoginForm, RecoverPasswordForm, ResetPasswordForm, CompanyStepFields, AdminUserStepFields e OnboardingWizard para useAppForm + useMutation\n- Cria src/lib/mockApi.ts centralizando os mocks de recuperar/alterar senha e salvar adesão (antes setTimeout inline em cada componente)\n- Adiciona QueryClientProvider global (src/lib/queryClient.ts, registry.tsx)\n- Substitui o hook useCurrentUser por CurrentUserContext (src/contexts/CurrentUserContext.tsx), compartilhando um único estado entre Header e UserMenu\n- Remove o tipo FormEvent depreciado de todos os formulários (agora sem nenhuma ocorrência no projeto)\n- Documenta a feature em docs/specs/refactor-base-tecnica (prd, techspec, tasks)",
+      "date": "2026-09-24T20:03:31-03:00"
+    },
+    {
+      "version": "1.0.16",
+      "type": "feat",
+      "scope": null,
+      "title": "adiciona ícone/logo do produto e ajusta paleta do tema escuro",
+      "description": "- Adiciona `src/app/icon.png` e regenera `favicon.ico` a partir do logo do GIPE\n- Adiciona `public/assets/gipe-logo.png` (wordmark completo, fundo removido)\n- Usa o ícone real como marca da Sidebar no lugar do círculo bicolor gerado por CSS\n- Troca a paleta do tema escuro de \"Ardósia Âmbar\" para \"Grafite Coral\" em `theme.ts`, atualizando a documentação correspondente",
+      "date": "2026-09-24T19:37:54-03:00"
+    },
+    {
+      "version": "1.0.15",
+      "type": "feat",
+      "scope": null,
+      "title": "implementa login funcional com controle de acesso mockado",
+      "description": "- Cria mock de autenticação em `src/lib/auth.ts` (credencial fixa CPF `972.502.551-26`/senha `123456`, token via cookie)\n- Cria `src/proxy.ts` (convenção \"Proxy\" do Next.js 16, substitui a antiga Middleware) protegendo as rotas da área logada e redirecionando para `/login` sem token\n- Liga `LoginForm` ao mock real (loading, erro de credencial, redirecionamento para `/dashboard` em sucesso)\n- Liga \"Sair\" (`UserMenu`) à limpeza do token de autenticação\n- Documenta a feature em `docs/specs/login-funcional` (prd, techspec, tasks)",
+      "date": "2026-09-24T19:37:41-03:00"
+    },
+    {
+      "version": "1.0.14",
+      "type": "feat",
+      "scope": null,
+      "title": "adiciona estrutura de projeto logado com tema claro/escuro",
+      "description": "- Cria o layout da área logada (route group `(app)`) com AppShell, Header, Sidebar e UserMenu\n- Adiciona o dashboard e páginas placeholder (preços, usuários, entrada/saída de veículos, relatórios, editar usuário)\n- Cria o hook mock `useCurrentUser` e a lista central de navegação `NAV_ITEMS`\n- Implementa o menu lateral com comportamento hover-to-expand, integrado visualmente ao header (mesma cor de fundo e borda)\n- Adiciona `lightTheme` (\"Confiança Azul\") e `darkTheme` (\"Ardósia Âmbar\") em `theme.ts`, com `ThemeModeProvider` para alternância global de tema e persistência em localStorage\n- Adiciona botão de alternância de tema (sol/lua) no header e o token `colors.onPrimary` para manter contraste correto nos dois temas\n- Documenta a feature em `docs/specs/estrutura-projeto-logado` (prd, design, techspec, tasks)",
+      "date": "2026-09-24T18:48:08-03:00"
+    },
+    {
+      "version": "1.0.13",
+      "type": "feat",
+      "scope": null,
+      "title": "adiciona fluxo de adesão ao sistema",
+      "description": "- Cria o wizard de 2 steps (OnboardingWizard) com dados da empresa e usuário administrador\n- Adiciona os componentes Select e Stepper ao design system\n- Adiciona validação de CNPJ e e-mail (src/lib/cnpj.ts, src/lib/email.ts) e os tipos da feature (src/types/adesao.ts)\n- Redireciona para /login com toast de sucesso após concluir a adesão",
+      "date": "2026-09-23T18:26:57-03:00"
+    },
+    {
+      "version": "1.0.12",
+      "type": "feat",
+      "scope": null,
+      "title": "adiciona telas de autenticação",
+      "description": "- Cria os componentes de design system Input, Text, Link, Toast, Card, PageBackground e AuthCard\n- Adiciona as páginas /login, /recuperar-senha e /alterar-senha com validação de CPF, máscara e estados de loading/erro\n- Adiciona utilitário de CPF (src/lib/cpf.ts) e hook useToast\n- Adiciona tokens de tema para efeito de vidro e sombras (primarySoft, glass, shadows) e fundo em degradê",
+      "date": "2026-09-23T18:26:47-03:00"
+    },
+    {
+      "version": "1.0.4",
+      "type": "feat",
+      "scope": "home",
+      "title": "adiciona seção hero na página inicial",
+      "description": "Cria o componente Hero (título, subtítulo e CTA usando o Button do\ndesign system) e o usa na rota \"/\", substituindo o conteúdo padrão\ngerado pelo create-next-app. Conecta o StyledComponentsRegistry no\nlayout raiz para que o tema e os estilos funcionem via SSR.",
+      "date": "2026-09-22T09:30:52-03:00"
+    },
+    {
+      "version": "1.0.3",
+      "type": "feat",
+      "scope": "design-system",
+      "title": "adiciona tema, registry SSR e componente Button",
+      "description": "Cria o tema tipado do projeto (cores, espaçamento, tipografia, radii,\nbreakpoints) em src/styles/theme.ts, conecta o ThemeProvider e o\nregistry de SSR do styled-components em src/lib/registry.tsx, e\nadiciona o primeiro componente base do design system (Button, com\nvariantes primary/secondary/danger e tamanhos sm/md).",
+      "date": "2026-09-22T09:30:47-03:00"
+    }
+  ]
+}
