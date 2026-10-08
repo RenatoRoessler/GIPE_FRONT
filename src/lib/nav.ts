@@ -1,4 +1,4 @@
-export type NavIconId = "pricing" | "users" | "vehicleIn" | "vehicleOut" | "reports";
+export type NavIconId = "pricing" | "users" | "vehicleIn" | "vehicleOut" | "reports" | "company";
 
 export type NavItem = {
   label: string;
@@ -12,4 +12,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Entrada de Veículos", href: "/veiculos/entrada", icon: "vehicleIn" },
   { label: "Saída de Veículos", href: "/veiculos/saida", icon: "vehicleOut" },
   { label: "Relatórios", href: "/relatorios", icon: "reports" },
+  { label: "Minha Empresa", href: "/minha-empresa", icon: "company" },
 ];

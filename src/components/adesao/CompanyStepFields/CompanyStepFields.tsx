@@ -41,8 +41,8 @@ const TIPO_EMPRESA_OPTIONS = Object.values(TipoEmpresa).filter(
 
 export const CompanyStepFields = withForm({
   defaultValues: EMPTY_COMPANY_DATA,
-  props: {} as { disabled?: boolean },
-  render: function Render({ form, disabled }) {
+  props: {} as { disabled?: boolean; lockCnpj?: boolean },
+  render: function Render({ form, disabled, lockCnpj }) {
     const cepLookup = useCepLookup();
 
     async function handleCepChange(rawValue: string) {
@@ -74,7 +74,7 @@ export const CompanyStepFields = withForm({
                 onChange={(event) => field.handleChange(formatCNPJ(event.target.value))}
                 onBlur={field.handleBlur}
                 error={field.state.meta.isTouched ? field.state.meta.errors[0] : undefined}
-                disabled={disabled}
+                disabled={disabled || lockCnpj}
                 required
               />
             )}

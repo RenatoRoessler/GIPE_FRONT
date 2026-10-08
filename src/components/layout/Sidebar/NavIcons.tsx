@@ -65,12 +65,22 @@ function ReportsIcon(props: IconProps) {
   );
 }
 
+function CompanyIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M14 10h5a1 1 0 0 1 1 1v9M3 20h18" />
+      <path d="M8 8h2M8 12h2M8 16h2" />
+    </IconBase>
+  );
+}
+
 const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   pricing: PricingIcon,
   users: UsersIcon,
   vehicleIn: VehicleInIcon,
   vehicleOut: VehicleOutIcon,
   reports: ReportsIcon,
+  company: CompanyIcon,
 };
 
 export function NavIcon({ id, ...props }: { id: NavIconId } & IconProps) {
