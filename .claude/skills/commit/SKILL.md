@@ -15,7 +15,27 @@ Cria commit(s) das mudanças pendentes seguindo o padrão [Conventional Commits]
 4. Nunca incluir arquivos que pareçam conter segredos (`.env`, credenciais) sem confirmar com o usuário antes.
 5. Para cada commit, montar a mensagem no formato abaixo e criar com `git commit -m` via heredoc (evita problemas de escaping).
 6. Depois de cada commit, rodar `git status` para confirmar o resultado.
-7. Nunca fazer `git push` a menos que o usuário peça isso explicitamente, separado do pedido de commit.
+7. **Depois de criar todos os commits da chamada**, atualizar a versão e o changelog (ver "Atualização da versão e do changelog" abaixo).
+8. Nunca fazer `git push` a menos que o usuário peça isso explicitamente, separado do pedido de commit.
+
+## Atualização da versão e do changelog
+
+A versão exibida no rodapé do sistema (`v1.0.N`, com `N` = total de commits) e a página de atualizações vêm de `src/generated/version.json` e `src/generated/changelog.json`, que são **versionados**. Eles só mudam quando esta skill os regenera, então **toda chamada que criar pelo menos um commit** deve terminar com este passo:
+
+1. Rodar `npm run generate:changelog -- --next` (o `--next` soma 1 à versão para contar o commit de changelog do passo 3). Se falhar (ex.: repositório raso), avisar o usuário e seguir sem o passo.
+2. Rodar `git status --short src/generated`. Se **não** houver mudança, parar (nada a commitar).
+3. Se houver mudança, commitar **somente** esses arquivos, como um commit separado:
+   ```
+   git add src/generated
+   git commit -m "chore(changelog): atualiza versão e histórico de atualizações" (com o rodapé de atribuição)
+   ```
+4. **Não** rodar o gerador de novo depois desse commit. Se rodar, ele é idempotente quando o `HEAD` é um `chore(changelog)`, mas não há motivo.
+
+Regras:
+- Pular o passo quando a chamada **não criou nenhum commit** (nada mudou) ou quando o único commit criado foi o próprio `chore(changelog)`.
+- O commit de changelog nunca deve ser agrupado com outros arquivos e deve ser sempre o **último** da chamada, para a versão gravada ser igual ao total de commits depois dele.
+- Só entram na página de atualizações commits `feat` e `fix`, e o texto exibido é o assunto e o corpo da mensagem. Escreva essas mensagens em linguagem clara para o usuário final, sem segredos nem detalhes internos.
+- Commits feitos fora desta skill não atualizam o changelog; a versão fica defasada até a próxima chamada.
 
 ## Tipos (prefixo obrigatório)
 
