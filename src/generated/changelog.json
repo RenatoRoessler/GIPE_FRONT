@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.52",
+      "type": "fix",
+      "scope": null,
+      "title": "mantém \"Recuperar minha senha\" desabilitado com e-mail vazio",
+      "description": "- Calcula a validade do botão pelo recoverPasswordSchema em vez de isFormValid, que é verdadeiro antes de qualquer digitação",
+      "date": "2026-10-08T20:49:34-03:00"
+    },
+    {
+      "version": "1.0.51",
+      "type": "feat",
+      "scope": null,
+      "title": "exige senha forte e mostra checklist ao alterar a senha",
+      "description": "- Cria src/lib/password.ts com as regras de senha forte (8+ caracteres, maiúscula, minúscula, número e símbolo)\n- Atualiza o resetPasswordSchema para informar o que falta na senha (ex.: \"Falta: um número, um símbolo\") e manter a conferência da repetição\n- Cria o componente PasswordRequirements, com checklist dos requisitos marcado ao digitar, sem depender só de cor\n- Ajusta o ResetPasswordForm com os campos \"Nova senha\" e \"Repetir senha\", botão habilitado só com senha forte e repetição igual\n- Trata os erros da redefinição pelo tipo: 401, 403 e 404 mostram \"Link inválido\"; 400 e 422 mostram a mensagem do backend e o link para novo pedido\n- Simplifica resetPassword em auth.ts para enviar apenas token e novaSenha, sem normalizar os erros 4xx",
+      "date": "2026-10-08T20:49:34-03:00"
+    },
+    {
       "version": "1.0.48",
       "type": "feat",
       "scope": "auth",
