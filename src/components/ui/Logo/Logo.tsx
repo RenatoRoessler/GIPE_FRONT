@@ -5,11 +5,15 @@ import { useThemeMode } from "@/contexts/ThemeModeContext";
 import { LogoWrapper } from "./Logo.styles";
 
 // Centraliza-se dentro de um container flex em coluna (ex.: cabeçalho de cartão).
-export function Logo() {
+export interface LogoProps {
+  align?: "center" | "start";
+}
+
+export function Logo({ align = "center" }: LogoProps) {
   const { mode } = useThemeMode();
 
   return (
-    <LogoWrapper $onDark={mode === "dark"}>
+    <LogoWrapper $onDark={mode === "dark"} $align={align}>
       <Image
         src="/assets/gipe-logo.png"
         alt="GIPE — Gestão Inteligente de Estacionamentos"

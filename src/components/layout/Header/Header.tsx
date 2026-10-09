@@ -1,5 +1,7 @@
 "use client";
 
+import { MobileNav } from "@/components/layout/MobileNav";
+import { Logo } from "@/components/ui/Logo";
 import { Text } from "@/components/ui/Text";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { useThemeMode } from "@/contexts/ThemeModeContext";
@@ -7,39 +9,33 @@ import { UserMenu } from "@/components/layout/UserMenu";
 import { MoonIcon, SunIcon } from "./ThemeIcons";
 import {
   Bar,
+  BrandLink,
   EndGroup,
-  MenuButton,
   Skeleton,
-  StartGroup,
   ThemeToggleButton,
   Welcome,
 } from "./Header.styles";
 
-export interface HeaderProps {
-  onMenuClick: () => void;
-}
-
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header() {
   const { user, isLoading } = useCurrentUser();
   const { mode, toggleThemeMode } = useThemeMode();
 
   return (
     <Bar>
-      <StartGroup>
-        <MenuButton type="button" onClick={onMenuClick} aria-label="Abrir menu">
-          ☰
-        </MenuButton>
+      <MobileNav />
+      <BrandLink href="/dashboard" aria-label="GIPE — ir para o início">
+        <Logo align="start" />
+      </BrandLink>
+      <EndGroup>
         <Welcome>
           {isLoading ? (
             <Skeleton />
           ) : (
-            <Text variant="heading" as="span">
+            <Text variant="muted" as="span">
               Olá, {user?.name}
             </Text>
           )}
         </Welcome>
-      </StartGroup>
-      <EndGroup>
         <ThemeToggleButton
           type="button"
           onClick={toggleThemeMode}

@@ -11,10 +11,13 @@ export const StyledText = styled.p<{ $variant: TextVariant }>`
     switch ($variant) {
       case "heading":
         return css`
-          font-size: ${theme.fontSizes.xl};
+          font-family: ${theme.typography.display};
+          font-size: ${theme.typography.displaySize};
           font-weight: ${theme.fontWeights.bold};
           color: ${theme.colors.text};
-          letter-spacing: -0.01em;
+          letter-spacing: ${theme.typography.displayTracking === "normal" ? "-0.01em" : theme.typography.displayTracking};
+          text-transform: ${theme.typography.displayTransform};
+          line-height: 1.1;
         `;
       case "muted":
         return css`

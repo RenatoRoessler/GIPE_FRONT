@@ -1,4 +1,4 @@
-export type NavIconId = "pricing" | "users" | "vehicleIn" | "vehicleOut" | "reports" | "company";
+export type NavIconId = "home" | "pricing" | "users" | "vehicleIn" | "vehicleOut" | "reports" | "company";
 
 export type NavItem = {
   label: string;
@@ -7,6 +7,7 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
+  { label: "Início", href: "/dashboard", icon: "home" },
   { label: "Gestão de Preços", href: "/precos", icon: "pricing" },
   { label: "Gestão de Usuários", href: "/usuarios", icon: "users" },
   { label: "Entrada de Veículos", href: "/veiculos/entrada", icon: "vehicleIn" },
@@ -14,3 +15,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Relatórios", href: "/relatorios", icon: "reports" },
   { label: "Minha Empresa", href: "/minha-empresa", icon: "company" },
 ];
+
+// "Início" só é ativo na rota exata; os demais também nas rotas filhas.
+export function isNavItemActive(pathname: string, href: string) {
+  return href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+}

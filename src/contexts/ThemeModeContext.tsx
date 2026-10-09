@@ -2,7 +2,7 @@
 
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { ThemeProvider } from "styled-components";
-import { darkTheme, lightTheme } from "@/styles/theme";
+import { darkTheme, lightTheme, signageDarkTheme, signageLightTheme } from "@/styles/theme";
 
 export type ThemeMode = "light" | "dark";
 
@@ -50,4 +50,15 @@ export function useThemeMode() {
     throw new Error("useThemeMode deve ser usado dentro de ThemeModeProvider");
   }
   return context;
+}
+
+// Tema de sinalização viária da área logada: aninhado dentro do provider global,
+// herda o modo (claro/escuro) escolhido e não afeta as telas públicas.
+export function SignageThemeProvider({ children }: { children: ReactNode }) {
+  const { mode } = useThemeMode();
+  return (
+    <ThemeProvider theme={mode === "dark" ? signageDarkTheme : signageLightTheme}>
+      {children}
+    </ThemeProvider>
+  );
 }

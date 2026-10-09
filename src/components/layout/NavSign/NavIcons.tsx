@@ -19,6 +19,14 @@ function IconBase(props: IconProps) {
   );
 }
 
+function HomeIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 20V4M5 11l7-7 7 7" />
+    </IconBase>
+  );
+}
+
 function PricingIcon(props: IconProps) {
   return (
     <IconBase {...props}>
@@ -75,6 +83,7 @@ function CompanyIcon(props: IconProps) {
 }
 
 const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
+  home: HomeIcon,
   pricing: PricingIcon,
   users: UsersIcon,
   vehicleIn: VehicleInIcon,

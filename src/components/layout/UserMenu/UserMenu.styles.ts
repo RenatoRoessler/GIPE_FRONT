@@ -10,18 +10,18 @@ export const Avatar = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.full};
-  background-color: ${({ theme }) => theme.colors.primarySoft};
-  color: ${({ theme }) => theme.colors.primary};
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   cursor: pointer;
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 3px solid ${({ theme }) => theme.colors.warn};
     outline-offset: 2px;
   }
 `;
@@ -54,7 +54,7 @@ export const DropdownItemLink = styled.a`
   }
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 3px solid ${({ theme }) => theme.colors.warn};
     outline-offset: 2px;
   }
 `;
@@ -81,7 +81,7 @@ export const LogoutButton = styled.button`
   }
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 3px solid ${({ theme }) => theme.colors.warn};
     outline-offset: 2px;
   }
 `;
