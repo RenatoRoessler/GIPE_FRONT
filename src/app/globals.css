@@ -18,6 +18,8 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  /* clip não cria contêiner de rolagem: com hidden em html e body, o position: sticky do menu deixa de funcionar. */
+  overflow-x: clip;
 }
 
 body {
