@@ -27,7 +27,10 @@ export const StyledCard = styled.div<{ $maxWidth: string }>`
   border: 1px solid ${({ theme }) => theme.colors.glassBorder};
   border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: ${({ theme }) => theme.shadows.glow};
-  animation: ${riseIn} 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${riseIn} 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 
   &::before {
     content: "";

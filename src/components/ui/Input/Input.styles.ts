@@ -48,8 +48,8 @@ export const StyledInput = styled.input<{ $hasError: boolean; $hasToggle?: boole
     border-color: ${({ theme, $hasError }) =>
       $hasError ? theme.colors.danger : theme.colors.primary};
     box-shadow: 0 0 0 3px
-      ${({ $hasError }) =>
-        $hasError ? "rgba(229, 72, 77, 0.15)" : "rgba(51, 102, 255, 0.15)"};
+      ${({ theme, $hasError }) =>
+        $hasError ? "rgba(229, 72, 77, 0.15)" : theme.colors.primarySoft};
   }
 
   &:disabled {
