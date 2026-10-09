@@ -13,12 +13,12 @@ export function Logo({ align = "center" }: LogoProps) {
   const { mode } = useThemeMode();
 
   return (
-    <LogoWrapper $onDark={mode === "dark"} $align={align}>
+    <LogoWrapper $align={align}>
       <Image
-        src="/assets/gipe-logo.png"
-        alt="GIPE — Gestão Inteligente de Estacionamentos"
-        width={173}
-        height={56}
+        src={mode === "dark" ? "/assets/gipe-logo-azul-dark.png" : "/assets/gipe-logo-azul.png"}
+        alt="GIPE — Gestão Inteligente para Estacionamentos"
+        width={260}
+        height={118}
         priority
       />
     </LogoWrapper>

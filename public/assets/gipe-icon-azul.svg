@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="GIPE">
+<defs><linearGradient id="ib" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2E35"/><stop offset="1" stop-color="#101215"/></linearGradient></defs>
+<rect width="512" height="512" rx="112" fill="url(#ib)"/>
+<g transform="translate(40 118) scale(2.7)"><defs><linearGradient id="gg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2A7BE6"/><stop offset="1" stop-color="#1768D1"/></linearGradient></defs>
+<g transform="skewX(-10) translate(14 0)"><path d="M90.6 30A42 42 0 1 0 102 62H64" fill="none" stroke="url(#gg3)" stroke-width="28" stroke-linejoin="round"/>
+<path d="M30 112 L70 66 L74 68 L56 114Z" fill="#15171A"/><path d="M43 113 L72 67" stroke="#FFFFFF" stroke-width="2.6" stroke-dasharray="6 5" fill="none"/></g></g>
+<g transform="translate(322 46) scale(1.9)"><defs><linearGradient id="pg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2A7BE6"/><stop offset="1" stop-color="#1768D1"/></linearGradient></defs>
+<path d="M32 78C32 78 4 48 4 30a28 28 0 0 1 56 0c0 18-28 48-28 48Z" fill="url(#pg3)"/><circle cx="32" cy="30" r="17.5" fill="#101215"/>
+<path d="M27 40V20h7.5a5.5 5.5 0 0 1 0 11H27" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"/></g></svg>
