@@ -15,9 +15,21 @@ export const Label = styled.label`
   color: ${({ theme }) => theme.colors.text};
 `;
 
-export const StyledInput = styled.input<{ $hasError: boolean }>`
+export const InputWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const TOGGLE_SIZE = 32;
+
+export const StyledInput = styled.input<{ $hasError: boolean; $hasToggle?: boolean }>`
   width: 100%;
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
+  ${({ $hasToggle, theme }) =>
+    $hasToggle &&
+    css`
+      padding-right: ${TOGGLE_SIZE + theme.space[3]}px;
+    `}
   font-size: ${({ theme }) => theme.fontSizes.md};
   font-family: inherit;
   color: ${({ theme }) => theme.colors.text};
@@ -54,6 +66,38 @@ export const StyledInput = styled.input<{ $hasError: boolean }>`
         background-color: rgba(229, 72, 77, 0.04);
       }
     `}
+`;
+
+export const ToggleButton = styled.button`
+  position: absolute;
+  top: 50%;
+  right: ${({ theme }) => theme.space[1]}px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: ${TOGGLE_SIZE}px;
+  height: ${TOGGLE_SIZE}px;
+  padding: 0;
+  transform: translateY(-50%);
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.sm};
+  background: none;
+  color: ${({ theme }) => theme.colors.textMuted};
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: ${({ theme }) => theme.colors.text};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 `;
 
 export type HintTone = "muted" | "success" | "danger";
