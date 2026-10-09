@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIPE — Modelos de layout</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f6f7f9; --card: #fff; --text: #181c22; --muted: #596273; --line: #d8dde5; --accent: #1456b8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #121418; --card: #1a1e24; --text: #e9ecf1; --muted: #a2acbb; --line: #333a45; --accent: #7fb0ff; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; }
+  main { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+  h1 { font-size: 28px; }
+  p { color: var(--muted); line-height: 1.55; }
+  ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  a.model { display: block; padding: 18px 20px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; color: inherit; text-decoration: none; }
+  a.model:hover { border-color: var(--accent); }
+  a.model:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  a.model strong { display: block; font-size: 18px; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Modelos de layout do GIPE</h1>
+  <p>Seis propostas para a casca do app (menu, cabeçalho e rodapé) e o dashboard. Cada uma tem tema claro e escuro (botão no cabeçalho) e versão para celular. Os dados são de exemplo.</p>
+  <ul>
+    <li><a class="model" href="modelo-a-patio.html"><strong>Modelo A: Planta do pátio</strong>Asfalto, tinta de demarcação e números estampados. O dashboard é o pátio visto de cima, com a entrada rápida por placa no topo.</a></li>
+    <li><a class="model" href="modelo-b-sinalizacao.html"><strong>Modelo B: Sinalização viária</strong>Placas de trânsito brasileiras. O menu é um pórtico com placas penduradas e as vagas livres aparecem como uma placa de destinos.</a></li>
+    <li><a class="model" href="modelo-c-denso.html"><strong>Modelo C: Mosaico denso</strong>Módulos riscados por filetes, abas vermelhas e tipo pequeno. Mais informação por tela, para quem opera o dia todo.</a></li>
+    <li><a class="model" href="modelo-d-partidas.html"><strong>Modelo D: Quadro de partidas</strong>Letras que giram como num quadro de estação. O pátio vira uma lista de partidas, com situação em cores e um único momento de movimento ao carregar.</a></li>
+    <li><a class="model" href="modelo-e-led.html"><strong>Modelo E: Painel de LED</strong>Letreiro da entrada da garagem. Cada vaga é um ponto aceso ou apagado, a letra é de pixel grosso e o menu é um teclado de totem.</a></li>
+    <li><a class="model" href="modelo-f-chaves.html"><strong>Modelo F: Quadro de chaves</strong>A guarita do manobrista. Cada veículo é uma chave pendurada num gancho numerado, e tocar na chave abre os dados e a saída.</a></li>
+  </ul>
+</main>
+</body>
+</html>

@@ -1,5 +1,6 @@
-# descriptios
+# description
 
-criar a estrutura para comunicação com o back, crie 3 variaveis hml, azl e prod
-o back vai ser https://api.gipepark.com.br/api/v1/
-crie o serviõço do axios e tudo mais para deixar preparado para uma task de integração com o back
+reformulação do layout
+eu quero que altere o layout do sistema para o modelo [text](../design/layouts/modelo-b-sinalizacao.html)
+
+refaça o layout para ficar parecido com o exemplo a cima

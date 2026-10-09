@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIPE — Modelo A: Planta do pátio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Mundo visual: asfalto, tinta de demarcação, números estampados. A tela é o pátio visto de cima. */
+  :root {
+    --asphalt: #1b1e21;
+    --asphalt-2: #24282c;
+    --asphalt-3: #2e3338;
+    --line: #3b4146;
+    --paint-white: #ecebe5;
+    --paint-yellow: #f3c430;
+    --paint-blue: #3f86f2;
+    --paint-orange: #ff7a2f;
+    --text: #eceae4;
+    --text-2: #aeb2b5;
+    --ok: #5fcf8e;
+    --on-yellow: #1b1e21;
+    --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+    --font-body: "Archivo", system-ui, sans-serif;
+    --r: 10px;
+  }
+  :root[data-theme="light"] {
+    --asphalt: #eceae4;
+    --asphalt-2: #f6f4ee;
+    --asphalt-3: #ffffff;
+    --line: #cfccc2;
+    --paint-white: #1d2023;
+    --paint-yellow: #c98f00;
+    --paint-blue: #1f5fd0;
+    --paint-orange: #c2470a;
+    --text: #1d2023;
+    --text-2: #565b60;
+    --ok: #1c8650;
+    --on-yellow: #ffffff;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: dark; }
+  body {
+    font-family: var(--font-body);
+    background: var(--asphalt);
+    color: var(--text);
+    min-height: 100vh;
+    font-variant-numeric: tabular-nums;
+    caret-color: var(--paint-yellow);
+    scrollbar-color: var(--line) var(--asphalt);
+  }
+  ::selection { background: var(--paint-yellow); color: var(--on-yellow); }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--paint-yellow); outline-offset: 2px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  .app { display: grid; grid-template-columns: 92px 1fr; min-height: 100vh; }
+
+  /* Faixa de navegação: rótulos estampados sob ícones, como numeração de vaga */
+  .rail { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; align-items: center;
+    gap: 6px; padding: 14px 8px; background: var(--asphalt-2); border-right: 1px solid var(--line); }
+  .logo-plate { width: 68px; background: #fff; border-radius: 8px; padding: 6px 5px; margin-bottom: 10px; }
+  .logo-plate img { width: 100%; display: block; }
+  .rail a { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 9px 2px;
+    border-radius: var(--r); color: var(--text-2); font-family: var(--font-display); font-weight: 700;
+    font-size: 13px; letter-spacing: .06em; text-transform: uppercase; text-align: center; line-height: 1.05; }
+  .rail a svg { width: 22px; height: 22px; }
+  .rail a:hover { background: var(--asphalt-3); color: var(--text); }
+  .rail a[aria-current="page"] { background: var(--paint-yellow); color: var(--on-yellow); }
+
+  .main { min-width: 0; display: flex; flex-direction: column; }
+  header.top { display: flex; align-items: center; gap: 16px; padding: 16px 28px; border-bottom: 1px solid var(--line);
+    background: var(--asphalt-2); flex-wrap: wrap; }
+  header.top h1 { font-family: var(--font-display); font-weight: 800; font-size: 34px; letter-spacing: .02em;
+    text-transform: uppercase; line-height: 1; margin-right: auto; }
+  header.top h1 small { display: block; font-family: var(--font-body); font-weight: 500; font-size: 13px;
+    letter-spacing: 0; text-transform: none; color: var(--text-2); margin-top: 4px; }
+
+  /* Entrada rápida: a ação mais frequente do portão fica no topo, em formato de placa Mercosul */
+  .quick { display: flex; align-items: stretch; gap: 8px; }
+  .plate-input { display: flex; align-items: stretch; background: #f4f4f0; border-radius: 8px; overflow: hidden;
+    border: 2px solid #1d2023; height: 46px; }
+  .plate-input::before { content: "BR"; display: grid; place-items: end center; width: 30px; padding-bottom: 4px;
+    background: #1b4fbf; color: #fff; font: 700 10px var(--font-body); letter-spacing: .08em; }
+  .plate-input input { width: 150px; border: 0; outline: 0; background: transparent; color: #1d2023; text-align: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 28px; letter-spacing: .16em; text-transform: uppercase; }
+  .plate-input input::placeholder { color: #8b8f93; letter-spacing: .16em; }
+  .plate-input:focus-within { outline: 2px solid var(--paint-yellow); outline-offset: 2px; }
+  .btn { height: 46px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--line); background: var(--asphalt-3);
+    font-weight: 600; font-size: 14px; }
+  .btn:hover { border-color: var(--text-2); }
+  .btn.primary { background: var(--paint-yellow); color: var(--on-yellow); border-color: var(--paint-yellow); }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--asphalt-3); }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .user { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .avatar { width: 36px; height: 36px; border-radius: 999px; background: #2a68d0; color: #fff; display: grid;
+    place-items: center; font-weight: 700; font-size: 13px; }
+
+  .sample { margin: 16px 28px 0; padding: 8px 12px; border: 1px dashed var(--line); border-radius: 8px;
+    font-size: 13px; color: var(--text-2); }
+
+  .content { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; padding: 20px 28px 28px; flex: 1; }
+
+  /* Planta do pátio */
+  .plan { background: var(--asphalt-2); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .plan-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .plan-head h2 { font-family: var(--font-display); font-weight: 800; font-size: 26px; letter-spacing: .03em; text-transform: uppercase; }
+  .count { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: .04em; color: var(--text-2); }
+  .count b { color: var(--text); font-weight: 800; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--text-2); margin-top: 14px; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .sw { width: 22px; height: 14px; border-radius: 3px; border: 2px solid var(--paint-yellow); }
+  .sw.occ { background: var(--paint-white); border-color: var(--paint-white); opacity: .85; }
+  .sw.pcd { border-color: var(--paint-blue); }
+  .sw.late { background: var(--paint-orange); border-color: var(--paint-orange); }
+
+  .lot { background: var(--asphalt); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 14px;
+    border: 1px solid var(--line); }
+  .row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 0; }
+  .bay { position: relative; aspect-ratio: 5 / 7.5; border: 2px solid var(--paint-yellow); border-bottom: 0;
+    display: grid; place-items: center; margin-left: -2px; }
+  .bay .no { position: absolute; bottom: 4px; font-family: var(--font-display); font-weight: 700; font-size: 12px;
+    letter-spacing: .06em; color: var(--paint-yellow); opacity: .85; }
+  .bay.occ { border-color: var(--paint-yellow); }
+  .bay.occ .car { position: absolute; inset: 14% 14% 24%; background: var(--paint-white); opacity: .88; border-radius: 6px 6px 3px 3px;
+    display: grid; place-items: center; }
+  .bay.occ .car span { font-family: var(--font-display); font-weight: 800; font-size: clamp(9px, 1.05vw, 14px);
+    letter-spacing: .06em; color: var(--asphalt); transform: rotate(0deg); }
+  .bay.late .car { background: var(--paint-orange); opacity: 1; }
+  .bay.late .car span { color: #1b1e21; }
+  .bay.pcd { border-color: var(--paint-blue); }
+  .bay.pcd .no { color: var(--paint-blue); }
+  .bay.pcd:not(.occ)::after { content: "PCD"; font-family: var(--font-display); font-weight: 800; font-size: 14px; color: var(--paint-blue); letter-spacing: .08em; }
+  .bay:hover { background: color-mix(in srgb, var(--paint-yellow) 10%, transparent); }
+
+  .lane { position: relative; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px;
+    font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: .18em; color: var(--paint-white); opacity: .8; }
+  .lane::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 3px dashed var(--paint-white); opacity: .35; }
+  .lane span { position: relative; background: var(--asphalt); padding: 0 12px; }
+
+  .motos { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); }
+  .moto { aspect-ratio: 1 / 2.1; border: 2px solid var(--paint-yellow); border-bottom: 0; margin-left: -2px; position: relative; }
+  .moto.occ::after { content: ""; position: absolute; inset: 18% 34% 18%; background: var(--paint-white); opacity: .88; border-radius: 4px; }
+  .moto.late::after { background: var(--paint-orange); opacity: 1; }
+  .sub { font-family: var(--font-display); font-weight: 700; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); }
+
+  /* Coluna lateral: quem está no pátio e há quanto tempo */
+  .side { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+  .panel { background: var(--asphalt-2); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .panel h2 { font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 4px; }
+  .panel p.note { font-size: 13px; color: var(--text-2); margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 500; font-size: 12px; color: var(--text-2); padding: 0 0 8px; }
+  td { padding: 10px 0; border-top: 1px solid var(--line); }
+  td.plate { font-family: var(--font-display); font-weight: 800; font-size: 20px; letter-spacing: .1em; }
+  td.t { text-align: right; font-weight: 600; }
+  tr.late td.t { color: var(--paint-orange); }
+  .tag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;
+    background: var(--paint-orange); color: #1b1e21; vertical-align: middle; }
+  .bars { display: flex; align-items: flex-end; gap: 5px; height: 96px; margin-top: 8px; border-bottom: 2px solid var(--paint-white); }
+  .bars i { flex: 1; background: var(--paint-blue); border-radius: 3px 3px 0 0; min-height: 4px; }
+  .bars i.now { background: var(--paint-yellow); }
+  .axis { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-top: 6px; }
+
+  footer { padding: 14px 28px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; font-size: 13px; color: var(--text-2); }
+  footer a { color: var(--paint-yellow); font-weight: 600; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 1180px) { .content { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; padding-bottom: 72px; }
+    .rail { position: fixed; z-index: 10; top: auto; bottom: 0; left: 0; right: 0; height: 68px; flex-direction: row; padding: 6px 6px;
+      border-right: 0; border-top: 1px solid var(--line); justify-content: space-between; gap: 2px; }
+    .logo-plate { display: none; }
+    .rail a { padding: 6px 0; font-size: 11px; letter-spacing: .03em; flex: 1; }
+    .rail a svg { width: 20px; height: 20px; }
+    header.top { padding: 14px 16px; }
+    header.top h1 { font-size: 28px; width: 100%; }
+    .quick { width: 100%; }
+    .plate-input { flex: 1; }
+    .plate-input input { width: 100%; min-width: 0; }
+    .sample { margin: 12px 16px 0; }
+    .content { padding: 16px; gap: 16px; }
+    .plan { padding: 12px; }
+    .lot { padding: 8px; }
+    .bay .no { font-size: 9px; }
+    .row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .motos { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+    footer { padding: 12px 16px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .bay, .rail a, .btn { transition: background-color .15s ease, color .15s ease, border-color .15s ease; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail" aria-label="Menu principal">
+    <div class="logo-plate"><img src="../../../public/assets/gipe-logo.png" alt="GIPE"></div>
+    <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Pátio</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16v-3l1.6-4.2A2 2 0 0 1 6.5 7.5h7a2 2 0 0 1 1.9 1.3L17 13v3M3 16h14"/><circle cx="6.5" cy="17.5" r="1.5"/><circle cx="14" cy="17.5" r="1.5"/><path d="M19 8v5M16.5 10.5h5"/></svg>Entrada</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16v-3l1.6-4.2A2 2 0 0 1 6.5 7.5h7a2 2 0 0 1 1.9 1.3L17 13v3M3 16h14"/><circle cx="6.5" cy="17.5" r="1.5"/><circle cx="14" cy="17.5" r="1.5"/><path d="M16.5 10.5h5"/></svg>Saída</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7.5c0-1.5 1.5-2.5 4-2.5s4 1.2 4 3-2 2.5-4 3-4 1.3-4 3 1.5 2.5 4 2.5 4-1 4-2.5"/></svg>Preços</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5M16 8a3 3 0 1 1 3.2 3M21 20c0-2.5-1.8-4.4-4.5-4.9"/></svg>Usuários</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M4 20h16"/></svg>Relatórios</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M14 10h5a1 1 0 0 1 1 1v9M3 20h18M8 8h2M8 12h2M8 16h2"/></svg>Empresa</a>
+  </nav>
+
+  <div class="main">
+    <header class="top">
+      <h1>Pátio agora<small>Olá, Renato Roessler</small></h1>
+      <form class="quick" onsubmit="return false" aria-label="Entrada rápida de veículo">
+        <label class="plate-input"><span class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Placa do veículo</span><input type="text" maxlength="7" placeholder="ABC1D23" autocomplete="off"></label>
+        <button class="btn primary" type="submit">Registrar entrada</button>
+      </form>
+      <button class="icon-btn" id="theme" type="button" aria-label="Alternar tema claro e escuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <div class="user"><span class="avatar" aria-hidden="true">RR</span><span>Renato Roessler</span></div>
+    </header>
+
+    <p class="sample">Dados de exemplo para avaliar o layout. Placas, horários e quantidades não são reais.</p>
+
+    <div class="content">
+      <section class="plan" aria-labelledby="plan-title">
+        <div class="plan-head">
+          <h2 id="plan-title">Planta do pátio</h2>
+          <span class="count"><b>112</b> de 150 vagas de carro · <b>31</b> de 50 de moto</span>
+        </div>
+        <div class="lot" id="lot" role="img" aria-label="Planta do pátio com vagas livres, ocupadas, para PCD e com tempo excedido"></div>
+        <div class="legend" aria-hidden="false">
+          <span><i class="sw"></i>Livre</span>
+          <span><i class="sw occ"></i>Ocupada</span>
+          <span><i class="sw late"></i>Tempo excedido</span>
+          <span><i class="sw pcd"></i>Vaga PCD</span>
+        </div>
+      </section>
+
+      <aside class="side">
+        <section class="panel">
+          <h2>Há mais tempo no pátio</h2>
+          <p class="note">Veículos acima da tolerância ficam destacados.</p>
+          <table>
+            <thead><tr><th>Placa</th><th style="text-align:right">Permanência</th></tr></thead>
+            <tbody>
+              <tr class="late"><td class="plate">QWE4R56<span class="tag">excedido</span></td><td class="t">9 h 12 min</td></tr>
+              <tr class="late"><td class="plate">BRA2E19<span class="tag">excedido</span></td><td class="t">7 h 48 min</td></tr>
+              <tr><td class="plate">FGH1J23</td><td class="t">4 h 05 min</td></tr>
+              <tr><td class="plate">KLM9N87</td><td class="t">3 h 31 min</td></tr>
+              <tr><td class="plate">RTY6U50</td><td class="t">2 h 10 min</td></tr>
+            </tbody>
+          </table>
+        </section>
+        <section class="panel">
+          <h2>Entradas por hora</h2>
+          <p class="note">Hoje, das 6h às 20h. A barra amarela é a hora atual.</p>
+          <div class="bars" id="bars" role="img" aria-label="Gráfico de barras das entradas por hora"></div>
+          <div class="axis"><span>6h</span><span>10h</span><span>14h</span><span>18h</span><span>20h</span></div>
+        </section>
+      </aside>
+    </div>
+
+    <footer><a href="#" aria-label="Versão do sistema, abre a página de atualizações">v1.0.57</a></footer>
+  </div>
+</div>
+
+<script>
+  // Monta a planta com dados sintéticos: ocupadas, PCD e tempo excedido em posições fixas.
+  const lot = document.getElementById('lot');
+  const plates = ['ABC1D23','FGH1J23','KLM9N87','RTY6U50','QWE4R56','BRA2E19','JKL3M45','NOP7Q89','STU2V10','XYZ5W67','DEF8G01','MNB4C32'];
+  const occupied = new Set([0,1,2,3,5,6,8,9,10,11,13,14,15,17,18,19,20,22,23,24,26,27,29,30,31,33,34,35,36,38,39,41,42,43,45,46,47]);
+  const late = new Set([5,22]);
+  const plateOverride = { 5: 'QWE', 22: 'BRA' };
+  const pcd = new Set([12,36]);
+  function bays(from, count) {
+    const row = document.createElement('div'); row.className = 'row';
+    for (let i = from; i < from + count; i++) {
+      const b = document.createElement('div');
+      b.className = 'bay' + (occupied.has(i) ? ' occ' : '') + (late.has(i) ? ' late' : '') + (pcd.has(i) ? ' pcd' : '');
+      b.innerHTML = (occupied.has(i) ? '<div class="car"><span>' + (plateOverride[i] || plates[i % plates.length].slice(0,3)) + '</span></div>' : '') +
+        '<span class="no">' + String(i + 1).padStart(2, '0') + '</span>';
+      row.appendChild(b);
+    }
+    return row;
+  }
+  lot.appendChild(bays(0, 12));
+  lot.appendChild(bays(12, 12));
+  const lane = document.createElement('div'); lane.className = 'lane';
+  lane.innerHTML = '<span>ENTRADA &rarr;</span><span>&larr; SAÍDA</span>'; lot.appendChild(lane);
+  lot.appendChild(bays(24, 12));
+  lot.appendChild(bays(36, 12));
+  const sub = document.createElement('div'); sub.className = 'sub'; sub.textContent = 'Motos'; lot.appendChild(sub);
+  const motos = document.createElement('div'); motos.className = 'motos';
+  for (let i = 0; i < 20; i++) { const m = document.createElement('div'); m.className = 'moto' + (i % 3 !== 2 && i < 14 ? ' occ' : '') + (i === 4 ? ' late' : ''); motos.appendChild(m); }
+  lot.appendChild(motos);
+  // Entradas por hora (sintético)
+  const data = [4,11,18,26,22,15,12,14,20,24,19,13,9,5,3];
+  const max = Math.max(...data);
+  const bars = document.getElementById('bars');
+  data.forEach((v, i) => { const e = document.createElement('i'); e.style.height = Math.round(v / max * 100) + '%'; if (i === 10) { e.className = 'now'; } e.title = (6 + i) + 'h: ' + v + ' entradas'; bars.appendChild(e); });
+  // Tema
+  document.getElementById('theme').addEventListener('click', () => {
+    const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+</script>
+</body>
+</html>

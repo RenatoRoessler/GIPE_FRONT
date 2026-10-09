@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIPE — Modelo F: Quadro de chaves</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Mundo visual: o quadro de chaves da guarita do manobrista. Cada veículo no pátio é uma chave pendurada num gancho numerado. */
+  :root {
+    --wall: #e9dfc9;
+    --cabinet: #3a5748;
+    --inner: #2c4439;
+    --brass: #c7a04a;
+    --brass-dk: #8e6d22;
+    --paper: #f6edd6;
+    --paper-ink: #2a2a25;
+    --ink: #2a2a25;
+    --ink-2: #5d5a4d;
+    --rule: #cdbf9f;
+    --band-car: #3b6fb0;
+    --band-moto: #d9792b;
+    --band-late: #c23a2a;
+    --font-slab: "Bitter", Georgia, serif;
+    --font-body: "Source Sans 3", system-ui, sans-serif;
+  }
+  :root[data-theme="dark"] {
+    --wall: #151a18;
+    --cabinet: #223a2e;
+    --inner: #182a22;
+    --paper: #eadfc2;
+    --ink: #e9e3d3;
+    --ink-2: #a9a692;
+    --rule: #2f3a34;
+    --band-car: #5c93d6;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: light; }
+  body { font-family: var(--font-body); background: var(--wall); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column;
+    font-variant-numeric: tabular-nums; caret-color: var(--brass-dk); scrollbar-color: var(--brass) var(--wall); }
+  ::selection { background: var(--brass); color: #1f1b10; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+
+  header.top { display: flex; align-items: center; gap: 16px; padding: 14px 28px; border-bottom: 2px solid var(--brass-dk); }
+  .logo-plate { display: flex; margin-right: auto; }
+  :root[data-theme="dark"] .logo-plate { background: #fff; padding: 4px 8px; border-radius: 6px; }
+  .logo-plate img { height: 38px; display: block; }
+  .hello { font-size: 15px; color: var(--ink-2); }
+  .icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 999px; border: 2px solid var(--brass-dk); background: var(--paper); color: #2a2a25; }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .avatar { width: 38px; height: 38px; border-radius: 999px; background: var(--cabinet); color: #f6edd6; display: grid; place-items: center; font-weight: 700; font-size: 14px; border: 2px solid var(--brass); }
+
+  .shell { flex: 1; display: grid; grid-template-columns: 208px minmax(0, 1fr) 330px; gap: 24px; padding: 24px 28px 28px; align-content: start; }
+  .sample { grid-column: 1 / -1; padding: 8px 12px; border: 1px dashed var(--brass-dk); border-radius: 6px; font-size: 14px; color: var(--ink-2); }
+
+  /* Gavetas: cada item de menu é um porta-etiqueta de latão com um cartão */
+  nav.drawers { display: flex; flex-direction: column; gap: 12px; align-self: start; position: sticky; top: 20px; }
+  nav.drawers a { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--paper); color: var(--paper-ink); border: 3px solid var(--brass); outline: 1px solid var(--brass-dk); outline-offset: 0; border-radius: 4px;
+    font-family: var(--font-slab); font-weight: 600; font-size: 15px; }
+  nav.drawers a svg { width: 20px; height: 20px; flex: none; }
+  nav.drawers a:hover { background: #fffaf0; }
+  nav.drawers a[aria-current="page"] { background: var(--cabinet); color: #f6edd6; }
+
+  /* Armário */
+  .cabinet { background: var(--cabinet); border: 6px solid var(--brass-dk); border-radius: 10px; padding: 18px; min-width: 0; box-shadow: 0 10px 18px -10px rgba(30, 25, 10, .5); }
+  .plate { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 8px 14px; margin-bottom: 14px; background: var(--brass); color: #231c0a; border-radius: 3px; }
+  .plate h1 { font-family: var(--font-slab); font-weight: 800; font-size: 22px; letter-spacing: .08em; text-transform: uppercase; }
+  .plate span { font-family: var(--font-slab); font-weight: 600; font-size: 15px; }
+  .pages { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pages button { padding: 5px 14px; border-radius: 3px; border: 2px solid var(--brass); background: transparent; color: #f2ead4; font-family: var(--font-slab); font-weight: 600; font-size: 14px; }
+  .pages button[aria-pressed="true"] { background: var(--brass); color: #231c0a; }
+  .pages button:hover:not([aria-pressed="true"]) { background: rgba(199, 160, 74, .18); }
+  .hooks { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0; background: var(--inner); border-radius: 4px; padding: 10px 6px 6px; }
+  .slot { display: flex; flex-direction: column; align-items: center; height: 124px; padding-top: 2px; }
+  .hook { position: relative; width: 12px; height: 12px; border-radius: 50%; background: var(--brass); box-shadow: inset -2px -2px 0 var(--brass-dk); flex: none; margin-bottom: 0; }
+  .num { margin-top: auto; padding-bottom: 6px; font-family: var(--font-slab); font-weight: 700; font-size: 12px; color: #d9c58a; letter-spacing: .06em; }
+  .key { position: relative; margin-top: 4px; width: 90%; max-width: 84px; padding: 14px 2px 6px; background: var(--paper); color: var(--paper-ink); border: 0; border-radius: 4px 4px 6px 6px; text-align: center; line-height: 1.15; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-family: var(--font-slab); transform-origin: top center; }
+  .key::before { content: ""; position: absolute; top: -5px; left: 50%; width: 2px; height: 8px; background: var(--brass-dk); transform: translateX(-50%); }
+  .key::after { content: ""; position: absolute; top: 3px; left: 50%; width: 7px; height: 7px; border-radius: 50%; background: var(--inner); transform: translateX(-50%); }
+  .key .band { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; border-radius: 0 0 6px 6px; background: var(--band-car); }
+  .key.moto .band { background: var(--band-moto); } .key.late .band { background: var(--band-late); height: 7px; }
+  .key b { font-size: 11px; font-weight: 800; letter-spacing: 0; white-space: nowrap; }
+  .key small { font-family: var(--font-body); font-size: 11px; font-weight: 600; color: #55513f; margin-bottom: 4px; }
+  .key.late small { color: var(--band-late); }
+  .key:hover { transform: translateY(2px) rotate(-1.5deg); }
+  .key[aria-pressed="true"] { outline: 3px solid var(--brass); outline-offset: 2px; transform: translateY(4px); }
+  @media (prefers-reduced-motion: no-preference) { .key { transition: transform .18s cubic-bezier(.2, .8, .2, 1); } }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; font-size: 13px; color: #e6dcc0; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; } .legend i { width: 18px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  .col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .card { background: var(--paper); color: var(--paper-ink); border: 3px solid var(--brass); outline: 1px solid var(--brass-dk); border-radius: 4px; padding: 16px 18px; }
+  .card h2 { font-family: var(--font-slab); font-weight: 800; font-size: 19px; margin-bottom: 10px; letter-spacing: .02em; }
+  .sel-plate { font-family: var(--font-slab); font-weight: 800; font-size: 34px; letter-spacing: .08em; line-height: 1; margin-bottom: 4px; }
+  .sel-sub { font-size: 14px; color: #5a5644; margin-bottom: 12px; }
+  dl.d { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 15px; margin-bottom: 14px; }
+  dl.d dt { color: #5a5644; } dl.d dd { font-weight: 700; text-align: right; }
+  .btn { width: 100%; padding: 12px 16px; border-radius: 4px; border: 2px solid #231c0a; background: var(--cabinet); color: #f6edd6; font-family: var(--font-slab); font-weight: 700; font-size: 16px; }
+  .btn:hover { background: #2c4439; }
+  .note { font-size: 13px; color: #5a5644; margin-top: 8px; }
+  ul.alerts { list-style: none; } ul.alerts li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid #d9cba8; font-size: 15px; }
+  ul.alerts li:first-child { border-top: 0; } ul.alerts .sw { width: 12px; height: 22px; border-radius: 2px; background: var(--band-late); flex: none; }
+  ul.alerts b { font-family: var(--font-slab); letter-spacing: .06em; margin-left: auto; }
+  .bars { display: flex; align-items: flex-end; gap: 4px; height: 90px; border-bottom: 3px solid var(--paper-ink); margin-top: 4px; }
+  .bars i { flex: 1; background: var(--cabinet); border-radius: 2px 2px 0 0; min-height: 3px; } .bars i.now { background: var(--band-late); }
+  .axis { display: flex; justify-content: space-between; font-size: 12px; color: #5a5644; margin-top: 6px; }
+
+  footer { padding: 14px 28px; display: flex; justify-content: flex-end; border-top: 2px solid var(--brass-dk); font-size: 14px; color: var(--ink-2); }
+  footer a { font-family: var(--font-slab); font-weight: 700; color: var(--brass-dk); } footer a:hover { text-decoration: underline; }
+  :root[data-theme="dark"] footer a { color: var(--brass); }
+
+  @media (max-width: 1180px) { .shell { grid-template-columns: 188px minmax(0, 1fr); } .col { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); } }
+  @media (max-width: 820px) {
+    header.top { padding: 12px 16px; } .hello { display: none; }
+    .shell { grid-template-columns: 1fr; padding: 16px 16px 24px; gap: 16px; }
+    nav.drawers { position: static; flex-direction: row; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+    nav.drawers a { flex: none; } .cabinet { padding: 12px; border-width: 5px; }
+    .hooks { grid-template-columns: repeat(4, minmax(0, 1fr)); } .slot { height: 128px; } .key { max-width: 82px; }
+    footer { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="logo-plate" href="#"><img src="../../../public/assets/gipe-logo.png" alt="GIPE — Gestão Inteligente de Estacionamentos"></a>
+  <span class="hello">Olá, Renato Roessler</span>
+  <button class="icon-btn" id="theme" type="button" aria-label="Alternar tema claro e escuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  <span class="avatar" aria-hidden="true">RR</span>
+</header>
+
+<div class="shell">
+  <p class="sample">Dados de exemplo para avaliar o layout. Placas, horários e quantidades não são reais.</p>
+
+  <nav class="drawers" aria-label="Menu principal">
+    <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1"/><circle cx="12" cy="8" r="1"/><circle cx="16" cy="8" r="1"/><circle cx="8" cy="13" r="1"/><circle cx="12" cy="13" r="1"/><circle cx="16" cy="13" r="1"/></svg>Quadro</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>Entrada de veículos</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10M17 8v9H8"/></svg>Saída de veículos</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7.5c0-1.5 1.5-2.5 4-2.5s4 1.2 4 3-2 2.5-4 3-4 1.3-4 3 1.5 2.5 4 2.5 4-1 4-2.5"/></svg>Gestão de preços</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5M16 8a3 3 0 1 1 3.2 3M21 20c0-2.5-1.8-4.4-4.5-4.9"/></svg>Gestão de usuários</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M4 20h16"/></svg>Relatórios</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M14 10h5a1 1 0 0 1 1 1v9M3 20h18M8 8h2M8 12h2M8 16h2"/></svg>Minha empresa</a>
+  </nav>
+
+  <section class="cabinet" aria-labelledby="q-title">
+    <div class="plate"><h1 id="q-title">Quadro de chaves</h1><span>112 penduradas · 38 ganchos livres (carros)</span></div>
+    <div class="pages" role="group" aria-label="Faixa de vagas">
+      <button type="button" aria-pressed="true">01–60</button><button type="button" aria-pressed="false">61–120</button><button type="button" aria-pressed="false">121–150</button><button type="button" aria-pressed="false">Motos</button>
+    </div>
+    <div class="hooks" id="hooks" role="group" aria-label="Chaves penduradas nos ganchos de 01 a 60"></div>
+    <div class="legend"><span><i style="background:var(--band-car)"></i>Carro</span><span><i style="background:var(--band-moto)"></i>Moto</span><span><i style="background:var(--band-late)"></i>Tempo excedido</span><span>Gancho vazio = vaga livre</span></div>
+  </section>
+
+  <div class="col">
+    <section class="card" aria-labelledby="sel-title" aria-live="polite">
+      <h2 id="sel-title">Chave selecionada</h2>
+      <div class="sel-plate" id="s-plate">—</div>
+      <div class="sel-sub" id="s-sub">Toque numa chave do quadro.</div>
+      <dl class="d">
+        <dt>Gancho</dt><dd id="s-hook">—</dd>
+        <dt>Entrada</dt><dd id="s-in">—</dd>
+        <dt>Permanência</dt><dd id="s-dur">—</dd>
+      </dl>
+      <button class="btn" type="button">Registrar saída</button>
+      <p class="note">O valor é calculado na saída.</p>
+    </section>
+    <section class="card" aria-labelledby="a-title">
+      <h2 id="a-title">Chaves com atenção</h2>
+      <ul class="alerts">
+        <li><i class="sw"></i>Acima da tolerância<b>QWE4R56</b></li>
+        <li><i class="sw"></i>Acima da tolerância<b>BRA2E19</b></li>
+      </ul>
+    </section>
+    <section class="card" aria-labelledby="h-title">
+      <h2 id="h-title">Entradas por hora</h2>
+      <div class="bars" id="bars" role="img" aria-label="Gráfico de barras das entradas por hora"></div>
+      <div class="axis"><span>6h</span><span>10h</span><span>14h</span><span>18h</span><span>20h</span></div>
+    </section>
+  </div>
+</div>
+
+<footer><a href="#" aria-label="Versão do sistema, abre a página de atualizações">v1.0.57</a></footer>
+
+<script>
+  // Quadro com 60 ganchos (dados sintéticos): ocupados, motos e tempo excedido em posições fixas.
+  const L = 'ABCDEFGHJKLMNPRSTUVWXZ';
+  const plateOf = (i) => { const a = (i * 7 + 3) % L.length, b = (i * 11 + 5) % L.length, c = (i * 5 + 1) % L.length;
+    return L[a] + L[b] + L[c] + (i % 10) + L[(i * 3 + 2) % L.length] + ((i * 13) % 10) + ((i * 17) % 10); };
+  const free = new Set([4, 7, 12, 16, 21, 25, 28, 32, 37, 41, 44, 50, 53, 57]);
+  const moto = new Set([2, 9, 18, 30, 39, 48]); const late = new Set([5, 22]);
+  const custom = { 5: 'QWE4R56', 22: 'BRA2E19' };
+  const hooks = document.getElementById('hooks'); let selected = null;
+  function fmt(mins) { return Math.floor(mins / 60) + ' h ' + String(mins % 60).padStart(2, '0') + ' min'; }
+  for (let i = 0; i < 60; i++) {
+    const slot = document.createElement('div'); slot.className = 'slot';
+    const hook = document.createElement('span'); hook.className = 'hook'; slot.appendChild(hook);
+    if (!free.has(i)) {
+      const plate = custom[i] || plateOf(i); const isLate = late.has(i); const isMoto = moto.has(i);
+      const dur = isLate ? (i === 5 ? 552 : 468) : 25 + (i * 37) % 260; const inMin = 14 * 60 + 52 - dur;
+      const inTime = String(Math.floor(((inMin % 1440) + 1440) % 1440 / 60)).padStart(2, '0') + ':' + String(((inMin % 60) + 60) % 60).padStart(2, '0');
+      const key = document.createElement('button'); key.type = 'button'; key.setAttribute('aria-pressed', 'false');
+      key.className = 'key' + (isMoto ? ' moto' : '') + (isLate ? ' late' : '');
+      key.setAttribute('aria-label', 'Gancho ' + String(i + 1).padStart(2, '0') + ', placa ' + plate + (isLate ? ', tempo excedido' : ''));
+      key.innerHTML = '<b>' + plate + '</b><small>' + fmt(dur).replace(' min', '') .replace(' h ', 'h') + '</small><span class="band"></span>';
+      key.addEventListener('click', () => {
+        if (selected) selected.setAttribute('aria-pressed', 'false');
+        selected = key; key.setAttribute('aria-pressed', 'true');
+        document.getElementById('s-plate').textContent = plate;
+        document.getElementById('s-sub').textContent = (isMoto ? 'Moto' : 'Carro') + (isLate ? ' · acima da tolerância' : '');
+        document.getElementById('s-hook').textContent = String(i + 1).padStart(2, '0');
+        document.getElementById('s-in').textContent = inTime;
+        document.getElementById('s-dur').textContent = fmt(dur);
+      });
+      slot.appendChild(key);
+      if (i === 5) setTimeout(() => key.click(), 0);
+    }
+    const n = document.createElement('span'); n.className = 'num'; n.textContent = String(i + 1).padStart(2, '0'); slot.appendChild(n);
+    hooks.appendChild(slot);
+  }
+  const data = [4,11,18,26,22,15,12,14,20,24,19,13,9,5,3]; const max = Math.max(...data); const bars = document.getElementById('bars');
+  data.forEach((v, i) => { const e = document.createElement('i'); e.style.height = Math.round(v / max * 100) + '%'; if (i === 10) { e.className = 'now'; } e.title = (6 + i) + 'h: ' + v + ' entradas'; bars.appendChild(e); });
+  document.getElementById('theme').addEventListener('click', () => {
+    const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+</script>
+</body>
+</html>

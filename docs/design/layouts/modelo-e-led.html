@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIPE — Modelo E: Painel de LED</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Mundo visual: letreiro de LED da entrada da garagem. Pontos acesos e apagados, letra de pixel grosso, pixel inteiro e sem suavização. */
+  :root {
+    --ground: #08090a;
+    --panel: #101214;
+    --panel-2: #16191c;
+    --rule: #25292d;
+    --lit: #ffb000;
+    --off: #2b2418;
+    --red: #ff4a3d;
+    --green: #39dd7f;
+    --blue: #5aa2ff;
+    --ink: #e9e4d6;
+    --ink-2: #9ea3a8;
+    --font-led: "DotGothic16", "Courier New", monospace;
+    --font-body: "Public Sans", system-ui, sans-serif;
+  }
+  :root[data-theme="light"] {
+    --ground: #dedad0;
+    --panel: #efece4;
+    --panel-2: #e6e2d8;
+    --rule: #c4bfb2;
+    --lit: #1d1b17;
+    --off: #cbc6b9;
+    --red: #c9301f;
+    --green: #17703f;
+    --blue: #1a55b3;
+    --ink: #1d1b17;
+    --ink-2: #57544c;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: dark; }
+  body { font-family: var(--font-body); background: var(--ground); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column;
+    font-variant-numeric: tabular-nums; caret-color: var(--lit); scrollbar-color: var(--rule) var(--ground); }
+  ::selection { background: var(--lit); color: var(--panel); }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--lit); outline-offset: 2px; }
+  .led { font-family: var(--font-led); letter-spacing: .04em; image-rendering: pixelated; -webkit-font-smoothing: none; font-smooth: never; }
+
+  header.top { display: flex; align-items: stretch; gap: 14px; padding: 12px 24px; background: var(--panel); border-bottom: 1px solid var(--rule); }
+  .logo-plate { background: #fff; border-radius: 6px; padding: 5px 9px; display: flex; align-items: center; }
+  .logo-plate img { height: 30px; display: block; }
+  .ticker { position: relative; flex: 1; min-width: 0; overflow: hidden; background: #000; border: 2px solid var(--rule); border-radius: 6px; display: flex; align-items: center; }
+  :root[data-theme="light"] .ticker { background: var(--panel-2); }
+  .ticker-track { display: inline-flex; white-space: nowrap; font-size: 22px; color: var(--lit); padding-left: 100%; }
+  :root[data-theme="light"] .ticker-track { color: var(--lit); }
+  .ticker-track span { padding-right: 56px; }
+  .ticker-track .in { color: var(--blue); } .ticker-track .out { color: var(--green); } .ticker-track .late { color: var(--red); }
+  @media (prefers-reduced-motion: no-preference) { .ticker-track { animation: run 38s linear infinite; } }
+  @keyframes run { to { transform: translateX(-100%); } }
+  .ticker:hover .ticker-track, .ticker[data-paused="true"] .ticker-track { animation-play-state: paused; }
+  .tpause { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border-radius: 4px; border: 1px solid var(--rule); background: var(--panel-2); display: grid; place-items: center; }
+  .tpause svg { width: 14px; height: 14px; }
+  .tpause:hover { border-color: var(--ink-2); }
+  @media (prefers-reduced-motion: reduce) { .ticker-track { padding-left: 14px; } }
+  .icon-btn { width: 42px; border-radius: 6px; border: 1px solid var(--rule); background: var(--panel-2); display: grid; place-items: center; }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .user { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .avatar { width: 36px; height: 36px; background: var(--lit); color: var(--panel); display: grid; place-items: center; font-weight: 700; font-size: 13px; border-radius: 6px; }
+
+  .layout { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 22px; padding: 22px 24px 28px; align-content: start; }
+  .sample { grid-column: 1 / -1; padding: 8px 12px; border: 1px dashed var(--rule); border-radius: 6px; font-size: 13px; color: var(--ink-2); }
+  .stage { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+
+  .panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 18px 20px; min-width: 0; }
+  .panel > h1, .panel > h2, .ph h1, .ph h2 { font-family: var(--font-led); font-weight: 400; font-size: 26px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink); }
+  .ph { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 14px; }
+  .ph .tot { font-family: var(--font-led); font-size: 20px; color: var(--ink-2); } .ph .tot b { font-weight: 400; color: var(--lit); }
+
+  /* Mapa de pontos: um ponto por vaga */
+  .dots { display: grid; gap: 7px; justify-content: start; }
+  .dots.cars { grid-template-columns: repeat(30, minmax(0, 1fr)); }
+  .dots.motos { grid-template-columns: repeat(30, minmax(0, 1fr)); margin-top: 8px; }
+  .d { aspect-ratio: 1; border-radius: 50%; background: var(--off); }
+  .d.on { background: var(--lit); } .d.late { background: var(--red); } .d.pcd { background: var(--off); box-shadow: inset 0 0 0 2px var(--blue); } .d.pcd.on { background: var(--blue); }
+  @media (prefers-reduced-motion: no-preference) { .d.late { animation: blink 1.4s steps(2, jump-none) infinite; } }
+  @keyframes blink { 50% { opacity: .35; } }
+  .sub { font-family: var(--font-led); font-size: 16px; letter-spacing: .08em; color: var(--ink-2); text-transform: uppercase; margin-top: 16px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 16px; font-size: 13px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; } .legend .d { width: 12px; flex: none; }
+
+  .two { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 22px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 500; font-size: 12px; color: var(--ink-2); padding-bottom: 8px; }
+  td { padding: 10px 0; border-top: 1px solid var(--rule); }
+  td.pl { font-family: var(--font-led); font-size: 22px; letter-spacing: .08em; color: var(--lit); }
+  td.pl.red { color: var(--red); }
+  td.r { text-align: right; font-family: var(--font-led); font-size: 18px; }
+  .tag { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 4px; font-family: var(--font-led); font-size: 14px; letter-spacing: .06em; background: var(--red); color: #08090a; vertical-align: middle; }
+  :root[data-theme="light"] .tag { color: #fff; }
+
+  /* Gráfico de pontos: cada coluna acende de baixo para cima */
+  .cols { display: flex; gap: 5px; align-items: flex-end; justify-content: space-between; margin-top: 4px; }
+  .cols div { flex: 0 1 20px; min-width: 0; display: flex; flex-direction: column-reverse; gap: 4px; }
+  .cols i { display: block; aspect-ratio: 1; border-radius: 50%; background: var(--off); }
+  .cols i.on { background: var(--lit); } .cols div.now i.on { background: var(--green); }
+  .axis { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); margin-top: 8px; }
+
+  /* Teclado de menu à direita, como o teclado de um totem */
+  .keypad { display: flex; flex-direction: column; gap: 10px; position: sticky; top: 22px; align-self: start; }
+  .keypad a { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; text-align: center; background: var(--panel-2); border: 1px solid var(--rule); border-bottom: 4px solid var(--rule); border-radius: 8px;
+    font-family: var(--font-led); font-size: 15px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); line-height: 1.1; }
+  .keypad a svg { width: 24px; height: 24px; }
+  .keypad a:hover { color: var(--ink); border-color: var(--ink-2); }
+  .keypad a[aria-current="page"] { background: var(--lit); color: var(--panel); border-color: var(--lit); }
+  :root[data-theme="light"] .keypad a[aria-current="page"] { color: var(--panel); }
+
+  footer { padding: 14px 24px; display: flex; justify-content: flex-end; border-top: 1px solid var(--rule); background: var(--panel); }
+  footer a { font-family: var(--font-led); font-size: 18px; color: var(--lit); letter-spacing: .06em; } footer a:hover { text-decoration: underline; }
+  :root[data-theme="light"] footer a { color: var(--blue); }
+
+  @media (max-width: 1100px) { .two { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) {
+    header.top { padding: 10px 14px; flex-wrap: wrap; } .ticker { order: 5; flex-basis: 100%; min-height: 44px; } .user span:last-child { display: none; }
+    .layout { grid-template-columns: 1fr; padding: 14px 14px 96px; gap: 14px; }
+    .keypad { position: fixed; z-index: 10; left: 0; right: 0; bottom: 0; top: auto; flex-direction: row; gap: 6px; padding: 8px; overflow-x: auto; background: var(--panel); border-top: 1px solid var(--rule); scrollbar-width: none; }
+    .keypad a { flex: 1 0 84px; padding: 8px 4px; font-size: 13px; }
+    .panel { padding: 14px; } .dots { gap: 4px; } .dots.cars, .dots.motos { grid-template-columns: repeat(15, minmax(0, 1fr)); } footer { padding: 12px 14px 84px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="logo-plate" href="#"><img src="../../../public/assets/gipe-logo.png" alt="GIPE — Gestão Inteligente de Estacionamentos"></a>
+  <div class="ticker" role="marquee" aria-label="Últimas movimentações do pátio"><div class="ticker-track led" id="track"></div><button class="tpause" id="tpause" type="button" aria-pressed="false" aria-label="Pausar letreiro"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg></button></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Alternar tema claro e escuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  <div class="user"><span class="avatar" aria-hidden="true">RR</span><span>Renato Roessler</span></div>
+</header>
+
+<div class="layout">
+  <p class="sample">Dados de exemplo para avaliar o layout. Placas, horários e quantidades não são reais.</p>
+
+  <div class="stage">
+    <section class="panel" aria-labelledby="map-title">
+      <div class="ph"><h1 id="map-title">Mapa de vagas</h1><span class="tot"><b>112</b>/150 carros · <b>31</b>/50 motos</span></div>
+      <div class="dots cars" id="cars" role="img" aria-label="Mapa com um ponto por vaga de carro: aceso é ocupada, apagado é livre"></div>
+      <div class="sub">Motos</div>
+      <div class="dots motos" id="motos" role="img" aria-label="Mapa com um ponto por vaga de moto"></div>
+      <div class="legend"><span><i class="d"></i>Livre</span><span><i class="d on"></i>Ocupada</span><span><i class="d late"></i>Tempo excedido</span><span><i class="d pcd"></i>Vaga PCD</span></div>
+    </section>
+
+    <div class="two">
+      <section class="panel" aria-labelledby="perm-title">
+        <div class="ph"><h2 id="perm-title">Em permanência</h2></div>
+        <table>
+          <thead><tr><th>Placa</th><th style="text-align:right">Permanência</th></tr></thead>
+          <tbody>
+            <tr><td class="pl red">QWE4R56<span class="tag">EXCEDIDO</span></td><td class="r">9h12</td></tr>
+            <tr><td class="pl red">BRA2E19<span class="tag">EXCEDIDO</span></td><td class="r">7h48</td></tr>
+            <tr><td class="pl">FGH1J23</td><td class="r">4h05</td></tr>
+            <tr><td class="pl">KLM9N87</td><td class="r">3h31</td></tr>
+            <tr><td class="pl">RTY6U50</td><td class="r">2h10</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section class="panel" aria-labelledby="h-title">
+        <div class="ph"><h2 id="h-title">Entradas por hora</h2></div>
+        <div class="cols" id="cols" role="img" aria-label="Gráfico de pontos das entradas por hora"></div>
+        <div class="axis"><span>6h</span><span>10h</span><span>14h</span><span>18h</span><span>20h</span></div>
+      </section>
+    </div>
+  </div>
+
+  <nav class="keypad" aria-label="Menu principal">
+    <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Painel</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>Entrada</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10M17 8v9H8"/></svg>Saída</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7.5c0-1.5 1.5-2.5 4-2.5s4 1.2 4 3-2 2.5-4 3-4 1.3-4 3 1.5 2.5 4 2.5 4-1 4-2.5"/></svg>Preços</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5M16 8a3 3 0 1 1 3.2 3M21 20c0-2.5-1.8-4.4-4.5-4.9"/></svg>Usuários</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M4 20h16"/></svg>Relatórios</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M14 10h5a1 1 0 0 1 1 1v9M3 20h18M8 8h2M8 12h2M8 16h2"/></svg>Empresa</a>
+  </nav>
+</div>
+
+<footer><a href="#" aria-label="Versão do sistema, abre a página de atualizações">v1.0.57</a></footer>
+
+<script>
+  // Mapa de pontos (dados sintéticos)
+  const occupied = new Set([0,1,2,3,5,6,8,9,10,11,13,14,15,17,18,19,20,22,23,24,26,27,29,30,31,33,34,35,36,38,39,41,42,43,45,46,47,48,49,50,51,52,53,54,55,56,57,58,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122]);
+  const late = new Set([5, 22]); const pcd = new Set([12, 36, 60, 90]);
+  const cars = document.getElementById('cars');
+  for (let i = 0; i < 150; i++) {
+    const d = document.createElement('i');
+    d.className = 'd' + (occupied.has(i) || late.has(i) ? ' on' : '') + (late.has(i) ? ' late' : '') + (pcd.has(i) ? ' pcd' : '');
+    d.title = 'Vaga ' + String(i + 1).padStart(3, '0') + (late.has(i) ? ' · tempo excedido' : occupied.has(i) ? ' · ocupada' : ' · livre');
+    cars.appendChild(d);
+  }
+  const motos = document.getElementById('motos');
+  for (let i = 0; i < 50; i++) { const d = document.createElement('i'); d.className = 'd' + (i < 31 ? ' on' : '') + (i === 4 ? ' late' : ''); d.title = 'Vaga de moto ' + String(i + 1).padStart(2, '0'); motos.appendChild(d); }
+  // Gráfico de pontos
+  const data = [4,11,18,26,22,15,12,14,20,24,19,13,9,5,3]; const max = Math.max(...data); const rowsN = 10;
+  const cols = document.getElementById('cols');
+  data.forEach((v, i) => {
+    const c = document.createElement('div'); if (i === 10) { c.className = 'now'; } c.title = (6 + i) + 'h: ' + v + ' entradas';
+    const n = Math.round(v / max * rowsN);
+    for (let k = 0; k < rowsN; k++) { const b = document.createElement('i'); if (k < n) { b.className = 'on'; } c.appendChild(b); }
+    cols.appendChild(c);
+  });
+  // Letreiro
+  const msgs = [['in','14:52 ENTROU ABC1D23'],['out','14:47 SAIU FGH1J23'],['late','ATENCAO QWE4R56 ACIMA DA TOLERANCIA'],['in','14:31 ENTROU KLM9N87'],['out','14:12 SAIU RTY6U50'],['','VAGAS LIVRES: CARROS 038 · MOTOS 019']];
+  document.getElementById('track').innerHTML = msgs.map(([c, t]) => '<span class="' + c + '">' + t + '</span>').join('');
+  const ticker = document.querySelector('.ticker'); const tpause = document.getElementById('tpause');
+  tpause.addEventListener('click', () => {
+    const paused = ticker.dataset.paused !== 'true'; ticker.dataset.paused = String(paused);
+    tpause.setAttribute('aria-pressed', String(paused)); tpause.setAttribute('aria-label', paused ? 'Retomar letreiro' : 'Pausar letreiro');
+  });
+  document.getElementById('theme').addEventListener('click', () => {
+    const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+</script>
+</body>
+</html>

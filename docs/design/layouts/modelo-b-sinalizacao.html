@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIPE — Modelo B: Sinalização viária</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Mundo visual: placas de trânsito. Azul de indicação, amarelo de advertência, orla branca e letra condensada. */
+  :root {
+    --ground: #edf0f4;
+    --surface: #ffffff;
+    --line: #d5dbe3;
+    --text: #14202e;
+    --text-2: #4d5b6c;
+    --sign: #0a4aa0;
+    --sign-2: #0d5cc4;
+    --on-sign: #ffffff;
+    --warn: #ffcc00;
+    --on-warn: #14202e;
+    --ok: #17803f;
+    --steel: #8a95a3;
+    --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --font-body: "Barlow", system-ui, sans-serif;
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1218;
+    --surface: #151c25;
+    --line: #27313d;
+    --text: #e8edf3;
+    --text-2: #9eabba;
+    --sign: #1768d1;
+    --sign-2: #2a7be6;
+    --warn: #ffcc00;
+    --steel: #5a6573;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  body { font-family: var(--font-body); background: var(--ground); color: var(--text); min-height: 100vh;
+    display: flex; flex-direction: column; font-variant-numeric: tabular-nums; caret-color: var(--sign);
+    scrollbar-color: var(--steel) var(--ground); }
+  ::selection { background: var(--warn); color: #14202e; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--warn); outline-offset: 2px; box-shadow: 0 0 0 5px #14202e; }
+
+  header.top { display: flex; align-items: center; gap: 16px; padding: 14px 32px; background: var(--surface); border-bottom: 1px solid var(--line); }
+  .logo { height: 40px; }
+  :root[data-theme="dark"] .logo-wrap { background: #fff; padding: 4px 8px; border-radius: 8px; }
+  .logo-wrap { display: flex; margin-right: auto; }
+  .hello { font-size: 15px; color: var(--text-2); }
+  .icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .avatar { width: 38px; height: 38px; border-radius: 999px; background: var(--sign); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+
+  /* Pórtico: a navegação é uma barra de aço com placas penduradas */
+  .gantry { position: relative; padding: 18px 32px 0; }
+  .beam { position: absolute; left: 32px; right: 32px; top: 18px; height: 10px; background: var(--steel); border-radius: 5px; }
+  .signs { position: relative; display: flex; gap: 14px; padding-top: 22px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 6px; }
+  .signs::before, .signs::after { content: ""; flex: 0 0 0; }
+  .sign { position: relative; flex: 1 0 150px; min-height: 92px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
+    padding: 12px 14px; background: var(--sign); color: var(--on-sign); border-radius: 10px; border: 3px solid #fff;
+    outline: 2px solid var(--sign); outline-offset: 0; box-shadow: 0 6px 10px -4px rgba(10, 30, 60, .35);
+    font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 1; letter-spacing: .02em; text-transform: uppercase; }
+  .sign::before, .sign::after { content: ""; position: absolute; top: -26px; width: 5px; height: 26px; background: var(--steel); }
+  .sign::before { left: 22%; } .sign::after { right: 22%; }
+  .sign svg { width: 34px; height: 34px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .sign:hover { background: var(--sign-2); }
+  .sign[aria-current="page"] { background: #fff; color: var(--sign); outline-color: #fff; border-color: var(--sign); }
+  :root[data-theme="dark"] .sign { border-color: #e8edf3; outline-color: var(--sign); box-shadow: none; }
+  :root[data-theme="dark"] .sign[aria-current="page"] { background: #e8edf3; }
+
+  main { flex: 1; padding: 22px 32px 32px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 22px; align-content: start; }
+  h1 { grid-column: 1 / -1; font-family: var(--font-display); font-weight: 700; font-size: 38px; letter-spacing: .01em; text-transform: uppercase; line-height: 1; }
+  .sample { grid-column: 1 / -1; padding: 8px 12px; border: 1px dashed var(--steel); border-radius: 8px; font-size: 14px; color: var(--text-2); }
+
+  /* Placa de destinos: vagas livres em linhas, como distâncias numa placa de rodovia */
+  .dest { grid-column: span 7; background: var(--sign); color: var(--on-sign); border: 4px solid #fff; outline: 3px solid var(--sign); border-radius: 14px; padding: 22px 26px; }
+  :root[data-theme="dark"] .dest { border-color: #e8edf3; }
+  .dest h2 { font-family: var(--font-display); font-weight: 600; font-size: 22px; letter-spacing: .12em; text-transform: uppercase; opacity: .9; margin-bottom: 14px; }
+  .dest-row { display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 16px; padding: 14px 0; border-top: 2px solid rgba(255,255,255,.35); }
+  .dest-row:first-of-type { border-top: 0; }
+  .dest-row svg { width: 40px; height: 40px; stroke: #fff; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .dest-name { font-family: var(--font-display); font-weight: 600; font-size: 34px; letter-spacing: .03em; text-transform: uppercase; line-height: 1; }
+  .dest-name small { display: block; margin-top: 6px; font-family: var(--font-body); font-weight: 500; font-size: 15px; letter-spacing: 0; text-transform: none; opacity: .9; }
+  .dest-fill { height: 8px; border-radius: 4px; background: rgba(255,255,255,.28); margin-top: 10px; overflow: hidden; }
+  .dest-fill i { display: block; height: 100%; background: #fff; }
+  .dest-free { font-family: var(--font-display); font-weight: 700; font-size: 52px; line-height: 1; text-align: right; }
+  .dest-free span { display: block; font-size: 16px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; opacity: .9; }
+
+  /* Placa de advertência */
+  .warn { grid-column: span 5; background: var(--warn); color: var(--on-warn); border: 4px solid #14202e; border-radius: 14px; padding: 22px 24px; }
+  .warn h2 { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-weight: 700; font-size: 28px; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 8px; }
+  .warn h2 svg { width: 34px; height: 34px; flex: none; }
+  .warn ul { list-style: none; }
+  .warn li { padding: 12px 0; border-top: 2px solid rgba(20,32,46,.35); display: flex; justify-content: space-between; gap: 12px; font-weight: 600; font-size: 16px; }
+  .warn li:first-child { border-top: 0; }
+  .warn li b { font-family: var(--font-display); font-size: 22px; letter-spacing: .08em; }
+
+  .box { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; min-width: 0; }
+  .box h2 { font-family: var(--font-display); font-weight: 700; font-size: 26px; letter-spacing: .03em; text-transform: uppercase; margin-bottom: 4px; }
+  .box p.note { font-size: 14px; color: var(--text-2); margin-bottom: 14px; }
+  .recent { grid-column: span 7; }
+  .hours { grid-column: span 5; display: flex; flex-direction: column; }
+  .hours .bars { flex: 1; min-height: 140px; height: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th { text-align: left; font-weight: 500; font-size: 13px; color: var(--text-2); padding-bottom: 8px; }
+  td { padding: 11px 0; border-top: 1px solid var(--line); }
+  .pl { display: inline-flex; align-items: stretch; border: 2px solid #14202e; border-radius: 6px; overflow: hidden; background: #f4f4f0; color: #14202e; }
+  .pl::before { content: ""; width: 9px; background: #1b4fbf; }
+  .pl span { padding: 2px 9px; font-family: var(--font-display); font-weight: 700; font-size: 21px; letter-spacing: .1em; }
+  .chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid currentColor; }
+  .chip.in { color: var(--sign); } .chip.out { color: var(--ok); }
+  :root[data-theme="dark"] .chip.in { color: #7db3ff; } :root[data-theme="dark"] .chip.out { color: #5fd08e; }
+  td.r { text-align: right; font-weight: 600; }
+
+  .bars { display: flex; align-items: flex-end; gap: 6px; height: 140px; border-bottom: 3px solid var(--text); margin-top: 6px; }
+  .bars i { flex: 1; background: var(--sign); border-radius: 3px 3px 0 0; min-height: 4px; }
+  .bars i.now { background: var(--warn); outline: 2px solid #14202e; }
+  .axis { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-2); margin-top: 6px; }
+
+  .actions { grid-column: 1 / -1; display: flex; gap: 14px; flex-wrap: wrap; }
+  .disc { display: inline-flex; align-items: center; gap: 14px; padding: 10px 22px 10px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line);
+    font-family: var(--font-display); font-weight: 600; font-size: 24px; letter-spacing: .03em; text-transform: uppercase; }
+  .disc:hover { border-color: var(--sign); }
+  .disc i { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 999px; background: var(--sign); color: #fff; border: 3px solid #fff; outline: 2px solid var(--sign);
+    font-style: normal; font-weight: 700; font-size: 32px; line-height: 1; }
+  :root[data-theme="dark"] .disc i { border-color: #e8edf3; }
+
+  footer { padding: 14px 32px; display: flex; justify-content: flex-end; font-size: 14px; color: var(--text-2); border-top: 1px solid var(--line); background: var(--surface); }
+  footer a { color: var(--sign); font-weight: 600; } :root[data-theme="dark"] footer a { color: #7db3ff; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 1100px) { .dest, .warn, .recent, .hours { grid-column: 1 / -1; } }
+  @media (max-width: 640px) {
+    header.top { padding: 12px 16px; } .hello { display: none; }
+    .gantry { padding: 16px 16px 0; } .beam { left: 16px; right: 16px; top: 16px; }
+    .sign { flex-basis: 128px; font-size: 21px; min-height: 84px; }
+    main { padding: 18px 16px 24px; gap: 16px; }
+    h1 { font-size: 32px; }
+    .dest { padding: 16px; } .dest-name { font-size: 28px; } .dest-free { font-size: 42px; } .dest-row { grid-template-columns: 34px 1fr auto; gap: 10px; }
+    .dest-row svg { width: 30px; height: 30px; }
+    .box, .warn { padding: 16px; }
+    .disc { width: 100%; font-size: 22px; }
+    footer { padding: 12px 16px; }
+  }
+  @media (prefers-reduced-motion: no-preference) { .sign, .disc { transition: background-color .15s ease, border-color .15s ease; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="logo-wrap" href="#"><img class="logo" src="../../../public/assets/gipe-logo.png" alt="GIPE — Gestão Inteligente de Estacionamentos"></a>
+  <span class="hello">Olá, Renato Roessler</span>
+  <button class="icon-btn" id="theme" type="button" aria-label="Alternar tema claro e escuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  <span class="avatar" aria-hidden="true">RR</span>
+</header>
+
+<nav class="gantry" aria-label="Menu principal">
+  <div class="beam" aria-hidden="true"></div>
+  <div class="signs">
+    <a class="sign" href="#" aria-current="page"><svg viewBox="0 0 24 24"><path d="M12 20V4M5 11l7-7 7 7"/></svg>Início</a>
+    <a class="sign" href="#"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg>Entrada de veículos</a>
+    <a class="sign" href="#"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 8v9H8"/></svg>Saída de veículos</a>
+    <a class="sign" href="#"><svg viewBox="0 0 24 24"><path d="M12 3v18M8 7.5c0-1.5 1.5-2.5 4-2.5s4 1.2 4 3-2 2.5-4 3-4 1.3-4 3 1.5 2.5 4 2.5 4-1 4-2.5"/></svg>Gestão de preços</a>
+    <a class="sign" href="#"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5M16 8a3 3 0 1 1 3.2 3M21 20c0-2.5-1.8-4.4-4.5-4.9"/></svg>Gestão de usuários</a>
+    <a class="sign" href="#"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M4 20h16"/></svg>Relatórios</a>
+    <a class="sign" href="#"><svg viewBox="0 0 24 24"><path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M14 10h5a1 1 0 0 1 1 1v9M3 20h18M8 8h2M8 12h2M8 16h2"/></svg>Minha empresa</a>
+  </div>
+</nav>
+
+<main>
+  <h1>Início</h1>
+  <p class="sample">Dados de exemplo para avaliar o layout. Placas, horários e quantidades não são reais.</p>
+
+  <section class="dest" aria-labelledby="dest-title">
+    <h2 id="dest-title">Vagas livres agora</h2>
+    <div class="dest-row">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16v-3l1.6-4.2A2 2 0 0 1 6.5 7.5h7a2 2 0 0 1 1.9 1.3L17 13v3M3 16h14"/><circle cx="6.5" cy="17.5" r="1.5"/><circle cx="14" cy="17.5" r="1.5"/></svg>
+      <div class="dest-name">Carros<small>112 ocupadas de 150</small><div class="dest-fill"><i style="width:74.7%"></i></div></div>
+      <div class="dest-free">38<span>livres</span></div>
+    </div>
+    <div class="dest-row">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="16" r="3"/><circle cx="18" cy="16" r="3"/><path d="M6 16l4-7h4l4 7M10 9l-1-2H7M14 9l1.5 4"/></svg>
+      <div class="dest-name">Motos<small>31 ocupadas de 50</small><div class="dest-fill"><i style="width:62%"></i></div></div>
+      <div class="dest-free">19<span>livres</span></div>
+    </div>
+  </section>
+
+  <section class="warn" aria-labelledby="warn-title">
+    <h2 id="warn-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20L12 3Z"/><path d="M12 10v5M12 18v.5"/></svg>Atenção</h2>
+    <ul>
+      <li><span>Tempo acima da tolerância</span><b>QWE4R56</b></li>
+      <li><span>Tempo acima da tolerância</span><b>BRA2E19</b></li>
+      <li><span>Preço promocional termina hoje</span><b>18:00</b></li>
+    </ul>
+  </section>
+
+  <section class="box recent" aria-labelledby="rec-title">
+    <h2 id="rec-title">Movimentação recente</h2>
+    <p class="note">As últimas entradas e saídas registradas.</p>
+    <table>
+      <thead><tr><th>Placa</th><th>Tipo</th><th style="text-align:right">Horário</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pl"><span>ABC1D23</span></span></td><td><span class="chip in">Entrada</span></td><td class="r">14:52</td></tr>
+        <tr><td><span class="pl"><span>FGH1J23</span></span></td><td><span class="chip out">Saída</span></td><td class="r">14:47</td></tr>
+        <tr><td><span class="pl"><span>KLM9N87</span></span></td><td><span class="chip in">Entrada</span></td><td class="r">14:31</td></tr>
+        <tr><td><span class="pl"><span>RTY6U50</span></span></td><td><span class="chip out">Saída</span></td><td class="r">14:12</td></tr>
+        <tr><td><span class="pl"><span>JKL3M45</span></span></td><td><span class="chip in">Entrada</span></td><td class="r">13:58</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="box hours" aria-labelledby="h-title">
+    <h2 id="h-title">Entradas por hora</h2>
+    <p class="note">Hoje, das 6h às 20h. A barra amarela é a hora atual.</p>
+    <div class="bars" id="bars" role="img" aria-label="Gráfico de barras das entradas por hora"></div>
+    <div class="axis"><span>6h</span><span>10h</span><span>14h</span><span>18h</span><span>20h</span></div>
+  </section>
+
+  <div class="actions">
+    <a class="disc" href="#"><i aria-hidden="true">E</i>Registrar entrada</a>
+    <a class="disc" href="#"><i aria-hidden="true">S</i>Registrar saída</a>
+  </div>
+</main>
+
+<footer><a href="#" aria-label="Versão do sistema, abre a página de atualizações">v1.0.57</a></footer>
+
+<script>
+  const data = [4,11,18,26,22,15,12,14,20,24,19,13,9,5,3];
+  const max = Math.max(...data);
+  const bars = document.getElementById('bars');
+  data.forEach((v, i) => { const e = document.createElement('i'); e.style.height = Math.round(v / max * 100) + '%'; if (i === 10) { e.className = 'now'; } e.title = (6 + i) + 'h: ' + v + ' entradas'; bars.appendChild(e); });
+  document.getElementById('theme').addEventListener('click', () => {
+    const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+</script>
+</body>
+</html>
