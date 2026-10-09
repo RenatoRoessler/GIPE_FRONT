@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.56",
+      "type": "feat",
+      "scope": "ui",
+      "title": "permite mostrar e ocultar a senha digitada",
+      "description": "Todos os campos de senha (login, adesão e alteração de senha) ganham um\nbotão de olho para conferir o que foi digitado. Cada campo funciona de\nforma independente, o botão tem nome acessível próprio e fica\ndesabilitado junto com o campo durante o envio.",
+      "date": "2026-10-08T21:02:32-03:00"
+    },
+    {
+      "version": "1.0.55",
+      "type": "fix",
+      "scope": "layout",
+      "title": "mantém o menu lateral fixo ao rolar a página",
+      "description": "Ao rolar uma página longa, o menu lateral subia junto com o conteúdo e\ndeixava uma faixa escura no lugar, porque o fundo do navegador seguia o\ntema do sistema e não o do aplicativo. Agora o menu permanece visível\ndurante a rolagem e a área ao lado dele usa as cores do tema do\naplicativo.",
+      "date": "2026-10-08T21:02:32-03:00"
+    },
+    {
       "version": "1.0.52",
       "type": "fix",
       "scope": null,
