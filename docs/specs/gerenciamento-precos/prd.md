@@ -11,10 +11,10 @@ Administradores e gestores financeiros/operacionais do GIPE que definem e mantê
 
 ## Requisitos funcionais
 - RF1: Ao abrir a tela, exibir uma tabela com os registros de preço cadastrados, com paginação.
-- RF2: A listagem deve mostrar, no mínimo: descrição, tipo de regra, prioridade, início e fim de vigência e situação (ativo/inativo).
+- RF2: A listagem deve mostrar, no mínimo: descrição, tipo de regra, início e fim de vigência e situação (ativo/inativo).
 - RF3: Permitir visualizar o detalhe completo de uma tabela de preço (informações, horários, faixas de valores e categorias) em modo somente leitura.
 - RF4: Permitir cadastrar uma nova tabela de preço por um fluxo em etapas (ver RF5 a RF8).
-- RF5: **Etapa 1 – Informações**: descrição, prioridade, tipo de regra (Padrão, Convênio, Promocional, Evento), início e fim de vigência, tolerância de entrada (minutos), tolerância de alteração de faixa (minutos), período da diária, valor da diária, valor adicional da diária e situação (ativo).
+- RF5: **Etapa 1 – Informações**: descrição, tipo de regra (Padrão, Convênio, Promocional, Evento), início e fim de vigência, tolerância de entrada (minutos), tolerância de alteração de faixa (minutos), período da diária, valor da diária, valor adicional da diária e situação (ativo).
 - RF6: **Etapa 2 – Horários**: cadastrar uma ou mais regras de horário, cada uma com dia da semana, hora de início, hora de fim, data de início, data de fim e situação (ativo).
 - RF7: **Etapa 3 – Faixas de valores**: cadastrar uma ou mais faixas, cada uma com limite em minutos, valor e percentual da conveniada (opcional).
 - RF8: **Etapa 4 – Categorias**: selecionar uma ou mais categorias de veículo (Moto, Carro pequeno, Carro médio, SUV/Pick-up, Caminhonete, Caminhão ou Todas).

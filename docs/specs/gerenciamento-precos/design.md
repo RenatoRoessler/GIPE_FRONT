@@ -12,7 +12,7 @@ Ideia de identidade para esta tela: a **faixa de valores** é apresentada como u
 
 ### Reaproveitados (existem em `src/components/ui`)
 - **Button** — `primary` ("Novo preço", "Avançar", "Salvar"), `secondary` ("Voltar", "Editar", "Cancelar", "Adicionar horário/faixa"), tamanho `sm` nas ações de linha.
-- **Input** — descrição, prioridade, tolerâncias, período e valores da diária, datas, horas, minutos limite, valor, percentual.
+- **Input** — descrição, tolerâncias, período e valores da diária, datas, horas, minutos limite, valor, percentual.
 - **Select** — tipo de regra, dia da semana, empresa conveniada (desabilitado).
 - **Stepper** — progresso das 4 etapas (`steps={["Informações","Horários","Faixas de valores","Categorias"]}`).
 - **Switch** — "Ativo" na etapa 1 e em cada linha de horário.
@@ -51,13 +51,12 @@ Se faltar algo (ex.: cor suave de `info` para "Agendada"), adicionar a `theme.ts
   |---|---|
   | Descrição | texto principal (peso `medium`) |
   | Tipo | rótulo do enum (Padrão, Convênio, Promocional, Evento); valor fora do enum (ex. `0`) exibe "—" |
-  | Prioridade | número, alinhado à direita |
   | Vigência | "06/06/2026 → sem fim" ou "15/10/2026 → 31/12/2026" |
   | Categorias | rótulos curtos; "Todas" quando `99`; mais de 2 vira "Moto +2" |
   | Situação | `StatusBadge`: **Vigente** (success), **Agendada** (início futuro, tom info/warn), **Encerrada** (fim passado, muted), **Inativa** (`ativo=false`, muted) |
   | Ações | "Ver" (`secondary sm`) e "Editar" (`secondary sm`) |
   - Linha inteira clicável abre a visualização; botões de ação interrompem a propagação.
-  - Ordenação fixa por prioridade e depois vigência (definir no Tech Spec); sem ordenação interativa nesta versão.
+  - Ordenação definida pelo backend; sem ordenação interativa nesta versão.
 - **Paginação**: `Pagination` abaixo da tabela. Trocar de página mantém o cabeçalho e mostra esqueleto nas linhas (sem layout shift), com foco devolvido ao topo da tabela.
 - **Carregando**: 8 linhas de `Skeleton`, mesma contagem de colunas.
 - **Vazio**: `Text variant="muted"` centralizado "Nenhuma tabela de preço cadastrada." + `Button primary` "Novo preço".
@@ -77,9 +76,9 @@ Mesmo componente de wizard; edição abre pré-preenchida. `Card` largo com `Ste
 
 **Etapa 1 — Informações**
 - Grid de 2 colunas (1 em mobile), agrupado em três blocos com subtítulo:
-  - *Identificação*: Descrição (linha inteira), Tipo de regra (`Select`), Prioridade (`Input` numérico), Empresa conveniada (`Select` **disabled**, texto de apoio "Disponível em breve").
+  - *Identificação*: Descrição (linha inteira), Tipo de regra (`Select`), Empresa conveniada (`Select` **disabled**, texto de apoio "Disponível em breve").
   - *Vigência e tolerâncias*: Início da vigência (data/hora), Fim da vigência (opcional, dica "Deixe em branco para vigência indeterminada"), Tolerância de entrada (min), Tolerância de alteração de faixa (min).
-  - *Diária*: Período da diária (min, com dica de equivalência em horas, ex. "720 min = 12 h"), Valor da diária e Valor adicional (prefixo "R$").
+  - *Diária*: Período da diária (`Select` com 6 Horas, 12 Horas e 24 Horas; o valor enviado é em minutos: 360, 720 e 1440), Valor da diária e Valor adicional (prefixo "R$").
   - `Switch` "Ativo" ao fim (padrão ligado).
 - Validação inline por campo (`error` do `Input`/`Select`), ao tentar avançar; foco vai ao primeiro campo com erro.
 
@@ -115,7 +114,7 @@ Mesmo componente de wizard; edição abre pré-preenchida. `Card` largo com `Ste
 
 ## Responsividade
 - Breakpoint principal: `breakpoints.md` (768px) para formulários e `breakpoints.sm` (480px) para tabela.
-- **Tabela**: abaixo de `sm`, cada linha vira cartão empilhado (mesma estratégia do `gestao-usuarios`), mostrando Descrição, Situação, Vigência e as ações; Prioridade e Categorias ficam em linha secundária.
+- **Tabela**: abaixo de `sm`, cada linha vira cartão empilhado (mesma estratégia do `gestao-usuarios`), mostrando Descrição, Situação, Vigência e as ações; Categorias ficam em linha secundária.
 - **Wizard**: grids de 2 colunas viram 1; linhas de horário e faixa empilham seus campos; rodapé de ações com botões em largura total (Avançar acima de Voltar); `Stepper` abrevia para "Etapa 2 de 4 — Horários" quando os 4 rótulos não couberem.
 - **Cabeçalho da listagem**: "Novo preço" empilha abaixo do título em mobile.
 - Pré-visualização da placa tarifária desce para depois dos campos em mobile.

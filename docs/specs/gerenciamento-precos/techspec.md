@@ -42,14 +42,14 @@ export type TipoCategoria = (typeof TIPO_CATEGORIA)[keyof typeof TIPO_CATEGORIA]
 - Rótulos em `TIPO_REGRA_OPTIONS` / `TIPO_CATEGORIA_OPTIONS` (`{ value, label }[]`), e `DIAS_SEMANA_PRECO` (1–7). Reaproveitar `DIAS_SEMANA` de `src/types/adesao.ts` **se** o código de dia for o mesmo (1 = domingo ou segunda, a confirmar); caso contrário, tabela própria. Esse código aparece no GET de preço (`diaSemana: 1..7`) e na adesão (`diaDaSemana`), e a equivalência precisa ser verificada antes de compartilhar.
 - **Modelo de formulário** (strings para campos digitados, evita `NaN` e preserva máscara):
 ```ts
-interface PrecoInfoValues { descricao; prioridade: string; tipoRegra: string; inicioVigencia: string /* datetime-local */; fimVigencia: string; toleranciaEntradaMinutos: string; toleranciaAlteracaoFaixaMinutos: string; periodoDiaria: string; valorDiaria: string; valorAdicionalDiaria: string; ativo: boolean; empresaConveniadaId: null }
+interface PrecoInfoValues { descricao; tipoRegra: string; inicioVigencia: string /* datetime-local */; fimVigencia: string; toleranciaEntradaMinutos: string; toleranciaAlteracaoFaixaMinutos: string; periodoDiaria: string; valorDiaria: string; valorAdicionalDiaria: string; ativo: boolean; empresaConveniadaId: null }
 interface PrecoHorarioValues { diaSemana: string; horaInicio: string; horaFim: string; dataInicio: string; dataFim: string; ativo: boolean }
 interface PrecoFaixaValues { minutosLimite: string; valor: string; percentualConveniada: string }
 type PrecoCategoriaValues = TipoCategoria[]
 interface PrecoFormValues { info; horarios: PrecoHorarioValues[]; faixas: PrecoFaixaValues[]; categorias: TipoCategoria[] }
 ```
 - **Modelo de leitura** (`PrecoView`): resposta tipada do GET com datas como `string` ISO e números como `number`, mais campos derivados no mapper (`situacao`, `vigenciaLabel`).
-- `EMPTY_PRECO_FORM_VALUES` com `tipoRegra: "1"`, `ativo: true`, `prioridade: "0"`, tolerâncias `"0"`.
+- `EMPTY_PRECO_FORM_VALUES` com `tipoRegra: "1"`, `ativo: true`, tolerâncias `"0"`.
 
 ### Serviço e mapeamento (`src/lib/api/services/`)
 ```
@@ -71,7 +71,7 @@ updatePreco(id: number, values: PrecoFormValues): Promise<void>
   - **Situação** derivada no mapper com uma função pura `getSituacao(ativo, inicio, fim, agora)` → `"vigente" | "agendada" | "encerrada" | "inativa"`. `agora` vem por parâmetro (testável; evita `Date.now()` dentro do mapper).
   - Datas sem fuso (`"2026-06-06T17:00:52.474"`) são interpretadas como horário local; formatadas com `Intl.DateTimeFormat("pt-BR")` (sem lib de data). **Não** usar `new Date(str)` com fuso implícito para comparar sem checar: strings ISO sem `Z` são locais, o que é o desejado aqui.
 - **Escrita**: `toPrecoPayload(values)` monta o corpo do `POST` do `input.md`:
-  - `rotatividade { empresaConveniadaId: null, descricao, inicioVigencia, fimVigencia, toleranciaEntradaMinutos, toleranciaAlteracaoFaixaMinutos, periodoDiaria, valorDiaria, valorAdicionalDiaria, prioridade, tipoRegra }` (note: `ativo` e `empresaConveniadaId` seguem a premissa abaixo).
+  - `rotatividade { empresaConveniadaId: null, descricao, inicioVigencia, fimVigencia, toleranciaEntradaMinutos, toleranciaAlteracaoFaixaMinutos, periodoDiaria, valorDiaria, valorAdicionalDiaria, tipoRegra }` (note: `ativo` e `empresaConveniadaId` seguem a premissa abaixo).
   - `regras[] { diaSemana, horaInicio, horaFim, dataInicio, dataFim, ativo }`, com `"HH:mm"` → `"HH:mm:00"` e string vazia → `null`.
   - `faixaValores[] { minutosLimite, valor, percentualConveniada }`; percentual vazio → `null`.
   - `categorias[] { tipoCategoria }`.
@@ -82,11 +82,11 @@ updatePreco(id: number, values: PrecoFormValues): Promise<void>
   1. **Edição:** assumido `PUT /rotatividade/{id}` com o mesmo corpo do `POST` e substituição completa de `regras`, `faixaValores` e `categorias`.
   2. **Detalhe:** assumido `GET /rotatividade/{id}` com o mesmo formato de um item da lista. Se não existir, o fallback é buscar a página da lista e filtrar (frágil), então é preciso confirmar com o backend.
   3. **`ativo`:** o `POST` do exemplo não envia `ativo` na `rotatividade` (só nas `regras`), embora o PRD peça o campo na etapa 1. Confirmar se o backend aceita `ativo` no corpo; se não, o `Switch` da etapa 1 sai (ou só aparece na edição).
-  4. **Prioridade/tipo:** o `POST` aceita `prioridade` e `tipoRegra` dentro de `rotatividade`.
+  4. **Prioridade:** removida da interface e do corpo do `POST`; confirmar que o backend aceita a ausência (assume valor padrão). O `tipoRegra` segue dentro de `rotatividade`.
 
 ### Validação (`src/lib/schemas/preco.ts`, zod v4)
 Quatro schemas, um por etapa, mais um `precoSchema` composto para revalidar tudo antes do envio:
-- `precoInfoSchema`: `descricao` obrigatória (máx. a confirmar); `tipoRegra` ∈ enum; `prioridade` inteiro ≥ 0; tolerâncias inteiros ≥ 0; `periodoDiaria` inteiro > 0; `valorDiaria`/`valorAdicionalDiaria` ≥ 0; `inicioVigencia` obrigatório; `fimVigencia` opcional e, se informado, **posterior** a `inicioVigencia` (`superRefine`, erro no campo `fimVigencia`).
+- `precoInfoSchema`: `descricao` obrigatória (máx. a confirmar); `tipoRegra` ∈ enum; tolerâncias inteiros ≥ 0; `periodoDiaria` inteiro > 0; `valorDiaria`/`valorAdicionalDiaria` ≥ 0; `inicioVigencia` obrigatório; `fimVigencia` opcional e, se informado, **posterior** a `inicioVigencia` (`superRefine`, erro no campo `fimVigencia`).
 - `precoHorariosSchema` (array, mín. 1): `diaSemana` 1–7, `horaFim` > `horaInicio` quando ambos informados (horário que atravessa a meia-noite fora de escopo), `dataFim` ≥ `dataInicio`, **sem linhas duplicadas** de mesmo dia + mesmo horário.
 - `precoFaixasSchema` (array, mín. 1): `minutosLimite` inteiro > 0 e **único**, `valor` ≥ 0, `percentualConveniada` 0–100 se informado; valores devem ser **não decrescentes** conforme os minutos aumentam (regra a confirmar com o negócio; começa como *aviso*, não bloqueio).
 - `precoCategoriasSchema` (mín. 1): se contiver `99` (Todas), nenhuma outra categoria.

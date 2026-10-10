@@ -46,7 +46,7 @@ Ordem pensada para entregar em fatias: **Fase A** (base) → **Fase B** (listage
 
 - [x] T10 — `PrecosList`: consulta, tabela e estados
   - Arquivos: `src/components/precos/PrecosList/PrecosList.tsx`, `PrecosList.styles.ts`, `index.ts`
-  - Pronto quando: lê `pagina` da query string (padrão 1, inválido → 1); `useQuery(["precos", pagina])` com `keepPreviousData` e `tamanhoPagina = 20`; colunas Descrição, Tipo, Prioridade, Vigência, Categorias, Situação (`StatusBadge`) e Ações ("Ver"/"Editar" como links); estados de carregamento (8 linhas `Skeleton`), vazio (mensagem + "Novo preço"), erro (`ErrorBanner` com "Tentar novamente"); `Pagination` abaixo; página maior que `totalPages` redireciona para a última; botão "Novo preço" no topo.
+  - Pronto quando: lê `pagina` da query string (padrão 1, inválido → 1); `useQuery(["precos", pagina])` com `keepPreviousData` e `tamanhoPagina = 20`; colunas Descrição, Tipo, Vigência, Categorias, Situação (`StatusBadge`) e Ações ("Ver"/"Editar" como links); estados de carregamento (8 linhas `Skeleton`), vazio (mensagem + "Novo preço"), erro (`ErrorBanner` com "Tentar novamente"); `Pagination` abaixo; página maior que `totalPages` redireciona para a última; botão "Novo preço" no topo.
 
 - [x] T11 — Rota `/precos` usando a listagem
   - Arquivos: `src/app/(app)/precos/page.tsx`
