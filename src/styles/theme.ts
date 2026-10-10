@@ -169,7 +169,7 @@ export const signageLightTheme: AppTheme = {
     warn: "#FFCC00",
     onWarn: "#14202E",
     steel: "#8A95A3",
-    danger: "#E23D4E",
+    danger: "#C8283A",
     success: "#17803F",
     background: "#FFFFFF",
     surface: "#EDF0F4",
