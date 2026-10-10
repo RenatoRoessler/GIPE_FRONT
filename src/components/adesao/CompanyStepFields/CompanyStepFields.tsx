@@ -10,7 +10,7 @@ import { onlyDigits } from "@/lib/digits";
 import { ESTADOS } from "@/lib/estados";
 import { formatPhone } from "@/lib/phone";
 import { EMPTY_COMPANY_DATA, TIPO_EMPRESA_LABEL, TipoEmpresa } from "@/types/adesao";
-import { Grid, GridItem } from "../shared/FormGrid.styles";
+import { Grid, GridItem } from "@/components/form/FormGrid.styles";
 
 const ADDRESS_FIELDS = ["logradouro", "bairro", "cidade", "estado"] as const;
 

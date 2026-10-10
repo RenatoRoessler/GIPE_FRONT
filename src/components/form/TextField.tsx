@@ -1,7 +1,7 @@
 "use client";
 
 import { InputHTMLAttributes } from "react";
-import { Input } from "@/components/ui/Input";
+import { Input, type InputProps } from "@/components/ui/Input";
 import { useFieldContext } from "./context";
 
 export type TextFieldProps = Omit<
@@ -9,6 +9,8 @@ export type TextFieldProps = Omit<
   "value" | "onChange" | "onBlur" | "id" | "name"
 > & {
   label: string;
+  hint?: InputProps["hint"];
+  hintTone?: InputProps["hintTone"];
   // Normaliza o valor digitado antes de gravar no formulário (ex.: máscara, só dígitos).
   format?: (value: string) => string;
 };

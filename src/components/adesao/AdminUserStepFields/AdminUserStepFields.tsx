@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/Input";
 import { formatCPF } from "@/lib/cpf";
 import { formatPhone } from "@/lib/phone";
 import { EMPTY_ADMIN_USER_DATA } from "@/types/adesao";
-import { Grid, GridItem } from "../shared/FormGrid.styles";
+import { Grid, GridItem } from "@/components/form/FormGrid.styles";
 
 export const AdminUserStepFields = withForm({
   defaultValues: EMPTY_ADMIN_USER_DATA,
