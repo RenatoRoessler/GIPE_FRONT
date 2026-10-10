@@ -2,6 +2,38 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.65",
+      "type": "feat",
+      "scope": "precos",
+      "title": "adiciona listagem e cadastro de tabelas de preço",
+      "description": "A tela Gestão de Preços agora lista as tabelas cadastradas, com\npaginação e situação (vigente, agendada, encerrada ou inativa), e\npermite cadastrar uma nova tabela em quatro etapas: informações,\nhorários, faixas de valores e categorias.\n\n- As faixas de valores já vêm sugeridas e podem ser editadas.\n- A etapa de faixas mostra uma pré-visualização da tarifa.\n- Antes de salvar há um resumo, e o aviso de sucesso aparece na lista.\n- Sair com dados preenchidos pede confirmação.\n\nO campo de empresa conveniada aparece desabilitado, reservado para uso\nfuturo. Visualização e edição ainda não estão disponíveis.",
+      "date": "2026-10-10T15:57:23-03:00"
+    },
+    {
+      "version": "1.0.64",
+      "type": "feat",
+      "scope": "ui",
+      "title": "adiciona Table, StatusBadge e Pagination ao design system",
+      "description": "Componentes genéricos para listagens administrativas. A tabela vira\ncartões empilhados em telas pequenas, o selo de status aceita tons\n(sucesso, neutro, info e alerta) e nunca depende só de cor, e a\npaginação mostra o intervalo exibido e navega entre páginas.",
+      "date": "2026-10-10T15:57:23-03:00"
+    },
+    {
+      "version": "1.0.61",
+      "type": "feat",
+      "scope": null,
+      "title": "aplica o novo logo azul do GIPE em todo o sistema",
+      "description": "- Adiciona o logo em versões clara e escura (SVG e PNG) e o ícone SVG em public/assets, com o texto convertido em contornos\n- Troca o componente Logo para escolher a versão pelo tema e remove a base clara usada no tema escuro\n- Substitui src/app/icon.png e favicon.ico pelo novo ícone (G e pin sobre fundo escuro)\n- Atualiza o título e a descrição da página em src/app/layout.tsx\n- Remove o antigo public/assets/gipe-logo.png",
+      "date": "2026-10-09T19:00:44-03:00"
+    },
+    {
+      "version": "1.0.59",
+      "type": "feat",
+      "scope": null,
+      "title": "reformula layout da área logada no estilo de sinalização viária",
+      "description": "- Adiciona tokens ao tema (warn, onWarn, steel, onSign, signEdge, link, typography) e cria os temas signageLightTheme e signageDarkTheme\n- Cria o SignageThemeProvider e carrega as fontes Barlow e Barlow Condensed no layout de (app) via FontScope\n- Cria os componentes NavSign (placa), Gantry (pórtico de navegação) e MobileNav (placa-gatilho com painel em dialog)\n- Substitui a Sidebar pelo pórtico e adiciona o item \"Início\" em NAV_ITEMS, com a função isNavItemActive\n- Refaz AppShell em coluna única e o Header com logo, saudação, alternador de tema e avatar\n- Restiliza UserMenu e AppFooter; Logo ganha a prop align\n- Text heading passa a usar a tipografia display do tema e Link passa a usar o token link",
+      "date": "2026-10-09T18:35:16-03:00"
+    },
+    {
       "version": "1.0.56",
       "type": "feat",
       "scope": "ui",
