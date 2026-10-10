@@ -1,10 +1,11 @@
-import { Text } from "@/components/ui/Text";
+import { Suspense } from "react";
+import { PrecosList } from "@/components/precos/PrecosList";
 
 export default function PrecosPage() {
   return (
-    <>
-      <Text variant="heading">Gestão de Preços</Text>
-      <Text variant="muted">Esta tela será implementada em uma spec futura.</Text>
-    </>
+    // useSearchParams (página atual na URL) exige Suspense.
+    <Suspense fallback={null}>
+      <PrecosList />
+    </Suspense>
   );
 }

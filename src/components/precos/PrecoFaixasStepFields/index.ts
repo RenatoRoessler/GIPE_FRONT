@@ -1,0 +1,1 @@
+export { PrecoFaixasStepFields } from "./PrecoFaixasStepFields";

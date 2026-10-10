@@ -6,3 +6,11 @@ export type ApiErrorBody = {
 
 // Alias até o envelope de respostas do backend ser conhecido.
 export type ApiResponse<T> = T;
+
+export interface Paginado<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
