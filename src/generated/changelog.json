@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.76",
+      "type": "feat",
+      "scope": "precos",
+      "title": "permite editar uma tabela de preço",
+      "description": "Na listagem de preços, \"Editar\" (e o clique na linha) abre o mesmo\npasso a passo do cadastro já preenchido com os dados da tabela. Dá para\nalterar informações, horários, faixas e categorias, e ativar ou\ninativar a tabela.\n\n- O topo mostra o nome e a situação da tabela e avisa quando há\n  alterações não salvas.\n- Na última etapa, o resumo mostra o que mudou (antes e depois) e o\n  botão \"Salvar alterações\" só fica disponível quando algo mudou.\n- Se a tabela não existir, a tela informa e oferece voltar à listagem.\n\nA situação (ativo/inativo) escolhida na primeira etapa agora também é\nenviada ao cadastrar uma nova tabela.",
+      "date": "2026-10-10T17:56:24-03:00"
+    },
+    {
       "version": "1.0.73",
       "type": "feat",
       "scope": "precos",
