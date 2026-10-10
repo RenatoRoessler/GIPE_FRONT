@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.68",
+      "type": "fix",
+      "scope": "layout",
+      "title": "devolve o foco ao botão do menu ao fechar no celular",
+      "description": "Ao fechar o menu de navegação no celular, o foco agora volta ao botão\nque o abriu, inclusive no Safari, que não foca botões ao toque. Quem\nnavega por teclado ou leitor de tela não perde mais a posição.",
+      "date": "2026-10-10T15:59:21-03:00"
+    },
+    {
       "version": "1.0.65",
       "type": "feat",
       "scope": "precos",
