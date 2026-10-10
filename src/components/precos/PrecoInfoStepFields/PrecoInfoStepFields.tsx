@@ -4,7 +4,7 @@ import { withForm } from "@/components/form";
 import { Grid, GridItem } from "@/components/form/FormGrid.styles";
 import { Select } from "@/components/ui/Select";
 import { Text } from "@/components/ui/Text";
-import { EMPTY_PRECO_INFO, TIPO_REGRA_OPTIONS } from "@/types/preco";
+import { EMPTY_PRECO_INFO, PERIODO_DIARIA_OPTIONS, TIPO_REGRA_OPTIONS } from "@/types/preco";
 import { formatMinutos } from "../format";
 import { Section, SectionTitle } from "./PrecoInfoStepFields.styles";
 
@@ -22,7 +22,7 @@ export const PrecoInfoStepFields = withForm({
                 {(field) => <field.TextField label="Descrição" maxLength={120} disabled={disabled} />}
               </form.AppField>
             </GridItem>
-            <GridItem>
+            <GridItem $span>
               <form.AppField name="tipoRegra">
                 {(field) => (
                   <field.SelectField label="Tipo de regra" disabled={disabled}>
@@ -32,19 +32,6 @@ export const PrecoInfoStepFields = withForm({
                       </option>
                     ))}
                   </field.SelectField>
-                )}
-              </form.AppField>
-            </GridItem>
-            <GridItem>
-              <form.AppField name="prioridade">
-                {(field) => (
-                  <field.TextField
-                    label="Prioridade"
-                    inputMode="numeric"
-                    hint="Quanto maior o número, maior a precedência."
-                    format={(value) => value.replace(/\D/g, "")}
-                    disabled={disabled}
-                  />
                 )}
               </form.AppField>
             </GridItem>
@@ -115,13 +102,18 @@ export const PrecoInfoStepFields = withForm({
                 {(field) => (
                   <form.Subscribe selector={(state) => state.values.periodoDiaria}>
                     {(periodo) => (
-                      <field.TextField
-                        label="Período da diária (min)"
-                        inputMode="numeric"
-                        hint={periodo ? `= ${formatMinutos(Number(periodo))}` : undefined}
-                        format={(value) => value.replace(/\D/g, "")}
-                        disabled={disabled}
-                      />
+                      <field.SelectField label="Período da diária" disabled={disabled}>
+                        <option value="">Selecione</option>
+                        {PERIODO_DIARIA_OPTIONS.map((option) => (
+                          <option key={option.minutos} value={option.minutos}>
+                            {option.label}
+                          </option>
+                        ))}
+                        {/* Valor já salvo que não está na lista (ex.: tabela antiga): mantém a opção para não perdê-lo. */}
+                        {periodo !== "" && !PERIODO_DIARIA_OPTIONS.some((option) => String(option.minutos) === periodo) && (
+                          <option value={periodo}>{formatMinutos(Number(periodo))}</option>
+                        )}
+                      </field.SelectField>
                     )}
                   </form.Subscribe>
                 )}

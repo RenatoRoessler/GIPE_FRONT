@@ -30,7 +30,6 @@ export interface PrecoDto {
   rotatividadeId: number;
   empresaConveniadaId: number | null;
   descricao: string;
-  prioridade: number;
   tipoRegra: number;
   inicioVigencia: string;
   fimVigencia: string | null;
@@ -56,7 +55,6 @@ export interface PrecoPayload {
     periodoDiaria: number;
     valorDiaria: number;
     valorAdicionalDiaria: number;
-    prioridade: number;
     tipoRegra: number;
   };
   regras: RegraDto[];
@@ -98,7 +96,6 @@ export function fromPrecoResponse(dto: Partial<PrecoDto>): PrecoView {
     rotatividadeId: dto.rotatividadeId ?? 0,
     empresaConveniadaId: dto.empresaConveniadaId ?? null,
     descricao: dto.descricao ?? "",
-    prioridade: dto.prioridade ?? 0,
     tipoRegra,
     inicioVigencia: dto.inicioVigencia ?? "",
     fimVigencia: dto.fimVigencia ?? null,
@@ -175,7 +172,6 @@ export function toPrecoPayload(values: PrecoFormValues): PrecoPayload {
       periodoDiaria: Number(info.periodoDiaria),
       valorDiaria: parseMoney(info.valorDiaria),
       valorAdicionalDiaria: parseMoney(info.valorAdicionalDiaria),
-      prioridade: Number(info.prioridade),
       tipoRegra: Number(info.tipoRegra),
     },
     regras: values.horarios.map((horario) => ({
@@ -210,7 +206,6 @@ export function toPrecoFormValues(view: PrecoView): PrecoFormValues {
     info: {
       descricao: view.descricao,
       tipoRegra: String(view.tipoRegra ?? 1),
-      prioridade: String(view.prioridade),
       inicioVigencia: toInputDateTime(view.inicioVigencia),
       fimVigencia: toInputDateTime(view.fimVigencia),
       toleranciaEntradaMinutos: String(view.toleranciaEntradaMinutos),

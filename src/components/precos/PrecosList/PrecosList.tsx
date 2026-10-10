@@ -138,9 +138,6 @@ export function PrecosList() {
                 <TableRow>
                   <TableCell head>Descrição</TableCell>
                   <TableCell head>Tipo</TableCell>
-                  <TableCell head align="right">
-                    Prioridade
-                  </TableCell>
                   <TableCell head>Vigência</TableCell>
                   <TableCell head>Categorias</TableCell>
                   <TableCell head>Situação</TableCell>
@@ -160,9 +157,6 @@ export function PrecosList() {
                         <Description>{preco.descricao}</Description>
                       </TableCell>
                       <TableCell data-label="Tipo">{getTipoRegraLabel(preco.tipoRegra)}</TableCell>
-                      <TableCell data-label="Prioridade" align="right" numeric>
-                        {preco.prioridade}
-                      </TableCell>
                       <TableCell data-label="Vigência" numeric>
                         {formatVigencia(preco.inicioVigencia, preco.fimVigencia)}
                       </TableCell>

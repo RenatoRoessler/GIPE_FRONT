@@ -27,7 +27,6 @@ export const precoInfoSchema = z
   .object({
     descricao: z.string().trim().min(1, "Informe a descrição"),
     tipoRegra: z.string().refine((value) => TIPOS_REGRA.includes(value), "Selecione o tipo de regra"),
-    prioridade: integerField("Informe a prioridade", "Use um número inteiro maior ou igual a zero"),
     inicioVigencia: z.string().trim().min(1, "Informe o início da vigência"),
     fimVigencia: z.string().trim(),
     toleranciaEntradaMinutos: integerField("Informe a tolerância", "Use um número inteiro de minutos"),

@@ -37,6 +37,13 @@ export const TIPO_CATEGORIA_OPTIONS: { value: TipoCategoria; label: string }[] =
   { value: TIPO_CATEGORIA.Todas, label: "Todas" },
 ];
 
+// Períodos de diária oferecidos no cadastro; o valor enviado ao backend é em minutos.
+export const PERIODO_DIARIA_OPTIONS = [
+  { minutos: 360, label: "6 Horas" },
+  { minutos: 720, label: "12 Horas" },
+  { minutos: 1440, label: "24 Horas" },
+] as const;
+
 // Mesma convenção de código de dia da adesão (a confirmar com o backend; único lugar a ajustar).
 export const DIAS_SEMANA_PRECO = DIAS_SEMANA;
 
@@ -61,7 +68,6 @@ export interface PrecoView {
   rotatividadeId: number;
   empresaConveniadaId: number | null;
   descricao: string;
-  prioridade: number;
   // null quando o backend devolve um valor fora do enum (ex.: 0).
   tipoRegra: TipoRegra | null;
   inicioVigencia: string;
@@ -80,7 +86,6 @@ export interface PrecoView {
 export interface PrecoInfoValues {
   descricao: string;
   tipoRegra: string;
-  prioridade: string;
   // Formato de <input type="datetime-local">: "YYYY-MM-DDTHH:mm".
   inicioVigencia: string;
   fimVigencia: string;
@@ -129,12 +134,11 @@ export interface PrecoFormValues {
 export const EMPTY_PRECO_INFO: PrecoInfoValues = {
   descricao: "",
   tipoRegra: String(TIPO_REGRA.Padrao),
-  prioridade: "0",
   inicioVigencia: "",
   fimVigencia: "",
   toleranciaEntradaMinutos: "0",
   toleranciaAlteracaoFaixaMinutos: "0",
-  periodoDiaria: "",
+  periodoDiaria: String(PERIODO_DIARIA_OPTIONS[1].minutos),
   valorDiaria: "",
   valorAdicionalDiaria: "",
   ativo: true,

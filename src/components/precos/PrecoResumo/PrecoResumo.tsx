@@ -29,9 +29,7 @@ export function PrecoResumo({ values }: PrecoResumoProps) {
         </Fact>
         <Fact>
           <dt>Tipo de regra</dt>
-          <dd>
-            {tipo} · prioridade {info.prioridade || "—"}
-          </dd>
+          <dd>{tipo}</dd>
         </Fact>
         <Fact>
           <dt>Vigência</dt>
