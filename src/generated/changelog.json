@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.80",
+      "type": "feat",
+      "scope": "precos",
+      "title": "usa ícones nas ações de ver e editar da listagem",
+      "description": "Os textos \"Ver\" e \"Editar\" da tabela de preços foram trocados por\nícones (olho e lápis), com dica ao passar o mouse e nome acessível\npara leitores de tela, e área de toque confortável no celular.",
+      "date": "2026-10-10T18:00:56-03:00"
+    },
+    {
       "version": "1.0.76",
       "type": "feat",
       "scope": "precos",
