@@ -39,6 +39,6 @@ Observação: o repositório não tem runner de testes. "Testes" de cada task = 
   - Fazer: procurar `#hex`, `rgba(...)` e `px` visuais fixos nos estilos e trocar por tokens; revisar `Button`, `Input`, `Select`, `Switch`, `Card`, `Accordion`, `Toast`, `ErrorBanner`, `Skeleton` e `Stepper` e as telas `minha-empresa`, `atualizacoes` e placeholders sob `signageLightTheme` e `signageDarkTheme`. Adotar `colors.warn` no `:focus-visible` apenas dentro do tema de sinalização (por token), sem alterar o foco das telas públicas.
   - Pronto quando: nenhuma tela de `(app)` parece pertencer ao layout antigo nem apresenta quebra visual nos dois temas, em 375px e 1280px; telas públicas inalteradas.
 
-- [ ] T8 — Verificação final (lint/build e critérios de aceite)
+- [x] T8 — Verificação final (lint/build e critérios de aceite)
   - Arquivos: n/a
   - Pronto quando: `npm run lint` e `npm run build` passam; os critérios de aceite do `prd.md` foram conferidos manualmente em 375px, 768px e 1280px, nos temas claro e escuro: pórtico e placa atual, `aria-current`, rolagem horizontal contida, painel mobile (toque fora, botão, `Esc`, retorno de foco), navegação só por teclado com foco visível, header, rodapé, ausência de scroll horizontal da página, contraste WCAG AA e telas públicas sem regressão.
