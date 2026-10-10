@@ -96,7 +96,7 @@ Ordem pensada para entregar em fatias: **Fase A** (base) → **Fase B** (listage
 
 ## Fase D — Visualização e edição (⚠ depende de confirmação do backend: `GET /rotatividade/{id}` e `PUT /rotatividade/{id}`, e se o corpo aceita `ativo`)
 
-- [ ] T22 — Serviço: detalhe e atualização
+- [x] T22 — Serviço: detalhe e atualização (feito em `docs/specs/editar-preco`)
   - Arquivos: `src/lib/api/services/preco.ts`
   - Pronto quando: `getPreco(id)` e `updatePreco(id, values)` implementados conforme o contrato **confirmado** (ajustar mapper se o `PUT` exigir ids de regras/faixas); premissas do tech spec atualizadas com o contrato real.
 
@@ -104,11 +104,11 @@ Ordem pensada para entregar em fatias: **Fase A** (base) → **Fase B** (listage
   - Arquivos: `src/components/precos/PrecoView/PrecoView.tsx`, `PrecoView.styles.ts`, `index.ts`
   - Pronto quando: cabeçalho com descrição, `StatusBadge` e botões "Editar"/"Voltar"; quatro blocos (Informações, Horários em grade semanal, Faixas em `FaixasPreview` com diária, Categorias em chips); horários nulos exibidos conforme definição confirmada; esqueleto ao carregar; "Tabela de preço não encontrada." para `not_found`; empresa conveniada oculta quando vazia.
 
-- [ ] T24 — Rotas `/precos/[id]` e `/precos/[id]/editar`
+- [ ] T24 — Rotas `/precos/[id]` e `/precos/[id]/editar` (a rota `/editar` foi feita em `docs/specs/editar-preco`; falta `/precos/[id]`)
   - Arquivos: `src/app/(app)/precos/[id]/page.tsx`, `src/app/(app)/precos/[id]/editar/page.tsx`
   - Pronto quando: ambas fazem `await params`, validam `id` numérico (inválido → `notFound()`) e renderizam `PrecoView` e `PrecoWizard` com `id`; links "Ver"/"Editar" da listagem e linha clicável funcionam.
 
-- [ ] T25 — Modo edição no wizard
+- [x] T25 — Modo edição no wizard (feito em `docs/specs/editar-preco`)
   - Arquivos: `src/components/precos/PrecoWizard/PrecoWizard.tsx`, `PrecoWizardForm.tsx`
   - Pronto quando: com `id`, `PrecoWizard` busca o preço e só monta `PrecoWizardForm` com `toPrecoFormValues(data)` como valores iniciais (refetch não apaga edição); título e botão final refletem edição; mutação usa `updatePreco`; sucesso invalida `["precos"]` e `["preco", id]`, volta à listagem com `Toast` "Tabela de preço atualizada."; carregando e não encontrado tratados.
 
