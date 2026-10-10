@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.73",
+      "type": "feat",
+      "scope": "precos",
+      "title": "período da diária em lista e remove a prioridade",
+      "description": "No cadastro de tabela de preço, o período da diária agora é escolhido\nem uma lista (6 Horas, 12 Horas ou 24 Horas), com 12 Horas já\nselecionado, e o sistema envia o valor equivalente em minutos.\n\nO campo de prioridade foi removido do cadastro, do resumo, da\nlistagem e do envio dos dados. O tipo de regra passa a ocupar a\nlinha inteira na primeira etapa.",
+      "date": "2026-10-10T17:39:27-03:00"
+    },
+    {
       "version": "1.0.68",
       "type": "fix",
       "scope": "layout",
