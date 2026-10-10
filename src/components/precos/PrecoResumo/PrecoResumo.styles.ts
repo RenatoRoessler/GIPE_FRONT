@@ -59,3 +59,63 @@ export const HorarioList = styled.ul`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-variant-numeric: tabular-nums;
 `;
+
+export const Changes = styled.section`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[2]}px;
+  padding: ${({ theme }) => theme.space[3]}px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background-color: ${({ theme }) => theme.colors.primarySoft};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+
+  p {
+    margin: 0;
+  }
+`;
+
+export const ChangeTitle = styled.h4`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  color: ${({ theme }) => theme.colors.textMuted};
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+`;
+
+export const ChangeList = styled.dl`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[2]}px;
+  margin: 0;
+`;
+
+export const ChangeItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[1]}px;
+
+  dt {
+    font-weight: ${({ theme }) => theme.fontWeights.medium};
+  }
+
+  dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+`;
+
+// Valor anterior: riscado e esmaecido; o "→" e o novo valor em texto mantêm o sentido sem depender da cor.
+export const OldValue = styled.span`
+  color: ${({ theme }) => theme.colors.textMuted};
+  text-decoration: line-through;
+`;
+
+export const ScreenReaderOnly = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+`;

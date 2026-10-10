@@ -56,6 +56,7 @@ export interface PrecoPayload {
     valorDiaria: number;
     valorAdicionalDiaria: number;
     tipoRegra: number;
+    ativo: boolean;
   };
   regras: RegraDto[];
   faixaValores: FaixaDto[];
@@ -173,6 +174,7 @@ export function toPrecoPayload(values: PrecoFormValues): PrecoPayload {
       valorDiaria: parseMoney(info.valorDiaria),
       valorAdicionalDiaria: parseMoney(info.valorAdicionalDiaria),
       tipoRegra: Number(info.tipoRegra),
+      ativo: info.ativo,
     },
     regras: values.horarios.map((horario) => ({
       diaSemana: Number(horario.diaSemana),

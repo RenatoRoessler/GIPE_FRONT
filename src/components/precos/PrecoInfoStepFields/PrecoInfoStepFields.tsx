@@ -10,8 +10,8 @@ import { Section, SectionTitle } from "./PrecoInfoStepFields.styles";
 
 export const PrecoInfoStepFields = withForm({
   defaultValues: EMPTY_PRECO_INFO,
-  props: {} as { disabled?: boolean },
-  render: function Render({ form, disabled }) {
+  props: {} as { disabled?: boolean; mode?: "create" | "edit" },
+  render: function Render({ form, disabled, mode = "create" }) {
     return (
       <>
         <Section>
@@ -149,6 +149,17 @@ export const PrecoInfoStepFields = withForm({
         <form.AppField name="ativo">
           {(field) => <field.SwitchField label="Ativo" disabled={disabled} />}
         </form.AppField>
+        {mode === "edit" && (
+          <form.Subscribe selector={(state) => state.values.ativo}>
+            {(ativo) => (
+              <Text variant="muted" aria-live="polite">
+                {ativo
+                  ? "Desative para que esta tabela deixe de ser aplicada."
+                  : "Esta tabela não será aplicada enquanto estiver inativa."}
+              </Text>
+            )}
+          </form.Subscribe>
+        )}
       </>
     );
   },

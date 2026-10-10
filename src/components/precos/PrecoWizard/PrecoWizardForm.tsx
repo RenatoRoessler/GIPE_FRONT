@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Stepper } from "@/components/ui/Stepper";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/Text";
 import {
   findInvalidPrecoStep,
@@ -18,13 +19,15 @@ import {
   precoInfoSchema,
 } from "@/lib/schemas/preco";
 import { parseMoney } from "@/lib/money";
-import { TIPO_REGRA, type PrecoFormValues } from "@/types/preco";
+import { TIPO_REGRA, type PrecoFormValues, type SituacaoPreco } from "@/types/preco";
 import { PrecoCategoriasStepFields } from "../PrecoCategoriasStepFields";
 import { PrecoFaixasStepFields } from "../PrecoFaixasStepFields";
 import { PrecoHorariosStepFields } from "../PrecoHorariosStepFields";
 import { PrecoInfoStepFields } from "../PrecoInfoStepFields";
+import { hasChanges } from "../diff";
 import { PrecoResumo } from "../PrecoResumo";
-import { Actions, ActionsGroup, Form, Header, Page, TitleGroup } from "./PrecoWizard.styles";
+import { SITUACAO_BADGE } from "../situacao";
+import { Actions, ActionsGroup, Form, Header, Page, SubtitleRow, TitleGroup, UnsavedNote } from "./PrecoWizard.styles";
 
 const STEPS = ["Informações", "Horários", "Faixas de valores", "Categorias"];
 
@@ -46,9 +49,25 @@ export interface PrecoWizardFormProps {
   savedFlag: "criado" | "atualizado";
   // Chaves de cache a invalidar após salvar.
   invalidateKeys?: readonly (readonly unknown[])[];
+  // Edição: mostra o nome e a situação salva da tabela, compara com o original e só salva com mudanças.
+  mode?: "create" | "edit";
+  nome?: string;
+  situacao?: SituacaoPreco;
 }
 
-export function PrecoWizardForm({ title, initial, onSave, savedFlag, invalidateKeys = [] }: PrecoWizardFormProps) {
+export function PrecoWizardForm({
+  title,
+  initial,
+  onSave,
+  savedFlag,
+  invalidateKeys = [],
+  mode = "create",
+  nome,
+  situacao,
+}: PrecoWizardFormProps) {
+  const isEdit = mode === "edit";
+  // Base estável da comparação: a tabela como foi salva, mesmo que `initial` mude entre renders.
+  const [original] = useState(initial);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
@@ -148,9 +167,24 @@ export function PrecoWizardForm({ title, initial, onSave, savedFlag, invalidateK
   const categoriasDirty = useStore(categoriasForm.store, (state) => state.isDirty);
   const isDirty = infoDirty || horariosDirty || faixasDirty || categoriasDirty;
 
+  const infoValues = useStore(infoForm.store, (state) => state.values);
+  const horariosValues = useStore(horariosForm.store, (state) => state.values.horarios);
+  const faixasValues = useStore(faixasForm.store, (state) => state.values.faixas);
+  const categoriasSelecionadas = useStore(categoriasForm.store, (state) => state.values.categorias);
+
+  // Na edição, "alterado" é diferença real em relação ao salvo; `isDirty` acusaria mudança mesmo após reverter um valor.
+  const hasPendingChanges = isEdit
+    ? hasChanges(original, {
+        info: infoValues,
+        horarios: horariosValues,
+        faixas: faixasValues,
+        categorias: categoriasSelecionadas,
+      })
+    : isDirty;
+
   // Evita perder o preenchimento ao fechar a aba ou recarregar.
   useEffect(() => {
-    if (!isDirty) {
+    if (!hasPendingChanges) {
       return;
     }
     function handleBeforeUnload(event: BeforeUnloadEvent) {
@@ -160,7 +194,7 @@ export function PrecoWizardForm({ title, initial, onSave, savedFlag, invalidateK
     }
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isDirty]);
+  }, [hasPendingChanges]);
 
   function handleBack() {
     setStepError(null);
@@ -168,7 +202,7 @@ export function PrecoWizardForm({ title, initial, onSave, savedFlag, invalidateK
   }
 
   function handleCancel() {
-    if (isDirty && !window.confirm("Descartar as alterações feitas nesta tabela de preço?")) {
+    if (hasPendingChanges && !window.confirm("Descartar as alterações feitas nesta tabela de preço?")) {
       return;
     }
     savedRef.current = true;
@@ -182,8 +216,6 @@ export function PrecoWizardForm({ title, initial, onSave, savedFlag, invalidateK
   }
 
   const saving = mutation.isPending;
-  const infoValues = useStore(infoForm.store, (state) => state.values);
-  const categoriasSelecionadas = useStore(categoriasForm.store, (state) => state.values.categorias);
   const diaria = {
     periodo: Number(infoValues.periodoDiaria),
     valor: parseMoney(infoValues.valorDiaria),
@@ -198,6 +230,17 @@ export function PrecoWizardForm({ title, initial, onSave, savedFlag, invalidateK
             <Text variant="heading" as="h1">
               {title}
             </Text>
+            {isEdit && (
+              <SubtitleRow>
+                {nome && <strong>{nome}</strong>}
+                {situacao && (
+                  <StatusBadge tone={SITUACAO_BADGE[situacao].tone}>{SITUACAO_BADGE[situacao].label}</StatusBadge>
+                )}
+                <UnsavedNote role="status" aria-live="polite">
+                  {hasPendingChanges ? "Alterações não salvas" : ""}
+                </UnsavedNote>
+              </SubtitleRow>
+            )}
             <Text variant="muted" ref={stepDescriptionRef} tabIndex={-1}>
               Etapa {step} de {LAST_STEP}: {STEP_DESCRIPTIONS[step - 1]}
             </Text>
@@ -207,7 +250,7 @@ export function PrecoWizardForm({ title, initial, onSave, savedFlag, invalidateK
 
         {step === 1 ? (
           <Form onSubmit={(event) => submit(event, () => void infoForm.handleSubmit())}>
-            <PrecoInfoStepFields form={infoForm} />
+            <PrecoInfoStepFields form={infoForm} mode={mode} />
             <Actions>
               <Button type="button" variant="secondary" onClick={handleCancel}>
                 Cancelar
@@ -270,7 +313,7 @@ export function PrecoWizardForm({ title, initial, onSave, savedFlag, invalidateK
             <PrecoCategoriasStepFields
               form={categoriasForm}
               disabled={saving}
-              summary={<PrecoResumo values={collectValues(categoriasSelecionadas)} />}
+              summary={<PrecoResumo values={collectValues(categoriasSelecionadas)} original={isEdit ? original : undefined} />}
             />
             <Actions>
               <Button type="button" variant="secondary" onClick={handleBack} disabled={saving}>
@@ -280,11 +323,12 @@ export function PrecoWizardForm({ title, initial, onSave, savedFlag, invalidateK
                 <Button type="button" variant="secondary" onClick={handleCancel} disabled={saving}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={saving}>
-                  {saving ? "Salvando..." : "Salvar"}
+                <Button type="submit" disabled={saving || (isEdit && !hasPendingChanges)}>
+                  {saving ? "Salvando..." : isEdit ? "Salvar alterações" : "Salvar"}
                 </Button>
               </ActionsGroup>
             </Actions>
+            {isEdit && !hasPendingChanges && <Text variant="muted">Nenhuma alteração para salvar.</Text>}
           </Form>
         )}
       </Card>

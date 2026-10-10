@@ -8,14 +8,15 @@ import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Link } from "@/components/ui/Link";
 import { Pagination } from "@/components/ui/Pagination";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { StatusBadge, type StatusBadgeTone } from "@/components/ui/StatusBadge";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/Table";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { listPrecos } from "@/lib/api/services/preco";
 import { getSituacao } from "@/lib/api/services/preco.mapper";
-import { TIPO_CATEGORIA, type PrecoView, type SituacaoPreco } from "@/types/preco";
+import { TIPO_CATEGORIA, type PrecoView } from "@/types/preco";
 import { formatVigencia, getCategoriaLabel, getTipoRegraLabel } from "../format";
+import { SITUACAO_BADGE } from "../situacao";
 import {
   CategoryList,
   Description,
@@ -32,16 +33,13 @@ const PAGE_SIZE = 20;
 const SKELETON_ROWS = 8;
 const MAX_VISIBLE_CATEGORIES = 2;
 
+// Destino do clique na linha. Enquanto a visualização (/precos/[id]) não existe, abre a edição;
+// quando ela for implementada, trocar por `detalhe`.
+const ROW_CLICK_TARGET = "editar";
+
 const SAVED_MESSAGES: Record<string, string> = {
   criado: "Tabela de preço criada.",
   atualizado: "Tabela de preço atualizada.",
-};
-
-const SITUACAO_BADGE: Record<SituacaoPreco, { label: string; tone: StatusBadgeTone }> = {
-  vigente: { label: "Vigente", tone: "success" },
-  agendada: { label: "Agendada", tone: "info" },
-  encerrada: { label: "Encerrada", tone: "neutral" },
-  inativa: { label: "Inativa", tone: "neutral" },
 };
 
 function parsePage(value: string | null): number {
@@ -152,7 +150,11 @@ export function PrecosList() {
                   const detalhe = `/precos/${preco.rotatividadeId}`;
 
                   return (
-                    <TableRow key={preco.rotatividadeId} clickable onClick={() => router.push(detalhe)}>
+                    <TableRow
+                      key={preco.rotatividadeId}
+                      clickable
+                      onClick={() => router.push(ROW_CLICK_TARGET === "editar" ? `${detalhe}/editar` : detalhe)}
+                    >
                       <TableCell data-label="Descrição">
                         <Description>{preco.descricao}</Description>
                       </TableCell>

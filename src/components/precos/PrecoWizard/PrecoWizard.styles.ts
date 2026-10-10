@@ -55,3 +55,17 @@ export const StateBox = styled.div`
   align-items: flex-start;
   gap: ${({ theme }) => theme.space[3]}px;
 `;
+
+export const SubtitleRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[2]}px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+export const UnsavedNote = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textMuted};
+`;
