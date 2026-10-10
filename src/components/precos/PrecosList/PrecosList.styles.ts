@@ -1,5 +1,6 @@
 "use client";
 
+import NextLink from "next/link";
 import styled from "styled-components";
 
 export const Page = styled.div`
@@ -69,4 +70,30 @@ export const SkeletonRows = styled.div`
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
   padding: ${({ theme }) => theme.space[3]}px;
+`;
+
+// Ação de linha só com ícone: o nome acessível vem do aria-label e do title de quem usa.
+export const IconLink = styled(NextLink)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  color: ${({ theme }) => theme.colors.link};
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primarySoft};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 `;

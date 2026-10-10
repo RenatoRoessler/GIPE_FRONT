@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
-import { Link } from "@/components/ui/Link";
 import { Pagination } from "@/components/ui/Pagination";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -23,6 +22,7 @@ import {
   EmptyState,
   ErrorArea,
   Header,
+  IconLink,
   Page,
   RowActions,
   SkeletonRows,
@@ -41,6 +41,24 @@ const SAVED_MESSAGES: Record<string, string> = {
   criado: "Tabela de preço criada.",
   atualizado: "Tabela de preço atualizada.",
 };
+
+function ViewIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
 
 function parsePage(value: string | null): number {
   const page = Number(value);
@@ -170,12 +188,12 @@ export function PrecosList() {
                       </TableCell>
                       <TableCell data-label="Ações" align="right">
                         <RowActions onClick={(event) => event.stopPropagation()}>
-                          <Link href={detalhe} aria-label={`Ver ${preco.descricao}`}>
-                            Ver
-                          </Link>
-                          <Link href={`${detalhe}/editar`} aria-label={`Editar ${preco.descricao}`}>
-                            Editar
-                          </Link>
+                          <IconLink href={detalhe} aria-label={`Ver ${preco.descricao}`} title="Ver">
+                            <ViewIcon />
+                          </IconLink>
+                          <IconLink href={`${detalhe}/editar`} aria-label={`Editar ${preco.descricao}`} title="Editar">
+                            <EditIcon />
+                          </IconLink>
                         </RowActions>
                       </TableCell>
                     </TableRow>
