@@ -20,6 +20,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const theme = useTheme();
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const dialogId = useId();
 
@@ -50,6 +51,7 @@ export function MobileNav() {
   return (
     <>
       <Trigger
+        ref={triggerRef}
         type="button"
         onClick={open}
         aria-haspopup="dialog"
@@ -65,7 +67,11 @@ export function MobileNav() {
         ref={dialogRef}
         id={dialogId}
         aria-labelledby={`${dialogId}-title`}
-        onClose={() => setIsOpen(false)}
+        onClose={() => {
+          setIsOpen(false);
+          // Garante o retorno do foco ao gatilho mesmo em navegadores que não focam botões ao clique (Safari).
+          triggerRef.current?.focus();
+        }}
         onClick={(event) => {
           // O clique no backdrop chega ao próprio <dialog>; o painel ocupa todo o conteúdo.
           if (event.target === dialogRef.current) close();
