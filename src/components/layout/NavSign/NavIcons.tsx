@@ -65,6 +65,16 @@ function VehicleOutIcon(props: IconProps) {
   );
 }
 
+function CashierIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <rect x="3" y="6" width="18" height="12" rx="2" />
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M6.5 9.5v.01M17.5 14.5v.01" />
+    </IconBase>
+  );
+}
+
 function ReportsIcon(props: IconProps) {
   return (
     <IconBase {...props}>
@@ -88,6 +98,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   users: UsersIcon,
   vehicleIn: VehicleInIcon,
   vehicleOut: VehicleOutIcon,
+  cashier: CashierIcon,
   reports: ReportsIcon,
   company: CompanyIcon,
 };

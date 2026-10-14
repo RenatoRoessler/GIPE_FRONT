@@ -1,0 +1,1 @@
+export { CaixaPage } from "./CaixaPage";
