@@ -18,6 +18,7 @@ import {
   ToolbarActions,
   Wrapper,
 } from "../shared/RepeatableRows.styles";
+import { RemoveRowButton } from "../shared/RemoveRowButton";
 import { Period, PeriodFields, RowFields, RowFooter } from "./PrecoHorariosStepFields.styles";
 
 const DEFAULT_VALUES: PrecoHorariosValues = { horarios: [] };
@@ -109,16 +110,11 @@ export const PrecoHorariosStepFields = withForm({
                             />
                           )}
                         </form.AppField>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
+                        <RemoveRowButton
+                          label={`Remover horário ${index + 1}`}
                           onClick={() => removeRow(index)}
                           disabled={disabled}
-                          aria-label={`Remover horário ${index + 1}`}
-                        >
-                          Remover
-                        </Button>
+                        />
                         <Period>
                           <summary>Período específico (opcional)</summary>
                           <PeriodFields>

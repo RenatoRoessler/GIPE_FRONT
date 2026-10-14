@@ -16,6 +16,7 @@ import {
   Toolbar,
   Wrapper,
 } from "../shared/RepeatableRows.styles";
+import { RemoveRowButton } from "../shared/RemoveRowButton";
 import { Layout, RowFields, RowFooter } from "./PrecoFaixasStepFields.styles";
 
 const DEFAULT_VALUES: PrecoFaixasValues = { faixas: [] };
@@ -145,16 +146,11 @@ export const PrecoFaixasStepFields = withForm({
                           )}
                         </RowFields>
                         <RowFooter>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
+                          <RemoveRowButton
+                            label={`Remover faixa ${index + 1}`}
                             onClick={() => form.removeFieldValue("faixas", index)}
                             disabled={disabled}
-                            aria-label={`Remover faixa ${index + 1}`}
-                          >
-                            Remover
-                          </Button>
+                          />
                         </RowFooter>
                       </Row>
                     ))}
