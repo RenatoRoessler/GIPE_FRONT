@@ -1,12 +1,8 @@
 import { formatBRL } from "@/lib/money";
-import type { Caixa, Turno } from "@/types/caixa";
-
-// [A DEFINIR] Os nomes das formas de pagamento (códigos 1 a 4) não constam no contrato; enquanto o backend
-// não confirmar, a tela mostra "Forma n". Preencher aqui quando forem conhecidos.
-const FORMA_PAGAMENTO_NOMES: Record<number, string> = {};
+import { FORMA_PAGAMENTO_OPTIONS, type Caixa, type Turno } from "@/types/caixa";
 
 export function formaPagamentoLabel(id: number): string {
-  return FORMA_PAGAMENTO_NOMES[id] ?? `Forma ${id}`;
+  return FORMA_PAGAMENTO_OPTIONS.find((option) => option.value === id)?.label ?? `Forma ${id}`;
 }
 
 export function isCaixaAberto(caixa: Caixa): boolean {
