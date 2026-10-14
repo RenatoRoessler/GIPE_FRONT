@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.88",
+      "type": "feat",
+      "scope": "veiculos",
+      "title": "registra entrada e saída de veículos pelo sistema",
+      "description": "Adiciona os atalhos \"Registrar entrada\" e \"Registrar saída\" na Home e nas\ntelas de Entrada e Saída de Veículos.\n\nEntrada: o modal valida a placa (padrão antigo e Mercosul), preenche modelo,\ncor e categoria quando o veículo já está cadastrado, sugere modelos a partir\nde 2 letras e gera o código do ticket automaticamente.\n\nSaída: fluxo em 4 etapas (consultar, conferir, pagamento e recibo). A consulta\naceita placa, ticket ou sequencial; o valor é conferido novamente antes de\nregistrar a saída; o pagamento em dinheiro calcula o troco; o recibo pode ser\nimpresso.\n\nOs dois modais só fecham pelo \"x\" e pedem confirmação antes de descartar\ndados em andamento. Inclui os componentes DiscButton, OptionGroup e\nConfirmDialog no design system.",
+      "date": "2026-10-14T20:18:37-03:00"
+    },
+    {
+      "version": "1.0.86",
+      "type": "feat",
+      "scope": "caixa",
+      "title": "mostra o nome real de cada forma de pagamento",
+      "description": "Passa a exibir Dinheiro, Pix, Cartão de débito, Cartão de crédito,\nBoleto e Transferência bancária no turno atual, na conferência e no\nhistórico do Caixa, em vez de \"Forma 1\", \"Forma 2\" etc. Os nomes ficam\nem um enum único reaproveitável por outras telas de pagamento.",
+      "date": "2026-10-14T20:18:30-03:00"
+    },
+    {
       "version": "1.0.84",
       "type": "feat",
       "scope": "caixa",
