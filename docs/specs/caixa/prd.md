@@ -155,7 +155,7 @@ O sistema GIPE já registra movimentações e cobranças, mas ainda não há int
 | Dependência/Risco | Impacto | Mitigação |
 |-------------------|---------|-----------|
 | Operação de fechar caixa e sua resposta não detalhadas no material de origem | Alto | **[A DEFINIR]** confirmar contrato com o backend na Tech Spec |
-| Significado de cada forma de pagamento (códigos 1 a 4) não documentado | Médio | **[A DEFINIR]** suposição: obter nomes com o backend antes do design |
+| Formas de pagamento: 1 Dinheiro, 2 Pix, 3 Cartão de débito, 4 Cartão de crédito, 5 Boleto, 6 Transferência bancária | Baixo | Definido; a tela exibe as formas que vierem no turno |
 | Regras de permissão por perfil são reforçadas pelo backend (erro 403) | Médio | Interface oculta/desabilita ações e trata a recusa com mensagem clara |
 | Concorrência: dois usuários operando o mesmo turno | Médio | Atualizar estado após cada ação e tratar erro de turno já alterado |
 | Divergência de valores digitados na conferência | Médio | Resumo de confirmação antes de enviar |

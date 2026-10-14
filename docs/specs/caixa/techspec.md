@@ -34,7 +34,9 @@ export type Caixa = { caixaId: number; dataHoraAbertura: string; dataHoraFechame
   valorFundoCaixa: number; valorTotalEntrada: number | null; valorTotalSaida: number | null;
   valorTotalFechamento: number | null; status: CaixaStatus };
 export type CaixaSaldo = { dataAbertura: string; fundoCaixa: number; totalEntrada: number; totalSaida: number; saldo: number };
-export type FormaPagamentoId = 1 | 2 | 3 | 4;   // nomes [A DEFINIR] com o backend
+export const FORMA_PAGAMENTO = { Dinheiro: 1, Pix: 2, CartaoDebito: 3, CartaoCredito: 4, Boleto: 5, TransferenciaBancaria: 6 } as const;
+export type FormaPagamento = (typeof FORMA_PAGAMENTO)[keyof typeof FORMA_PAGAMENTO];  // + FORMA_PAGAMENTO_OPTIONS com os rótulos
+export type FormaPagamentoId = number;  // código vindo da API; tolera valores novos
 export type TurnoFormaPagamento = { formaPagamento: FormaPagamentoId; entradas: number; saidas: number;
   valorEsperado: number; valorInformado: number | null; diferenca: number | null };
 export type Turno = { turnoId: number; caixaId: number; usuarioId: number; usuario: string;
@@ -86,7 +88,7 @@ fecharCaixa(conferencias: Conferencia[]): Promise<Turno>  // endpoint e corpo [A
   - conferência: cada valor `parseMoney` ≥ 0; **campo vazio = 0**, com aviso visível "Formas sem valor serão contadas como zero" (RF-07/09);
   - passagem: `valorInicial` opcional; vazio ⇒ `null` (backend assume o dinheiro conferido) com texto de apoio.
 - A validação do limite da sangria no cliente é conveniência; a regra autoritativa é a do backend (400).
-- Dinheiro é a forma que recebe o `valorInicial`; qual código é "dinheiro" é **[A DEFINIR]** (hoje inferido como `1`; usado só para destacar o campo e na descrição do limite de sangria — o limite em si vem pronto em `disponivelSangria`).
+- Formas de pagamento confirmadas: 1 Dinheiro, 2 Pix, 3 Cartão de débito, 4 Cartão de crédito, 5 Boleto, 6 Transferência bancária (enum `FORMA_PAGAMENTO` em `src/types/caixa.ts`). Código desconhecido cai no rótulo "Forma n".
 
 ### Server vs Client
 - `page.tsx`: Server Component trivial. Tudo em `components/caixa/` e `ui/Modal`: Client Components (estado, `<dialog>`, queries).

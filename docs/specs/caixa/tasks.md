@@ -4,7 +4,7 @@ Referências: ./prd.md, ./techspec.md
 
 Ordem pensada para entregar em fatias: **Fase A** (base: tipos, serviço, Modal, menu) → **Fase B** (caixa fechado/aberto e abertura) → **Fase C** (sangria, passagem de turno, histórico) → **Fase D** (fechamento) → **Fase E** (verificação). Rodar `npm run lint` ao fim de cada task que altera código; `npm run build` ao fim de cada fase.
 
-Bloqueios com o backend (ver "Riscos" do `techspec.md`): corpo do `POST /Caixa/abrir` (T4, T10), endpoint e corpo do fechamento (T5, T17), nomes das formas de pagamento e significado de `status` (T3, T7). As demais tasks não dependem desses itens; o que for suposição fica concentrado no serviço e em `format.ts`.
+Bloqueios com o backend (ver "Riscos" do `techspec.md`): corpo do `POST /Caixa/abrir` (T4, T10), endpoint e corpo do fechamento (T5, T17), significado de `status` (T3). As demais tasks não dependem desses itens; o que for suposição fica concentrado no serviço e em `format.ts`.
 
 ## Fase A — Base
 
@@ -18,7 +18,7 @@ Bloqueios com o backend (ver "Riscos" do `techspec.md`): corpo do `POST /Caixa/a
 
 - [x] T3 — Utilitários de formatação do caixa
   - Arquivos: `src/components/caixa/format.ts`
-  - Pronto quando: funções puras para rótulo da forma de pagamento (códigos 1–4; nomes marcados `[A DEFINIR]` em comentário curto, com fallback "Forma {n}"), rótulo do status do turno, data/hora (`pt-BR`, tratando o valor sem fuso como horário local) e diferença (`Sobra`/`Falta`/`Sem diferença` + valor via `formatBRL`); `npm run lint` passa.
+  - Pronto quando: funções puras para rótulo da forma de pagamento (usa o enum `FORMA_PAGAMENTO_OPTIONS` de `src/types/caixa.ts`, códigos 1–6, com fallback "Forma {n}" para códigos desconhecidos), rótulo do status do turno, data/hora (`pt-BR`, tratando o valor sem fuso como horário local) e diferença (`Sobra`/`Falta`/`Sem diferença` + valor via `formatBRL`); `npm run lint` passa.
 
 - [x] T4 — Serviço de leitura: caixa, saldo, turno atual e histórico
   - Arquivos: `src/lib/api/services/caixa.ts`
@@ -99,4 +99,4 @@ Bloqueios com o backend (ver "Riscos" do `techspec.md`): corpo do `POST /Caixa/a
 
 - [ ] T21 — Fechamento da feature
   - Arquivos: `docs/specs/caixa/tasks.md`, `docs/specs/caixa/prd.md`, `docs/specs/caixa/techspec.md`
-  - Pronto quando: `npm run lint` e `npm run build` passam; critérios de aceite RF-01 a RF-10 do `prd.md` conferidos; itens `[A DEFINIR]` (corpo de abrir, fechamento, formas de pagamento, `status`) resolvidos e refletidos nos documentos; `docs/specs/input.md` sem os tokens Bearer reais antes de qualquer commit.
+  - Pronto quando: `npm run lint` e `npm run build` passam; critérios de aceite RF-01 a RF-10 do `prd.md` conferidos; itens `[A DEFINIR]` (corpo de abrir, fechamento, `status`) resolvidos e refletidos nos documentos; `docs/specs/input.md` sem os tokens Bearer reais antes de qualquer commit.
