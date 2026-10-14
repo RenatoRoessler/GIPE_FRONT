@@ -10,10 +10,12 @@ export interface ModalProps {
   children: ReactNode;
   footer?: ReactNode;
   size?: ModalSize;
+  // Clique no fundo fecha por padrão; desligue em fluxos com dados em andamento.
+  closeOnBackdrop?: boolean;
 }
 
 // Usa o <dialog> nativo: foco preso, Esc e backdrop vêm do navegador.
-export function Modal({ open, title, onClose, children, footer, size = "sm" }: ModalProps) {
+export function Modal({ open, title, onClose, children, footer, size = "sm", closeOnBackdrop = true }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -41,7 +43,7 @@ export function Modal({ open, title, onClose, children, footer, size = "sm" }: M
         onClose();
       }}
       onClick={(event) => {
-        if (event.target === event.currentTarget) {
+        if (closeOnBackdrop && event.target === event.currentTarget) {
           onClose();
         }
       }}

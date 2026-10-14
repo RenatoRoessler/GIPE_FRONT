@@ -1,0 +1,1 @@
+export { SaidaVeiculoModal } from "./SaidaVeiculoModal";

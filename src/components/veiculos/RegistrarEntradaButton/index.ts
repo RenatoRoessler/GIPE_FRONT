@@ -1,0 +1,1 @@
+export { RegistrarEntradaButton } from "./RegistrarEntradaButton";

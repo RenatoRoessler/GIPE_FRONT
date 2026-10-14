@@ -1,0 +1,1 @@
+export { RegistrarSaidaButton } from "./RegistrarSaidaButton";

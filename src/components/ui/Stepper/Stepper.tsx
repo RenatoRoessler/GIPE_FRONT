@@ -5,11 +5,13 @@ import { Connector, Dot, Item, List, StepLabel } from "./Stepper.styles";
 export interface StepperProps {
   steps: string[];
   currentStep: number;
+  // Nome acessível da lista; o padrão serve ao cadastro.
+  label?: string;
 }
 
-export function Stepper({ steps, currentStep }: StepperProps) {
+export function Stepper({ steps, currentStep, label: listLabel = "Progresso do cadastro" }: StepperProps) {
   return (
-    <List aria-label="Progresso do cadastro">
+    <List aria-label={listLabel}>
       {steps.map((label, index) => {
         const stepNumber = index + 1;
         const status =
