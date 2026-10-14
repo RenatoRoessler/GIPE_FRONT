@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.84",
+      "type": "feat",
+      "scope": "caixa",
+      "title": "adiciona a tela de Caixa com turnos, retirada e passagem de turno",
+      "description": "Novo menu \"Caixa\" para controlar o caixa da empresa em um só lugar:\n- abrir o caixa informando o fundo de caixa;\n- acompanhar o saldo (fundo, entradas, saídas) e o turno atual por forma de pagamento;\n- registrar retiradas de dinheiro com motivo, respeitando o valor disponível;\n- passar o turno com a conferência por forma de pagamento;\n- consultar o histórico de turnos com as diferenças;\n- fechar o caixa com o resumo do turno encerrado.\n\nInclui o componente Modal no design system. O fechamento do caixa usa um\ncontrato ainda a confirmar com o backend.",
+      "date": "2026-10-14T18:05:23-03:00"
+    },
+    {
+      "version": "1.0.82",
+      "type": "feat",
+      "scope": "precos",
+      "title": "usa ícone no botão de remover linhas do formulário de preço",
+      "description": "Os botões \"Remover\" de horários e faixas passam a ser um botão com ícone\ncompartilhado (RemoveRowButton), mantendo o rótulo acessível por linha e\nliberando espaço nas linhas do formulário.",
+      "date": "2026-10-14T18:05:17-03:00"
+    },
+    {
       "version": "1.0.80",
       "type": "feat",
       "scope": "precos",
