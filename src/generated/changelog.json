@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.97",
+      "type": "fix",
+      "scope": "caixa",
+      "title": "reconhece o caixa aberto e mostra o saldo correto",
+      "description": "A tela do Caixa dizia que não havia caixa aberto mesmo com o caixa\naberto no sistema, e tentava buscar o saldo em um endereço que não\nexiste. Agora o caixa aberto é reconhecido e o saldo, as entradas e as\nsaídas aparecem na tela.\n\n- Considera o caixa aberto quando a resposta não traz data de fechamento\n- Calcula o saldo a partir dos dados do próprio caixa\n- Remove a consulta ao endpoint de saldo inexistente",
+      "date": "2026-10-15T20:21:36-03:00"
+    },
+    {
       "version": "1.0.94",
       "type": "feat",
       "scope": "login",
