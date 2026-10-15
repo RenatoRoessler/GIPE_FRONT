@@ -1,44 +1,36 @@
 "use client";
 
-import { Skeleton } from "@/components/ui/Skeleton";
 import { formatBRL } from "@/lib/money";
-import type { CaixaSaldo } from "@/types/caixa";
-import { CardGrid, StatCard, StatLabel, StatValue, VisuallyHidden } from "./Caixa.styles";
+import type { Caixa } from "@/types/caixa";
+import { CardGrid, StatCard, StatLabel, StatValue } from "./Caixa.styles";
 import { formatDateTime } from "./format";
 
-export function SaldoCards({ saldo }: { saldo?: CaixaSaldo }) {
-  if (!saldo) {
-    return (
-      <CardGrid role="status" aria-busy="true">
-        <VisuallyHidden>Carregando saldo…</VisuallyHidden>
-        {Array.from({ length: 5 }, (_, index) => (
-          <Skeleton key={index} height="84px" radius="16px" />
-        ))}
-      </CardGrid>
-    );
-  }
+export function SaldoCards({ caixa }: { caixa: Caixa }) {
+  const totalEntrada = caixa.valorTotalEntrada ?? 0;
+  const totalSaida = caixa.valorTotalSaida ?? 0;
+  const saldo = caixa.saldoAtual ?? caixa.valorFundoCaixa + totalEntrada - totalSaida;
 
   return (
     <CardGrid>
       <StatCard $highlight>
         <StatLabel>Saldo</StatLabel>
-        <StatValue $large>{formatBRL(saldo.saldo)}</StatValue>
+        <StatValue $large>{formatBRL(saldo)}</StatValue>
       </StatCard>
       <StatCard>
         <StatLabel>Fundo de caixa</StatLabel>
-        <StatValue>{formatBRL(saldo.fundoCaixa)}</StatValue>
+        <StatValue>{formatBRL(caixa.valorFundoCaixa)}</StatValue>
       </StatCard>
       <StatCard>
         <StatLabel>Entradas</StatLabel>
-        <StatValue $tone="success">{formatBRL(saldo.totalEntrada)}</StatValue>
+        <StatValue $tone="success">{formatBRL(totalEntrada)}</StatValue>
       </StatCard>
       <StatCard>
         <StatLabel>Saídas</StatLabel>
-        <StatValue $tone="danger">{formatBRL(saldo.totalSaida)}</StatValue>
+        <StatValue $tone="danger">{formatBRL(totalSaida)}</StatValue>
       </StatCard>
       <StatCard>
         <StatLabel>Abertura</StatLabel>
-        <StatValue>{formatDateTime(saldo.dataAbertura)}</StatValue>
+        <StatValue>{formatDateTime(caixa.dataHoraAbertura)}</StatValue>
       </StatCard>
     </CardGrid>
   );

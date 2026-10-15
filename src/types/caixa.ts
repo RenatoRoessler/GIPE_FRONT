@@ -25,20 +25,14 @@ export type FormaPagamentoId = number;
 export type Caixa = {
   caixaId: number;
   dataHoraAbertura: string;
-  dataHoraFechamento: string | null;
+  // O GET /Caixa devolve o caixa aberto e omite os campos de fechamento (não vêm como null).
+  dataHoraFechamento?: string | null;
   valorFundoCaixa: number;
   valorTotalEntrada: number | null;
   valorTotalSaida: number | null;
-  valorTotalFechamento: number | null;
-  status: number;
-};
-
-export type CaixaSaldo = {
-  dataAbertura: string;
-  fundoCaixa: number;
-  totalEntrada: number;
-  totalSaida: number;
-  saldo: number;
+  valorTotalFechamento?: number | null;
+  saldoAtual?: number;
+  status?: number;
 };
 
 export type TurnoFormaPagamento = {

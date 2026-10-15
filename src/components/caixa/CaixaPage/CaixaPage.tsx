@@ -22,7 +22,7 @@ import { useCaixa } from "../useCaixa";
 type ModalId = "abrir" | "sangria" | "passagem" | "fechar" | "historico";
 
 export function CaixaPage() {
-  const { caixaQuery, caixa, saldoQuery, turnoQuery } = useCaixa();
+  const { caixaQuery, caixa, turnoQuery } = useCaixa();
   const [modal, setModal] = useState<ModalId | null>(null);
   const { toast, showToast, dismissToast } = useToast();
 
@@ -68,16 +68,7 @@ export function CaixaPage() {
             onHistorico={() => setModal("historico")}
             onFechar={() => setModal("fechar")}
           />
-          {saldoQuery.isError ? (
-            <StatusRow>
-              <ErrorBanner role="alert">{saldoQuery.error.message}</ErrorBanner>
-              <Button type="button" variant="secondary" onClick={() => void saldoQuery.refetch()}>
-                Tentar novamente
-              </Button>
-            </StatusRow>
-          ) : (
-            <SaldoCards saldo={saldoQuery.data} />
-          )}
+          <SaldoCards caixa={caixa} />
           {turnoQuery.isError ? (
             <StatusRow>
               <ErrorBanner role="alert">{turnoQuery.error.message}</ErrorBanner>

@@ -1,6 +1,5 @@
 import type {
   Caixa,
-  CaixaSaldo,
   Conferencia,
   PassagemTurnoInput,
   Turno,
@@ -27,11 +26,6 @@ export async function getCaixa(): Promise<Caixa | null> {
   } catch (error) {
     return nullIfNotFound(error);
   }
-}
-
-export async function getSaldo(): Promise<CaixaSaldo> {
-  const { data } = await api.get<CaixaSaldo>("/Caixa/saldo");
-  return data;
 }
 
 export async function getTurnoAtual(): Promise<Turno | null> {

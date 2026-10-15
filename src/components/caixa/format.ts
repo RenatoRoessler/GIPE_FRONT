@@ -6,7 +6,8 @@ export function formaPagamentoLabel(id: number): string {
 }
 
 export function isCaixaAberto(caixa: Caixa): boolean {
-  return caixa.dataHoraFechamento === null;
+  // Aberto = sem data de fechamento; a API omite o campo (undefined) em vez de enviar null.
+  return !caixa.dataHoraFechamento;
 }
 
 export function isTurnoAberto(turno: Turno): boolean {
