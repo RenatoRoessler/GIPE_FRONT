@@ -7,14 +7,12 @@ import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
-import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { ApiError } from "@/lib/api/errors";
 import { registrarEntrada } from "@/lib/api/services/patio";
 import { isValidPlaca, normalizePlaca } from "@/lib/placa";
 import { entradaVeiculoSchema, type EntradaVeiculoValues } from "@/lib/schemas/veiculo";
-import { gerarCodigoTicket, proximoCodigoTicket } from "@/lib/ticket";
-import { CATEGORIA_VEICULO_OPTIONS } from "@/types/veiculo";
+import { CATEGORIA_VEICULO_OPTIONS, type EntradaRegistrada } from "@/types/veiculo";
+import { ReciboEntradaStep } from "../ReciboEntradaStep";
 import { useModelos } from "../useModelos";
 import { usePlacaLookup, type PlacaLookupStatus } from "../usePlacaLookup";
 import { FieldRow, Form } from "./EntradaVeiculoModal.styles";
@@ -24,14 +22,7 @@ export interface EntradaVeiculoModalProps {
   onSuccess: (message: string) => void;
 }
 
-const MAX_NOVAS_TENTATIVAS_TICKET = 2;
 const CATEGORIAS = CATEGORIA_VEICULO_OPTIONS.map((option) => String(option.value));
-
-// [A CONFIRMAR] O backend responde 400 genérico para "ticket em uso"; sem código de erro estruturado,
-// a heurística é a mensagem citar o ticket. Trocar por checagem de código quando existir.
-function isTicketEmUso(error: unknown): boolean {
-  return error instanceof ApiError && error.kind === "validation" && /ticket/i.test(error.message);
-}
 
 function placaHint(status: PlacaLookupStatus): { hint?: string; tone?: "muted" | "success" | "danger" } {
   switch (status.state) {
@@ -50,36 +41,21 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   const formId = useId();
   const datalistId = useId();
   const { status, lookup, reset: resetLookup } = usePlacaLookup();
-  // O ticket mostrado é o que será enviado; só muda se o backend recusar por já estar em uso.
-  const [ticket, setTicket] = useState(() => gerarCodigoTicket());
+  // Com a entrada registrada, o modal passa do formulário para o comprovante.
+  const [entrada, setEntrada] = useState<EntradaRegistrada | null>(null);
 
   const mutation = useMutation({
-    mutationFn: async (values: EntradaVeiculoValues) => {
-      let codigoTicket = ticket;
-      for (let tentativa = 0; ; tentativa += 1) {
-        try {
-          return await registrarEntrada({
-            placa: normalizePlaca(values.placa),
-            categoria: Number(values.categoria),
-            codigoTicket,
-            mensalista: values.mensalista,
-            // [A CONFIRMAR] modelo e cor opcionais: assume que o backend aceita texto vazio.
-            modelo: values.modelo.trim(),
-            cor: values.cor.trim(),
-          });
-        } catch (error) {
-          if (tentativa >= MAX_NOVAS_TENTATIVAS_TICKET || !isTicketEmUso(error)) {
-            throw error;
-          }
-          codigoTicket = proximoCodigoTicket(codigoTicket);
-          setTicket(codigoTicket);
-        }
-      }
-    },
-    onSuccess: () => {
-      onSuccess("Entrada registrada.");
-      onClose();
-    },
+    // O código do ticket é gerado pelo backend.
+    mutationFn: (values: EntradaVeiculoValues) =>
+      registrarEntrada({
+        placa: normalizePlaca(values.placa),
+        categoria: Number(values.categoria),
+        mensalista: values.mensalista,
+        // [A CONFIRMAR] modelo e cor opcionais: assume que o backend aceita texto vazio.
+        modelo: values.modelo.trim(),
+        cor: values.cor.trim(),
+      }),
+    onSuccess: (registrada) => setEntrada(registrada),
   });
 
   const form = useAppForm({
@@ -110,7 +86,17 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
 
   const isSending = mutation.isPending;
 
+  function handleConcluir() {
+    onSuccess("Entrada registrada.");
+    onClose();
+  }
+
   function handleClose() {
+    // A entrada já foi registrada: fechar o comprovante não descarta nada.
+    if (entrada) {
+      handleConcluir();
+      return;
+    }
     if (isSending) {
       return;
     }
@@ -157,9 +143,11 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
     <Modal
       open
       title="Registrar entrada"
+      size={entrada ? "lg" : "sm"}
       onClose={handleClose}
       closeOnBackdrop={false}
       footer={
+        entrada ? undefined : (
         <>
           <Button type="button" variant="secondary" onClick={handleClose} disabled={isSending}>
             Cancelar
@@ -168,8 +156,13 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
             {isSending ? "Registrando..." : "Registrar entrada"}
           </Button>
         </>
+        )
       }
     >
+      {entrada ? (
+        <ReciboEntradaStep entrada={entrada} onConcluir={handleConcluir} />
+      ) : (
+        <>
       {mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
       <Form
         id={formId}
@@ -235,13 +228,14 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
             <option key={modelo.modeloId} value={modelo.nome} />
           ))}
         </datalist>
-        <Input label="Código do ticket" value={String(ticket)} disabled readOnly />
         <form.AppField name="mensalista">
           {(field) => (
             <field.SwitchField label={`Mensalista: ${mensalista ? "Sim" : "Não"}`} disabled={isSending} />
           )}
         </form.AppField>
       </Form>
+        </>
+      )}
       {confirmingClose && (
         <ConfirmDialog
           title="Descartar entrada?"

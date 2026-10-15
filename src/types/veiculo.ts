@@ -39,7 +39,6 @@ export type ModeloVeiculo = {
 export type EntradaPayload = {
   placa: string;
   categoria: number;
-  codigoTicket: number;
   mensalista: boolean;
   modelo: string;
   cor: string;

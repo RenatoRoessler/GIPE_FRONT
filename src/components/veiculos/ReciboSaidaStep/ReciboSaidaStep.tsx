@@ -8,7 +8,7 @@ import { getEmpresa } from "@/lib/api/services/empresa";
 import { formatCNPJ } from "@/lib/cnpj";
 import type { SaidaConsulta, SaidaRegistrada } from "@/types/saida";
 import { ReciboConteudo, type ReciboData } from "./ReciboConteudo";
-import { Actions, PrintStyles, Success } from "./ReciboSaidaStep.styles";
+import { Actions, PrintStyles, Success } from "../Recibo.styles";
 
 export type SaidaResultado = {
   saida: SaidaRegistrada;

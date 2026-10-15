@@ -4,7 +4,8 @@ import { formatDateTime } from "@/components/caixa/format";
 import { formatMinutos } from "@/components/precos/format";
 import { formatBRL } from "@/lib/money";
 import { getCategoriaVeiculoLabel, getFormaPagamentoLabel } from "../saida";
-import { Divider, Receipt, ReceiptHeader, ReceiptPlaca, Rows, Total } from "./ReciboSaidaStep.styles";
+import { Divider, Receipt, ReceiptHeader, ReceiptPlaca, Rows } from "../Recibo.styles";
+import { Total } from "./ReciboSaidaStep.styles";
 
 export type ReciboData = {
   empresaNome?: string;
