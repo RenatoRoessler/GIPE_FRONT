@@ -1,3 +1,4 @@
+import { DashboardContent } from "@/components/home/DashboardContent";
 import { Card } from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
 import { ActionRow } from "@/components/veiculos/ActionRow";
@@ -6,7 +7,7 @@ import { RegistrarSaidaButton } from "@/components/veiculos/RegistrarSaidaButton
 
 export default function DashboardPage() {
   return (
-    <>
+    <DashboardContent>
       <Card maxWidth="640px">
         <Text variant="heading">Bem-vindo ao GIPE</Text>
         <Text variant="muted">Mais informações aparecerão aqui em breve.</Text>
@@ -15,6 +16,6 @@ export default function DashboardPage() {
         <RegistrarEntradaButton />
         <RegistrarSaidaButton />
       </ActionRow>
-    </>
+    </DashboardContent>
   );
 }
