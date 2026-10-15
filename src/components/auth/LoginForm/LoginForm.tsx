@@ -2,9 +2,10 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AuthCard, Footer, Form } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
 import { Link } from "@/components/ui/Link";
 import { Text } from "@/components/ui/Text";
@@ -14,6 +15,11 @@ import { useToast } from "@/hooks/useToast";
 import { login } from "@/lib/api/services/auth";
 import { clearToken, saveToken } from "@/lib/auth";
 import { formatCPF } from "@/lib/cpf";
+import {
+  clearRememberedLogin,
+  loadRememberedLogin,
+  saveRememberedLogin,
+} from "@/lib/rememberedLogin";
 import { loginSchema, LoginValues } from "@/lib/schemas/login";
 
 // Avisos exibidos ao chegar no login por outro fluxo (parâmetro de URL -> mensagem).
@@ -29,6 +35,7 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast, showToast, dismissToast } = useToast();
+  const [remember, setRemember] = useState(false);
 
   const mutation = useMutation({
     mutationFn: (values: LoginValues) => {
@@ -36,8 +43,13 @@ export function LoginForm() {
       clearToken();
       return login(values.cpf, values.senha);
     },
-    onSuccess: ({ token }) => {
+    onSuccess: async ({ token }, values) => {
       saveToken(token);
+      if (remember) {
+        await saveRememberedLogin(values);
+      } else {
+        await clearRememberedLogin();
+      }
       router.push("/dashboard");
     },
   });
@@ -54,6 +66,22 @@ export function LoginForm() {
       await mutation.mutateAsync(value);
     },
   });
+
+  useEffect(() => {
+    let active = true;
+    void loadRememberedLogin().then((saved) => {
+      if (!active || !saved) return;
+      // Não sobrescreve o que o usuário já começou a digitar.
+      if (form.state.values.cpf || form.state.values.senha) return;
+      form.setFieldValue("cpf", saved.cpf);
+      form.setFieldValue("senha", saved.senha);
+      setRemember(true);
+    });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     for (const [param, messages] of Object.entries(NOTICES)) {
@@ -102,6 +130,13 @@ export function LoginForm() {
             />
           )}
         </form.AppField>
+        <Checkbox
+          label="Lembrar senha"
+          hint="Não recomendado em computadores compartilhados."
+          checked={remember}
+          onCheckedChange={setRemember}
+          disabled={mutation.isPending}
+        />
         {mutation.isError && (
           <Text variant="error" role="alert">
             {mutation.error.message}

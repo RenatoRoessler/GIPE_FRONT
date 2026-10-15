@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { clearToken } from "@/lib/auth";
+import { clearRememberedLogin } from "@/lib/rememberedLogin";
 import {
   Avatar,
   Divider,
@@ -51,6 +52,7 @@ export function UserMenu() {
   function handleLogout() {
     setIsOpen(false);
     clearToken();
+    void clearRememberedLogin();
     router.push("/login");
   }
 
