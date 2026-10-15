@@ -42,15 +42,6 @@ const SAVED_MESSAGES: Record<string, string> = {
   atualizado: "Tabela de preço atualizada.",
 };
 
-function ViewIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
 function EditIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -188,9 +179,6 @@ export function PrecosList() {
                       </TableCell>
                       <TableCell data-label="Ações" align="right">
                         <RowActions onClick={(event) => event.stopPropagation()}>
-                          <IconLink href={detalhe} aria-label={`Ver ${preco.descricao}`} title="Ver">
-                            <ViewIcon />
-                          </IconLink>
                           <IconLink href={`${detalhe}/editar`} aria-label={`Editar ${preco.descricao}`} title="Editar">
                             <EditIcon />
                           </IconLink>
