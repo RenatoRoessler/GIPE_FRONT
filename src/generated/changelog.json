@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.91",
+      "type": "feat",
+      "scope": "veiculos",
+      "title": "adiciona comprovante de entrada com QR code",
+      "description": "Ao registrar uma entrada, o sistema agora mostra um comprovante com\nQR code, que pode ser impresso. O código do ticket deixou de ser\ndigitado/gerado na tela, pois passa a ser gerado pelo servidor.\n\n- Etapa de comprovante no modal de entrada, em duas colunas no desktop\n- Componente QrCode no design system (qrcode.react)\n- Estilos do recibo compartilhados entre entrada e saída\n- Remove o campo Código do ticket e a geração local do código",
+      "date": "2026-10-15T20:13:38-03:00"
+    },
+    {
       "version": "1.0.88",
       "type": "feat",
       "scope": "veiculos",
