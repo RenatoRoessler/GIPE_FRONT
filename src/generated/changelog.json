@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.94",
+      "type": "feat",
+      "scope": "login",
+      "title": "permite lembrar o login neste computador",
+      "description": "Na tela de entrada há uma nova opção \"Lembrar senha\". Marcada, o CPF e\na senha voltam preenchidos na próxima visita. Não é recomendado em\ncomputadores compartilhados. Ao sair do sistema, o login lembrado é\napagado.\n\n- Novo componente Checkbox no design system\n- Senha guardada cifrada no navegador (AES-GCM), com chave não extraível\n- Sem armazenamento disponível, o login apenas não é lembrado",
+      "date": "2026-10-15T20:13:59-03:00"
+    },
+    {
       "version": "1.0.91",
       "type": "feat",
       "scope": "veiculos",
