@@ -1,0 +1,15 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+// Só propaga o valor depois de `delay` ms sem mudanças (evita consultar a cada tecla).
+export function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debounced;
+}
