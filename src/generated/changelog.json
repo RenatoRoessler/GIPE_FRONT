@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.104",
+      "type": "feat",
+      "scope": "mensalistas",
+      "title": "adiciona a gestão de mensalistas e tipos de mensalidade",
+      "description": "Nova página Mensalistas no menu, com duas abas. Agora é possível\ncadastrar, editar, ativar e desativar mensalistas e os tipos de\nmensalidade sem sair do sistema.\n\n- Lista de mensalistas com busca pelo início do CPF ou CNPJ e paginação\n- Cadastro e edição de mensalista, com CPF e CNPJ (inclusive o\n  alfanumérico) validados e mascarados\n- Lista, cadastro e edição dos tipos de mensalidade (nome, categoria,\n  valor e horário)\n- Avisos claros quando falta um tipo ativo, quando não há resultados e\n  quando o usuário não tem permissão",
+      "date": "2026-10-15T21:00:37-03:00"
+    },
+    {
+      "version": "1.0.103",
+      "type": "feat",
+      "scope": "ui",
+      "title": "adiciona componente de abas acessível",
+      "description": "Novo componente Tabs no design system, com navegação por setas, Home e\nEnd, papéis de acessibilidade para leitores de tela e rolagem\nhorizontal em telas estreitas.",
+      "date": "2026-10-15T21:00:37-03:00"
+    },
+    {
       "version": "1.0.97",
       "type": "fix",
       "scope": "caixa",
