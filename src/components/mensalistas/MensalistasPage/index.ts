@@ -1,0 +1,1 @@
+export { MensalistasPage } from "./MensalistasPage";
