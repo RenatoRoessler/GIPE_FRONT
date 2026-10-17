@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { withForm } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
@@ -27,7 +27,11 @@ export const PrecoHorariosStepFields = withForm({
   defaultValues: DEFAULT_VALUES,
   props: {} as { disabled?: boolean },
   render: function Render({ form, disabled }) {
+    // O foco só vai para a linha nova quando o usuário a pede; a grade também cria linhas e não deve mover a página.
+    const focarNovaLinhaRef = useRef(false);
+
     function addRow() {
+      focarNovaLinhaRef.current = true;
       form.pushFieldValue("horarios", { ...EMPTY_PRECO_HORARIO });
     }
 
@@ -47,7 +51,7 @@ export const PrecoHorariosStepFields = withForm({
     return (
       <form.Subscribe selector={(state) => state.values.horarios.length}>
         {(count) => (
-          <HorariosList count={count}>
+          <HorariosList count={count} focarNovaLinhaRef={focarNovaLinhaRef}>
             <Wrapper>
               <Toolbar>
                 <Text variant="muted">Minutos exatos, horários inativos e períodos específicos.</Text>
@@ -153,12 +157,14 @@ export const PrecoHorariosStepFields = withForm({
 
 interface HorariosListProps {
   count: number;
+  // Ligado por "Adicionar horário": só então a linha criada recebe o foco.
+  focarNovaLinhaRef: RefObject<boolean>;
   children: ReactNode;
 }
 
 // Cuida do foco e do anúncio para leitores de tela quando a quantidade de linhas muda:
 // ao adicionar uma linha, o foco vai ao primeiro campo dela.
-function HorariosList({ count, children }: HorariosListProps) {
+function HorariosList({ count, focarNovaLinhaRef, children }: HorariosListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const previousCountRef = useRef(count);
   const [announcement, setAnnouncement] = useState("");
@@ -169,7 +175,7 @@ function HorariosList({ count, children }: HorariosListProps) {
     if (count === previous) {
       return;
     }
-    if (count === previous + 1) {
+    if (count === previous + 1 && focarNovaLinhaRef.current) {
       containerRef.current?.querySelector<HTMLElement>(`[data-row="${count - 1}"] select`)?.focus();
       setAnnouncement(`Horário ${count} adicionado.`);
     } else if (count < previous) {
@@ -177,7 +183,8 @@ function HorariosList({ count, children }: HorariosListProps) {
     } else {
       setAnnouncement("Horários atualizados.");
     }
-  }, [count]);
+    focarNovaLinhaRef.current = false;
+  }, [count, focarNovaLinhaRef]);
 
   return (
     <div ref={containerRef}>

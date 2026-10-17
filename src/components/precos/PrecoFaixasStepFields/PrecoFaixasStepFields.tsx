@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { withForm } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
@@ -57,10 +57,12 @@ function descreverSalto(atual: string, anterior: string | undefined): string {
 
 interface FaixasAnnouncerProps {
   count: number;
+  // Ligado por "Adicionar faixa": só então a linha criada recebe o foco (modelos também mudam a quantidade).
+  focarNovaLinhaRef: RefObject<boolean>;
 }
 
 // Anuncia adições/remoções e leva o foco ao primeiro campo da linha criada.
-function FaixasAnnouncer({ count }: FaixasAnnouncerProps) {
+function FaixasAnnouncer({ count, focarNovaLinhaRef }: FaixasAnnouncerProps) {
   const previousCountRef = useRef(count);
   const [announcement, setAnnouncement] = useState("");
 
@@ -70,13 +72,16 @@ function FaixasAnnouncer({ count }: FaixasAnnouncerProps) {
     if (count === previous) {
       return;
     }
-    if (count === previous + 1) {
+    if (count === previous + 1 && focarNovaLinhaRef.current) {
       document.querySelector<HTMLElement>(`[data-faixa-row="${count - 1}"] input`)?.focus();
       setAnnouncement(`Faixa ${count} adicionada.`);
-    } else {
+    } else if (count < previous) {
       setAnnouncement("Faixa removida.");
+    } else {
+      setAnnouncement("Faixas atualizadas.");
     }
-  }, [count]);
+    focarNovaLinhaRef.current = false;
+  }, [count, focarNovaLinhaRef]);
 
   return (
     <LiveRegion role="status" aria-live="polite">
@@ -89,6 +94,8 @@ export const PrecoFaixasStepFields = withForm({
   defaultValues: DEFAULT_VALUES,
   props: {} as { disabled?: boolean; showPercentual?: boolean; diariaValor?: number },
   render: function Render({ form, disabled, showPercentual = false, diariaValor = Number.NaN }) {
+    const focarNovaLinhaRef = useRef(false);
+
     // Mantém as faixas em ordem crescente de minutos quando o foco sai da linha (não reordena durante a digitação).
     function sortFaixas() {
       const faixas = form.state.values.faixas;
@@ -123,7 +130,10 @@ export const PrecoFaixasStepFields = withForm({
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() => form.pushFieldValue("faixas", { ...EMPTY_PRECO_FAIXA })}
+              onClick={() => {
+                focarNovaLinhaRef.current = true;
+                form.pushFieldValue("faixas", { ...EMPTY_PRECO_FAIXA });
+              }}
               disabled={disabled}
             >
               Adicionar faixa
@@ -134,7 +144,7 @@ export const PrecoFaixasStepFields = withForm({
         <form.Subscribe selector={(state) => state.values.faixas.length}>
           {(count) => (
             <>
-              <FaixasAnnouncer count={count} />
+              <FaixasAnnouncer count={count} focarNovaLinhaRef={focarNovaLinhaRef} />
               {count === 0 ? (
                 <EmptyHint>
                   <Text variant="muted">Nenhuma faixa cadastrada.</Text>
