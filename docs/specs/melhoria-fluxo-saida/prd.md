@@ -61,3 +61,5 @@ Operadores da portaria e do caixa (Administrador, Gerente, Caixa e Manobrista) n
 - Tempo para dar saída a um veículo (da abertura do modal ao recibo): menos de 30 segundos com QR (hoje a meta é 45 s).
 - Parcela de saídas iniciadas por leitura de QR em relação às digitadas.
 - Saídas registradas com valor divergente do calculado no momento da cobrança: zero.
+
+> **Atualização:** a tela única descrita em RF1 e RF13 foi substituída por duas fases (localizar, depois pagar) em `docs/specs/saida-localizar-e-pagar/`. Leitura de QR, busca, valor ao vivo, pagamento e recibo seguem valendo como descritos aqui.

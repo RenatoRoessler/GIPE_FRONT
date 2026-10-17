@@ -1,5 +1,6 @@
 <task>melhorar fluxo de saida de veiculos </task>
 <description>
-quero que o layout seja melhorado com base nesse[text](../../../Users/renat/Downloads/gipe-saida.html)
-
+quero que melhore a usabilidade do fluxo de saida, primeiro aparece as informações para localizar o o veiculo
+apos a localização mostre apenas os dados e pagamento
+crie um botão para voltar para a pesquisa
 </description>
