@@ -25,7 +25,9 @@ function renderMeios(queryClient = new QueryClient({ defaultOptions: { queries: 
 
 const labels = (opcoes: { label: string }[]) => opcoes.map((opcao) => opcao.label);
 
-beforeEach(() => vi.mocked(getEmpresa).mockReset());
+beforeEach(() => {
+  vi.mocked(getEmpresa).mockReset();
+});
 
 describe("useMeiosPagamento", () => {
   it("começa carregando", async () => {
