@@ -1,5 +1,7 @@
 # Tech Spec: QR Code do comprovante de entrada
 
+> **Atualização (2026-10-17):** o link do QR deixou de ser `patioId + placa` e passou a usar o `token` devolvido pelo registro da entrada (`/comprovante/<token>`, consultando `GET /Patio/comprovante/cliente`). Ver `docs/specs/melhoria-fluxo-entrada/techspec.md`. O restante deste documento descreve a versão original.
+
 ## Referências
 - PRD: ./prd.md
 - Design: ./design.md (resumo na seção "Design" abaixo)
