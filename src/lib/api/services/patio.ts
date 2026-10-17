@@ -1,4 +1,4 @@
-import type { EntradaPayload, EntradaRegistrada } from "@/types/veiculo";
+import type { ComprovanteCliente, EntradaPayload, EntradaRegistrada } from "@/types/veiculo";
 import type { SaidaBusca, SaidaBuscaTipo, SaidaConsulta, SaidaPayload, SaidaRegistrada } from "@/types/saida";
 import { api } from "../client";
 import { ApiError } from "../errors";
@@ -7,6 +7,19 @@ import { ApiError } from "../errors";
 export async function registrarEntrada(payload: EntradaPayload): Promise<EntradaRegistrada> {
   const { data } = await api.post<EntradaRegistrada>("/Patio/entrada", payload);
   return data;
+}
+
+// Público (sem login). [A CONFIRMAR] código devolvido para token inexistente: 404 e 400 são tratados como "não encontrado".
+export async function consultarComprovante(token: string): Promise<ComprovanteCliente> {
+  try {
+    const { data } = await api.get<ComprovanteCliente>("/Patio/comprovante/cliente", { params: { token } });
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError && (error.kind === "not_found" || error.kind === "validation")) {
+      throw new ApiError("not_found", "Comprovante não encontrado.", 404);
+    }
+    throw error;
+  }
 }
 
 // [A CONFIRMAR] O contrato mostra só `placa`; `codigoTicket` e `sequencial` seguem o nome dos campos da resposta.

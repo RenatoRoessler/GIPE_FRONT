@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
 import { SignageThemeProvider } from "@/contexts/ThemeModeContext";
-import { FontScope } from "./FontScope";
+import { FontScope } from "@/components/layout/FontScope";
 
 const barlow = Barlow({
   variable: "--font-barlow",
