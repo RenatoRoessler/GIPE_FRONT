@@ -49,6 +49,8 @@ export interface PrecoWizardFormProps {
   savedFlag: "criado" | "atualizado";
   // Chaves de cache a invalidar após salvar.
   invalidateKeys?: readonly (readonly unknown[])[];
+  // Edição: id da tabela salva, devolvido à tela de preços para ela voltar com essa tabela selecionada.
+  savedPrecoId?: number;
   // Edição: mostra o nome e a situação salva da tabela, compara com o original e só salva com mudanças.
   mode?: "create" | "edit";
   nome?: string;
@@ -61,6 +63,7 @@ export function PrecoWizardForm({
   onSave,
   savedFlag,
   invalidateKeys = [],
+  savedPrecoId,
   mode = "create",
   nome,
   situacao,
@@ -126,7 +129,7 @@ export function PrecoWizardForm({
         queryClient.invalidateQueries({ queryKey: ["precos"] }),
         ...invalidateKeys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
       ]);
-      router.push(`/precos?salvo=${savedFlag}`);
+      router.push(`/precos?salvo=${savedFlag}${savedPrecoId === undefined ? "" : `&preco=${savedPrecoId}`}`);
     },
   });
 

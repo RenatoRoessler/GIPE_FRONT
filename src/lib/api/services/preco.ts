@@ -12,30 +12,34 @@ export async function listPrecos(params: {
   return { ...data, items: (data.items ?? []).map(fromPrecoResponse) };
 }
 
-const BUSCA_TAMANHO_PAGINA = 20;
+// Tamanho das páginas usadas na carga completa. [A CONFIRMAR] o máximo que a API aceita.
+export const TAMANHO_PAGINA_CARGA = 50;
+
+// Carrega todas as tabelas, na ordem da API. A tela de preços busca, filtra e pagina em memória porque a API
+// só aceita `pagina` e `tamanhoPagina`; se um dia aceitar busca no servidor, a troca é só aqui e em `usePrecos`.
+export async function listAllPrecos(): Promise<PrecoView[]> {
+  const first = await listPrecos({ pagina: 1, tamanhoPagina: TAMANHO_PAGINA_CARGA });
+  if (first.totalPages <= 1) {
+    return first.items;
+  }
+
+  const restantes = await Promise.all(
+    Array.from({ length: first.totalPages - 1 }, (_, index) =>
+      listPrecos({ pagina: index + 2, tamanhoPagina: TAMANHO_PAGINA_CARGA }),
+    ),
+  );
+  return [first, ...restantes].flatMap((page) => page.items);
+}
 
 // Não existe endpoint de consulta por id: a listagem já traz a tabela completa (horários, faixas e categorias),
-// então a edição localiza o registro nela. Sempre busca no servidor (dados atuais, não cache); `paginaInicial`
-// só define por onde começar, e as demais páginas são percorridas se o registro não estiver nela.
-export async function getPreco(id: number, paginaInicial = 1): Promise<PrecoView> {
-  const first = await listPrecos({ pagina: paginaInicial, tamanhoPagina: BUSCA_TAMANHO_PAGINA });
-  const found = first.items.find((preco) => preco.rotatividadeId === id);
-  if (found) {
-    return found;
+// então o registro é localizado na carga completa. Sempre busca no servidor (dados atuais, não cache).
+export async function getPreco(id: number): Promise<PrecoView> {
+  const todas = await listAllPrecos();
+  const found = todas.find((preco) => preco.rotatividadeId === id);
+  if (!found) {
+    throw new ApiError("not_found", "Tabela de preço não encontrada.", 404);
   }
-
-  for (let pagina = 1; pagina <= first.totalPages; pagina += 1) {
-    if (pagina === paginaInicial) {
-      continue;
-    }
-    const result = await listPrecos({ pagina, tamanhoPagina: BUSCA_TAMANHO_PAGINA });
-    const match = result.items.find((preco) => preco.rotatividadeId === id);
-    if (match) {
-      return match;
-    }
-  }
-
-  throw new ApiError("not_found", "Tabela de preço não encontrada.", 404);
+  return found;
 }
 
 export async function createPreco(values: PrecoFormValues): Promise<void> {
