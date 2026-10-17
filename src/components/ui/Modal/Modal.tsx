@@ -12,10 +12,12 @@ export interface ModalProps {
   size?: ModalSize;
   // Clique no fundo fecha por padrão; desligue em fluxos com dados em andamento.
   closeOnBackdrop?: boolean;
+  // No celular o modal ocupa a tela toda; desligue em diálogos curtos (ex.: confirmação).
+  fullScreenOnMobile?: boolean;
 }
 
 // Usa o <dialog> nativo: foco preso, Esc e backdrop vêm do navegador.
-export function Modal({ open, title, onClose, children, footer, size = "sm", closeOnBackdrop = true }: ModalProps) {
+export function Modal({ open, title, onClose, children, footer, size = "sm", closeOnBackdrop = true, fullScreenOnMobile = true }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -37,6 +39,7 @@ export function Modal({ open, title, onClose, children, footer, size = "sm", clo
     <Dialog
       ref={dialogRef}
       $size={size}
+      $fullScreenOnMobile={fullScreenOnMobile}
       aria-labelledby={titleId}
       onCancel={(event) => {
         event.preventDefault();

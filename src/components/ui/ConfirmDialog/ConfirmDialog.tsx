@@ -21,6 +21,7 @@ export function ConfirmDialog({ title, message, confirmLabel, cancelLabel, onCon
       title={title}
       onClose={onCancel}
       closeOnBackdrop={false}
+      fullScreenOnMobile={false}
       footer={
         <>
           <Button type="button" variant="secondary" onClick={onCancel} autoFocus>

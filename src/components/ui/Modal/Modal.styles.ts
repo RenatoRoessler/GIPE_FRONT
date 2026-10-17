@@ -1,23 +1,57 @@
 "use client";
 
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
-export type ModalSize = "sm" | "lg";
+export type ModalSize = "sm" | "md" | "lg";
 
-const WIDTHS: Record<ModalSize, string> = { sm: "480px", lg: "760px" };
+const WIDTHS: Record<ModalSize, string> = { sm: "480px", md: "600px", lg: "760px" };
 
-export const Dialog = styled.dialog<{ $size: ModalSize }>`
-  width: calc(100% - ${({ theme }) => theme.space[3] * 2}px);
-  max-width: ${({ $size }) => WIDTHS[$size]};
-  max-height: calc(100dvh - ${({ theme }) => theme.space[4] * 2}px);
-  margin: auto;
+// Desktop: caixa centralizada com margem. No celular (abaixo de md) o modal ocupa a tela toda,
+// com cabeçalho e rodapé fixos e só o corpo rolando.
+export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boolean }>`
   padding: 0;
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radii.lg};
   background-color: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.text};
   box-shadow: ${({ theme }) => theme.shadows.md};
   overflow: hidden;
+
+  ${({ $fullScreenOnMobile, theme }) =>
+    $fullScreenOnMobile
+      ? css`
+          width: 100%;
+          max-width: none;
+          height: 100dvh;
+          max-height: none;
+          margin: 0;
+          border: none;
+          border-radius: 0;
+
+          @media (min-width: ${theme.breakpoints.md}) {
+            width: calc(100% - ${theme.space[3] * 2}px);
+            height: auto;
+            margin: auto;
+            border: 1px solid ${theme.colors.border};
+            border-radius: ${theme.radii.lg};
+          }
+        `
+      : css`
+          margin: auto;
+          border-radius: ${theme.radii.lg};
+          width: calc(100% - ${theme.space[3] * 2}px);
+        `}
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+    max-width: ${({ $size }) => WIDTHS[$size]};
+    max-height: calc(100dvh - ${({ theme }) => theme.space[4] * 2}px);
+  }
+
+  ${({ $fullScreenOnMobile, $size }) =>
+    !$fullScreenOnMobile &&
+    css`
+      max-width: ${WIDTHS[$size]};
+      max-height: 100dvh;
+    `}
 
   &[open] {
     display: flex;
@@ -66,7 +100,9 @@ export const CloseButton = styled.button`
 
 export const Body = styled.div`
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-height: 0;
   gap: ${({ theme }) => theme.space[3]}px;
   padding: ${({ theme }) => theme.space[4]}px;
   overflow-y: auto;
