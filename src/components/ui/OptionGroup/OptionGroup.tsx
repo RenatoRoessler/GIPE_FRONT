@@ -1,11 +1,13 @@
 "use client";
 
-import { useId } from "react";
-import { ErrorText, Fieldset, Legend, Mark, Options, RadioInput, Tile } from "./OptionGroup.styles";
+import { ReactNode, useId } from "react";
+import { ErrorText, Fieldset, IconSlot, Legend, Mark, Options, RadioInput, Tile } from "./OptionGroup.styles";
 
 export interface OptionGroupOption {
   value: string;
   label: string;
+  // Ícone decorativo (o rótulo continua sendo o nome acessível); com ícone o tile fica em coluna.
+  icon?: ReactNode;
 }
 
 export interface OptionGroupProps {
@@ -24,11 +26,11 @@ export function OptionGroup({ legend, options, value, onChange, disabled = false
   return (
     <Fieldset disabled={disabled} aria-invalid={Boolean(error)}>
       <Legend>{legend}</Legend>
-      <Options>
+      <Options $withIcon={options.some((option) => Boolean(option.icon))}>
         {options.map((option) => {
           const checked = option.value === value;
           return (
-            <Tile key={option.value} $checked={checked} $disabled={disabled} $hasError={Boolean(error)}>
+            <Tile key={option.value} $checked={checked} $disabled={disabled} $hasError={Boolean(error)} $withIcon={Boolean(option.icon)}>
               <RadioInput
                 type="radio"
                 name={name}
@@ -36,7 +38,8 @@ export function OptionGroup({ legend, options, value, onChange, disabled = false
                 checked={checked}
                 onChange={() => onChange(option.value)}
               />
-              <Mark $checked={checked} aria-hidden="true" />
+              <Mark $checked={checked} $withIcon={Boolean(option.icon)} aria-hidden="true" />
+              {option.icon && <IconSlot aria-hidden="true">{option.icon}</IconSlot>}
               {option.label}
             </Tile>
           );

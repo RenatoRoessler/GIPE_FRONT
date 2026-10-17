@@ -13,3 +13,14 @@ export function isValidPlaca(value: string): boolean {
   const placa = normalizePlaca(value);
   return PLACA_ANTIGA.test(placa) || PLACA_MERCOSUL.test(placa);
 }
+
+export type PlacaTipo = "mercosul" | "antiga";
+
+// O 5º caractere define o padrão: dígito é o antigo (ABC1234), letra é o Mercosul (ABC1D23). Antes disso não dá para saber.
+export function getPlacaTipo(value: string): PlacaTipo | null {
+  const placa = normalizePlaca(value);
+  if (placa.length < 5) {
+    return null;
+  }
+  return /[0-9]/.test(placa[4]) ? "antiga" : "mercosul";
+}

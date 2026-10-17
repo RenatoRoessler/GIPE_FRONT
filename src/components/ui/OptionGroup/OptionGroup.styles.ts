@@ -1,6 +1,6 @@
 "use client";
 
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 export const Fieldset = styled.fieldset`
   display: flex;
@@ -20,17 +20,17 @@ export const Legend = styled.legend`
   color: ${({ theme }) => theme.colors.text};
 `;
 
-export const Options = styled.div`
+export const Options = styled.div<{ $withIcon?: boolean }>`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(${({ $withIcon }) => ($withIcon ? 3 : 2)}, minmax(0, 1fr));
   gap: ${({ theme }) => theme.space[2]}px;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 `;
 
-export const Tile = styled.label<{ $checked: boolean; $disabled: boolean; $hasError: boolean }>`
+export const Tile = styled.label<{ $checked: boolean; $disabled: boolean; $hasError: boolean; $withIcon?: boolean }>`
   position: relative;
   display: flex;
   align-items: center;
@@ -47,7 +47,28 @@ export const Tile = styled.label<{ $checked: boolean; $disabled: boolean; $hasEr
   font-weight: ${({ theme, $checked }) => ($checked ? theme.fontWeights.bold : theme.fontWeights.medium)};
   cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
   opacity: ${({ $disabled }) => ($disabled ? 0.6 : 1)};
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+
+  /* Com ícone o tile segue o botão de categoria do layout de referência: ícone sobre o nome, e o selecionado inverte as cores. */
+  ${({ $withIcon, $checked, theme }) =>
+    $withIcon &&
+    css`
+      flex-direction: column;
+      justify-content: center;
+      gap: ${theme.space[2]}px;
+      min-height: 92px;
+      padding: ${theme.space[2]}px;
+      border-radius: ${theme.radii.lg};
+      font-weight: ${theme.fontWeights.medium};
+      text-align: center;
+      line-height: 1.2;
+      ${$checked &&
+      css`
+        border: 2px solid ${theme.colors.text};
+        background-color: ${theme.colors.text};
+        color: ${theme.colors.background};
+      `}
+    `}
 
   &:hover {
     border-color: ${({ theme, $disabled }) => ($disabled ? undefined : theme.colors.primary)};
@@ -73,8 +94,14 @@ export const RadioInput = styled.input`
 `;
 
 // A seleção também é dita pela marca, não só pela cor.
-export const Mark = styled.span<{ $checked: boolean }>`
-  display: grid;
+export const IconSlot = styled.span`
+  display: flex;
+  color: inherit;
+`;
+
+export const Mark = styled.span<{ $checked: boolean; $withIcon?: boolean }>`
+  /* Com ícone a seleção é dita pela inversão de cores do tile, sem a marca. */
+  display: ${({ $withIcon }) => ($withIcon ? "none" : "grid")};
   place-items: center;
   flex-shrink: 0;
   width: 18px;
