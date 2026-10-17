@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.125",
+      "type": "feat",
+      "scope": "saida",
+      "title": "separa a saída em localizar o veículo e pagar",
+      "description": "O modal de saída agora tem duas fases. Primeiro aparece só a leitura do\nQR Code e a busca por placa, token ou sequencial. Ao encontrar o\nveículo, a tela mostra apenas os dados, o valor e o pagamento, com o\nbotão \"Voltar para a pesquisa\" para procurar outro veículo.\n\n- A troca de fase é automática e anunciada para leitores de tela.\n- O sequencial só busca ao apertar Enter, para um número parcial não\n  levar a outro veículo.\n- Depois de uma busca que falha, o mesmo QR não é lido de novo por\n  alguns segundos, evitando mensagens repetidas.",
+      "date": "2026-10-17T15:36:29-03:00"
+    },
+    {
+      "version": "1.0.124",
+      "type": "fix",
+      "scope": "ui",
+      "title": "ajusta a altura dos modais ao conteúdo na versão web",
+      "description": "No desktop os modais ficavam com a altura máxima da tela, deixando um\ngrande espaço em branco abaixo do conteúdo. Agora a altura acompanha o\nconteúdo e só rola quando ele passa do limite da tela. No celular os\nmodais continuam em tela cheia.",
+      "date": "2026-10-17T15:36:29-03:00"
+    },
+    {
       "version": "1.0.121",
       "type": "feat",
       "scope": "saida",
