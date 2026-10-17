@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.129",
+      "type": "feat",
+      "scope": "saida",
+      "title": "oferece só os meios de pagamento que a empresa aceita",
+      "description": "Na fase de pagamento da saída, aparecem apenas os meios ligados em\nMinha Empresa, e a primeira forma aceita já vem marcada. Com um único\nmeio, ele é indicado como o único aceito. A configuração é carregada\nquando o modal abre, então mudanças feitas em outro aparelho valem na\npróxima saída.\n\nEnquanto a configuração carrega, falha ou está sem nenhum meio, o\nbotão de confirmar fica desabilitado e a tela explica o motivo, com a\nopção de tentar de novo.",
+      "date": "2026-10-17T16:03:49-03:00"
+    },
+    {
+      "version": "1.0.128",
+      "type": "feat",
+      "scope": "empresa",
+      "title": "configura os meios de pagamento na adesão e em Minha Empresa",
+      "description": "A empresa agora informa quais meios de pagamento aceita: Dinheiro, Pix,\nCartão de crédito e Cartão de débito. Na adesão, o bloco \"Pagamentos\"\naparece na etapa de dados da empresa, com só Dinheiro ligado. Em Minha\nEmpresa, vira uma nova seção que pode ser editada, salva e descartada\njunto com as demais.\n\n- É obrigatório manter ao menos um meio ligado; sem isso o avanço ou o\n  salvamento é bloqueado com uma mensagem clara.\n- Empresas já cadastradas, que ainda não têm essa configuração, seguem\n  aceitando todos os meios até o administrador revisar.",
+      "date": "2026-10-17T16:03:49-03:00"
+    },
+    {
       "version": "1.0.125",
       "type": "feat",
       "scope": "saida",
