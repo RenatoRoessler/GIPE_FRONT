@@ -2,6 +2,62 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.116",
+      "type": "feat",
+      "scope": "saida",
+      "title": "registra a saída em uma tela única com leitura de QR Code",
+      "description": "O modal Registrar saída deixa de ter quatro etapas. Agora o operador\nlê o QR do cupom de entrada com a câmera, ou busca por placa, código do\nticket ou sequencial, vê o veículo, o tempo de permanência e o valor\natualizado, escolhe Dinheiro, Crédito, Débito ou Pix e confirma.\n\n- A leitura usa a câmera traseira e é desligada ao ler, ao limpar e ao\n  fechar. Se a câmera não abrir, a busca manual continua disponível.\n- O valor é recalculado a cada 30 segundos e antes de registrar; se\n  mudou, o novo valor é mostrado e é preciso confirmar de novo.\n- Em dinheiro, o troco aparece conforme o valor recebido.\n- O código do ticket passa a aceitar letras e números.\n- Cliques repetidos em Confirmar Saída registram a saída uma só vez.",
+      "date": "2026-10-17T14:45:09-03:00"
+    },
+    {
+      "version": "1.0.115",
+      "type": "feat",
+      "scope": "ui",
+      "title": "permite fixar o número de colunas do grupo de opções",
+      "description": "O OptionGroup ganha a prop opcional columns, usada para exibir quatro\nformas de pagamento lado a lado em qualquer largura de tela. Sem a\nprop, o comportamento atual é mantido. Inclui testes do componente.",
+      "date": "2026-10-17T14:45:03-03:00"
+    },
+    {
+      "version": "1.0.112",
+      "type": "feat",
+      "scope": null,
+      "title": "redesenha o cupom de entrada com QR por token",
+      "description": "- Aplica o novo layout do cupom com placa, ticket, picote e QR\n- Aponta o QR para /comprovante/<token> e omite o QR quando não há token\n- Mostra endereço e telefone da empresa e adiciona formatDate/formatTime\n- Impede o cupom de encolher dentro do modal, para o corpo rolar\n- Adiciona teste do conteúdo do cupom",
+      "date": "2026-10-17T10:53:17-03:00"
+    },
+    {
+      "version": "1.0.111",
+      "type": "feat",
+      "scope": null,
+      "title": "adiciona o comprovante público do cliente",
+      "description": "- Cria a rota pública /comprovante/[token] e libera o caminho no proxy\n- Adiciona consultarComprovante (GET /Patio/comprovante/cliente) e seus testes\n- Cria o ComprovantePublico com estados de carregando, erro e não encontrado, moldura de celular e QR de saída com o token\n- Adiciona os botões Baixar PDF, Como chegar e Ligar\n- Gera o recibo em PDF com jspdf e qrcode\n- Move o FontScope para components/layout para reuso",
+      "date": "2026-10-17T10:53:17-03:00"
+    },
+    {
+      "version": "1.0.110",
+      "type": "feat",
+      "scope": null,
+      "title": "altera a cor da entrada para enum e redesenha o formulário",
+      "description": "- Cria o enum CorVeiculo e o tipo ComprovanteCliente, e adiciona o token à entrada registrada\n- Valida a cor com z.enum no schema e envia o valor do enum no payload\n- Refaz o EntradaVeiculoModal com placa em PlateField, cor em ColorField e categoria em OptionField\n- Aplica a cor do cadastro da placa só quando ela existe na lista\n- Adiciona os ícones de categoria e testes do schema e do modal",
+      "date": "2026-10-17T10:53:17-03:00"
+    },
+    {
+      "version": "1.0.109",
+      "type": "feat",
+      "scope": null,
+      "title": "exibe modais em tela cheia na versão mobile",
+      "description": "- Modal ocupa 100% da largura e altura abaixo de md, com cabeçalho e rodapé fixos\n- Adiciona a prop fullScreenOnMobile ao Modal e o tamanho md\n- Mantém o ConfirmDialog compacto no mobile",
+      "date": "2026-10-17T10:53:17-03:00"
+    },
+    {
+      "version": "1.0.108",
+      "type": "feat",
+      "scope": null,
+      "title": "adiciona componentes de placa, seleção de cor e tiles com ícone",
+      "description": "- Cria o PlateDisplay (placa Mercosul/antiga) e getPlacaTipo em lib/placa\n- Cria o ColorSwatchGroup para escolha única de cor\n- Adiciona suporte a ícone e layout de botão de categoria no OptionGroup\n- Cria os campos PlateField, ColorField e OptionField no formulário",
+      "date": "2026-10-17T10:53:17-03:00"
+    },
+    {
       "version": "1.0.104",
       "type": "feat",
       "scope": "mensalistas",
