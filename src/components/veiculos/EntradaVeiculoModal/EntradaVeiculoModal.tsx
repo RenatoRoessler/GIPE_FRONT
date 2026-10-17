@@ -11,11 +11,12 @@ import { Modal } from "@/components/ui/Modal";
 import { registrarEntrada } from "@/lib/api/services/patio";
 import { isValidPlaca, normalizePlaca } from "@/lib/placa";
 import { entradaVeiculoSchema, type EntradaVeiculoValues } from "@/lib/schemas/veiculo";
-import { CATEGORIA_VEICULO_OPTIONS, type EntradaRegistrada } from "@/types/veiculo";
+import { CATEGORIA_VEICULO_OPTIONS, COR_PADRAO, CORES_VEICULO, matchCor, type EntradaRegistrada } from "@/types/veiculo";
+import { CategoriaIcon } from "../categoriaIcons";
 import { ReciboEntradaStep } from "../ReciboEntradaStep";
 import { useModelos } from "../useModelos";
 import { usePlacaLookup, type PlacaLookupStatus } from "../usePlacaLookup";
-import { FieldRow, Form } from "./EntradaVeiculoModal.styles";
+import { Form } from "./EntradaVeiculoModal.styles";
 
 export interface EntradaVeiculoModalProps {
   onClose: () => void;
@@ -23,6 +24,12 @@ export interface EntradaVeiculoModalProps {
 }
 
 const CATEGORIAS = CATEGORIA_VEICULO_OPTIONS.map((option) => String(option.value));
+
+const CATEGORIA_OPTIONS = CATEGORIA_VEICULO_OPTIONS.map((option) => ({
+  value: String(option.value),
+  label: option.label,
+  icon: <CategoriaIcon categoria={option.value} />,
+}));
 
 function placaHint(status: PlacaLookupStatus): { hint?: string; tone?: "muted" | "success" | "danger" } {
   switch (status.state) {
@@ -51,15 +58,15 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
         placa: normalizePlaca(values.placa),
         categoria: Number(values.categoria),
         mensalista: values.mensalista,
-        // [A CONFIRMAR] modelo e cor opcionais: assume que o backend aceita texto vazio.
+        // [A CONFIRMAR] modelo opcional: assume que o backend aceita texto vazio.
         modelo: values.modelo.trim(),
-        cor: values.cor.trim(),
+        cor: values.cor,
       }),
     onSuccess: (registrada) => setEntrada(registrada),
   });
 
   const form = useAppForm({
-    defaultValues: { placa: "", categoria: "", modelo: "", cor: "", mensalista: false } as EntradaVeiculoValues,
+    defaultValues: { placa: "", categoria: "", modelo: "", cor: COR_PADRAO, mensalista: false } as EntradaVeiculoValues,
     validators: {
       onChange: ({ value }) => {
         const result = entradaVeiculoSchema.safeParse(value);
@@ -73,7 +80,12 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   const mensalista = useStore(form.store, (state) => state.values.mensalista);
   const hasChanges = useStore(
     form.store,
-    ({ values }) => values.placa !== "" || values.categoria !== "" || values.modelo !== "" || values.cor !== "" || values.mensalista,
+    ({ values }) => values.placa !== "" || values.categoria !== "" || values.modelo !== "" || values.cor !== COR_PADRAO || values.mensalista,
+  );
+  // O registro só é liberado com placa válida e categoria escolhida.
+  const canSubmit = useStore(
+    form.store,
+    ({ values }) => isValidPlaca(values.placa) && CATEGORIAS.includes(values.categoria),
   );
   const [confirmingClose, setConfirmingClose] = useState(false);
   const { data: modelos = [] } = useModelos(modeloTexto);
@@ -121,8 +133,10 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
     if (cadastro.modelo) {
       form.setFieldValue("modelo", cadastro.modelo, { dontRunListeners: true });
     }
-    if (cadastro.cor) {
-      form.setFieldValue("cor", cadastro.cor);
+    // A cor do cadastro é texto livre: só vale se for uma das cores da lista.
+    const cor = matchCor(cadastro.cor);
+    if (cor) {
+      form.setFieldValue("cor", cor);
     }
     if (cadastro.categoria !== null && CATEGORIAS.includes(String(cadastro.categoria))) {
       form.setFieldValue("categoria", String(cadastro.categoria));
@@ -143,7 +157,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
     <Modal
       open
       title="Registrar entrada"
-      size={entrada ? "lg" : "sm"}
+      size={entrada ? "lg" : "md"}
       onClose={handleClose}
       closeOnBackdrop={false}
       footer={
@@ -152,7 +166,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
           <Button type="button" variant="secondary" onClick={handleClose} disabled={isSending}>
             Cancelar
           </Button>
-          <Button type="submit" form={formId} disabled={isSending}>
+          <Button type="submit" form={formId} disabled={isSending || !canSubmit}>
             {isSending ? "Registrando..." : "Registrar entrada"}
           </Button>
         </>
@@ -172,57 +186,32 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
           void form.handleSubmit();
         }}
       >
-        <FieldRow>
-          <form.AppField
-            name="placa"
-            listeners={{
-              onChange: () => resetLookup(),
-              onBlur: ({ value }) => void handlePlacaBlur(value),
-            }}
-          >
-            {(field) => (
-              <field.TextField
-                label="Placa"
-                format={normalizePlaca}
-                autoFocus
-                autoComplete="off"
-                autoCapitalize="characters"
-                maxLength={7}
-                hint={hint}
-                hintTone={tone}
-                disabled={isSending}
-              />
-            )}
-          </form.AppField>
-          <form.AppField name="modelo" listeners={{ onChange: ({ value }) => handleModeloChange(value) }}>
-            {(field) => (
-              <field.TextField
-                label="Modelo"
-                list={datalistId}
-                autoComplete="off"
-                maxLength={60}
-                disabled={isSending}
-              />
-            )}
-          </form.AppField>
-        </FieldRow>
-        <FieldRow>
-          <form.AppField name="categoria">
-            {(field) => (
-              <field.SelectField label="Categoria" disabled={isSending}>
-                <option value="">Selecione</option>
-                {CATEGORIA_VEICULO_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </field.SelectField>
-            )}
-          </form.AppField>
-          <form.AppField name="cor">
-            {(field) => <field.TextField label="Cor" maxLength={30} disabled={isSending} />}
-          </form.AppField>
-        </FieldRow>
+        <form.AppField
+          name="placa"
+          listeners={{
+            onChange: () => resetLookup(),
+            onBlur: ({ value }) => void handlePlacaBlur(value),
+          }}
+        >
+          {(field) => <field.PlateField label="Placa" autoFocus hint={hint} hintTone={tone} disabled={isSending} />}
+        </form.AppField>
+        <form.AppField name="modelo" listeners={{ onChange: ({ value }) => handleModeloChange(value) }}>
+          {(field) => (
+            <field.TextField label="Modelo" list={datalistId} autoComplete="off" maxLength={60} disabled={isSending} />
+          )}
+        </form.AppField>
+        <form.AppField name="cor">
+          {(field) => <field.ColorField legend="Cor" options={CORES_VEICULO} disabled={isSending} />}
+        </form.AppField>
+        <form.AppField name="categoria">
+          {(field) => (
+            <field.OptionField
+              legend="Categoria (define a tarifa)"
+              options={CATEGORIA_OPTIONS}
+              disabled={isSending}
+            />
+          )}
+        </form.AppField>
         <datalist id={datalistId}>
           {modelos.map((modelo) => (
             <option key={modelo.modeloId} value={modelo.nome} />

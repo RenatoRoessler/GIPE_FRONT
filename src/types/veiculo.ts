@@ -21,6 +21,36 @@ export const CATEGORIA_VEICULO_OPTIONS: { value: CategoriaVeiculo; label: string
   { value: CATEGORIA_VEICULO.CarroGrande, label: "Carro grande" },
 ];
 
+// Cores de pintura: dados do veículo, iguais nos dois temas (não são tokens de tema).
+// [A CONFIRMAR] com o back o formato aceito em `cor` (aqui, o nome em caixa alta e sem acento).
+export const CORES_VEICULO = [
+  { value: "BRANCO", label: "Branco", color: "#FFFFFF" },
+  { value: "PRETO", label: "Preto", color: "#1A1A1A" },
+  { value: "PRATA", label: "Prata", color: "#C3C7CC" },
+  { value: "CINZA", label: "Cinza", color: "#6E747C" },
+  { value: "VERMELHO", label: "Vermelho", color: "#B3261E" },
+  { value: "AZUL", label: "Azul", color: "#1F4FD6" },
+  { value: "VERDE", label: "Verde", color: "#2E7D4F" },
+  { value: "BEGE", label: "Bege", color: "#D8C7A3" },
+] as const;
+
+export type CorVeiculo = (typeof CORES_VEICULO)[number]["value"];
+
+export const COR_PADRAO: CorVeiculo = "PRATA";
+
+function semAcento(texto: string): string {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+// A cor do cadastro de placas é texto livre: só vale se casar com uma das cores do enum.
+export function matchCor(texto: string | null | undefined): CorVeiculo | null {
+  if (!texto) {
+    return null;
+  }
+  const normalizado = semAcento(texto).trim().toUpperCase();
+  return CORES_VEICULO.find((cor) => cor.value === normalizado)?.value ?? null;
+}
+
 export type PlacaConsulta = {
   placa: string;
   encontrado: boolean;
@@ -41,7 +71,7 @@ export type EntradaPayload = {
   categoria: number;
   mensalista: boolean;
   modelo: string;
-  cor: string;
+  cor: CorVeiculo;
 };
 
 export type EntradaRegistrada = {
@@ -58,4 +88,28 @@ export type EntradaRegistrada = {
   rotatividadeDescricao: string | null;
   usuarioIdEntrada: number;
   usuarioEntrada: string;
+  // Identifica a entrada na página pública do comprovante.
+  token: string;
+};
+
+// GET /Patio/comprovante/cliente?token=...
+export type ComprovanteCliente = {
+  cnpj: string;
+  razaoSocial: string;
+  endereco: string | null;
+  telefone: string | null;
+  placa: string;
+  modelo: string | null;
+  // Texto livre: entradas antigas não seguem o enum de cores.
+  cor: string | null;
+  categoriaId: number;
+  categoriaDescricao: string;
+  // ISO sem fuso; a consulta vem com 7 casas decimais.
+  dataHoraEntrada: string;
+  dataHoraConsulta: string;
+  minutosPermanencia: number;
+  permanencia: string;
+  sequencial: number;
+  token: string;
+  valorAtual: number;
 };
