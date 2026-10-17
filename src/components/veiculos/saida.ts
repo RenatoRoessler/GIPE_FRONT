@@ -1,5 +1,6 @@
 import { formaPagamentoLabel } from "@/components/caixa/format";
 import { formatBRL, parseMoney } from "@/lib/money";
+import type { PaymentsData } from "@/types/adesao";
 import { FORMA_PAGAMENTO } from "@/types/caixa";
 import { CATEGORIA_VEICULO_OPTIONS } from "@/types/veiculo";
 
@@ -11,8 +12,23 @@ export const FORMAS_SAIDA = [
   { value: String(FORMA_PAGAMENTO.Pix), label: "Pix" },
 ] as const;
 
+export type FormaSaida = (typeof FORMAS_SAIDA)[number];
+
 export const FORMA_DINHEIRO = String(FORMA_PAGAMENTO.Dinheiro);
 export const FORMA_PADRAO = FORMA_DINHEIRO;
+
+// Chave da configuração da empresa (Minha Empresa) que liga ou desliga cada forma da saída.
+export const CHAVE_DA_FORMA: Record<FormaSaida["value"], keyof PaymentsData> = {
+  [String(FORMA_PAGAMENTO.Dinheiro)]: "dinheiro",
+  [String(FORMA_PAGAMENTO.CartaoCredito)]: "cartaoCredito",
+  [String(FORMA_PAGAMENTO.CartaoDebito)]: "cartaoDebito",
+  [String(FORMA_PAGAMENTO.Pix)]: "pix",
+};
+
+// Mantém só as formas que a empresa aceita, na ordem da saída.
+export function filtrarFormasAceitas(payments: PaymentsData): FormaSaida[] {
+  return FORMAS_SAIDA.filter((forma) => payments[CHAVE_DA_FORMA[forma.value]]);
+}
 
 const toCents = (value: number) => Math.round(value * 100);
 

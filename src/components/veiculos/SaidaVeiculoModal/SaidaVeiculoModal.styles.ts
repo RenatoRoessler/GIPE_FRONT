@@ -51,3 +51,11 @@ export const FaseTitulo = styled.h3`
     outline: none;
   }
 `;
+
+// Explica por que o botão de confirmar está desabilitado enquanto os meios de pagamento carregam.
+export const NotaRodape = styled.span`
+  align-self: center;
+  margin-right: auto;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textMuted};
+`;

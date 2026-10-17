@@ -11,7 +11,7 @@ import { LeitorQrSaida } from "../LeitorQrSaida";
 import { PagamentoSaida } from "../PagamentoSaida";
 import { ReciboSaidaStep } from "../ReciboSaidaStep";
 import { ResumoSaida } from "../ResumoSaida";
-import { Column, FaseConteudo, FaseTitulo, Layout } from "./SaidaVeiculoModal.styles";
+import { Column, FaseConteudo, FaseTitulo, Layout, NotaRodape } from "./SaidaVeiculoModal.styles";
 import { useSaidaFlow, type SaidaFase } from "./useSaidaFlow";
 
 export interface SaidaVeiculoModalProps {
@@ -83,6 +83,7 @@ export function SaidaVeiculoModal({ onClose, onSuccess }: SaidaVeiculoModalProps
   const footer =
     fase === "pagamento" ? (
       <>
+        {flow.meios.status === "carregando" && <NotaRodape role="status">Carregando meios de pagamento…</NotaRodape>}
         <Button type="button" variant="secondary" onClick={flow.voltar} disabled={flow.enviando}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -134,6 +135,7 @@ export function SaidaVeiculoModal({ onClose, onSuccess }: SaidaVeiculoModalProps
               {flow.erroRegistro && <ErrorBanner role="alert">{flow.erroRegistro}</ErrorBanner>}
               <PagamentoSaida
                 consulta={consulta}
+                meios={flow.meios}
                 forma={flow.forma}
                 recebido={flow.recebido}
                 onFormaChange={flow.setForma}

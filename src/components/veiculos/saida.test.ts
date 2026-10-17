@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { calcularTroco, FORMA_DINHEIRO, FORMA_PADRAO, FORMAS_SAIDA, getPagamentoStatus, valoresIguais } from "./saida";
+import {
+  calcularTroco,
+  CHAVE_DA_FORMA,
+  filtrarFormasAceitas,
+  FORMA_DINHEIRO,
+  FORMA_PADRAO,
+  FORMAS_SAIDA,
+  getPagamentoStatus,
+  valoresIguais,
+} from "./saida";
 
 describe("FORMAS_SAIDA", () => {
   it("oferece Dinheiro, Crédito, Débito e Pix, com Dinheiro como padrão", () => {
@@ -40,5 +49,25 @@ describe("valores em centavos", () => {
     expect(valoresIguais(0.1 + 0.2, 0.3)).toBe(true);
     expect(calcularTroco(20, 12.5)).toBe(7.5);
     expect(calcularTroco(5, 12.5)).toBe(0);
+  });
+});
+
+describe("formas aceitas pela empresa", () => {
+  it("cada forma da saída tem uma chave na configuração", () => {
+    expect(FORMAS_SAIDA.map((forma) => CHAVE_DA_FORMA[forma.value])).toEqual([
+      "dinheiro",
+      "cartaoCredito",
+      "cartaoDebito",
+      "pix",
+    ]);
+  });
+
+  it("mantém só as formas ligadas, na ordem da saída", () => {
+    const aceitas = filtrarFormasAceitas({ dinheiro: false, pix: true, cartaoCredito: true, cartaoDebito: false });
+    expect(aceitas.map((forma) => forma.label)).toEqual(["Crédito", "Pix"]);
+  });
+
+  it("devolve lista vazia quando tudo está desligado", () => {
+    expect(filtrarFormasAceitas({ dinheiro: false, pix: false, cartaoCredito: false, cartaoDebito: false })).toEqual([]);
   });
 });

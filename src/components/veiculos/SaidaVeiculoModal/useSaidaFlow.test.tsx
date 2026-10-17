@@ -38,6 +38,9 @@ const consulta = (valor = 20): SaidaConsulta =>
     valor,
   }) as SaidaConsulta;
 
+const TODOS_OS_MEIOS = { dinheiro: true, pix: true, cartaoCredito: true, cartaoDebito: true };
+const empresa = (payments = TODOS_OS_MEIOS) => ({ company: {}, hours: {}, payments });
+
 const registrada: SaidaRegistrada = {
   patioId: 7,
   placa: "BRA2E19",
@@ -72,7 +75,7 @@ beforeEach(() => {
   Object.values(api).forEach((mock) => mock.mockReset());
   api.consultarSaida.mockResolvedValue(consulta());
   api.registrarSaida.mockResolvedValue(registrada);
-  api.getEmpresa.mockResolvedValue({ company: {} });
+  api.getEmpresa.mockResolvedValue(empresa());
 });
 
 afterEach(() => {
@@ -80,8 +83,9 @@ afterEach(() => {
 });
 
 describe("useSaidaFlow: estado inicial", () => {
-  it("começa vazio, em Dinheiro e sem progresso", () => {
+  it("começa vazio, em Dinheiro e sem progresso", async () => {
     const { result } = renderFlow();
+    await waitFor(() => expect(result.current.meios.status).toBe("pronto"));
     expect(result.current).toMatchObject({
       fase: "pesquisa",
       consulta: null,
@@ -635,3 +639,118 @@ describe("useSaidaFlow: voltar", () => {
     await waitFor(() => expect(flow.result.current.fase).toBe("recibo"));
   });
 });
+
+describe("useSaidaFlow: meios de pagamento da empresa", () => {
+  const apenas = (...ligados: Array<keyof typeof TODOS_OS_MEIOS>) =>
+    empresa({ dinheiro: false, pix: false, cartaoCredito: false, cartaoDebito: false, ...Object.fromEntries(ligados.map((meio) => [meio, true])) });
+
+  it("carrega a configuração na abertura, sem esperar um veículo", async () => {
+    const { result } = renderFlow();
+    expect(result.current.meios.status).toBe("carregando");
+    await waitFor(() => expect(result.current.meios.status).toBe("pronto"));
+    expect(api.getEmpresa).toHaveBeenCalledTimes(1);
+    expect(api.consultarSaida).not.toHaveBeenCalled();
+  });
+
+  it("oferece só os meios aceitos", async () => {
+    api.getEmpresa.mockResolvedValue(apenas("pix", "cartaoDebito"));
+    const { result } = renderFlow();
+    await waitFor(() => expect(result.current.meios.status).toBe("pronto"));
+    if (result.current.meios.status === "pronto") {
+      expect(result.current.meios.opcoes.map((opcao) => opcao.label)).toEqual(["Débito", "Pix"]);
+    }
+  });
+
+  it("com Dinheiro desligado, a primeira forma aceita vem marcada", async () => {
+    api.getEmpresa.mockResolvedValue(apenas("pix", "cartaoCredito"));
+    const { result } = renderFlow();
+    await waitFor(() => expect(result.current.meios.status).toBe("pronto"));
+    expect(result.current.forma).toBe(forma("Crédito"));
+  });
+
+  it("com um único meio, ele já vem marcado", async () => {
+    api.getEmpresa.mockResolvedValue(apenas("pix"));
+    const { result } = renderFlow();
+    await waitFor(() => expect(result.current.meios.status).toBe("pronto"));
+    expect(result.current.forma).toBe(forma("Pix"));
+  });
+
+  it("respeita a escolha do operador entre os meios aceitos", async () => {
+    const { result } = renderFlow();
+    await waitFor(() => expect(result.current.meios.status).toBe("pronto"));
+    act(() => result.current.setForma(forma("Débito")));
+    expect(result.current.forma).toBe(forma("Débito"));
+  });
+
+  it("uma escolha que não é mais aceita cai na primeira aceita", async () => {
+    api.getEmpresa.mockResolvedValue(apenas("pix", "cartaoCredito"));
+    const { result } = renderFlow();
+    await waitFor(() => expect(result.current.meios.status).toBe("pronto"));
+    act(() => result.current.setForma(forma("Dinheiro")));
+    expect(result.current.forma).toBe(forma("Crédito"));
+  });
+
+  it("registra a saída com a forma efetiva quando Dinheiro não é aceito", async () => {
+    api.getEmpresa.mockResolvedValue(apenas("cartaoCredito", "pix"));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.confirmar());
+    await waitFor(() => expect(flow.result.current.fase).toBe("recibo"));
+    expect(api.registrarSaida).toHaveBeenCalledWith(7, { valor: 20, formaPagamento: Number(forma("Crédito")) });
+    expect(flow.result.current.resultado).toMatchObject({ recebido: null, troco: null });
+  });
+
+  it("voltar devolve a escolha à primeira forma aceita", async () => {
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.setForma(forma("Pix")));
+    act(() => flow.result.current.voltar());
+    expect(flow.result.current.forma).toBe(FORMA_DINHEIRO);
+  });
+
+  it("enquanto a configuração carrega, não deixa confirmar e explica o motivo", async () => {
+    let concluir: (value: ReturnType<typeof empresa>) => void = () => {};
+    api.getEmpresa.mockReturnValue(new Promise((resolve) => (concluir = resolve)));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    expect(flow.result.current.meios.status).toBe("carregando");
+    expect(flow.result.current.pagamento).toEqual({ canConfirm: false, motivo: "Carregando meios de pagamento…" });
+
+    act(() => flow.result.current.confirmar());
+    expect(api.consultarSaida).toHaveBeenCalledTimes(1);
+    expect(api.registrarSaida).not.toHaveBeenCalled();
+
+    concluir(empresa());
+    await waitFor(() => expect(flow.result.current.meios.status).toBe("pronto"));
+    expect(flow.result.current.pagamento?.canConfirm).toBe(false);
+    act(() => flow.result.current.setRecebido("50"));
+    expect(flow.result.current.pagamento?.canConfirm).toBe(true);
+  });
+
+  it("se a configuração falha, não deixa confirmar e permite tentar de novo", async () => {
+    api.getEmpresa.mockRejectedValueOnce(new ApiError("network"));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    await waitFor(() => expect(flow.result.current.meios.status).toBe("erro"));
+    expect(flow.result.current.pagamento).toMatchObject({ canConfirm: false });
+
+    act(() => flow.result.current.confirmar());
+    expect(api.registrarSaida).not.toHaveBeenCalled();
+
+    api.getEmpresa.mockResolvedValue(empresa());
+    const meios = flow.result.current.meios;
+    act(() => {
+      if (meios.status === "erro") meios.refetch();
+    });
+    await waitFor(() => expect(flow.result.current.meios.status).toBe("pronto"));
+  });
+
+  it("com todos os meios desligados, não deixa confirmar", async () => {
+    api.getEmpresa.mockResolvedValue(apenas());
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    await waitFor(() => expect(flow.result.current.meios.status).toBe("vazio"));
+    expect(flow.result.current.pagamento).toEqual({ canConfirm: false, motivo: "Nenhum meio de pagamento configurado." });
+  });
+});
+

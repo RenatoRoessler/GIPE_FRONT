@@ -2,8 +2,6 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { EMPRESA_QUERY_KEY } from "@/components/empresa/MinhaEmpresa/EmpresaForm";
-import { getEmpresa } from "@/lib/api/services/empresa";
 import { consultarSaida, registrarSaida, resolverBuscaPorToken } from "@/lib/api/services/patio";
 import { parseMoney } from "@/lib/money";
 import { saidaBuscaSchema, toSaidaBusca, type SaidaBuscaValues } from "@/lib/schemas/saida";
@@ -11,7 +9,8 @@ import type { SaidaBusca, SaidaConsulta } from "@/types/saida";
 import type { SaidaBuscaField } from "../BuscaManualSaida";
 import { QR_INVALIDO_MESSAGE } from "../LeitorQrSaida";
 import type { SaidaResultado } from "../ReciboSaidaStep";
-import { calcularTroco, FORMA_DINHEIRO, FORMA_PADRAO, getPagamentoStatus, valoresIguais } from "../saida";
+import { calcularTroco, FORMA_DINHEIRO, getPagamentoStatus, valoresIguais } from "../saida";
+import { useMeiosPagamento } from "../useMeiosPagamento";
 
 // O valor e a permanência dependem do instante da consulta: o servidor recalcula a cada ciclo.
 export const INTERVALO_SAIDA_MS = 30_000;
@@ -21,6 +20,11 @@ export const REPETICAO_TOKEN_MS = 5000;
 
 export const SAIDA_CONSULTA_KEY = "saida-consulta";
 const EMPTY_BUSCA: SaidaBuscaValues = { placa: "", token: "", sequencial: "" };
+const MOTIVO_SEM_MEIOS = {
+  carregando: "Carregando meios de pagamento…",
+  erro: "Não foi possível carregar os meios de pagamento.",
+  vazio: "Nenhum meio de pagamento configurado.",
+} as const;
 const ATUALIZACAO_FALHOU = "Não foi possível atualizar o valor. Mantida a última consulta.";
 
 // Derivada dos dados: recibo com a saída registrada, pagamento com um veículo consultado, pesquisa nos demais casos.
@@ -39,7 +43,8 @@ export function useSaidaFlow() {
   const [busca, setBusca] = useState<SaidaBusca | null>(null);
   const [avisoQr, setAvisoQr] = useState<string | undefined>();
   const [valorAnterior, setValorAnterior] = useState<number | null>(null);
-  const [forma, setForma] = useState(FORMA_PADRAO);
+  // Escolha do operador; a forma usada é derivada dela e dos meios que a empresa aceita.
+  const [formaEscolhida, setForma] = useState<string | null>(null);
   const [recebido, setRecebido] = useState("");
   const [resultado, setResultado] = useState<SaidaResultado | null>(null);
   const [consultaRecibo, setConsultaRecibo] = useState<SaidaConsulta | null>(null);
@@ -146,14 +151,11 @@ export function useSaidaFlow() {
   const consulta = consultaQuery.data ?? null;
   const fase: SaidaFase = resultado ? "recibo" : consulta ? "pagamento" : "pesquisa";
 
-  // Pré-carrega a empresa para o recibo já nascer completo (falha não bloqueia).
-  useQuery({
-    queryKey: EMPRESA_QUERY_KEY,
-    queryFn: getEmpresa,
-    enabled: consulta !== null,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+  // Meios de pagamento aceitos pela empresa: carregados na abertura do modal (e deixam a empresa em cache para o recibo).
+  const meios = useMeiosPagamento();
+  const opcoes = meios.status === "pronto" ? meios.opcoes : [];
+  // A escolha vale enquanto ainda for aceita; senão, a primeira aceita (Dinheiro, quando aceito) vem marcada.
+  const forma = opcoes.some((opcao) => opcao.value === formaEscolhida) ? (formaEscolhida as string) : (opcoes[0]?.value ?? "");
 
   // ---- Leitura por QR ----
 
@@ -251,7 +253,7 @@ export function useSaidaFlow() {
     setBuscaValues(EMPTY_BUSCA);
     setBuscaErrors({});
     setAvisoQr(undefined);
-    setForma(FORMA_PADRAO);
+    setForma(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelarDebounce, novaBusca, qrMutation.reset, confirmMutation.reset]);
 
@@ -263,7 +265,11 @@ export function useSaidaFlow() {
     limpar();
   }, [confirmMutation.isPending, limpar]);
 
-  const pagamento = consulta ? getPagamentoStatus(forma, recebido, consulta.valor) : null;
+  const pagamento = consulta
+    ? meios.status === "pronto"
+      ? getPagamentoStatus(forma, recebido, consulta.valor)
+      : { canConfirm: false, motivo: MOTIVO_SEM_MEIOS[meios.status] }
+    : null;
   const buscando = qrMutation.isPending || (busca !== null && consultaQuery.isPending);
   const enviando = confirmMutation.isPending;
 
@@ -295,6 +301,7 @@ export function useSaidaFlow() {
     consultaRecibo,
     valorAnterior,
     forma,
+    meios,
     recebido,
     resultado,
     pagamento,

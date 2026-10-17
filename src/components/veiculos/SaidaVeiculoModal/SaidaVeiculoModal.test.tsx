@@ -63,6 +63,9 @@ const consulta = (valor = 20): SaidaConsulta =>
     valor,
   }) as SaidaConsulta;
 
+const TODOS_OS_MEIOS = { dinheiro: true, pix: true, cartaoCredito: true, cartaoDebito: true };
+const empresa = (payments = TODOS_OS_MEIOS) => ({ company: {}, hours: {}, payments });
+
 const registrada: SaidaRegistrada = {
   patioId: 7,
   placa: "BRA2E19",
@@ -98,7 +101,7 @@ beforeEach(() => {
   api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "BRA2E19" });
   api.consultarSaida.mockResolvedValue(consulta());
   api.registrarSaida.mockResolvedValue(registrada);
-  api.getEmpresa.mockRejectedValue(new Error("sem empresa"));
+  api.getEmpresa.mockResolvedValue(empresa());
 });
 
 afterEach(() => {
@@ -426,3 +429,105 @@ describe("SaidaVeiculoModal: fechar", () => {
     expect(api.registrarSaida).not.toHaveBeenCalled();
   });
 });
+
+describe("SaidaVeiculoModal: meios de pagamento da empresa", () => {
+  const apenas = (...ligados: Array<keyof typeof TODOS_OS_MEIOS>) =>
+    empresa({
+      dinheiro: false,
+      pix: false,
+      cartaoCredito: false,
+      cartaoDebito: false,
+      ...Object.fromEntries(ligados.map((meio) => [meio, true])),
+    });
+
+  it("lê a configuração da empresa já na abertura do modal", async () => {
+    renderModal();
+    await waitFor(() => expect(api.getEmpresa).toHaveBeenCalledTimes(1));
+    expect(api.consultarSaida).not.toHaveBeenCalled();
+  });
+
+  it("oferece só os meios aceitos, com a primeira forma aceita marcada", async () => {
+    api.getEmpresa.mockResolvedValue(apenas("pix", "cartaoCredito"));
+    renderModal();
+    await lerTicket();
+    await waitFor(() => expect(screen.getAllByRole("radio")).toHaveLength(2));
+    expect(screen.getAllByRole("radio").map((radio) => radio.closest("label")?.textContent)).toEqual(["Crédito", "Pix"]);
+    expect(screen.getByRole("radio", { name: "Crédito" })).toBeChecked();
+    expect(screen.queryByRole("radio", { name: "Dinheiro" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Valor recebido")).not.toBeInTheDocument();
+    expect(confirmar("20,00")).toBeEnabled();
+  });
+
+  it("com um único meio mostra o texto de apoio e já deixa confirmar", async () => {
+    api.getEmpresa.mockResolvedValue(apenas("pix"));
+    renderModal();
+    await lerTicket();
+    expect(await screen.findByText("Único meio de pagamento aceito pela empresa.")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Pix" })).toBeChecked();
+    expect(confirmar("20,00")).toBeEnabled();
+  });
+
+  it("registra a saída com o meio aceito, sem o operador escolher", async () => {
+    api.getEmpresa.mockResolvedValue(apenas("cartaoDebito"));
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+    await user.click(await screen.findByRole("button", { name: /Confirmar Saída · R\$\s20,00/ }));
+    expect(await screen.findByRole("heading", { level: 2, name: "Saída registrada" })).toBeInTheDocument();
+    expect(api.registrarSaida).toHaveBeenCalledWith(7, { valor: 20, formaPagamento: 3 });
+  });
+
+  it("enquanto a configuração carrega, mostra o aviso e não deixa confirmar", async () => {
+    let concluir: (value: ReturnType<typeof empresa>) => void = () => {};
+    api.getEmpresa.mockReturnValue(new Promise((resolve) => (concluir = resolve)));
+    renderModal();
+    await lerTicket();
+    expect(screen.getByRole("status", { name: "Carregando meios de pagamento" })).toBeInTheDocument();
+    expect(screen.getAllByText("Carregando meios de pagamento…").length).toBeGreaterThan(0);
+    expect(confirmar("20,00")).toBeDisabled();
+
+    concluir(empresa());
+    expect(await screen.findByRole("radio", { name: "Dinheiro" })).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Carregando meios de pagamento" })).not.toBeInTheDocument();
+  });
+
+  it("se a configuração falha, mostra o erro, bloqueia a saída e Tentar novamente refaz", async () => {
+    api.getEmpresa.mockRejectedValueOnce(new ApiError("network"));
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+    expect(await screen.findByText("Não foi possível conectar ao servidor.")).toBeInTheDocument();
+    expect(confirmar("20,00")).toBeDisabled();
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
+
+    await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
+    expect(await screen.findByRole("radio", { name: "Dinheiro" })).toBeChecked();
+    expect(api.getEmpresa).toHaveBeenCalledTimes(2);
+  });
+
+  it("com todos os meios desligados orienta a revisar em Minha Empresa", async () => {
+    api.getEmpresa.mockResolvedValue(apenas());
+    renderModal();
+    await lerTicket();
+    expect(await screen.findByText(/Nenhum meio de pagamento configurado\. Peça ao administrador/)).toBeInTheDocument();
+    expect(confirmar("20,00")).toBeDisabled();
+  });
+
+  it("voltar para a pesquisa e achar outro veículo mantém os meios aceitos", async () => {
+    api.getEmpresa.mockResolvedValue(apenas("pix", "cartaoDebito"));
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+    await screen.findByRole("radio", { name: "Débito" });
+    await user.click(screen.getByRole("radio", { name: "Pix" }));
+    await user.click(voltar());
+
+    api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "ABC1234" });
+    api.consultarSaida.mockResolvedValue({ ...consulta(), placa: "ABC1234", modelo: "HB20" });
+    lerQr("https://gipe.com.br/comprovante/P4M8TQ");
+    expect(await screen.findByText("HB20 · PRATA")).toBeInTheDocument();
+    expect(await screen.findByRole("radio", { name: "Débito" })).toBeChecked();
+    expect(api.getEmpresa).toHaveBeenCalledTimes(1);
+  });
+});
+
