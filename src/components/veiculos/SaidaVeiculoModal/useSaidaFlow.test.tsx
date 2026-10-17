@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { QR_INVALIDO_MESSAGE } from "../LeitorQrSaida";
 import { FORMA_DINHEIRO, FORMAS_SAIDA } from "../saida";
-import { BUSCA_DEBOUNCE_MS, INTERVALO_SAIDA_MS, useSaidaFlow } from "./useSaidaFlow";
+import { BUSCA_DEBOUNCE_MS, INTERVALO_SAIDA_MS, REPETICAO_TOKEN_MS, useSaidaFlow } from "./useSaidaFlow";
 import type { SaidaConsulta, SaidaRegistrada } from "@/types/saida";
 
 const api = vi.hoisted(() => ({
@@ -83,9 +83,8 @@ describe("useSaidaFlow: estado inicial", () => {
   it("começa vazio, em Dinheiro e sem progresso", () => {
     const { result } = renderFlow();
     expect(result.current).toMatchObject({
-      fase: "identificar",
+      fase: "pesquisa",
       consulta: null,
-      lido: false,
       forma: FORMA_DINHEIRO,
       recebido: "",
       hasProgress: false,
@@ -96,27 +95,20 @@ describe("useSaidaFlow: estado inicial", () => {
 });
 
 describe("useSaidaFlow: leitura por QR", () => {
-  it("resolve o token, consulta pela placa e mostra o veículo nos campos de busca", async () => {
+  it("resolve o token, consulta pela placa e vai ao pagamento", async () => {
     const flow = renderFlow();
     await identificarPorQr(flow);
     expect(api.resolverBuscaPorToken).toHaveBeenCalledWith("7K3Q9X", expect.anything());
     expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "BRA2E19" });
-    expect(flow.result.current).toMatchObject({
-      origem: "qr",
-      lido: true,
-      token: "7K3Q9X",
-      mensagemLido: "Ticket encontrado",
-      hasProgress: true,
-    });
-    expect(flow.result.current.buscaValues).toEqual({ placa: "BRA2E19", token: "7K3Q9X", sequencial: "" });
+    expect(flow.result.current).toMatchObject({ fase: "pagamento", hasProgress: true });
   });
 
-  it("token sem ticket aberto mostra o aviso e fica como 'Token lido'", async () => {
+  it("token sem ticket aberto mostra o aviso e continua na pesquisa", async () => {
     api.resolverBuscaPorToken.mockRejectedValue(new ApiError("not_found", "Nenhum ticket aberto com este token.", 404));
     const flow = renderFlow();
     act(() => flow.result.current.handleToken("ZZZZZZ"));
     await waitFor(() => expect(flow.result.current.aviso).toBe("Nenhum ticket aberto com este token."));
-    expect(flow.result.current).toMatchObject({ lido: true, mensagemLido: "Token lido", consulta: null });
+    expect(flow.result.current).toMatchObject({ fase: "pesquisa", consulta: null });
     expect(api.consultarSaida).not.toHaveBeenCalled();
   });
 
@@ -137,6 +129,95 @@ describe("useSaidaFlow: leitura por QR", () => {
   });
 });
 
+describe("useSaidaFlow: token repetido depois de falha", () => {
+  const naoEncontrado = new ApiError("not_found", "Nenhum ticket aberto com este token.", 404);
+
+  async function falharCom(flow: ReturnType<typeof renderFlow>, token: string) {
+    act(() => flow.result.current.handleToken(token));
+    await waitFor(() => expect(flow.result.current.aviso).toBe("Nenhum ticket aberto com este token."));
+  }
+
+  it("ignora o mesmo token dentro da janela, sem nova chamada nem mudar o aviso", async () => {
+    api.resolverBuscaPorToken.mockRejectedValue(naoEncontrado);
+    const flow = renderFlow();
+    await falharCom(flow, "ZZZZZZ");
+    act(() => flow.result.current.handleToken("ZZZZZZ"));
+    await avancar(REPETICAO_TOKEN_MS - 100);
+    act(() => flow.result.current.handleToken("ZZZZZZ"));
+    expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(1);
+    expect(flow.result.current.aviso).toBe("Nenhum ticket aberto com este token.");
+  });
+
+  it("aceita o mesmo token depois da janela", async () => {
+    api.resolverBuscaPorToken.mockRejectedValue(naoEncontrado);
+    const flow = renderFlow();
+    await falharCom(flow, "ZZZZZZ");
+    await avancar(REPETICAO_TOKEN_MS + 100);
+    act(() => flow.result.current.handleToken("ZZZZZZ"));
+    await waitFor(() => expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(2));
+  });
+
+  it("nunca ignora um token diferente", async () => {
+    api.resolverBuscaPorToken.mockRejectedValueOnce(naoEncontrado);
+    const flow = renderFlow();
+    await falharCom(flow, "ZZZZZZ");
+    api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "BRA2E19" });
+    act(() => flow.result.current.handleToken("7K3Q9X"));
+    await waitFor(() => expect(flow.result.current.consulta).not.toBeNull());
+    expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(2);
+  });
+
+  it("também vale quando o token existe mas o veículo já saiu", async () => {
+    api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "BRA2E19" });
+    api.consultarSaida.mockRejectedValue(new ApiError("not_found", "Nenhum veículo no pátio com essa placa.", 404));
+    const flow = renderFlow();
+    act(() => flow.result.current.handleToken("7K3Q9X"));
+    await waitFor(() => expect(flow.result.current.aviso).toBe("Nenhum veículo no pátio com essa placa."));
+    act(() => flow.result.current.handleToken("7K3Q9X"));
+    expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(1);
+  });
+
+  it("digitar na busca manual libera o token", async () => {
+    api.resolverBuscaPorToken.mockRejectedValue(naoEncontrado);
+    const flow = renderFlow();
+    await falharCom(flow, "ZZZZZZ");
+    act(() => flow.result.current.handleBuscaChange("placa", "B"));
+    act(() => flow.result.current.handleToken("ZZZZZZ"));
+    await waitFor(() => expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(2));
+  });
+
+  it("reiniciar o fluxo libera o token", async () => {
+    api.resolverBuscaPorToken.mockRejectedValue(naoEncontrado);
+    const flow = renderFlow();
+    await falharCom(flow, "ZZZZZZ");
+    act(() => flow.result.current.voltar());
+    act(() => flow.result.current.handleToken("ZZZZZZ"));
+    await waitFor(() => expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(2));
+  });
+
+  it("uma busca bem-sucedida limpa a falha anterior", async () => {
+    api.resolverBuscaPorToken.mockRejectedValueOnce(naoEncontrado);
+    const flow = renderFlow();
+    await falharCom(flow, "ZZZZZZ");
+    api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "BRA2E19" });
+    act(() => flow.result.current.handleToken("7K3Q9X"));
+    await waitFor(() => expect(flow.result.current.consulta).not.toBeNull());
+    act(() => flow.result.current.voltar());
+    act(() => flow.result.current.handleToken("ZZZZZZ"));
+    await waitFor(() => expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(3));
+  });
+
+  it("falha de um token digitado também segura o mesmo QR por um tempo", async () => {
+    api.resolverBuscaPorToken.mockRejectedValue(naoEncontrado);
+    const flow = renderFlow();
+    act(() => flow.result.current.handleBuscaChange("token", "ZZZZZZ"));
+    act(() => flow.result.current.handleBuscaEnter());
+    await waitFor(() => expect(flow.result.current.aviso).toBe("Nenhum ticket aberto com este token."));
+    act(() => flow.result.current.handleToken("ZZZZZZ"));
+    expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("useSaidaFlow: busca manual", () => {
   it("consulta a placa completa depois do debounce", async () => {
     const { result } = renderFlow();
@@ -145,7 +226,6 @@ describe("useSaidaFlow: busca manual", () => {
     await avancar(BUSCA_DEBOUNCE_MS);
     await waitFor(() => expect(result.current.consulta).not.toBeNull());
     expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "BRA2E19" });
-    expect(result.current.origem).toBe("manual");
   });
 
   it("não consulta nem reclama enquanto a placa está incompleta", async () => {
@@ -169,7 +249,6 @@ describe("useSaidaFlow: busca manual", () => {
     expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(1);
     expect(api.resolverBuscaPorToken).toHaveBeenCalledWith("7K3Q9X", expect.anything());
     expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "BRA2E19" });
-    expect(result.current.origem).toBe("manual");
   });
 
   it("token digitado: não mostra erro enquanto está incompleto", async () => {
@@ -198,11 +277,31 @@ describe("useSaidaFlow: busca manual", () => {
     expect(api.resolverBuscaPorToken).not.toHaveBeenCalled();
   });
 
-  it("consulta o sequencial", async () => {
+  it("o sequencial não consulta sozinho, nem parcial nem completo", async () => {
+    const { result } = renderFlow();
+    act(() => result.current.handleBuscaChange("sequencial", "1"));
+    act(() => result.current.handleBuscaChange("sequencial", "12"));
+    await avancar(BUSCA_DEBOUNCE_MS * 5);
+    expect(api.consultarSaida).not.toHaveBeenCalled();
+    expect(result.current.consulta).toBeNull();
+  });
+
+  it("o sequencial consulta com Enter", async () => {
     const { result } = renderFlow();
     act(() => result.current.handleBuscaChange("sequencial", "12"));
-    await avancar(BUSCA_DEBOUNCE_MS);
-    await waitFor(() => expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "sequencial", valor: "12" }));
+    act(() => result.current.handleBuscaEnter());
+    await waitFor(() => expect(result.current.consulta).not.toBeNull());
+    expect(api.consultarSaida).toHaveBeenCalledTimes(1);
+    expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "sequencial", valor: "12" });
+  });
+
+  it("editar o sequencial depois de achar um veículo descarta o resultado anterior", async () => {
+    const { result } = renderFlow();
+    act(() => result.current.handleBuscaChange("sequencial", "12"));
+    act(() => result.current.handleBuscaEnter());
+    await waitFor(() => expect(result.current.consulta).not.toBeNull());
+    act(() => result.current.handleBuscaChange("sequencial", "1"));
+    await waitFor(() => expect(result.current.consulta).toBeNull());
   });
 
   it("Enter consulta na hora e mostra o erro de uma placa inválida", () => {
@@ -233,11 +332,12 @@ describe("useSaidaFlow: busca manual", () => {
   });
 
   it("apagar o campo descarta o veículo", async () => {
+    api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "BRA2E19" });
     const { result } = renderFlow();
-    act(() => result.current.handleBuscaChange("sequencial", "12"));
+    act(() => result.current.handleBuscaChange("token", "7K3Q9X"));
     await avancar(BUSCA_DEBOUNCE_MS);
     await waitFor(() => expect(result.current.consulta).not.toBeNull());
-    act(() => result.current.handleBuscaChange("sequencial", ""));
+    act(() => result.current.handleBuscaChange("token", ""));
     await avancar(BUSCA_DEBOUNCE_MS);
     await waitFor(() => expect(result.current.consulta).toBeNull());
   });
@@ -325,7 +425,7 @@ describe("useSaidaFlow: confirmar", () => {
 
     expect(api.registrarSaida).not.toHaveBeenCalled();
     expect(flow.result.current.consulta?.valor).toBe(25);
-    expect(flow.result.current.fase).toBe("identificar");
+    expect(flow.result.current.fase).toBe("pagamento");
 
     act(() => flow.result.current.confirmar());
     await waitFor(() => expect(flow.result.current.fase).toBe("recibo"));
@@ -352,7 +452,7 @@ describe("useSaidaFlow: confirmar", () => {
     act(() => flow.result.current.setRecebido("50,00"));
     act(() => flow.result.current.confirmar());
     await waitFor(() => expect(flow.result.current.erroRegistro).toBe("Não há caixa aberto."));
-    expect(flow.result.current).toMatchObject({ fase: "identificar", recebido: "50,00", forma: FORMA_DINHEIRO });
+    expect(flow.result.current).toMatchObject({ fase: "pagamento", recebido: "50,00", forma: FORMA_DINHEIRO });
     expect(flow.result.current.consulta).not.toBeNull();
 
     api.registrarSaida.mockResolvedValue(registrada);
@@ -372,7 +472,7 @@ describe("useSaidaFlow: confirmar", () => {
   });
 });
 
-describe("useSaidaFlow: limpar", () => {
+describe("useSaidaFlow: reinício", () => {
   it("volta ao estado inicial e libera nova leitura", async () => {
     const flow = renderFlow();
     await identificarPorQr(flow);
@@ -380,12 +480,9 @@ describe("useSaidaFlow: limpar", () => {
       flow.result.current.setForma(forma("Pix"));
       flow.result.current.setRecebido("10");
     });
-    act(() => flow.result.current.limpar());
+    act(() => flow.result.current.voltar());
 
     expect(flow.result.current).toMatchObject({
-      origem: null,
-      lido: false,
-      token: "",
       consulta: null,
       valorAnterior: null,
       forma: FORMA_DINHEIRO,
@@ -398,8 +495,143 @@ describe("useSaidaFlow: limpar", () => {
   it("cancela uma busca manual pendente", async () => {
     const { result } = renderFlow();
     act(() => result.current.handleBuscaChange("token", "7K3Q9X"));
-    act(() => result.current.limpar());
+    act(() => result.current.voltar());
     await avancar(BUSCA_DEBOUNCE_MS * 2);
     expect(api.consultarSaida).not.toHaveBeenCalled();
+  });
+});
+
+describe("useSaidaFlow: fases", () => {
+  it("começa na pesquisa e não muda enquanto a busca falha", async () => {
+    api.resolverBuscaPorToken.mockRejectedValue(new ApiError("not_found", "Nenhum ticket aberto com este token.", 404));
+    const flow = renderFlow();
+    expect(flow.result.current.fase).toBe("pesquisa");
+    act(() => flow.result.current.handleToken("ZZZZZZ"));
+    await waitFor(() => expect(flow.result.current.aviso).toBeDefined());
+    expect(flow.result.current.fase).toBe("pesquisa");
+  });
+
+  it.each([
+    ["QR", async (flow: ReturnType<typeof renderFlow>) => act(() => flow.result.current.handleToken("7K3Q9X"))],
+    [
+      "placa",
+      async (flow: ReturnType<typeof renderFlow>) => {
+        act(() => flow.result.current.handleBuscaChange("placa", "BRA2E19"));
+        await avancar(BUSCA_DEBOUNCE_MS);
+      },
+    ],
+    [
+      "token digitado",
+      async (flow: ReturnType<typeof renderFlow>) => {
+        act(() => flow.result.current.handleBuscaChange("token", "7K3Q9X"));
+        await avancar(BUSCA_DEBOUNCE_MS);
+      },
+    ],
+    [
+      "sequencial",
+      async (flow: ReturnType<typeof renderFlow>) => {
+        act(() => flow.result.current.handleBuscaChange("sequencial", "12"));
+        act(() => flow.result.current.handleBuscaEnter());
+      },
+    ],
+  ])("vai sozinho para o pagamento ao achar o veículo por %s", async (_nome, localizar) => {
+    api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "BRA2E19" });
+    const flow = renderFlow();
+    await localizar(flow);
+    await waitFor(() => expect(flow.result.current.fase).toBe("pagamento"));
+  });
+
+  it("vai ao recibo depois de registrar", async () => {
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.setForma(forma("Pix")));
+    act(() => flow.result.current.confirmar());
+    await waitFor(() => expect(flow.result.current.fase).toBe("recibo"));
+  });
+
+  it("a atualização periódica continua na fase de pagamento", async () => {
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    expect(flow.result.current.fase).toBe("pagamento");
+    api.consultarSaida.mockClear();
+    await avancar(INTERVALO_SAIDA_MS);
+    await waitFor(() => expect(api.consultarSaida).toHaveBeenCalledTimes(1));
+    expect(flow.result.current.fase).toBe("pagamento");
+  });
+
+  it("hasProgress: falso na pesquisa vazia, verdadeiro com campo preenchido e na fase de pagamento", async () => {
+    const flow = renderFlow();
+    expect(flow.result.current.hasProgress).toBe(false);
+    act(() => flow.result.current.handleBuscaChange("sequencial", "1"));
+    expect(flow.result.current.hasProgress).toBe(true);
+    act(() => flow.result.current.voltar());
+    expect(flow.result.current.hasProgress).toBe(false);
+    await identificarPorQr(flow);
+    expect(flow.result.current.hasProgress).toBe(true);
+  });
+});
+
+describe("useSaidaFlow: voltar", () => {
+  it("descarta busca, campos, pagamento e avisos e devolve a pesquisa", async () => {
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => {
+      flow.result.current.setForma(forma("Pix"));
+      flow.result.current.setRecebido("10");
+    });
+    act(() => flow.result.current.voltar());
+
+    expect(flow.result.current).toMatchObject({
+      fase: "pesquisa",
+      consulta: null,
+      valorAnterior: null,
+      forma: FORMA_DINHEIRO,
+      recebido: "",
+      aviso: undefined,
+      erroRegistro: undefined,
+      hasProgress: false,
+    });
+    expect(flow.result.current.buscaValues).toEqual({ placa: "", token: "", sequencial: "" });
+    expect(flow.result.current.buscaErrors).toEqual({});
+  });
+
+  it("descarta o aviso de valor mudou e o erro de registro", async () => {
+    api.registrarSaida.mockRejectedValue(new ApiError("validation", "Não há caixa aberto.", 400));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.setForma(forma("Pix")));
+    act(() => flow.result.current.confirmar());
+    await waitFor(() => expect(flow.result.current.erroRegistro).toBe("Não há caixa aberto."));
+    act(() => flow.result.current.voltar());
+    expect(flow.result.current.erroRegistro).toBeUndefined();
+    expect(flow.result.current.fase).toBe("pesquisa");
+  });
+
+  it("permite localizar outro veículo depois de voltar", async () => {
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.voltar());
+    api.consultarSaida.mockResolvedValue({ ...consulta(), placa: "ABC1234", valor: 12 });
+    api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "ABC1234" });
+    act(() => flow.result.current.handleToken("P4M8TQ"));
+    await waitFor(() => expect(flow.result.current.consulta?.placa).toBe("ABC1234"));
+    expect(flow.result.current.fase).toBe("pagamento");
+  });
+
+  it("não faz nada enquanto a saída está sendo registrada", async () => {
+    let concluir: (value: SaidaRegistrada) => void = () => {};
+    api.registrarSaida.mockReturnValue(new Promise<SaidaRegistrada>((resolve) => (concluir = resolve)));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.setForma(forma("Pix")));
+    act(() => flow.result.current.confirmar());
+    await waitFor(() => expect(flow.result.current.enviando).toBe(true));
+
+    act(() => flow.result.current.voltar());
+    expect(flow.result.current.fase).toBe("pagamento");
+    expect(flow.result.current.consulta).not.toBeNull();
+
+    await act(async () => concluir(registrada));
+    await waitFor(() => expect(flow.result.current.fase).toBe("recibo"));
   });
 });

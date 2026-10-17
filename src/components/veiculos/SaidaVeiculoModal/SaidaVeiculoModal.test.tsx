@@ -75,6 +75,8 @@ const registrada: SaidaRegistrada = {
 
 const confirmar = (valor?: string) =>
   screen.getByRole("button", { name: valor ? new RegExp(`Confirmar (Saída|novo valor) · R\\$\\s${valor}`) : /^Confirmar Saída$/ });
+const voltar = () => screen.getByRole("button", { name: "Voltar para a pesquisa" });
+const visor = () => screen.queryByRole("button", { name: /Área de leitura do QR Code/ });
 
 function renderModal() {
   return renderWithProviders(<SaidaVeiculoModal {...handlers} />);
@@ -82,6 +84,7 @@ function renderModal() {
 
 const lerQr = (texto: string) => act(() => leitor.options!.onTexto(texto));
 
+// Lê o QR e espera a tela passar para a fase de pagamento.
 async function lerTicket() {
   lerQr("https://gipe.com.br/comprovante/7K3Q9X");
   await screen.findByText("ONIX · PRATA");
@@ -91,6 +94,7 @@ beforeEach(() => {
   Object.values(api).forEach((mock) => mock.mockReset());
   handlers.onClose.mockReset();
   handlers.onSuccess.mockReset();
+  leitor.options = null;
   api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "BRA2E19" });
   api.consultarSaida.mockResolvedValue(consulta());
   api.registrarSaida.mockResolvedValue(registrada);
@@ -101,84 +105,65 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("SaidaVeiculoModal: tela única", () => {
-  it("abre com leitura, busca manual, resumo e pagamento, sem etapas", () => {
+describe("SaidaVeiculoModal: fase de pesquisa", () => {
+  it("abre só com a leitura de QR e a busca manual", () => {
     renderModal();
-    expect(screen.getByRole("heading", { name: "Registrar saída" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Área de leitura do QR Code/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();
+    expect(visor()).toBeInTheDocument();
     expect(screen.getByLabelText("Placa")).toBeEnabled();
-    expect(screen.getByText("Valor a cobrar")).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: "Dinheiro" })).toBeChecked();
-    expect(screen.queryByText(/Etapa \d de/)).not.toBeInTheDocument();
-    expect(confirmar()).toBeDisabled();
+    expect(screen.getByLabelText("Token")).toBeEnabled();
+    expect(screen.getByLabelText("Sequencial")).toBeEnabled();
     expect(leitor.options?.ativo).toBe(true);
   });
-});
 
-describe("SaidaVeiculoModal: leitura por QR", () => {
-  it("lê o QR, mostra o veículo, desliga a câmera e mostra o valor no botão", async () => {
+  it("não mostra resumo, valor, pagamento nem confirmação", () => {
     renderModal();
-    await lerTicket();
-    expect(screen.getByLabelText("Token")).toHaveValue("7K3Q9X");
-    expect(screen.getByLabelText("Placa")).toBeDisabled();
-    expect(screen.getByLabelText("Placa")).toHaveValue("BRA2E19");
-    expect(leitor.options?.ativo).toBe(false);
-    expect(confirmar("20,00")).toBeDisabled();
+    expect(screen.queryByText("Valor a cobrar")).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Forma de pagamento" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Confirmar Saída/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Voltar para a pesquisa" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cancelar" })).toBeEnabled();
   });
 
-  it("QR que não é do GIPE avisa e continua lendo", async () => {
+  it("QR que não é do GIPE avisa e continua na pesquisa", async () => {
     renderModal();
     lerQr("https://outro-site.com/promo");
     expect((await screen.findAllByText("QR Code não é um ticket GIPE")).length).toBeGreaterThan(0);
     expect(api.resolverBuscaPorToken).not.toHaveBeenCalled();
     expect(leitor.options?.ativo).toBe(true);
+    expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();
   });
 
-  it("token sem ticket aberto mostra o aviso e mantém o botão desabilitado", async () => {
+  it("token sem ticket aberto mostra o aviso, fica na pesquisa e religa a câmera", async () => {
     api.resolverBuscaPorToken.mockRejectedValue(new ApiError("not_found", "Nenhum ticket aberto com este token.", 404));
     renderModal();
     lerQr("https://gipe.com.br/comprovante/ZZZZZZ");
     expect(await screen.findByText("Nenhum ticket aberto com este token.")).toBeInTheDocument();
-    expect(confirmar()).toBeDisabled();
+    expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();
+    await waitFor(() => expect(leitor.options?.ativo).toBe(true));
+    expect(visor()).toBeInTheDocument();
   });
 
-  it("Limpar libera a busca manual e religa a câmera", async () => {
-    const user = userEvent.setup();
+  it("não repete a busca do mesmo QR logo depois de falhar", async () => {
+    api.resolverBuscaPorToken.mockRejectedValue(new ApiError("not_found", "Nenhum ticket aberto com este token.", 404));
     renderModal();
-    await lerTicket();
-    await user.click(screen.getByRole("button", { name: "Limpar e ler novamente" }));
-    expect(screen.getByLabelText("Placa")).toBeEnabled();
-    expect(screen.getByLabelText("Token")).toHaveValue("");
-    expect(screen.queryByText("ONIX · PRATA")).not.toBeInTheDocument();
-    expect(leitor.options?.ativo).toBe(true);
+    lerQr("https://gipe.com.br/comprovante/ZZZZZZ");
+    await screen.findByText("Nenhum ticket aberto com este token.");
+    lerQr("https://gipe.com.br/comprovante/ZZZZZZ");
+    expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(1);
   });
-});
 
-describe("SaidaVeiculoModal: busca manual", () => {
-  it("consulta por placa", async () => {
+  it("veículo fora do pátio mostra a mensagem e permite tentar de novo", async () => {
+    api.consultarSaida.mockRejectedValueOnce(new ApiError("not_found", "Nenhum veículo no pátio com essa placa.", 404));
     const user = userEvent.setup();
     renderModal();
     await user.type(screen.getByLabelText("Placa"), "bra2e19");
-    expect(await screen.findByText("ONIX · PRATA")).toBeInTheDocument();
-    expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "BRA2E19" });
-    expect(screen.getByLabelText("Token")).toBeDisabled();
-  });
+    expect(await screen.findByText("Nenhum veículo no pátio com essa placa.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();
 
-  it("consulta pelo token digitado", async () => {
-    const user = userEvent.setup();
-    renderModal();
-    await user.type(screen.getByLabelText("Token"), "7K3Q9X");
+    await user.clear(screen.getByLabelText("Placa"));
+    await user.type(screen.getByLabelText("Placa"), "bra2e19");
     expect(await screen.findByText("ONIX · PRATA")).toBeInTheDocument();
-    expect(api.resolverBuscaPorToken).toHaveBeenCalledWith("7K3Q9X", expect.anything());
-    expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "BRA2E19" });
-  });
-
-  it("consulta por sequencial", async () => {
-    const user = userEvent.setup();
-    renderModal();
-    await user.type(screen.getByLabelText("Sequencial"), "12");
-    expect(await screen.findByText("ONIX · PRATA")).toBeInTheDocument();
-    expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "sequencial", valor: "12" });
   });
 
   it("placa inválida mostra a orientação ao confirmar com Enter", async () => {
@@ -188,23 +173,76 @@ describe("SaidaVeiculoModal: busca manual", () => {
     expect(await screen.findByText(/^Placa inválida/)).toBeInTheDocument();
     expect(api.consultarSaida).not.toHaveBeenCalled();
   });
+});
 
-  it("veículo fora do pátio mostra a mensagem e permite tentar de novo", async () => {
-    api.consultarSaida.mockRejectedValueOnce(new ApiError("not_found", "Nenhum veículo no pátio com essa placa.", 404));
+describe("SaidaVeiculoModal: passagem para o pagamento", () => {
+  it("ler o QR leva sozinho à fase de pagamento, sem QR nem busca", async () => {
+    renderModal();
+    await lerTicket();
+    expect(screen.getByRole("heading", { level: 2, name: "Confirmar saída" })).toBeInTheDocument();
+    expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "BRA2E19" });
+    expect(visor()).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Placa")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Token")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Sequencial")).not.toBeInTheDocument();
+    expect(screen.getByText("Valor a cobrar")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Dinheiro" })).toBeChecked();
+    expect(confirmar("20,00")).toBeDisabled();
+  });
+
+  it.each([
+    ["placa", async (user: ReturnType<typeof userEvent.setup>) => user.type(screen.getByLabelText("Placa"), "bra2e19")],
+    ["token digitado", async (user: ReturnType<typeof userEvent.setup>) => user.type(screen.getByLabelText("Token"), "7K3Q9X")],
+    ["sequencial com Enter", async (user: ReturnType<typeof userEvent.setup>) => user.type(screen.getByLabelText("Sequencial"), "12{Enter}")],
+  ])("a busca por %s também leva à fase de pagamento", async (_nome, buscar) => {
     const user = userEvent.setup();
     renderModal();
-    await user.type(screen.getByLabelText("Placa"), "bra2e19");
-    expect(await screen.findByText("Nenhum veículo no pátio com essa placa.")).toBeInTheDocument();
-    expect(confirmar()).toBeDisabled();
-
-    await user.clear(screen.getByLabelText("Placa"));
-    api.consultarSaida.mockResolvedValue(consulta());
-    await user.type(screen.getByLabelText("Placa"), "bra2e19");
+    await buscar(user);
     expect(await screen.findByText("ONIX · PRATA")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Confirmar saída" })).toBeInTheDocument();
+  });
+
+  it("o sequencial não busca sem Enter", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Sequencial"), "12");
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(api.consultarSaida).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();
+  });
+
+  it("leva o foco ao título da nova fase e o anuncia", async () => {
+    renderModal();
+    await lerTicket();
+    const titulo = screen.getByRole("heading", { level: 3, name: "Veículo encontrado. Confirme os dados e o pagamento." });
+    expect(titulo).toHaveFocus();
+  });
+
+  it("na abertura não rouba o foco do diálogo", () => {
+    renderModal();
+    expect(screen.getByRole("heading", { level: 3, name: "Pesquisa de veículo." })).not.toHaveFocus();
+  });
+
+  it("mostra o aviso quando a atualização do valor falha em segundo plano", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderModal();
+    await lerTicket();
+    api.consultarSaida.mockRejectedValue(new ApiError("network"));
+    await act(async () => void (await vi.advanceTimersByTimeAsync(INTERVALO_SAIDA_MS)));
+    expect(await screen.findByText(/Mantida a última consulta/)).toBeInTheDocument();
+    expect(screen.getByText("ONIX · PRATA")).toBeInTheDocument();
   });
 });
 
-describe("SaidaVeiculoModal: pagamento e confirmação", () => {
+describe("SaidaVeiculoModal: fase de pagamento", () => {
+  it("tem Voltar para a pesquisa e Confirmar Saída no rodapé, sem Cancelar", async () => {
+    renderModal();
+    await lerTicket();
+    expect(voltar()).toBeEnabled();
+    expect(confirmar("20,00")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cancelar" })).not.toBeInTheDocument();
+  });
+
   it("em Dinheiro só habilita com valor recebido suficiente e mostra o troco", async () => {
     const user = userEvent.setup();
     renderModal();
@@ -231,17 +269,18 @@ describe("SaidaVeiculoModal: pagamento e confirmação", () => {
     expect(confirmar("20,00")).toBeEnabled();
   });
 
-  it("registra a saída, mostra o recibo e conclui com o aviso", async () => {
+  it("registra a saída, mostra o recibo sem o botão de voltar e conclui com o aviso", async () => {
     const user = userEvent.setup();
     renderModal();
     await lerTicket();
     await user.type(screen.getByLabelText("Valor recebido"), "50");
     await user.click(confirmar("20,00"));
 
-    expect(await screen.findByRole("heading", { name: "Saída registrada" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 2, name: "Saída registrada" })).toBeInTheDocument();
     expect(api.registrarSaida).toHaveBeenCalledWith(7, { valor: 20, formaPagamento: 1 });
     expect(screen.getByRole("button", { name: "Imprimir" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Área de leitura/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Voltar para a pesquisa" })).not.toBeInTheDocument();
+    expect(visor()).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Concluir" }));
     expect(handlers.onSuccess).toHaveBeenCalledWith("Saída realizada com sucesso.");
@@ -258,13 +297,14 @@ describe("SaidaVeiculoModal: pagamento e confirmação", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/mudou de R\$\s20,00 para R\$\s25,00/);
     expect(api.registrarSaida).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { level: 2, name: "Confirmar saída" })).toBeInTheDocument();
 
     await user.click(confirmar("25,00"));
-    expect(await screen.findByRole("heading", { name: "Saída registrada" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 2, name: "Saída registrada" })).toBeInTheDocument();
     expect(api.registrarSaida).toHaveBeenCalledWith(7, { valor: 25, formaPagamento: 2 });
   });
 
-  it("erro de registro mostra o motivo e mantém os dados", async () => {
+  it("erro de registro mostra o motivo, mantém os dados e deixa voltar", async () => {
     api.registrarSaida.mockRejectedValue(new ApiError("validation", "Não há caixa aberto.", 400));
     const user = userEvent.setup();
     renderModal();
@@ -276,9 +316,10 @@ describe("SaidaVeiculoModal: pagamento e confirmação", () => {
     expect(screen.getByLabelText("Valor recebido")).toHaveValue("50");
     expect(screen.getByText("ONIX · PRATA")).toBeInTheDocument();
     expect(confirmar("20,00")).toBeEnabled();
+    expect(voltar()).toBeEnabled();
   });
 
-  it("não deixa fechar nem confirmar de novo durante o envio", async () => {
+  it("não deixa voltar nem confirmar de novo durante o envio", async () => {
     let concluir: (value: SaidaRegistrada) => void = () => {};
     api.registrarSaida.mockReturnValue(new Promise<SaidaRegistrada>((resolve) => (concluir = resolve)));
     const user = userEvent.setup();
@@ -289,16 +330,14 @@ describe("SaidaVeiculoModal: pagamento e confirmação", () => {
 
     const registrando = await screen.findByRole("button", { name: "Registrando…" });
     expect(registrando).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
+    expect(voltar()).toBeDisabled();
     expect(api.registrarSaida).toHaveBeenCalledTimes(1);
 
     await act(async () => concluir(registrada));
-    expect(await screen.findByRole("heading", { name: "Saída registrada" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 2, name: "Saída registrada" })).toBeInTheDocument();
   });
-});
 
-describe("SaidaVeiculoModal: atualização ao vivo", () => {
-  it("reconsulta a cada ciclo e avisa quando o valor muda", async () => {
+  it("atualiza o valor ao vivo e avisa quando ele muda", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     renderModal();
     await lerTicket();
@@ -309,26 +348,79 @@ describe("SaidaVeiculoModal: atualização ao vivo", () => {
   });
 });
 
+describe("SaidaVeiculoModal: voltar para a pesquisa", () => {
+  it("volta com a busca vazia, a câmera ativa e o pagamento descartado", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+    await user.click(screen.getByRole("radio", { name: "Pix" }));
+    await user.click(voltar());
+
+    expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();
+    expect(visor()).toBeInTheDocument();
+    expect(leitor.options?.ativo).toBe(true);
+    expect(screen.getByLabelText("Placa")).toHaveValue("");
+    expect(screen.getByLabelText("Token")).toHaveValue("");
+    expect(screen.getByLabelText("Sequencial")).toHaveValue("");
+    expect(screen.queryByText("ONIX · PRATA")).not.toBeInTheDocument();
+    expect(screen.queryByText("Valor a cobrar")).not.toBeInTheDocument();
+  });
+
+  it("leva o foco ao título da pesquisa", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+    await user.click(voltar());
+    expect(screen.getByRole("heading", { level: 3, name: "Pesquisa de veículo." })).toHaveFocus();
+  });
+
+  it("depois de voltar, o pagamento recomeça em Dinheiro e sem valor recebido", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+    await user.type(screen.getByLabelText("Valor recebido"), "50");
+    await user.click(screen.getByRole("radio", { name: "Pix" }));
+    await user.click(voltar());
+
+    api.consultarSaida.mockResolvedValue({ ...consulta(), placa: "ABC1234", modelo: "HB20", valor: 12 });
+    api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "ABC1234" });
+    lerQr("https://gipe.com.br/comprovante/P4M8TQ");
+    expect(await screen.findByText("HB20 · PRATA")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Dinheiro" })).toBeChecked();
+    expect(screen.getByLabelText("Valor recebido")).toHaveValue("");
+    expect(confirmar("12,00")).toBeDisabled();
+  });
+});
+
 describe("SaidaVeiculoModal: fechar", () => {
-  it("fecha direto quando não há nada em andamento", async () => {
+  it("fecha direto na pesquisa quando não há nada em andamento", async () => {
     const user = userEvent.setup();
     renderModal();
     await user.click(screen.getByRole("button", { name: "Cancelar" }));
     expect(handlers.onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("com leitura em andamento pede confirmação antes de descartar", async () => {
+  it("na pesquisa, com algo digitado, pede confirmação", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "BRA");
+    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(handlers.onClose).not.toHaveBeenCalled();
+    expect(screen.getByText("Cancelar a saída?")).toBeInTheDocument();
+  });
+
+  it("na fase de pagamento sempre pede confirmação antes de descartar", async () => {
     const user = userEvent.setup();
     renderModal();
     await lerTicket();
-    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+    await user.click(screen.getByRole("button", { name: "Fechar" }));
     expect(handlers.onClose).not.toHaveBeenCalled();
     expect(screen.getByText("Cancelar a saída?")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Continuar saída" }));
     expect(handlers.onClose).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+    await user.click(screen.getByRole("button", { name: "Fechar" }));
     await user.click(screen.getByRole("button", { name: "Descartar" }));
     expect(handlers.onClose).toHaveBeenCalledTimes(1);
     expect(api.registrarSaida).not.toHaveBeenCalled();

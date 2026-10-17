@@ -3,9 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { extrairTokenComprovante } from "@/lib/qr";
 import {
-  Check,
-  Lido,
-  LimparButton,
   Mensagem,
   Mira,
   Varredura,
@@ -18,6 +15,7 @@ import {
 import { useLeitorQr, type LeitorQrEstado } from "./useLeitorQr";
 
 export const QR_INVALIDO_MESSAGE = "QR Code não é um ticket GIPE";
+export const BUSCANDO_MESSAGE = "Buscando veículo…";
 const INVALIDO_MS = 1200;
 
 const MENSAGENS: Record<LeitorQrEstado, string> = {
@@ -33,28 +31,16 @@ export interface LeitorQrSaidaProps {
   onToken: (token: string) => void;
   // QR lido que não é de um ticket GIPE; a leitura continua.
   onInvalido: () => void;
-  // Trava o botão de limpar (ex.: consulta ou envio em andamento).
-  disabled?: boolean;
-  // Leitura concluída: a câmera é desligada e o visor mostra o resultado.
-  lido: boolean;
-  mensagemLido?: string;
-  onLimpar: () => void;
+  // Busca em andamento: a câmera pausa, o visor mostra a mira de sucesso e o estado é anunciado.
+  buscando?: boolean;
 }
 
-export function LeitorQrSaida({
-  onToken,
-  onInvalido,
-  disabled = false,
-  lido,
-  mensagemLido = "Ticket encontrado",
-  onLimpar,
-}: LeitorQrSaidaProps) {
-  const visorRef = useRef<HTMLButtonElement>(null);
+export function LeitorQrSaida({ onToken, onInvalido, buscando = false }: LeitorQrSaidaProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [invalido, setInvalido] = useState(false);
 
   const { videoRef, estado, iniciar } = useLeitorQr({
-    ativo: !lido,
+    ativo: !buscando,
     onTexto: (texto) => {
       const tokenLido = extrairTokenComprovante(texto);
       if (tokenLido) {
@@ -82,19 +68,13 @@ export function LeitorQrSaida({
     [],
   );
 
-  const tom: VisorTom = lido ? "lido" : invalido ? "invalido" : "neutro";
-  const mensagem = MENSAGENS[estado];
-  const anuncio = lido ? mensagemLido : invalido ? QR_INVALIDO_MESSAGE : mensagem;
-
-  function handleLimpar() {
-    onLimpar();
-    visorRef.current?.focus();
-  }
+  const tom: VisorTom = buscando ? "buscando" : invalido ? "invalido" : "neutro";
+  const mensagem = buscando ? "" : MENSAGENS[estado];
+  const anuncio = buscando ? BUSCANDO_MESSAGE : invalido ? QR_INVALIDO_MESSAGE : mensagem;
 
   return (
     <Wrapper>
       <Visor
-        ref={visorRef}
         type="button"
         $tom={tom}
         onClick={iniciar}
@@ -105,31 +85,12 @@ export function LeitorQrSaida({
         <Mira $canto="tr" $tom={tom} aria-hidden="true" />
         <Mira $canto="bl" $tom={tom} aria-hidden="true" />
         <Mira $canto="br" $tom={tom} aria-hidden="true" />
-        {estado === "lendo" && !lido && <Varredura aria-hidden="true" />}
-        {!lido && mensagem && <Mensagem aria-hidden="true">{mensagem}</Mensagem>}
-        {lido && (
-          <Lido aria-hidden="true">
-            <Check>
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
-            </Check>
-            {mensagemLido}
-          </Lido>
-        )}
+        {estado === "lendo" && !buscando && <Varredura aria-hidden="true" />}
+        {mensagem && <Mensagem aria-hidden="true">{mensagem}</Mensagem>}
       </Visor>
       <VisuallyHidden role="status" aria-live="polite">
         {anuncio}
       </VisuallyHidden>
-
-      {lido && (
-        <LimparButton type="button" onClick={handleLimpar} disabled={disabled}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-          Limpar e ler novamente
-        </LimparButton>
-      )}
     </Wrapper>
   );
 }

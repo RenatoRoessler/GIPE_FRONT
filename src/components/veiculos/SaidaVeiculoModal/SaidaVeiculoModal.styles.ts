@@ -1,6 +1,6 @@
 "use client";
 
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 // Mobile: uma coluna na ordem da operação (ler, conferir, pagar). Desktop: leitura à esquerda, resumo e pagamento à direita.
 export const Layout = styled.div`
@@ -19,4 +19,35 @@ export const Column = styled.div`
   flex-direction: column;
   gap: ${({ theme }) => theme.space[4]}px;
   min-width: 0;
+`;
+
+const entrada = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
+// Cada fase remonta com `key`, então o fade roda a cada troca de fase.
+export const FaseConteudo = styled.div`
+  animation: ${entrada} 150ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`;
+
+// Título da fase: oculto, mas focável. Recebe o foco ao trocar de fase e, por isso, é lido pelo leitor de tela.
+export const FaseTitulo = styled.h3`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+
+  &:focus {
+    outline: none;
+  }
 `;

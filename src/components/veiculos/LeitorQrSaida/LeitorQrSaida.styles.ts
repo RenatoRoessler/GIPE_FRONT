@@ -2,7 +2,7 @@
 
 import styled, { css, keyframes, type DefaultTheme } from "styled-components";
 
-export type VisorTom = "neutro" | "lido" | "invalido";
+export type VisorTom = "neutro" | "buscando" | "invalido";
 
 const MIRA = 34;
 const MIRA_RECUO = 14;
@@ -14,7 +14,7 @@ const varredura = keyframes`
 `;
 
 const corDaMira = (tom: VisorTom, theme: DefaultTheme) =>
-  tom === "lido" ? theme.colors.success : tom === "invalido" ? theme.colors.danger : theme.colors.warn;
+  tom === "buscando" ? theme.colors.success : tom === "invalido" ? theme.colors.danger : theme.colors.warn;
 
 export const Wrapper = styled.div`
   display: flex;
@@ -123,62 +123,6 @@ export const Mensagem = styled.span`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   line-height: 1.4;
   text-align: center;
-`;
-
-export const Lido = styled.span`
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: ${({ theme }) => theme.space[2]}px;
-  background-color: color-mix(in srgb, ${({ theme }) => theme.colors.success} 16%, ${({ theme }) => theme.colors.background});
-  color: ${({ theme }) => theme.colors.text};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-`;
-
-export const Check = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 58px;
-  height: 58px;
-  border-radius: ${({ theme }) => theme.radii.full};
-  background-color: ${({ theme }) => theme.colors.success};
-  color: ${({ theme }) => theme.colors.background};
-`;
-
-export const LimparButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${({ theme }) => theme.space[2]}px;
-  min-height: 44px;
-  padding: 0 ${({ theme }) => theme.space[3]}px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radii.md};
-  background-color: transparent;
-  color: ${({ theme }) => theme.colors.text};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
-  cursor: pointer;
-
-  &:hover:not(:disabled) {
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-
-  &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
-    outline-offset: 2px;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
 `;
 
 export const VisuallyHidden = styled.span`

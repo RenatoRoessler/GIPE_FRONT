@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithTheme } from "@/test/render";
-import { LeitorQrSaida, QR_INVALIDO_MESSAGE, type LeitorQrSaidaProps } from "./LeitorQrSaida";
+import { BUSCANDO_MESSAGE, LeitorQrSaida, QR_INVALIDO_MESSAGE, type LeitorQrSaidaProps } from "./LeitorQrSaida";
 import type { LeitorQrEstado, UseLeitorQrOptions } from "./useLeitorQr";
 
 const leitor = vi.hoisted(() => ({
@@ -21,8 +21,8 @@ vi.mock("./useLeitorQr", async () => {
 });
 
 function renderLeitor(props: Partial<LeitorQrSaidaProps> = {}) {
-  const handlers = { onToken: vi.fn(), onInvalido: vi.fn(), onLimpar: vi.fn() };
-  renderWithTheme(<LeitorQrSaida lido={false} {...handlers} {...props} />);
+  const handlers = { onToken: vi.fn(), onInvalido: vi.fn() };
+  renderWithTheme(<LeitorQrSaida {...handlers} {...props} />);
   return handlers;
 }
 
@@ -86,30 +86,33 @@ describe("LeitorQrSaida", () => {
     expect(leitor.iniciar).toHaveBeenCalled();
   });
 
-  it("desliga a câmera e anuncia o resultado da leitura", () => {
-    renderLeitor({ lido: true, mensagemLido: "Ticket encontrado" });
-    expect(leitor.options?.ativo).toBe(false);
-    expect(screen.getByRole("status")).toHaveTextContent("Ticket encontrado");
+  it("não tem botão de limpar nem estado de leitura concluída", () => {
+    renderLeitor();
+    expect(screen.queryByRole("button", { name: /Limpar/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
   });
 
-  it("só mostra Limpar depois da leitura e o aciona", () => {
-    const { rerender } = renderWithTheme(
-      <LeitorQrSaida lido={false} onToken={() => {}} onInvalido={() => {}} onLimpar={() => {}} />,
-    );
-    expect(screen.queryByRole("button", { name: "Limpar e ler novamente" })).not.toBeInTheDocument();
-    rerender(<LeitorQrSaida lido onToken={() => {}} onInvalido={() => {}} onLimpar={() => {}} />);
-    expect(screen.getByRole("button", { name: "Limpar e ler novamente" })).toBeInTheDocument();
-  });
+  describe("durante a busca", () => {
+    it("pausa a câmera", () => {
+      renderLeitor({ buscando: true });
+      expect(leitor.options?.ativo).toBe(false);
+    });
 
-  it("chama onLimpar e devolve o foco ao visor", () => {
-    const { onLimpar } = renderLeitor({ lido: true });
-    fireEvent.click(screen.getByRole("button", { name: "Limpar e ler novamente" }));
-    expect(onLimpar).toHaveBeenCalledTimes(1);
-    expect(visor()).toHaveFocus();
-  });
+    it("anuncia a busca e esconde a mensagem de apoio", () => {
+      leitor.estado = "ocioso";
+      renderLeitor({ buscando: true });
+      expect(screen.getByRole("status")).toHaveTextContent(BUSCANDO_MESSAGE);
+      expect(screen.queryByText("Toque para ativar a câmera")).not.toBeInTheDocument();
+    });
 
-  it("trava o Limpar com disabled", () => {
-    renderLeitor({ lido: true, disabled: true });
-    expect(screen.getByRole("button", { name: "Limpar e ler novamente" })).toBeDisabled();
+    it("religa a câmera quando a busca termina sem sucesso", () => {
+      const { rerender } = renderWithTheme(
+        <LeitorQrSaida buscando onToken={() => {}} onInvalido={() => {}} />,
+      );
+      expect(leitor.options?.ativo).toBe(false);
+      rerender(<LeitorQrSaida onToken={() => {}} onInvalido={() => {}} />);
+      expect(leitor.options?.ativo).toBe(true);
+      expect(screen.getByRole("status")).toBeEmptyDOMElement();
+    });
   });
 });

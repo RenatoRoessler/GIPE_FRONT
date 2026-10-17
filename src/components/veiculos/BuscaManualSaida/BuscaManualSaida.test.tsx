@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { SaidaBuscaValues } from "@/lib/schemas/saida";
 import { renderWithTheme } from "@/test/render";
-import { BUSCA_QR_ATIVA_HINT, BuscaManualSaida, type BuscaManualSaidaProps } from "./BuscaManualSaida";
+import { BuscaManualSaida, SEQUENCIAL_ENTER_HINT, type BuscaManualSaidaProps } from "./BuscaManualSaida";
 
 const VAZIO: SaidaBuscaValues = { placa: "", token: "", sequencial: "" };
 
@@ -40,15 +40,6 @@ describe("BuscaManualSaida", () => {
     expect(placa()).toBeDisabled();
     rerender(<BuscaManualSaida values={VAZIO} errors={{}} onChange={() => {}} />);
     expect(placa()).toBeEnabled();
-  });
-
-  it("bloqueia os três campos durante a leitura por QR e explica o motivo", () => {
-    renderBusca({ bloqueadoPorQr: true, values: { placa: "BRA2E19", token: "7K3Q9X", sequencial: "" } });
-    expect(placa()).toBeDisabled();
-    expect(token()).toBeDisabled();
-    expect(sequencial()).toBeDisabled();
-    expect(screen.getByText(BUSCA_QR_ATIVA_HINT)).toBeInTheDocument();
-    expect(placa()).toHaveValue("BRA2E19");
   });
 
   it("normaliza a placa digitada", () => {
@@ -90,5 +81,31 @@ describe("BuscaManualSaida", () => {
     expect(placa()).toBeDisabled();
     expect(token()).toBeDisabled();
     expect(sequencial()).toBeDisabled();
+  });
+
+  it("orienta a buscar o sequencial com Enter e pede a tecla de busca no teclado", () => {
+    renderBusca();
+    expect(sequencial()).toHaveAccessibleDescription(SEQUENCIAL_ENTER_HINT);
+    expect(sequencial()).toHaveAttribute("enterkeyhint", "search");
+  });
+
+  it("não repete a dica de Enter em placa e token", () => {
+    renderBusca();
+    expect(placa()).not.toHaveAccessibleDescription(SEQUENCIAL_ENTER_HINT);
+    expect(token()).not.toHaveAccessibleDescription(SEQUENCIAL_ENTER_HINT);
+    expect(screen.getAllByText(SEQUENCIAL_ENTER_HINT)).toHaveLength(1);
+  });
+
+  it("com outro campo preenchido, o sequencial mostra o motivo do bloqueio em vez da dica", () => {
+    renderBusca({ values: { ...VAZIO, token: "7K3Q9X" } });
+    expect(sequencial()).toBeDisabled();
+    expect(screen.queryByText(SEQUENCIAL_ENTER_HINT)).not.toBeInTheDocument();
+    expect(sequencial()).toHaveAccessibleDescription("Limpe o campo token para usar outro.");
+  });
+
+  it("com erro no sequencial mostra o erro e não a dica", () => {
+    renderBusca({ values: { ...VAZIO, sequencial: "12" }, errors: { sequencial: "Use apenas números" } });
+    expect(screen.getByText("Use apenas números")).toBeInTheDocument();
+    expect(screen.queryByText(SEQUENCIAL_ENTER_HINT)).not.toBeInTheDocument();
   });
 });

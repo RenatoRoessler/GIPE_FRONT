@@ -17,8 +17,6 @@ export interface BuscaManualSaidaProps {
   onEnter?: () => void;
   // Aviso da última consulta (ex.: veículo não encontrado).
   aviso?: string;
-  // Leitura por QR ativa: os campos mostram o veículo lido, mas não aceitam digitação.
-  bloqueadoPorQr?: boolean;
   disabled?: boolean;
 }
 
@@ -28,7 +26,7 @@ const LABELS: Record<SaidaBuscaField, string> = {
   sequencial: "Sequencial",
 };
 
-export const BUSCA_QR_ATIVA_HINT = "Leitura por QR ativa. Toque em Limpar para digitar.";
+export const SEQUENCIAL_ENTER_HINT = "Pressione Enter para buscar";
 
 // A API aceita um único identificador: ao preencher um campo, os outros ficam bloqueados.
 export function BuscaManualSaida({
@@ -37,19 +35,18 @@ export function BuscaManualSaida({
   onChange,
   onEnter,
   aviso,
-  bloqueadoPorQr = false,
   disabled = false,
 }: BuscaManualSaidaProps) {
   const filled = (Object.keys(LABELS) as SaidaBuscaField[]).find((field) => values[field] !== "");
 
-  function fieldProps(field: SaidaBuscaField) {
-    const blocked = !bloqueadoPorQr && filled !== undefined && filled !== field;
+  function fieldProps(field: SaidaBuscaField, hintPadrao?: string) {
+    const blocked = filled !== undefined && filled !== field;
     return {
       label: LABELS[field],
       value: values[field],
       error: errors[field],
-      disabled: disabled || bloqueadoPorQr || blocked,
-      hint: blocked ? `Limpe o campo ${LABELS[filled].toLowerCase()} para usar outro.` : undefined,
+      disabled: disabled || blocked,
+      hint: blocked ? `Limpe o campo ${LABELS[filled].toLowerCase()} para usar outro.` : hintPadrao,
       autoComplete: "off",
       onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
@@ -63,7 +60,7 @@ export function BuscaManualSaida({
   return (
     <Wrapper>
       <Divisor>ou informe sem QR Code</Divisor>
-      <Hint>{bloqueadoPorQr ? BUSCA_QR_ATIVA_HINT : "Informe a placa, o token do cupom ou o sequencial do veículo."}</Hint>
+      <Hint>Informe a placa, o token do cupom ou o sequencial do veículo.</Hint>
       <FieldGrid>
         <Input
           {...fieldProps("placa")}
@@ -79,9 +76,10 @@ export function BuscaManualSaida({
           spellCheck={false}
         />
         <Input
-          {...fieldProps("sequencial")}
+          {...fieldProps("sequencial", SEQUENCIAL_ENTER_HINT)}
           onChange={(event) => onChange("sequencial", event.target.value.replace(/\D/g, ""))}
           inputMode="numeric"
+          enterKeyHint="search"
         />
       </FieldGrid>
       <Aviso aria-live="polite">{aviso}</Aviso>

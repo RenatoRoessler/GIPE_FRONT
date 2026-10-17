@@ -7,7 +7,7 @@ import { getEmpresa } from "@/lib/api/services/empresa";
 import { consultarSaida, registrarSaida, resolverBuscaPorToken } from "@/lib/api/services/patio";
 import { parseMoney } from "@/lib/money";
 import { saidaBuscaSchema, toSaidaBusca, type SaidaBuscaValues } from "@/lib/schemas/saida";
-import type { SaidaBusca, SaidaConsulta, SaidaOrigem } from "@/types/saida";
+import type { SaidaBusca, SaidaConsulta } from "@/types/saida";
 import type { SaidaBuscaField } from "../BuscaManualSaida";
 import { QR_INVALIDO_MESSAGE } from "../LeitorQrSaida";
 import type { SaidaResultado } from "../ReciboSaidaStep";
@@ -16,12 +16,15 @@ import { calcularTroco, FORMA_DINHEIRO, FORMA_PADRAO, getPagamentoStatus, valore
 // O valor e a permanência dependem do instante da consulta: o servidor recalcula a cada ciclo.
 export const INTERVALO_SAIDA_MS = 30_000;
 export const BUSCA_DEBOUNCE_MS = 400;
+// Depois de uma busca que falhou, o mesmo QR ainda diante da câmera não dispara outra busca por este tempo.
+export const REPETICAO_TOKEN_MS = 5000;
 
 export const SAIDA_CONSULTA_KEY = "saida-consulta";
 const EMPTY_BUSCA: SaidaBuscaValues = { placa: "", token: "", sequencial: "" };
 const ATUALIZACAO_FALHOU = "Não foi possível atualizar o valor. Mantida a última consulta.";
 
-export type SaidaFase = "identificar" | "recibo";
+// Derivada dos dados: recibo com a saída registrada, pagamento com um veículo consultado, pesquisa nos demais casos.
+export type SaidaFase = "pesquisa" | "pagamento" | "recibo";
 
 type ConfirmInput = { busca: SaidaBusca; consulta: SaidaConsulta; forma: string; recebido: string };
 type ConfirmResult =
@@ -31,9 +34,6 @@ type ConfirmResult =
 export function useSaidaFlow() {
   const queryClient = useQueryClient();
 
-  const [fase, setFase] = useState<SaidaFase>("identificar");
-  const [origem, setOrigem] = useState<SaidaOrigem | null>(null);
-  const [token, setToken] = useState("");
   const [buscaValues, setBuscaValues] = useState<SaidaBuscaValues>(EMPTY_BUSCA);
   const [buscaErrors, setBuscaErrors] = useState<Partial<Record<SaidaBuscaField, string>>>({});
   const [busca, setBusca] = useState<SaidaBusca | null>(null);
@@ -49,6 +49,12 @@ export function useSaidaFlow() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Cliques no mesmo instante enxergam o mesmo `isPending`: a trava precisa valer de imediato.
   const enviandoRef = useRef(false);
+  const ultimoTokenRef = useRef<string | null>(null);
+  const tokenFalhoRef = useRef<{ token: string; em: number } | null>(null);
+
+  const registrarFalhaDoToken = useCallback(() => {
+    tokenFalhoRef.current = ultimoTokenRef.current ? { token: ultimoTokenRef.current, em: Date.now() } : null;
+  }, []);
 
   const cancelarDebounce = useCallback(() => {
     if (debounceRef.current) {
@@ -94,14 +100,19 @@ export function useSaidaFlow() {
       }
       setConsultaRecibo(variables.consulta);
       setResultado(data.resultado);
-      setFase("recibo");
     },
   });
 
   const consultaQuery = useQuery({
     queryKey: [SAIDA_CONSULTA_KEY, busca],
     queryFn: async () => {
-      const nova = await consultarSaida(busca as SaidaBusca);
+      let nova: SaidaConsulta;
+      try {
+        nova = await consultarSaida(busca as SaidaBusca);
+      } catch (error) {
+        registrarFalhaDoToken();
+        throw error;
+      }
       const anterior = ultimoValorRef.current;
       if (anterior !== null && !valoresIguais(anterior, nova.valor)) {
         setValorAnterior(anterior);
@@ -109,7 +120,7 @@ export function useSaidaFlow() {
       ultimoValorRef.current = nova.valor;
       return nova;
     },
-    enabled: busca !== null && fase === "identificar",
+    enabled: busca !== null && resultado === null,
     refetchInterval: confirmMutation.isPending ? false : INTERVALO_SAIDA_MS,
     refetchOnWindowFocus: false,
     retry: false,
@@ -125,10 +136,15 @@ export function useSaidaFlow() {
 
   const qrMutation = useMutation({
     mutationFn: resolverBuscaPorToken,
-    onSuccess: (resolvida) => novaBusca(resolvida),
+    onSuccess: (resolvida) => {
+      tokenFalhoRef.current = null;
+      novaBusca(resolvida);
+    },
+    onError: registrarFalhaDoToken,
   });
 
   const consulta = consultaQuery.data ?? null;
+  const fase: SaidaFase = resultado ? "recibo" : consulta ? "pagamento" : "pesquisa";
 
   // Pré-carrega a empresa para o recibo já nascer completo (falha não bloqueia).
   useQuery({
@@ -143,12 +159,15 @@ export function useSaidaFlow() {
 
   const handleToken = useCallback(
     (lido: string) => {
+      const falho = tokenFalhoRef.current;
+      if (falho && falho.token === lido && Date.now() - falho.em < REPETICAO_TOKEN_MS) {
+        return;
+      }
+      ultimoTokenRef.current = lido;
       cancelarDebounce();
       setAvisoQr(undefined);
       setBuscaErrors({});
       setBuscaValues(EMPTY_BUSCA);
-      setToken(lido);
-      setOrigem("qr");
       novaBusca(null);
       qrMutation.mutate(lido);
     },
@@ -178,11 +197,11 @@ export function useSaidaFlow() {
         return;
       }
       setBuscaErrors({});
-      setOrigem("manual");
       const identificacao = toSaidaBusca(result.data);
       if (identificacao.tipo === "token") {
         // O token digitado segue o mesmo caminho do QR: vira uma busca antes de consultar a saída.
         novaBusca(null);
+        ultimoTokenRef.current = identificacao.valor;
         qrMutation.mutate(identificacao.valor);
         return;
       }
@@ -199,11 +218,13 @@ export function useSaidaFlow() {
       setBuscaValues(proximo);
       setBuscaErrors((current) => ({ ...current, [field]: undefined }));
       setAvisoQr(undefined);
+      tokenFalhoRef.current = null;
       qrMutation.reset();
       cancelarDebounce();
-      // Placa só é consultada completa; ticket e sequencial, quando o operador para de digitar.
+      // Placa só é consultada completa e o token, quando o operador para de digitar. O sequencial só com Enter:
+      // um número parcial ("1" de "12") encontraria outro veículo.
       const incompleta = field === "placa" && value !== "" && value.length < 7;
-      if (incompleta) {
+      if (incompleta || field === "sequencial") {
         novaBusca(null);
         return;
       }
@@ -221,18 +242,26 @@ export function useSaidaFlow() {
   // ---- Limpar e confirmar ----
 
   const limpar = useCallback(() => {
+    tokenFalhoRef.current = null;
+    ultimoTokenRef.current = null;
     cancelarDebounce();
     qrMutation.reset();
     confirmMutation.reset();
     novaBusca(null);
-    setOrigem(null);
-    setToken("");
     setBuscaValues(EMPTY_BUSCA);
     setBuscaErrors({});
     setAvisoQr(undefined);
     setForma(FORMA_PADRAO);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelarDebounce, novaBusca, qrMutation.reset, confirmMutation.reset]);
+
+  // Volta para a pesquisa descartando tudo; não vale enquanto a saída está sendo registrada.
+  const voltar = useCallback(() => {
+    if (enviandoRef.current || confirmMutation.isPending) {
+      return;
+    }
+    limpar();
+  }, [confirmMutation.isPending, limpar]);
 
   const pagamento = consulta ? getPagamentoStatus(forma, recebido, consulta.valor) : null;
   const buscando = qrMutation.isPending || (busca !== null && consultaQuery.isPending);
@@ -253,23 +282,13 @@ export function useSaidaFlow() {
   const falhaAtualizacao = consultaQuery.isError && consulta !== null ? ATUALIZACAO_FALHOU : undefined;
   const aviso = avisoQr ?? erroConsulta ?? falhaAtualizacao;
 
-  // Valores dos campos manuais: na leitura por QR mostram o veículo encontrado, só para leitura.
-  const valoresExibidos: SaidaBuscaValues =
-    origem === "qr" && consulta
-      ? { placa: consulta.placa, token, sequencial: "" }
-      : buscaValues;
-
   const hasProgress =
-    fase === "identificar" &&
-    (consulta !== null || token !== "" || Object.values(buscaValues).some((value) => value !== ""));
+    resultado === null &&
+    (consulta !== null || Object.values(buscaValues).some((value) => value !== ""));
 
   return {
     fase,
-    origem,
-    token,
-    lido: origem === "qr",
-    mensagemLido: consulta ? "Ticket encontrado" : "Token lido",
-    buscaValues: valoresExibidos,
+    buscaValues,
     buscaErrors,
     aviso,
     consulta,
@@ -290,7 +309,7 @@ export function useSaidaFlow() {
     handleBuscaEnter,
     setForma,
     setRecebido,
-    limpar,
+    voltar,
     confirmar,
   };
 }

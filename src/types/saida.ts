@@ -9,9 +9,6 @@ export type SaidaBusca = {
 // O que o operador informou: o token do cupom é resolvido para uma busca antes de consultar a saída.
 export type SaidaIdentificacao = SaidaBusca | { tipo: "token"; valor: string };
 
-// De onde veio a identificação do veículo: "qr" bloqueia a busca manual até limpar.
-export type SaidaOrigem = "qr" | "manual";
-
 export type SaidaConsulta = {
   patioId: number;
   placa: string;
