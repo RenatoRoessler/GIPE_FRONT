@@ -17,16 +17,18 @@ export interface OptionGroupProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   error?: string;
+  // Fixa o número de colunas em qualquer largura (por padrão, 2 ou 3 conforme o ícone e a tela).
+  columns?: number;
 }
 
 // Escolha única em tiles; usa radios nativos, então setas, foco e leitor de tela vêm do navegador.
-export function OptionGroup({ legend, options, value, onChange, disabled = false, error }: OptionGroupProps) {
+export function OptionGroup({ legend, options, value, onChange, disabled = false, error, columns }: OptionGroupProps) {
   const name = useId();
 
   return (
     <Fieldset disabled={disabled} aria-invalid={Boolean(error)}>
       <Legend>{legend}</Legend>
-      <Options $withIcon={options.some((option) => Boolean(option.icon))}>
+      <Options $withIcon={options.some((option) => Boolean(option.icon))} $columns={columns}>
         {options.map((option) => {
           const checked = option.value === value;
           return (

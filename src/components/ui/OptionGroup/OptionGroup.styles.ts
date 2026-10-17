@@ -20,13 +20,13 @@ export const Legend = styled.legend`
   color: ${({ theme }) => theme.colors.text};
 `;
 
-export const Options = styled.div<{ $withIcon?: boolean }>`
+export const Options = styled.div<{ $withIcon?: boolean; $columns?: number }>`
   display: grid;
-  grid-template-columns: repeat(${({ $withIcon }) => ($withIcon ? 3 : 2)}, minmax(0, 1fr));
+  grid-template-columns: repeat(${({ $columns, $withIcon }) => $columns ?? ($withIcon ? 3 : 2)}, minmax(0, 1fr));
   gap: ${({ theme }) => theme.space[2]}px;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(${({ $columns }) => $columns ?? 3}, minmax(0, 1fr));
   }
 `;
 
