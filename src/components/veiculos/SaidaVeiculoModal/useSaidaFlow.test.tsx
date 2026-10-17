@@ -108,7 +108,7 @@ describe("useSaidaFlow: leitura por QR", () => {
       mensagemLido: "Ticket encontrado",
       hasProgress: true,
     });
-    expect(flow.result.current.buscaValues).toEqual({ placa: "BRA2E19", codigoTicket: "482", sequencial: "" });
+    expect(flow.result.current.buscaValues).toEqual({ placa: "BRA2E19", token: "7K3Q9X", sequencial: "" });
   });
 
   it("token sem ticket aberto mostra o aviso e fica como 'Token lido'", async () => {
@@ -157,16 +157,45 @@ describe("useSaidaFlow: busca manual", () => {
   });
 
   it("consulta só a última digitação (debounce)", async () => {
+    api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "BRA2E19" });
     const { result } = renderFlow();
-    act(() => result.current.handleBuscaChange("codigoTicket", "4"));
+    act(() => result.current.handleBuscaChange("token", "7K3Q"));
     await avancar(100);
-    act(() => result.current.handleBuscaChange("codigoTicket", "48"));
+    act(() => result.current.handleBuscaChange("token", "7K3Q9"));
     await avancar(100);
-    act(() => result.current.handleBuscaChange("codigoTicket", "482"));
+    act(() => result.current.handleBuscaChange("token", "7K3Q9X"));
     await avancar(BUSCA_DEBOUNCE_MS);
     await waitFor(() => expect(result.current.consulta).not.toBeNull());
-    expect(api.consultarSaida).toHaveBeenCalledTimes(1);
-    expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "codigoTicket", valor: "482" });
+    expect(api.resolverBuscaPorToken).toHaveBeenCalledTimes(1);
+    expect(api.resolverBuscaPorToken).toHaveBeenCalledWith("7K3Q9X", expect.anything());
+    expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "BRA2E19" });
+    expect(result.current.origem).toBe("manual");
+  });
+
+  it("token digitado: não mostra erro enquanto está incompleto", async () => {
+    const { result } = renderFlow();
+    act(() => result.current.handleBuscaChange("token", "7K"));
+    await avancar(BUSCA_DEBOUNCE_MS * 2);
+    expect(api.resolverBuscaPorToken).not.toHaveBeenCalled();
+    expect(result.current.buscaErrors).toEqual({});
+  });
+
+  it("token digitado inexistente mostra o aviso e some ao editar", async () => {
+    api.resolverBuscaPorToken.mockRejectedValue(new ApiError("not_found", "Nenhum ticket aberto com este token.", 404));
+    const { result } = renderFlow();
+    act(() => result.current.handleBuscaChange("token", "ZZZZZZ"));
+    await avancar(BUSCA_DEBOUNCE_MS);
+    await waitFor(() => expect(result.current.aviso).toBe("Nenhum ticket aberto com este token."));
+    act(() => result.current.handleBuscaChange("token", "ZZZZZ"));
+    expect(result.current.aviso).toBeUndefined();
+  });
+
+  it("Enter com token curto mostra o erro de token inválido", () => {
+    const { result } = renderFlow();
+    act(() => result.current.handleBuscaChange("token", "AB1"));
+    act(() => result.current.handleBuscaEnter());
+    expect(result.current.buscaErrors.token).toMatch(/^Token inválido/);
+    expect(api.resolverBuscaPorToken).not.toHaveBeenCalled();
   });
 
   it("consulta o sequencial", async () => {
@@ -185,8 +214,9 @@ describe("useSaidaFlow: busca manual", () => {
   });
 
   it("Enter consulta sem esperar o debounce", async () => {
+    api.resolverBuscaPorToken.mockResolvedValue({ tipo: "placa", valor: "BRA2E19" });
     const { result } = renderFlow();
-    act(() => result.current.handleBuscaChange("codigoTicket", "482"));
+    act(() => result.current.handleBuscaChange("token", "7K3Q9X"));
     act(() => result.current.handleBuscaEnter());
     await waitFor(() => expect(result.current.consulta).not.toBeNull());
     await avancar(BUSCA_DEBOUNCE_MS * 2);
@@ -204,10 +234,10 @@ describe("useSaidaFlow: busca manual", () => {
 
   it("apagar o campo descarta o veículo", async () => {
     const { result } = renderFlow();
-    act(() => result.current.handleBuscaChange("codigoTicket", "482"));
+    act(() => result.current.handleBuscaChange("sequencial", "12"));
     await avancar(BUSCA_DEBOUNCE_MS);
     await waitFor(() => expect(result.current.consulta).not.toBeNull());
-    act(() => result.current.handleBuscaChange("codigoTicket", ""));
+    act(() => result.current.handleBuscaChange("sequencial", ""));
     await avancar(BUSCA_DEBOUNCE_MS);
     await waitFor(() => expect(result.current.consulta).toBeNull());
   });
@@ -362,12 +392,12 @@ describe("useSaidaFlow: limpar", () => {
       recebido: "",
       hasProgress: false,
     });
-    expect(flow.result.current.buscaValues).toEqual({ placa: "", codigoTicket: "", sequencial: "" });
+    expect(flow.result.current.buscaValues).toEqual({ placa: "", token: "", sequencial: "" });
   });
 
   it("cancela uma busca manual pendente", async () => {
     const { result } = renderFlow();
-    act(() => result.current.handleBuscaChange("codigoTicket", "482"));
+    act(() => result.current.handleBuscaChange("token", "7K3Q9X"));
     act(() => result.current.limpar());
     await avancar(BUSCA_DEBOUNCE_MS * 2);
     expect(api.consultarSaida).not.toHaveBeenCalled();

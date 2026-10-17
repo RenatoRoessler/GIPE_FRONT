@@ -18,7 +18,7 @@ export const INTERVALO_SAIDA_MS = 30_000;
 export const BUSCA_DEBOUNCE_MS = 400;
 
 export const SAIDA_CONSULTA_KEY = "saida-consulta";
-const EMPTY_BUSCA: SaidaBuscaValues = { placa: "", codigoTicket: "", sequencial: "" };
+const EMPTY_BUSCA: SaidaBuscaValues = { placa: "", token: "", sequencial: "" };
 const ATUALIZACAO_FALHOU = "Não foi possível atualizar o valor. Mantida a última consulta.";
 
 export type SaidaFase = "identificar" | "recibo";
@@ -179,9 +179,18 @@ export function useSaidaFlow() {
       }
       setBuscaErrors({});
       setOrigem("manual");
-      novaBusca(toSaidaBusca(result.data));
+      const identificacao = toSaidaBusca(result.data);
+      if (identificacao.tipo === "token") {
+        // O token digitado segue o mesmo caminho do QR: vira uma busca antes de consultar a saída.
+        novaBusca(null);
+        qrMutation.mutate(identificacao.valor);
+        return;
+      }
+      novaBusca(identificacao);
     },
-    [novaBusca],
+    // `mutate` é estável; a mutação inteira muda a cada render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [novaBusca, qrMutation.mutate],
   );
 
   const handleBuscaChange = useCallback(
@@ -190,6 +199,7 @@ export function useSaidaFlow() {
       setBuscaValues(proximo);
       setBuscaErrors((current) => ({ ...current, [field]: undefined }));
       setAvisoQr(undefined);
+      qrMutation.reset();
       cancelarDebounce();
       // Placa só é consultada completa; ticket e sequencial, quando o operador para de digitar.
       const incompleta = field === "placa" && value !== "" && value.length < 7;
@@ -199,7 +209,8 @@ export function useSaidaFlow() {
       }
       debounceRef.current = setTimeout(() => consultarManual(proximo, field === "placa"), BUSCA_DEBOUNCE_MS);
     },
-    [buscaValues, cancelarDebounce, consultarManual, novaBusca],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [buscaValues, cancelarDebounce, consultarManual, novaBusca, qrMutation.reset],
   );
 
   const handleBuscaEnter = useCallback(() => {
@@ -245,7 +256,7 @@ export function useSaidaFlow() {
   // Valores dos campos manuais: na leitura por QR mostram o veículo encontrado, só para leitura.
   const valoresExibidos: SaidaBuscaValues =
     origem === "qr" && consulta
-      ? { placa: consulta.placa, codigoTicket: String(consulta.codigoTicket), sequencial: "" }
+      ? { placa: consulta.placa, token, sequencial: "" }
       : buscaValues;
 
   const hasProgress =

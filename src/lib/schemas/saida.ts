@@ -1,25 +1,30 @@
 import { z } from "zod";
 import { parseMoney } from "@/lib/money";
 import { isValidPlaca, normalizePlaca, PLACA_INVALIDA_MESSAGE } from "@/lib/placa";
-import type { SaidaBusca } from "@/types/saida";
+import { extrairTokenComprovante } from "@/lib/qr";
+import type { SaidaIdentificacao } from "@/types/saida";
 
 const INTEGER = /^\d+$/;
-const NENHUM_CAMPO = "Informe a placa, o ticket ou o sequencial";
+const NENHUM_CAMPO = "Informe a placa, o token ou o sequencial";
+export const TOKEN_INVALIDO_MESSAGE = "Token inválido. Use o código impresso no cupom";
 
 export const saidaBuscaSchema = z
   .object({
     placa: z.string().trim(),
-    codigoTicket: z.string().trim(),
+    token: z.string().trim(),
     sequencial: z.string().trim(),
   })
   .superRefine((values, ctx) => {
-    const preenchidos = [values.placa, values.codigoTicket, values.sequencial].filter((value) => value !== "");
+    const preenchidos = [values.placa, values.token, values.sequencial].filter((value) => value !== "");
     if (preenchidos.length !== 1) {
       ctx.addIssue({ code: "custom", path: ["placa"], message: NENHUM_CAMPO });
       return;
     }
     if (values.placa !== "" && !isValidPlaca(values.placa)) {
       ctx.addIssue({ code: "custom", path: ["placa"], message: PLACA_INVALIDA_MESSAGE });
+    }
+    if (values.token !== "" && extrairTokenComprovante(values.token) === null) {
+      ctx.addIssue({ code: "custom", path: ["token"], message: TOKEN_INVALIDO_MESSAGE });
     }
     if (values.sequencial !== "" && !INTEGER.test(values.sequencial)) {
       ctx.addIssue({ code: "custom", path: ["sequencial"], message: "Use apenas números" });
@@ -29,12 +34,12 @@ export const saidaBuscaSchema = z
 export type SaidaBuscaValues = z.infer<typeof saidaBuscaSchema>;
 
 // Só chamar com valores já validados por `saidaBuscaSchema`.
-export function toSaidaBusca(values: SaidaBuscaValues): SaidaBusca {
+export function toSaidaBusca(values: SaidaBuscaValues): SaidaIdentificacao {
   if (values.placa !== "") {
     return { tipo: "placa", valor: normalizePlaca(values.placa) };
   }
-  if (values.codigoTicket !== "") {
-    return { tipo: "codigoTicket", valor: values.codigoTicket };
+  if (values.token !== "") {
+    return { tipo: "token", valor: extrairTokenComprovante(values.token) ?? values.token };
   }
   return { tipo: "sequencial", valor: String(Number(values.sequencial)) };
 }

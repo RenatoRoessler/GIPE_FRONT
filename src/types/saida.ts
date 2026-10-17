@@ -1,10 +1,13 @@
-export type SaidaBuscaTipo = "placa" | "codigoTicket" | "sequencial";
+export type SaidaBuscaTipo = "placa" | "sequencial";
 
 // A consulta aceita um único identificador; `valor` já vem normalizado (placa em maiúsculas, números só com dígitos).
 export type SaidaBusca = {
   tipo: SaidaBuscaTipo;
   valor: string;
 };
+
+// O que o operador informou: o token do cupom é resolvido para uma busca antes de consultar a saída.
+export type SaidaIdentificacao = SaidaBusca | { tipo: "token"; valor: string };
 
 // De onde veio a identificação do veículo: "qr" bloqueia a busca manual até limpar.
 export type SaidaOrigem = "qr" | "manual";

@@ -5,7 +5,7 @@ import type { SaidaBuscaValues } from "@/lib/schemas/saida";
 import { renderWithTheme } from "@/test/render";
 import { BUSCA_QR_ATIVA_HINT, BuscaManualSaida, type BuscaManualSaidaProps } from "./BuscaManualSaida";
 
-const VAZIO: SaidaBuscaValues = { placa: "", codigoTicket: "", sequencial: "" };
+const VAZIO: SaidaBuscaValues = { placa: "", token: "", sequencial: "" };
 
 function renderBusca(props: Partial<BuscaManualSaidaProps> = {}) {
   const onChange = vi.fn();
@@ -15,24 +15,24 @@ function renderBusca(props: Partial<BuscaManualSaidaProps> = {}) {
 }
 
 const placa = () => screen.getByLabelText("Placa");
-const ticket = () => screen.getByLabelText("Código do ticket");
+const token = () => screen.getByLabelText("Token");
 const sequencial = () => screen.getByLabelText("Sequencial");
 
 describe("BuscaManualSaida", () => {
   it("mostra os três campos habilitados quando nenhum está preenchido", () => {
     renderBusca();
     expect(placa()).toBeEnabled();
-    expect(ticket()).toBeEnabled();
+    expect(token()).toBeEnabled();
     expect(sequencial()).toBeEnabled();
     expect(screen.getByText("ou informe sem QR Code")).toBeInTheDocument();
   });
 
   it("desabilita os outros dois campos quando um está preenchido", () => {
-    renderBusca({ values: { ...VAZIO, codigoTicket: "482" } });
-    expect(ticket()).toBeEnabled();
+    renderBusca({ values: { ...VAZIO, token: "7K3Q9X" } });
+    expect(token()).toBeEnabled();
     expect(placa()).toBeDisabled();
     expect(sequencial()).toBeDisabled();
-    expect(screen.getAllByText("Limpe o campo código do ticket para usar outro.")).toHaveLength(2);
+    expect(screen.getAllByText("Limpe o campo token para usar outro.")).toHaveLength(2);
   });
 
   it("libera os campos quando o preenchido é limpo", () => {
@@ -43,9 +43,9 @@ describe("BuscaManualSaida", () => {
   });
 
   it("bloqueia os três campos durante a leitura por QR e explica o motivo", () => {
-    renderBusca({ bloqueadoPorQr: true, values: { placa: "BRA2E19", codigoTicket: "482", sequencial: "" } });
+    renderBusca({ bloqueadoPorQr: true, values: { placa: "BRA2E19", token: "7K3Q9X", sequencial: "" } });
     expect(placa()).toBeDisabled();
-    expect(ticket()).toBeDisabled();
+    expect(token()).toBeDisabled();
     expect(sequencial()).toBeDisabled();
     expect(screen.getByText(BUSCA_QR_ATIVA_HINT)).toBeInTheDocument();
     expect(placa()).toHaveValue("BRA2E19");
@@ -57,10 +57,10 @@ describe("BuscaManualSaida", () => {
     expect(onChange).toHaveBeenCalledWith("placa", "BRA2E19");
   });
 
-  it("aceita letras e números no código do ticket", () => {
+  it("aceita o token como texto livre", () => {
     const { onChange } = renderBusca();
-    fireEvent.change(ticket(), { target: { value: "A4b-82" } });
-    expect(onChange).toHaveBeenCalledWith("codigoTicket", "A4b-82");
+    fireEvent.change(token(), { target: { value: "7k3Q9x" } });
+    expect(onChange).toHaveBeenCalledWith("token", "7k3Q9x");
   });
 
   it("aceita só números no sequencial", () => {
@@ -88,7 +88,7 @@ describe("BuscaManualSaida", () => {
   it("desabilita tudo com disabled", () => {
     renderBusca({ disabled: true });
     expect(placa()).toBeDisabled();
-    expect(ticket()).toBeDisabled();
+    expect(token()).toBeDisabled();
     expect(sequencial()).toBeDisabled();
   });
 });

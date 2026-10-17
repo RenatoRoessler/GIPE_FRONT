@@ -36,16 +36,14 @@ export async function resolverBuscaPorToken(token: string): Promise<SaidaBusca> 
   }
 }
 
-// [A CONFIRMAR] O contrato mostra só `placa`; `codigoTicket` e `sequencial` seguem o nome dos campos da resposta.
+// [A CONFIRMAR] O contrato mostra só `placa`; `sequencial` segue o nome do campo da resposta.
 const PARAM_BY_TIPO: Record<SaidaBuscaTipo, string> = {
   placa: "placa",
-  codigoTicket: "codigoTicket",
   sequencial: "sequencial",
 };
 
 const TIPO_LABEL: Record<SaidaBuscaTipo, string> = {
   placa: "essa placa",
-  codigoTicket: "esse ticket",
   sequencial: "esse sequencial",
 };
 

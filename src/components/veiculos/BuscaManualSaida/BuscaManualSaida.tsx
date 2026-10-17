@@ -24,7 +24,7 @@ export interface BuscaManualSaidaProps {
 
 const LABELS: Record<SaidaBuscaField, string> = {
   placa: "Placa",
-  codigoTicket: "Código do ticket",
+  token: "Token",
   sequencial: "Sequencial",
 };
 
@@ -63,7 +63,7 @@ export function BuscaManualSaida({
   return (
     <Wrapper>
       <Divisor>ou informe sem QR Code</Divisor>
-      <Hint>{bloqueadoPorQr ? BUSCA_QR_ATIVA_HINT : "Informe a placa, o código do ticket ou o sequencial do veículo."}</Hint>
+      <Hint>{bloqueadoPorQr ? BUSCA_QR_ATIVA_HINT : "Informe a placa, o token do cupom ou o sequencial do veículo."}</Hint>
       <FieldGrid>
         <Input
           {...fieldProps("placa")}
@@ -73,8 +73,8 @@ export function BuscaManualSaida({
           maxLength={7}
         />
         <Input
-          {...fieldProps("codigoTicket")}
-          onChange={(event) => onChange("codigoTicket", event.target.value)}
+          {...fieldProps("token")}
+          onChange={(event) => onChange("token", event.target.value)}
           autoCapitalize="characters"
           spellCheck={false}
         />

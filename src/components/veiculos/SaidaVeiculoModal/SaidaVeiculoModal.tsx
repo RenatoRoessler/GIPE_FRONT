@@ -83,7 +83,6 @@ export function SaidaVeiculoModal({ onClose, onSuccess }: SaidaVeiculoModalProps
         <Column>
           <LeitorQrSaida
             lido={lido}
-            token={flow.token}
             mensagemLido={flow.mensagemLido}
             onToken={flow.handleToken}
             onInvalido={flow.handleQrInvalido}

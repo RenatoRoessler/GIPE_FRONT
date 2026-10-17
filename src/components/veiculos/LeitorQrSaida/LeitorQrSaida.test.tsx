@@ -22,7 +22,7 @@ vi.mock("./useLeitorQr", async () => {
 
 function renderLeitor(props: Partial<LeitorQrSaidaProps> = {}) {
   const handlers = { onToken: vi.fn(), onInvalido: vi.fn(), onLimpar: vi.fn() };
-  renderWithTheme(<LeitorQrSaida lido={false} token="" {...handlers} {...props} />);
+  renderWithTheme(<LeitorQrSaida lido={false} {...handlers} {...props} />);
   return handlers;
 }
 
@@ -86,31 +86,30 @@ describe("LeitorQrSaida", () => {
     expect(leitor.iniciar).toHaveBeenCalled();
   });
 
-  it("desliga a câmera, mostra o token e o resultado e anuncia a leitura", () => {
-    renderLeitor({ lido: true, token: "7K3Q9X", mensagemLido: "Ticket encontrado" });
+  it("desliga a câmera e anuncia o resultado da leitura", () => {
+    renderLeitor({ lido: true, mensagemLido: "Ticket encontrado" });
     expect(leitor.options?.ativo).toBe(false);
-    expect(screen.getByLabelText("Token")).toHaveValue("7K3Q9X");
     expect(screen.getByRole("status")).toHaveTextContent("Ticket encontrado");
   });
 
   it("só mostra Limpar depois da leitura e o aciona", () => {
     const { rerender } = renderWithTheme(
-      <LeitorQrSaida lido={false} token="" onToken={() => {}} onInvalido={() => {}} onLimpar={() => {}} />,
+      <LeitorQrSaida lido={false} onToken={() => {}} onInvalido={() => {}} onLimpar={() => {}} />,
     );
     expect(screen.queryByRole("button", { name: "Limpar e ler novamente" })).not.toBeInTheDocument();
-    rerender(<LeitorQrSaida lido token="7K3Q9X" onToken={() => {}} onInvalido={() => {}} onLimpar={() => {}} />);
+    rerender(<LeitorQrSaida lido onToken={() => {}} onInvalido={() => {}} onLimpar={() => {}} />);
     expect(screen.getByRole("button", { name: "Limpar e ler novamente" })).toBeInTheDocument();
   });
 
   it("chama onLimpar e devolve o foco ao visor", () => {
-    const { onLimpar } = renderLeitor({ lido: true, token: "7K3Q9X" });
+    const { onLimpar } = renderLeitor({ lido: true });
     fireEvent.click(screen.getByRole("button", { name: "Limpar e ler novamente" }));
     expect(onLimpar).toHaveBeenCalledTimes(1);
     expect(visor()).toHaveFocus();
   });
 
   it("trava o Limpar com disabled", () => {
-    renderLeitor({ lido: true, token: "7K3Q9X", disabled: true });
+    renderLeitor({ lido: true, disabled: true });
     expect(screen.getByRole("button", { name: "Limpar e ler novamente" })).toBeDisabled();
   });
 });

@@ -161,15 +161,16 @@ describe("SaidaVeiculoModal: busca manual", () => {
     await user.type(screen.getByLabelText("Placa"), "bra2e19");
     expect(await screen.findByText("ONIX · PRATA")).toBeInTheDocument();
     expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "BRA2E19" });
-    expect(screen.getByLabelText("Código do ticket")).toBeDisabled();
+    expect(screen.getByLabelText("Token")).toBeDisabled();
   });
 
-  it("consulta por código do ticket", async () => {
+  it("consulta pelo token digitado", async () => {
     const user = userEvent.setup();
     renderModal();
-    await user.type(screen.getByLabelText("Código do ticket"), "482");
+    await user.type(screen.getByLabelText("Token"), "7K3Q9X");
     expect(await screen.findByText("ONIX · PRATA")).toBeInTheDocument();
-    expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "codigoTicket", valor: "482" });
+    expect(api.resolverBuscaPorToken).toHaveBeenCalledWith("7K3Q9X", expect.anything());
+    expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "BRA2E19" });
   });
 
   it("consulta por sequencial", async () => {

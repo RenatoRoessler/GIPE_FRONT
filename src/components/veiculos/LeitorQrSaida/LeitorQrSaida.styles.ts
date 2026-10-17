@@ -151,61 +151,19 @@ export const Check = styled.span`
   color: ${({ theme }) => theme.colors.background};
 `;
 
-export const TokenRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.space[2]}px;
-  width: 100%;
-`;
-
-export const TokenLabel = styled.label`
-  flex-shrink: 0;
-  font-size: ${({ theme }) => theme.fontSizes.xs};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.textMuted};
-`;
-
-export const TokenField = styled.input`
-  flex: 1;
-  min-width: 0;
-  height: 44px;
-  padding: 0 ${({ theme }) => theme.space[3]}px;
-  border: 1px dashed ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radii.md};
-  background-color: ${({ theme }) => theme.colors.surface};
-  color: ${({ theme }) => theme.colors.text};
-  font-family: ${({ theme }) => theme.typography.display};
-  font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-  letter-spacing: 0.14em;
-  text-align: center;
-
-  &::placeholder {
-    font-family: inherit;
-    font-size: ${({ theme }) => theme.fontSizes.sm};
-    font-weight: ${({ theme }) => theme.fontWeights.medium};
-    letter-spacing: 0;
-    color: ${({ theme }) => theme.colors.textMuted};
-  }
-
-  &:focus {
-    outline: none;
-  }
-`;
-
 export const LimparButton = styled.button`
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  gap: ${({ theme }) => theme.space[2]}px;
+  min-height: 44px;
+  padding: 0 ${({ theme }) => theme.space[3]}px;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
   background-color: transparent;
   color: ${({ theme }) => theme.colors.text};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
   cursor: pointer;
 
   &:hover:not(:disabled) {
