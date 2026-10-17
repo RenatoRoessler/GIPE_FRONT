@@ -1,6 +1,8 @@
-<task>melhorar fluxo de saida de veiculos </task>
+<task>adicionar configuraçãoes de pagamento no cadastro de empresa e adesao </task>
 <description>
-quero que melhore a usabilidade do fluxo de saida, primeiro aparece as informações para localizar o o veiculo
-apos a localização mostre apenas os dados e pagamento
-crie um botão para voltar para a pesquisa
+adicionar esses campos
+"dinheiro": true,
+"pix": true,
+"cartaoCredito": true,
+"cartaoDebito": true,
 </description>
