@@ -6,6 +6,7 @@ import { EMPRESA_QUERY_KEY } from "@/components/empresa/MinhaEmpresa/EmpresaForm
 import { Button } from "@/components/ui/Button";
 import { getEmpresa } from "@/lib/api/services/empresa";
 import { formatCNPJ } from "@/lib/cnpj";
+import { formatPhone } from "@/lib/phone";
 import type { EntradaRegistrada } from "@/types/veiculo";
 import { Actions, PrintStyles, Success } from "../Recibo.styles";
 import { ReciboEntradaConteudo, type ReciboEntradaData } from "./ReciboEntradaConteudo";
@@ -24,17 +25,30 @@ export function ReciboEntradaStep({ entrada, onConcluir }: ReciboEntradaStepProp
     refetchOnWindowFocus: false,
   });
 
+  const company = empresa?.company;
+  const endereco = company
+    ? [
+        [company.logradouro, company.numero].filter(Boolean).join(", "),
+        [company.cidade, company.estado].filter(Boolean).join("/"),
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
+
   const data: ReciboEntradaData = {
-    empresaNome: empresa ? empresa.company.nomeFantasia || empresa.company.razaoSocial || undefined : undefined,
-    empresaCnpj: empresa?.company.cnpj ? formatCNPJ(empresa.company.cnpj) : undefined,
+    empresaNome: company ? company.nomeFantasia || company.razaoSocial || undefined : undefined,
+    empresaCnpj: company?.cnpj ? formatCNPJ(company.cnpj) : undefined,
+    empresaEndereco: endereco || undefined,
+    empresaTelefone: company?.telefone ? formatPhone(company.telefone) : undefined,
     placa: entrada.placa,
     modelo: entrada.modelo,
     cor: entrada.cor,
     categoria: entrada.categoria,
     sequencial: entrada.sequencial,
     tabela: entrada.rotatividadeDescricao,
+    operador: entrada.usuarioEntrada || null,
     dataHoraEntrada: entrada.dataHoraEntrada,
-    link: `${window.location.origin}/comprovante/${entrada.patioId}/${entrada.placa}`,
+    link: entrada.token ? `${window.location.origin}/comprovante/${encodeURIComponent(entrada.token)}` : null,
   };
 
   return (

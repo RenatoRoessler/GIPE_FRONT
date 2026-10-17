@@ -15,14 +15,31 @@ export function isTurnoAberto(turno: Turno): boolean {
 }
 
 const dateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
+const dateOnly = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
+const timeOnly = new Intl.DateTimeFormat("pt-BR", { timeStyle: "short" });
 
 // A API devolve data/hora sem fuso (microssegundos incluídos); trata como horário local.
-export function formatDateTime(iso: string | null): string {
+function parseApiDate(iso: string | null): Date | null {
   if (!iso) {
-    return "—";
+    return null;
   }
   const date = new Date(iso.replace(/(\.\d{3})\d+/, "$1"));
-  return Number.isNaN(date.getTime()) ? "—" : dateTime.format(date);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function formatDateTime(iso: string | null): string {
+  const date = parseApiDate(iso);
+  return date ? dateTime.format(date) : "—";
+}
+
+export function formatDate(iso: string | null): string {
+  const date = parseApiDate(iso);
+  return date ? dateOnly.format(date) : "—";
+}
+
+export function formatTime(iso: string | null): string {
+  const date = parseApiDate(iso);
+  return date ? timeOnly.format(date) : "—";
 }
 
 export type DiferencaTone = "success" | "neutral" | "warn";
