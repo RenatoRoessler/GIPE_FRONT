@@ -115,3 +115,6 @@ Ordem pensada para entregar em fatias: **Fase A** (base) → **Fase B** (listage
 - [ ] T26 — Verificação final da feature
   - Arquivos: `docs/specs/gerenciamento-precos/tasks.md`
   - Pronto quando: visualização e edição conferidas com dados reais (campos pré-preenchidos, salvar, recarregar); todos os critérios de aceite do `prd.md` marcados; `npm run lint` e `npm run build` passam; `docs/specs/gestao-precos/` arquivada ou marcada como substituída; `docs/specs/input.md` sem o JWT real antes de qualquer commit.
+
+> **Atualização:** a listagem em tabela e o clique que abria a edição foram substituídos por lista e detalhe em `docs/specs/precos-lista-detalhe/`, que também passa a cumprir a visualização somente leitura (RF3). O cadastro e a edição em etapas continuam como descritos aqui.
+

@@ -1,1 +1,0 @@
-export { PrecosList } from "./PrecosList";
