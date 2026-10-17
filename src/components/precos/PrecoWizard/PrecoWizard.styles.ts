@@ -111,3 +111,18 @@ export const AjusteFino = styled.details`
     margin-bottom: ${({ theme }) => theme.space[3]}px;
   }
 `;
+
+// Lista do que falta para liberar o botão "Avançar".
+export const Pendencias = styled.div`
+  padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
+  border-left: 4px solid ${({ theme }) => theme.colors.warn};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  background-color: ${({ theme }) => theme.colors.surface};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.text};
+
+  ul {
+    margin: ${({ theme }) => theme.space[1]}px 0 0;
+    padding-left: ${({ theme }) => theme.space[4]}px;
+  }
+`;

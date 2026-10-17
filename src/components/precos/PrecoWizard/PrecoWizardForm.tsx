@@ -41,6 +41,7 @@ import {
   Form,
   Header,
   Page,
+  Pendencias,
   SubtitleRow,
   TitleGroup,
   TitleRow,
@@ -54,6 +55,8 @@ const ETAPAS = [
 ] as const;
 
 const ULTIMA_ETAPA = ETAPAS.length;
+
+const CAMPOS_DO_BASICO = ["descricao", "tipoRegra", "inicioVigencia", "fimVigencia"] as const;
 
 export interface PrecoWizardFormProps {
   title: string;
@@ -247,6 +250,16 @@ export function PrecoWizardForm({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     event.stopPropagation();
+    if (step < ULTIMA_ETAPA && pendentesDaEtapa.length > 0) {
+      // O botão já fica desabilitado; isto cobre o Enter no formulário e deixa os erros dos campos da etapa visíveis.
+      for (const campo of CAMPOS_DO_BASICO) {
+        if (step === 1) {
+          infoForm.setFieldMeta(campo, (meta) => ({ ...meta, isTouched: true }));
+        }
+      }
+      void categoriasForm.handleSubmit();
+      return;
+    }
     if (step < ULTIMA_ETAPA) {
       irParaEtapa(step + 1);
       return;
@@ -257,6 +270,8 @@ export function PrecoWizardForm({
   const saving = mutation.isPending;
   const mensagensDoAviso = falhaEtapa === step ? mensagens[step - 1] : [];
   const prontaParaSalvar = totalCompletas === ULTIMA_ETAPA;
+  // O que falta na etapa atual: libera o "Avançar" e, na última etapa, o "Salvar".
+  const pendentesDaEtapa = mensagens[step - 1];
 
   return (
     <Page>
@@ -336,6 +351,17 @@ export function PrecoWizardForm({
               </>
             )}
 
+            {pendentesDaEtapa.length > 0 && (
+              <Pendencias role="status" aria-live="polite">
+                <strong>{step < ULTIMA_ETAPA ? "Para avançar, falta:" : "Para salvar, falta:"}</strong>
+                <ul>
+                  {pendentesDaEtapa.map((mensagem, index) => (
+                    <li key={`${mensagem}-${index}`}>{mensagem}</li>
+                  ))}
+                </ul>
+              </Pendencias>
+            )}
+
             <Actions>
               {step === 1 ? (
                 <Button type="button" variant="secondary" onClick={handleCancel} disabled={saving}>
@@ -347,13 +373,15 @@ export function PrecoWizardForm({
                 </Button>
               )}
               {step < ULTIMA_ETAPA ? (
-                <Button type="submit">Avançar: {ETAPAS[step].titulo.toLowerCase()}</Button>
+                <Button type="submit" disabled={pendentesDaEtapa.length > 0}>
+                  Avançar: {ETAPAS[step].titulo.toLowerCase()}
+                </Button>
               ) : (
                 <ActionsGroup>
                   <Button type="button" variant="secondary" onClick={handleCancel} disabled={saving}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={saving || (isEdit && !hasPendingChanges)}>
+                  <Button type="submit" disabled={saving || pendentesDaEtapa.length > 0 || (isEdit && !hasPendingChanges)}>
                     {saving ? "Salvando..." : isEdit ? "Salvar alterações" : "Salvar"}
                   </Button>
                 </ActionsGroup>

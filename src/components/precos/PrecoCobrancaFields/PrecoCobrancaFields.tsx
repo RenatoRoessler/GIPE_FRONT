@@ -43,6 +43,7 @@ export const PrecoCobrancaFields = withForm({
                   <field.TextField
                     label="Valor da diária (R$)"
                     inputMode="decimal"
+                    aria-required="true"
                     format={(value) => value.replace(/[^\d.,]/g, "")}
                     disabled={disabled}
                   />
@@ -55,6 +56,7 @@ export const PrecoCobrancaFields = withForm({
                   <field.TextField
                     label="Valor adicional da diária (R$)"
                     inputMode="decimal"
+                    aria-required="true"
                     hint="Cobrado por hora depois do período da diária."
                     format={(value) => value.replace(/[^\d.,]/g, "")}
                     disabled={disabled}

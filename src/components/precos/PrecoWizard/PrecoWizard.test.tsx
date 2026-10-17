@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
-import { EMPTY_PRECO_FORM_VALUES, TIPO_CATEGORIA, TIPO_REGRA, type PrecoView } from "@/types/preco";
+import { TIPO_CATEGORIA, TIPO_REGRA, type PrecoView } from "@/types/preco";
 
 const push = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }) }));
@@ -259,6 +259,70 @@ describe("PrecoWizard: cadastro", () => {
     expect(screen.getByText("Nenhuma hora pintada na grade.")).toBeInTheDocument();
   });
 
+  it("Avançar fica desabilitado enquanto a etapa estiver inválida e lista o que falta", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <PrecoWizardForm
+        title="Novo preço"
+        initial={{ ...toPrecoFormValues(TABELA), info: { ...toPrecoFormValues(TABELA).info, descricao: "" }, categorias: [] }}
+        onSave={createPreco}
+        savedFlag="criado"
+      />,
+    );
+    await screen.findByLabelText("Descrição");
+
+    const avancar = screen.getByRole("button", { name: /^Avançar/ });
+    expect(avancar).toBeDisabled();
+    expect(screen.getByText("Para avançar, falta:")).toBeInTheDocument();
+    expect(screen.getByText("Informe a descrição", { selector: "li" })).toBeInTheDocument();
+    expect(screen.getByText("Selecione ao menos uma categoria", { selector: "li" })).toBeInTheDocument();
+
+    // Resolver uma pendência tira só ela da lista; resolvidas todas, o botão habilita.
+    await user.type(screen.getByLabelText("Descrição"), "Tarifa nova");
+    expect(screen.queryByText("Informe a descrição", { selector: "li" })).not.toBeInTheDocument();
+    expect(avancar).toBeDisabled();
+    await user.click(screen.getByRole("checkbox", { name: "Moto" }));
+    expect(screen.queryByText("Para avançar, falta:")).not.toBeInTheDocument();
+    expect(avancar).toBeEnabled();
+
+    await user.click(avancar);
+    expect(await screen.findByText(/Etapa 2 de 3/)).toBeInTheDocument();
+  });
+
+  it("na etapa de horários, Avançar também espera ao menos um horário", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <PrecoWizardForm
+        title="Novo preço"
+        initial={{ ...toPrecoFormValues(TABELA), horarios: [] }}
+        onSave={createPreco}
+        savedFlag="criado"
+      />,
+    );
+    await screen.findByLabelText("Descrição");
+    await irParaEtapa(user, 2);
+    expect(screen.getByRole("button", { name: /^Avançar/ })).toBeDisabled();
+    expect(screen.getByText("Cadastre ao menos um horário", { selector: "li" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Comercial" }));
+    expect(screen.getByRole("button", { name: /^Avançar/ })).toBeEnabled();
+  });
+
+  it("aplicar um atalho ou um modelo não move o foco para uma linha criada", async () => {
+    const user = await renderCadastro();
+    await irParaEtapa(user, 2);
+    // Comercial gera 5 linhas e Rotativo 6: o ajuste fino ganha uma linha, mas o foco fica no botão clicado.
+    await user.click(screen.getByRole("button", { name: "Comercial" }));
+    await user.click(screen.getByRole("button", { name: "Rotativo" }));
+    expect(screen.getByRole("button", { name: "Rotativo" })).toHaveFocus();
+
+    await irParaEtapa(user, 3);
+    // O modelo de 3 degraus vem depois de 1 faixa; o de 4, depois do de 3 (+1 linha).
+    await user.click(screen.getByRole("button", { name: "Rotativo (1 h, 2 h, 3 h)" }));
+    await user.click(screen.getByRole("button", { name: "A cada 30 min até 2 h" }));
+    expect(screen.getByRole("button", { name: "A cada 30 min até 2 h" })).toHaveFocus();
+  });
+
   it("a grade não apaga horários que só o ajuste fino edita", async () => {
     const user = userEvent.setup();
     const quebrado = { diaSemana: "3", horaInicio: "08:30", horaFim: "12:15", dataInicio: "", dataFim: "", ativo: true };
@@ -329,11 +393,18 @@ describe("PrecoWizard: cadastro", () => {
     await waitFor(() => expect(createPreco).toHaveBeenCalledTimes(1));
   });
 
-  it("salvar com pendência leva à primeira etapa incompleta e mostra o que falta", async () => {
+  it("salvar com pendência em outra etapa leva à primeira etapa incompleta e mostra o que falta", async () => {
     const user = userEvent.setup();
+    const initial = toPrecoFormValues(TABELA);
     renderWithProviders(
-      <PrecoWizardForm title="Novo preço" initial={EMPTY_PRECO_FORM_VALUES} onSave={createPreco} savedFlag="criado" />,
+      <PrecoWizardForm
+        title="Novo preço"
+        initial={{ ...initial, info: { ...initial.info, descricao: "" } }}
+        onSave={createPreco}
+        savedFlag="criado"
+      />,
     );
+    await screen.findByLabelText("Descrição");
     await irParaEtapa(user, 3);
     await user.click(screen.getByRole("button", { name: "Salvar" }));
 
@@ -342,6 +413,35 @@ describe("PrecoWizard: cadastro", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Informe a descrição");
     expect(createPreco).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("o valor da diária e o adicional são obrigatórios: Salvar espera os dois e a lista diz quais faltam", async () => {
+    const user = userEvent.setup();
+    const initial = toPrecoFormValues(TABELA);
+    renderWithProviders(
+      <PrecoWizardForm
+        title="Novo preço"
+        initial={{ ...initial, info: { ...initial.info, valorDiaria: "", valorAdicionalDiaria: "" } }}
+        onSave={createPreco}
+        savedFlag="criado"
+      />,
+    );
+    await screen.findByLabelText("Descrição");
+    await irParaEtapa(user, 3);
+
+    expect(screen.getByLabelText("Valor da diária (R$)")).toBeRequired();
+    expect(screen.getByLabelText("Valor adicional da diária (R$)")).toBeRequired();
+    expect(screen.getByText("Para salvar, falta:")).toBeInTheDocument();
+    expect(screen.getByText("Informe o valor da diária", { selector: "li" })).toBeInTheDocument();
+    expect(screen.getByText("Informe o valor adicional", { selector: "li" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Salvar" })).toBeDisabled();
+
+    await user.type(screen.getByLabelText("Valor da diária (R$)"), "35,00");
+    expect(screen.queryByText("Informe o valor da diária", { selector: "li" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Salvar" })).toBeDisabled();
+
+    await user.type(screen.getByLabelText("Valor adicional da diária (R$)"), "1,00");
+    expect(screen.getByRole("button", { name: "Salvar" })).toBeEnabled();
   });
 
   it("cancelar o cadastro não altera o endereço da lista além de voltar", async () => {
