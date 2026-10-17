@@ -22,6 +22,20 @@ export async function consultarComprovante(token: string): Promise<ComprovanteCl
   }
 }
 
+// Resolve o token do cupom em uma busca aceita por GET /Patio/saida (que não recebe `token`).
+// [A CONFIRMAR] Se o back passar a aceitar `token` em /Patio/saida, trocar o corpo por { tipo: "token", valor: token }.
+export async function resolverBuscaPorToken(token: string): Promise<SaidaBusca> {
+  try {
+    const comprovante = await consultarComprovante(token);
+    return { tipo: "placa", valor: comprovante.placa };
+  } catch (error) {
+    if (error instanceof ApiError && error.kind === "not_found") {
+      throw new ApiError("not_found", "Nenhum ticket aberto com este token.", 404);
+    }
+    throw error;
+  }
+}
+
 // [A CONFIRMAR] O contrato mostra só `placa`; `codigoTicket` e `sequencial` seguem o nome dos campos da resposta.
 const PARAM_BY_TIPO: Record<SaidaBuscaTipo, string> = {
   placa: "placa",

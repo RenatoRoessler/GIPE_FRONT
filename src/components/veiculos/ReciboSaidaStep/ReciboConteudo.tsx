@@ -15,7 +15,7 @@ export type ReciboData = {
   modelo: string | null;
   cor: string | null;
   categoria: number;
-  codigoTicket: number;
+  codigoTicket: number | string;
   tabela: string | null;
   dataHoraEntrada: string;
   dataHoraSaida: string;

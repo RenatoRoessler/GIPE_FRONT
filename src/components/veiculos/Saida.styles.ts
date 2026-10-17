@@ -2,22 +2,6 @@
 
 import styled from "styled-components";
 
-export const StepForm = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.space[3]}px;
-`;
-
-export const StepDescription = styled.p`
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
-  color: ${({ theme }) => theme.colors.textMuted};
-
-  &:focus {
-    outline: none;
-  }
-`;
-
 export const Hint = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textMuted};
@@ -30,39 +14,6 @@ export const FieldGrid = styled.div`
 
   @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-template-columns: repeat(3, 1fr);
-  }
-`;
-
-export const VehicleHeader = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: ${({ theme }) => theme.space[3]}px;
-`;
-
-export const PlacaTitle = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.xl};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-  letter-spacing: 0.08em;
-`;
-
-export const DataList = styled.dl`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[4]}px;
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  dt {
-    font-size: ${({ theme }) => theme.fontSizes.xs};
-    color: ${({ theme }) => theme.colors.textMuted};
-  }
-
-  dd {
-    font-weight: ${({ theme }) => theme.fontWeights.medium};
-    font-variant-numeric: tabular-nums;
   }
 `;
 

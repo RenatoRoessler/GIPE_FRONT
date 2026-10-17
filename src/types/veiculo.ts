@@ -78,7 +78,7 @@ export type EntradaRegistrada = {
   patioId: number;
   placa: string;
   categoria: number;
-  codigoTicket: number;
+  codigoTicket: number | string;
   sequencial: number;
   mensalista: boolean;
   modelo: string | null;

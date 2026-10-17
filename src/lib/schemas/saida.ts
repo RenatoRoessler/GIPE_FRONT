@@ -4,7 +4,6 @@ import { isValidPlaca, normalizePlaca, PLACA_INVALIDA_MESSAGE } from "@/lib/plac
 import type { SaidaBusca } from "@/types/saida";
 
 const INTEGER = /^\d+$/;
-const CODIGO_TICKET_MAX = 32767;
 const NENHUM_CAMPO = "Informe a placa, o ticket ou o sequencial";
 
 export const saidaBuscaSchema = z
@@ -22,13 +21,6 @@ export const saidaBuscaSchema = z
     if (values.placa !== "" && !isValidPlaca(values.placa)) {
       ctx.addIssue({ code: "custom", path: ["placa"], message: PLACA_INVALIDA_MESSAGE });
     }
-    if (values.codigoTicket !== "") {
-      if (!INTEGER.test(values.codigoTicket)) {
-        ctx.addIssue({ code: "custom", path: ["codigoTicket"], message: "Use apenas números" });
-      } else if (Number(values.codigoTicket) > CODIGO_TICKET_MAX) {
-        ctx.addIssue({ code: "custom", path: ["codigoTicket"], message: "Código de ticket inválido" });
-      }
-    }
     if (values.sequencial !== "" && !INTEGER.test(values.sequencial)) {
       ctx.addIssue({ code: "custom", path: ["sequencial"], message: "Use apenas números" });
     }
@@ -42,7 +34,7 @@ export function toSaidaBusca(values: SaidaBuscaValues): SaidaBusca {
     return { tipo: "placa", valor: normalizePlaca(values.placa) };
   }
   if (values.codigoTicket !== "") {
-    return { tipo: "codigoTicket", valor: String(Number(values.codigoTicket)) };
+    return { tipo: "codigoTicket", valor: values.codigoTicket };
   }
   return { tipo: "sequencial", valor: String(Number(values.sequencial)) };
 }
