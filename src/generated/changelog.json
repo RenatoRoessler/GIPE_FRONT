@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.121",
+      "type": "feat",
+      "scope": "saida",
+      "title": "aceita o QR do comprovante do cliente na leitura da saída",
+      "description": "Se o operador receber o QR do comprovante (o link do cliente) em vez do\nQR esperado, o sistema pega o token direto do link e localiza o veículo.\nTambém passam a funcionar links sem \"https://\", com token na consulta\n(?token=) e em qualquer endereço do sistema.",
+      "date": "2026-10-17T15:09:29-03:00"
+    },
+    {
       "version": "1.0.118",
       "type": "feat",
       "scope": "saida",
