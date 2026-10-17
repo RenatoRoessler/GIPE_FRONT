@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.133",
+      "type": "feat",
+      "scope": "precos",
+      "title": "mostra a gestão de preços em lista e detalhe",
+      "description": "A tela de Gestão de Preços agora tem a lista de tabelas à esquerda e o\ndetalhe da tabela escolhida à direita. Clicar numa tabela só mostra o\ndetalhe, sem abrir a edição, que continua no botão Editar.\n\n- Busca por descrição e filtro por situação (Vigente, Agendada,\n  Encerrada e Inativa), com contagem e paginação.\n- O detalhe tem as abas Tarifa, Horários e Informações, com a placa\n  tarifária em destaque e os horários da semana inteira.\n- Simulador de cobrança: escolhe a categoria e a permanência e mostra\n  uma estimativa com a explicação do degrau, sempre marcada como\n  estimativa (o valor real é calculado na saída).\n- A tabela, a busca, o filtro e a página ficam no endereço, então\n  recarregar ou compartilhar o link volta ao mesmo ponto. No celular a\n  lista e o detalhe se alternam, com botão para voltar.\n- Ao salvar uma edição ou criar uma tabela, a tela volta com ela\n  selecionada.",
+      "date": "2026-10-17T16:54:54-03:00"
+    },
+    {
       "version": "1.0.129",
       "type": "feat",
       "scope": "saida",
