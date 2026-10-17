@@ -9,17 +9,77 @@ export const Raiz = styled.div`
   min-width: 0;
 `;
 
-export const Atalhos = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: ${({ theme }) => theme.space[2]}px;
-`;
-
 export const AtalhosRotulo = styled.span`
+  display: block;
+  margin-bottom: ${({ theme }) => theme.space[2]}px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   color: ${({ theme }) => theme.colors.textMuted};
+`;
+
+// Quatro modelos de mesmo tamanho, em grade: o nome em destaque e o horário embaixo.
+export const Atalhos = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${({ theme }) => theme.space[2]}px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+`;
+
+export const Atalho = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 56px;
+  padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &[aria-pressed="true"] {
+    border: 2px solid ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => theme.colors.primarySoft};
+    padding: calc(${({ theme }) => theme.space[2]}px - 1px) calc(${({ theme }) => theme.space[3]}px - 1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+`;
+
+export const AtalhoTitulo = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+`;
+
+export const AtalhoDetalhe = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textMuted};
+  line-height: 1.3;
+`;
+
+export const Ferramentas = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.space[2]}px;
 `;
 
 // A grade rola na horizontal dentro do próprio contêiner em telas estreitas.

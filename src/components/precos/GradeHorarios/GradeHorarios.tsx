@@ -21,11 +21,15 @@ import {
 import { resumoHorarios } from "../resumoHorarios";
 import {
   Amostra,
+  Atalho,
+  AtalhoDetalhe,
+  AtalhoTitulo,
   Atalhos,
   AtalhosRotulo,
   BotaoEixo,
   BotaoHora,
   Celula,
+  Ferramentas,
   Legenda,
   Linha,
   Raiz,
@@ -37,11 +41,11 @@ import {
 
 const DEFAULT_VALUES: PrecoHorariosValues = { horarios: [] };
 
-const ATALHOS: { atalho: AtalhoGrade; rotulo: string }[] = [
-  { atalho: "comercial", rotulo: "Comercial (Seg–Sex 8h–18h)" },
-  { atalho: "rotativo", rotulo: "Rotativo (Seg–Sex 6h–22h, Sáb 8h–18h)" },
-  { atalho: "24h", rotulo: "24 horas" },
-  { atalho: "fim-de-semana", rotulo: "Só fim de semana" },
+const ATALHOS: { atalho: AtalhoGrade; titulo: string; detalhe: string }[] = [
+  { atalho: "comercial", titulo: "Comercial", detalhe: "Seg–Sex · 8–18h" },
+  { atalho: "rotativo", titulo: "Rotativo", detalhe: "Seg–Sex 6–22h · Sáb 8–18h" },
+  { atalho: "24h", titulo: "24 horas", detalhe: "Todos os dias" },
+  { atalho: "fim-de-semana", titulo: "Só fim de semana", detalhe: "Sáb e Dom · 8–20h" },
 ];
 
 // Segunda a domingo, como o gestor pensa a semana; o índice é a posição em DIAS_SEMANA_PRECO (domingo primeiro).
@@ -144,20 +148,35 @@ export const GradeHorarios = withForm({
 
     return (
       <Raiz>
-        <Atalhos role="group" aria-label="Atalhos de horário">
-          <AtalhosRotulo>Atalhos:</AtalhosRotulo>
-          {ATALHOS.map((item) => (
-            <Button key={item.atalho} type="button" variant="secondary" size="sm" disabled={disabled} onClick={() => aplicarAtalho(item.atalho)}>
-              {item.rotulo}
-            </Button>
-          ))}
+        <div>
+          <AtalhosRotulo id="atalhos-titulo">Comece por um modelo</AtalhosRotulo>
+          <Atalhos role="group" aria-labelledby="atalhos-titulo">
+            {ATALHOS.map((item) => {
+              const ativo = totalDeHoras(grade) > 0 && JSON.stringify(grade) === JSON.stringify(gradeDoAtalho(item.atalho));
+              return (
+                <Atalho
+                  key={item.atalho}
+                  type="button"
+                  disabled={disabled}
+                  aria-pressed={ativo}
+                  aria-label={item.titulo}
+                  onClick={() => aplicarAtalho(item.atalho)}
+                >
+                  <AtalhoTitulo>{item.titulo}</AtalhoTitulo>
+                  <AtalhoDetalhe>{item.detalhe}</AtalhoDetalhe>
+                </Atalho>
+              );
+            })}
+          </Atalhos>
+        </div>
+        <Ferramentas>
           <Button type="button" variant="secondary" size="sm" disabled={disabled} onClick={() => aplicarAtalho("copiar")}>
             Copiar segunda para os outros dias
           </Button>
           <Button type="button" variant="secondary" size="sm" disabled={disabled} onClick={() => aplicarAtalho("limpar")}>
             Limpar
           </Button>
-        </Atalhos>
+        </Ferramentas>
 
         <Rolagem>
           <Tabela role="group" aria-label="Horários de cobrança por dia e hora">
