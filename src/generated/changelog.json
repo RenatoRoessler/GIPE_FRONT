@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.138",
+      "type": "feat",
+      "scope": "precos",
+      "title": "cadastra e edita preços em 3 etapas com resumo ao vivo",
+      "description": "O cadastro e a edição de tabelas de preço passam a ter 3 etapas que\npodem ser abertas em qualquer ordem: O básico, Quando vale e Quanto\ncobra. Cada etapa mostra se está completa ou com pendência, e um\npainel \"Sua tabela\" mostra a tabela e a placa tarifária enquanto você\npreenche (na edição, destaca o que mudou).\n\n- O tipo de regra é escolhido em cartões com uma frase explicando cada\n  um, e há a opção \"Sem data de fim\" (enviada como vazio). No cadastro\n  novo, o início da vigência já vem com a data de hoje.\n- Em \"Quando vale\", a semana é uma grade de 7 dias por 24 horas: clique\n  ou arraste para pintar, com atalhos (Comercial, Rotativo, 24 horas,\n  só fim de semana) e resumo em texto. Horários com minutos, inativos ou\n  com período específico continuam no \"Ajuste fino\".\n- Em \"Quanto cobra\", faixas, diária e tolerâncias ficam juntas. O limite\n  de cada faixa é em horas e minutos, mostra o salto para a anterior, há\n  modelos prontos e avisos (limite repetido, degrau mais barato que o\n  anterior, diária menor que o último degrau).\n- Salvar com pendência leva à primeira etapa incompleta e mostra o que\n  falta. Os dados enviados ao salvar são os mesmos de antes.",
+      "date": "2026-10-17T17:37:24-03:00"
+    },
+    {
+      "version": "1.0.136",
+      "type": "fix",
+      "scope": "form",
+      "title": "impede que campos de data estourem a grade dos formulários",
+      "description": "As colunas da grade usavam 1fr, que não deixa um campo de data\nencolher abaixo da largura própria. No celular o \"Fim da vigência\"\nsaía do cartão. As colunas passam a minmax(0, 1fr) e cada item da\ngrade aceita encolher.",
+      "date": "2026-10-17T17:37:23-03:00"
+    },
+    {
       "version": "1.0.133",
       "type": "feat",
       "scope": "precos",
