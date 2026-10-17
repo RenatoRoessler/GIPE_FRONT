@@ -2,6 +2,30 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.142",
+      "type": "feat",
+      "scope": "precos",
+      "title": "exige os campos obrigatórios para avançar e salvar",
+      "description": "No cadastro e na edição de preços, o botão \"Avançar\" fica desabilitado\nenquanto a etapa estiver incompleta, e uma caixa acima dos botões lista\no que falta (\"Para avançar, falta: ...\"). A etapa \"O básico\" exige\ndescrição, tipo de regra, início da vigência e ao menos uma categoria;\n\"Quando vale\" exige ao menos um horário. Na última etapa o \"Salvar\"\nespera o valor da diária e o valor adicional, e a lista diz quais\nfaltam. Esses dois campos passam a ser anunciados como obrigatórios por\nleitores de tela.\n\nInclui o teste que garante que atalhos e modelos não movem o foco.",
+      "date": "2026-10-17T17:52:59-03:00"
+    },
+    {
+      "version": "1.0.141",
+      "type": "feat",
+      "scope": "precos",
+      "title": "mostra os atalhos de horário em cartões",
+      "description": "Os atalhos da grade de horários eram botões de tamanhos diferentes,\ncom rótulos longos que quebravam em várias linhas. Agora são quatro\ncartões iguais (Comercial, Rotativo, 24 horas e Só fim de semana),\ncom o nome e o horário em linhas separadas. O cartão fica marcado\nquando a grade bate com o modelo. \"Copiar segunda para os outros dias\"\ne \"Limpar\" ficaram numa linha própria.",
+      "date": "2026-10-17T17:52:59-03:00"
+    },
+    {
+      "version": "1.0.140",
+      "type": "fix",
+      "scope": "precos",
+      "title": "impede que a página role ao aplicar atalhos e modelos",
+      "description": "Ao aplicar um atalho de horário ou um modelo de faixas, a tela rolava\nsozinha até o fim. A lista de horários e a de faixas levavam o foco\npara a linha criada sempre que ganhavam exatamente uma linha, e os\natalhos e modelos também criam linhas. Agora o foco só vai para a\nlinha nova quando o usuário clica em \"Adicionar horário\" ou\n\"Adicionar faixa\".",
+      "date": "2026-10-17T17:52:59-03:00"
+    },
+    {
       "version": "1.0.138",
       "type": "feat",
       "scope": "precos",
