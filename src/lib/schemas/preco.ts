@@ -143,19 +143,46 @@ export const precoCategoriasSchema = z
     { path: ["categorias"], message: "\"Todas\" não pode ser combinada com outras categorias" },
   );
 
-// Revalida as quatro etapas antes do envio; devolve a primeira etapa (1-4) com erro, ou null se tudo é válido.
-export function findInvalidPrecoStep(values: PrecoFormValues): 1 | 2 | 3 | 4 | null {
-  if (!precoInfoSchema.safeParse(values.info).success) {
+const CAMPOS_BASICO = new Set(["descricao", "tipoRegra", "inicioVigencia", "fimVigencia"]);
+
+export interface EtapasPreco {
+  basico: string[];
+  horarios: string[];
+  cobranca: string[];
+}
+
+function mensagens(result: { success: boolean; error?: z.ZodError }, aceita: (campo: string) => boolean = () => true) {
+  if (result.success || !result.error) {
+    return [];
+  }
+  return result.error.issues.filter((issue) => aceita(String(issue.path[0] ?? ""))).map((issue) => issue.message);
+}
+
+// Mensagens de erro por etapa do cadastro (vazio = etapa completa). Reaproveita os schemas por formulário:
+// "O básico" = campos de identificação e vigência + categorias; "Quanto cobra" = diária, tolerâncias e faixas.
+export function validarEtapasPreco(values: PrecoFormValues): EtapasPreco {
+  const info = precoInfoSchema.safeParse(values.info);
+  return {
+    basico: [
+      ...mensagens(info, (campo) => CAMPOS_BASICO.has(campo)),
+      ...mensagens(precoCategoriasSchema.safeParse({ categorias: values.categorias })),
+    ],
+    horarios: mensagens(precoHorariosSchema.safeParse({ horarios: values.horarios })),
+    cobranca: [
+      ...mensagens(info, (campo) => !CAMPOS_BASICO.has(campo)),
+      ...mensagens(precoFaixasSchema.safeParse({ faixas: values.faixas })),
+    ],
+  };
+}
+
+// Revalida as três etapas antes do envio; devolve a primeira etapa (1-3) com erro, ou null se tudo é válido.
+export function findInvalidPrecoStep(values: PrecoFormValues): 1 | 2 | 3 | null {
+  const etapas = validarEtapasPreco(values);
+  if (etapas.basico.length > 0) {
     return 1;
   }
-  if (!precoHorariosSchema.safeParse({ horarios: values.horarios }).success) {
+  if (etapas.horarios.length > 0) {
     return 2;
   }
-  if (!precoFaixasSchema.safeParse({ faixas: values.faixas }).success) {
-    return 3;
-  }
-  if (!precoCategoriasSchema.safeParse({ categorias: values.categorias }).success) {
-    return 4;
-  }
-  return null;
+  return etapas.cobranca.length > 0 ? 3 : null;
 }

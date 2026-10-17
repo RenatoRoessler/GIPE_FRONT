@@ -1,0 +1,1 @@
+export { PrecoBasicoFields } from "./PrecoBasicoFields";

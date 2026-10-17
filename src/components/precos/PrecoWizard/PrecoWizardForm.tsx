@@ -8,7 +8,6 @@ import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
-import { Stepper } from "@/components/ui/Stepper";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/Text";
 import {
@@ -17,28 +16,44 @@ import {
   precoFaixasSchema,
   precoHorariosSchema,
   precoInfoSchema,
+  validarEtapasPreco,
 } from "@/lib/schemas/preco";
 import { parseMoney } from "@/lib/money";
 import { TIPO_REGRA, type PrecoFormValues, type SituacaoPreco } from "@/types/preco";
+import { PrecoBasicoFields } from "../PrecoBasicoFields";
 import { PrecoCategoriasStepFields } from "../PrecoCategoriasStepFields";
+import { PrecoCobrancaFields } from "../PrecoCobrancaFields";
+import { PrecoEtapasNav, type EtapaNav } from "../PrecoEtapasNav";
 import { PrecoFaixasStepFields } from "../PrecoFaixasStepFields";
+import { GradeHorarios } from "../GradeHorarios";
+import { horariosForaDaGrade } from "../grade";
 import { PrecoHorariosStepFields } from "../PrecoHorariosStepFields";
-import { PrecoInfoStepFields } from "../PrecoInfoStepFields";
+import { PrecoResumoAoVivo } from "../PrecoResumoAoVivo";
 import { hasChanges } from "../diff";
-import { PrecoResumo } from "../PrecoResumo";
+import { Section, SectionTitle } from "../shared/FormSection.styles";
 import { SITUACAO_BADGE } from "../situacao";
-import { Actions, ActionsGroup, Form, Header, Page, SubtitleRow, TitleGroup, UnsavedNote } from "./PrecoWizard.styles";
+import {
+  Actions,
+  ActionsGroup,
+  AjusteFino,
+  Corpo,
+  ErrosEtapa,
+  Form,
+  Header,
+  Page,
+  SubtitleRow,
+  TitleGroup,
+  TitleRow,
+  UnsavedNote,
+} from "./PrecoWizard.styles";
 
-const STEPS = ["Informações", "Horários", "Faixas de valores", "Categorias"];
+const ETAPAS = [
+  { titulo: "O básico", apoio: "Nome, tipo, vigência, categorias", descricao: "Quem é esta tabela e a quais veículos ela vale?" },
+  { titulo: "Quando vale", apoio: "Dias e horários de cobrança", descricao: "Em quais dias e horários esta tabela cobra?" },
+  { titulo: "Quanto cobra", apoio: "Degraus, diária e tolerâncias", descricao: "Quanto é cobrado por tempo de permanência?" },
+] as const;
 
-const STEP_DESCRIPTIONS = [
-  "Informe os dados gerais da tabela de preço.",
-  "Quando esta tabela vale?",
-  "Quanto é cobrado por tempo de permanência?",
-  "Para quais categorias de veículo?",
-];
-
-const LAST_STEP = STEPS.length;
+const ULTIMA_ETAPA = ETAPAS.length;
 
 export interface PrecoWizardFormProps {
   title: string;
@@ -74,7 +89,13 @@ export function PrecoWizardForm({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
-  const [stepError, setStepError] = useState<string | null>(null);
+  // Etapas já abertas: só depois de visitada uma etapa incompleta passa a mostrar pendência.
+  const [visitadas, setVisitadas] = useState<ReadonlySet<number>>(() => new Set([1]));
+  // Etapa onde a última tentativa de salvar encontrou erros; o aviso some quando ela fica válida.
+  const [falhaEtapa, setFalhaEtapa] = useState<number | null>(null);
+  const [semFim, setSemFim] = useState(initial.info.fimVigencia === "");
+  // O ajuste fino já abre quando a tabela tem horários que a grade não desenha (minutos, inativos, períodos).
+  const [ajusteFinoAberto, setAjusteFinoAberto] = useState(() => horariosForaDaGrade(initial.horarios).length > 0);
   const stepDescriptionRef = useRef<HTMLParagraphElement>(null);
   const isFirstRender = useRef(true);
   const savedRef = useRef(false);
@@ -88,6 +109,7 @@ export function PrecoWizardForm({
     stepDescriptionRef.current?.focus();
   }, [step]);
 
+  // As etapas navegam livremente: o envio é feito no fim, então os formulários não têm ação própria.
   const infoForm = useAppForm({
     defaultValues: initial.info,
     validators: {
@@ -96,7 +118,6 @@ export function PrecoWizardForm({
         return result.success ? undefined : zodFieldErrors(result);
       },
     },
-    onSubmit: () => setStep(2),
   });
 
   const horariosForm = useAppForm({
@@ -107,7 +128,6 @@ export function PrecoWizardForm({
         return result.success ? undefined : zodFieldErrors(result);
       },
     },
-    onSubmit: () => setStep(3),
   });
 
   const faixasForm = useAppForm({
@@ -118,7 +138,16 @@ export function PrecoWizardForm({
         return result.success ? undefined : zodFieldErrors(result);
       },
     },
-    onSubmit: () => setStep(4),
+  });
+
+  const categoriasForm = useAppForm({
+    defaultValues: { categorias: initial.categorias },
+    validators: {
+      onChange: ({ value }) => {
+        const result = precoCategoriasSchema.safeParse(value);
+        return result.success ? undefined : zodFieldErrors(result);
+      },
+    },
   });
 
   const mutation = useMutation({
@@ -133,36 +162,10 @@ export function PrecoWizardForm({
     },
   });
 
-  function collectValues(categorias: PrecoFormValues["categorias"]): PrecoFormValues {
-    return {
-      info: infoForm.state.values,
-      horarios: horariosForm.state.values.horarios,
-      faixas: faixasForm.state.values.faixas,
-      categorias,
-    };
-  }
-
-  const categoriasForm = useAppForm({
-    defaultValues: { categorias: initial.categorias },
-    validators: {
-      onChange: ({ value }) => {
-        const result = precoCategoriasSchema.safeParse(value);
-        return result.success ? undefined : zodFieldErrors(result);
-      },
-    },
-    onSubmit: async ({ value }) => {
-      const values = collectValues(value.categorias);
-      // Revalida tudo: uma edição em etapa anterior pode ter invalidado outra regra.
-      const invalidStep = findInvalidPrecoStep(values);
-      if (invalidStep !== null) {
-        setStepError(`Há campos a corrigir na etapa ${invalidStep} (${STEPS[invalidStep - 1]}).`);
-        setStep(invalidStep);
-        return;
-      }
-      setStepError(null);
-      await mutation.mutateAsync(values).catch(() => undefined);
-    },
-  });
+  const infoValues = useStore(infoForm.store, (state) => state.values);
+  const horariosValues = useStore(horariosForm.store, (state) => state.values.horarios);
+  const faixasValues = useStore(faixasForm.store, (state) => state.values.faixas);
+  const categoriasSelecionadas = useStore(categoriasForm.store, (state) => state.values.categorias);
 
   const infoDirty = useStore(infoForm.store, (state) => state.isDirty);
   const horariosDirty = useStore(horariosForm.store, (state) => state.isDirty);
@@ -170,20 +173,31 @@ export function PrecoWizardForm({
   const categoriasDirty = useStore(categoriasForm.store, (state) => state.isDirty);
   const isDirty = infoDirty || horariosDirty || faixasDirty || categoriasDirty;
 
-  const infoValues = useStore(infoForm.store, (state) => state.values);
-  const horariosValues = useStore(horariosForm.store, (state) => state.values.horarios);
-  const faixasValues = useStore(faixasForm.store, (state) => state.values.faixas);
-  const categoriasSelecionadas = useStore(categoriasForm.store, (state) => state.values.categorias);
+  const values: PrecoFormValues = {
+    info: infoValues,
+    horarios: horariosValues,
+    faixas: faixasValues,
+    categorias: categoriasSelecionadas,
+  };
 
   // Na edição, "alterado" é diferença real em relação ao salvo; `isDirty` acusaria mudança mesmo após reverter um valor.
-  const hasPendingChanges = isEdit
-    ? hasChanges(original, {
-        info: infoValues,
-        horarios: horariosValues,
-        faixas: faixasValues,
-        categorias: categoriasSelecionadas,
-      })
-    : isDirty;
+  const hasPendingChanges = isEdit ? hasChanges(original, values) : isDirty;
+
+  const mensagensPorEtapa = validarEtapasPreco(values);
+  const mensagens = [mensagensPorEtapa.basico, mensagensPorEtapa.horarios, mensagensPorEtapa.cobranca];
+  const etapasCompletas = [mensagens[0].length === 0, mensagens[1].length === 0, mensagens[2].length === 0] as const;
+  const totalCompletas = etapasCompletas.filter(Boolean).length;
+
+  const etapasNav: EtapaNav[] = ETAPAS.map((etapa, index) => {
+    const numero = index + 1;
+    let estado: EtapaNav["estado"] = "neutra";
+    if (etapasCompletas[index]) {
+      estado = "completa";
+    } else if (visitadas.has(numero) && numero !== step) {
+      estado = "pendencia";
+    }
+    return { titulo: etapa.titulo, apoio: etapa.apoio, estado };
+  });
 
   // Evita perder o preenchimento ao fechar a aba ou recarregar.
   useEffect(() => {
@@ -199,9 +213,9 @@ export function PrecoWizardForm({
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasPendingChanges]);
 
-  function handleBack() {
-    setStepError(null);
-    setStep((current) => Math.max(1, current - 1));
+  function irParaEtapa(numero: number) {
+    setVisitadas((atual) => new Set(atual).add(numero));
+    setStep(numero);
   }
 
   function handleCancel() {
@@ -212,27 +226,51 @@ export function PrecoWizardForm({
     router.push("/precos");
   }
 
-  function submit(event: FormEvent<HTMLFormElement>, run: () => void) {
+  async function salvar() {
+    // Marca todos os campos como tocados para que os erros apareçam quando a etapa for aberta.
+    await Promise.all([
+      infoForm.handleSubmit(),
+      horariosForm.handleSubmit(),
+      faixasForm.handleSubmit(),
+      categoriasForm.handleSubmit(),
+    ]);
+    const invalidStep = findInvalidPrecoStep(values);
+    if (invalidStep !== null) {
+      setFalhaEtapa(invalidStep);
+      irParaEtapa(invalidStep);
+      return;
+    }
+    setFalhaEtapa(null);
+    await mutation.mutateAsync(values).catch(() => undefined);
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     event.stopPropagation();
-    run();
+    if (step < ULTIMA_ETAPA) {
+      irParaEtapa(step + 1);
+      return;
+    }
+    void salvar();
   }
 
   const saving = mutation.isPending;
-  const diaria = {
-    periodo: Number(infoValues.periodoDiaria),
-    valor: parseMoney(infoValues.valorDiaria),
-    adicional: parseMoney(infoValues.valorAdicionalDiaria),
-  };
+  const mensagensDoAviso = falhaEtapa === step ? mensagens[step - 1] : [];
+  const prontaParaSalvar = totalCompletas === ULTIMA_ETAPA;
 
   return (
     <Page>
-      <Card maxWidth="960px">
+      <Card maxWidth="1120px">
         <Header>
           <TitleGroup>
-            <Text variant="heading" as="h1">
-              {title}
-            </Text>
+            <TitleRow>
+              <Text variant="heading" as="h1">
+                {title}
+              </Text>
+              <StatusBadge tone={prontaParaSalvar ? "success" : "neutral"}>
+                {prontaParaSalvar ? "Pronta para salvar" : `Rascunho · ${totalCompletas} de ${ULTIMA_ETAPA} etapas`}
+              </StatusBadge>
+            </TitleRow>
             {isEdit && (
               <SubtitleRow>
                 {nome && <strong>{nome}</strong>}
@@ -245,95 +283,89 @@ export function PrecoWizardForm({
               </SubtitleRow>
             )}
             <Text variant="muted" ref={stepDescriptionRef} tabIndex={-1}>
-              Etapa {step} de {LAST_STEP}: {STEP_DESCRIPTIONS[step - 1]}
+              Etapa {step} de {ULTIMA_ETAPA}: {ETAPAS[step - 1].descricao}
             </Text>
           </TitleGroup>
-          <Stepper steps={STEPS} currentStep={step} />
+          <PrecoEtapasNav etapas={etapasNav} atual={step} onSelect={irParaEtapa} />
         </Header>
 
-        {step === 1 ? (
-          <Form onSubmit={(event) => submit(event, () => void infoForm.handleSubmit())}>
-            <PrecoInfoStepFields form={infoForm} mode={mode} />
+        <Corpo>
+          <Form onSubmit={handleSubmit}>
+            {mensagensDoAviso.length > 0 && (
+              <ErrorBanner role="alert">
+                Há campos a corrigir na etapa {step} ({ETAPAS[step - 1].titulo}).
+                <ErrosEtapa>
+                  {mensagensDoAviso.map((mensagem, index) => (
+                    <li key={`${mensagem}-${index}`}>{mensagem}</li>
+                  ))}
+                </ErrosEtapa>
+              </ErrorBanner>
+            )}
+            {step === ULTIMA_ETAPA && mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
+
+            {step === 1 && (
+              <>
+                <PrecoBasicoFields form={infoForm} disabled={saving} semFim={semFim} onSemFimChange={setSemFim} />
+                <Section>
+                  <SectionTitle>Categorias de veículo</SectionTitle>
+                  <PrecoCategoriasStepFields form={categoriasForm} disabled={saving} />
+                </Section>
+              </>
+            )}
+            {step === 2 && (
+              <>
+                <GradeHorarios form={horariosForm} disabled={saving} />
+                <AjusteFino open={ajusteFinoAberto} onToggle={(event) => setAjusteFinoAberto(event.currentTarget.open)}>
+                  <summary>Ajuste fino: minutos exatos, horários inativos e períodos específicos</summary>
+                  <PrecoHorariosStepFields form={horariosForm} disabled={saving} />
+                </AjusteFino>
+              </>
+            )}
+            {step === 3 && (
+              <>
+                <Section>
+                  <SectionTitle>Faixas de valores</SectionTitle>
+                  <PrecoFaixasStepFields
+                    form={faixasForm}
+                    disabled={saving}
+                    showPercentual={infoValues.tipoRegra === String(TIPO_REGRA.Convenio)}
+                    diariaValor={parseMoney(infoValues.valorDiaria)}
+                  />
+                </Section>
+                <PrecoCobrancaFields form={infoForm} disabled={saving} />
+              </>
+            )}
+
             <Actions>
-              <Button type="button" variant="secondary" onClick={handleCancel}>
-                Cancelar
-              </Button>
-              <Button type="submit">Avançar</Button>
-            </Actions>
-          </Form>
-        ) : step === 2 ? (
-          <Form
-            onSubmit={(event) =>
-              submit(event, () => {
-                if (horariosForm.state.values.horarios.length === 0) {
-                  setStepError("Cadastre ao menos um horário.");
-                  return;
-                }
-                setStepError(null);
-                void horariosForm.handleSubmit();
-              })
-            }
-          >
-            {stepError && <ErrorBanner role="alert">{stepError}</ErrorBanner>}
-            <PrecoHorariosStepFields form={horariosForm} />
-            <Actions>
-              <Button type="button" variant="secondary" onClick={handleBack}>
-                Voltar
-              </Button>
-              <Button type="submit">Avançar</Button>
-            </Actions>
-          </Form>
-        ) : step === 3 ? (
-          <Form
-            onSubmit={(event) =>
-              submit(event, () => {
-                if (faixasForm.state.values.faixas.length === 0) {
-                  setStepError("Cadastre ao menos uma faixa de valor.");
-                  return;
-                }
-                setStepError(null);
-                void faixasForm.handleSubmit();
-              })
-            }
-          >
-            {stepError && <ErrorBanner role="alert">{stepError}</ErrorBanner>}
-            <PrecoFaixasStepFields
-              form={faixasForm}
-              showPercentual={infoValues.tipoRegra === String(TIPO_REGRA.Convenio)}
-              diaria={diaria}
-            />
-            <Actions>
-              <Button type="button" variant="secondary" onClick={handleBack}>
-                Voltar
-              </Button>
-              <Button type="submit">Avançar</Button>
-            </Actions>
-          </Form>
-        ) : (
-          <Form onSubmit={(event) => submit(event, () => void categoriasForm.handleSubmit())}>
-            {stepError && <ErrorBanner role="alert">{stepError}</ErrorBanner>}
-            {mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
-            <PrecoCategoriasStepFields
-              form={categoriasForm}
-              disabled={saving}
-              summary={<PrecoResumo values={collectValues(categoriasSelecionadas)} original={isEdit ? original : undefined} />}
-            />
-            <Actions>
-              <Button type="button" variant="secondary" onClick={handleBack} disabled={saving}>
-                Voltar
-              </Button>
-              <ActionsGroup>
+              {step === 1 ? (
                 <Button type="button" variant="secondary" onClick={handleCancel} disabled={saving}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={saving || (isEdit && !hasPendingChanges)}>
-                  {saving ? "Salvando..." : isEdit ? "Salvar alterações" : "Salvar"}
+              ) : (
+                <Button type="button" variant="secondary" onClick={() => irParaEtapa(step - 1)} disabled={saving}>
+                  Voltar
                 </Button>
-              </ActionsGroup>
+              )}
+              {step < ULTIMA_ETAPA ? (
+                <Button type="submit">Avançar: {ETAPAS[step].titulo.toLowerCase()}</Button>
+              ) : (
+                <ActionsGroup>
+                  <Button type="button" variant="secondary" onClick={handleCancel} disabled={saving}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={saving || (isEdit && !hasPendingChanges)}>
+                    {saving ? "Salvando..." : isEdit ? "Salvar alterações" : "Salvar"}
+                  </Button>
+                </ActionsGroup>
+              )}
             </Actions>
-            {isEdit && !hasPendingChanges && <Text variant="muted">Nenhuma alteração para salvar.</Text>}
+            {isEdit && !hasPendingChanges && step === ULTIMA_ETAPA && (
+              <Text variant="muted">Nenhuma alteração para salvar.</Text>
+            )}
           </Form>
-        )}
+
+          <PrecoResumoAoVivo values={values} original={isEdit ? original : undefined} etapasCompletas={etapasCompletas} />
+        </Corpo>
       </Card>
     </Page>
   );

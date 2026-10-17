@@ -57,10 +57,3 @@ export const ChipInput = styled.input`
   opacity: 0;
   cursor: inherit;
 `;
-
-export const SummaryArea = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.space[3]}px;
-  margin-top: ${({ theme }) => theme.space[4]}px;
-`;

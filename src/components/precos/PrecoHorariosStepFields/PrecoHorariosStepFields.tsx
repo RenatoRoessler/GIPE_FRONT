@@ -50,7 +50,7 @@ export const PrecoHorariosStepFields = withForm({
           <HorariosList count={count}>
             <Wrapper>
               <Toolbar>
-                <Text variant="muted">Defina quando esta tabela de preço vale.</Text>
+                <Text variant="muted">Minutos exatos, horários inativos e períodos específicos.</Text>
                 <ToolbarActions>
                   <Button type="button" variant="secondary" size="sm" onClick={applyToAllDays} disabled={disabled}>
                     Aplicar a todos os dias

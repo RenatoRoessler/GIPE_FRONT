@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
-import { TIPO_CATEGORIA, TIPO_REGRA, type PrecoView } from "@/types/preco";
+import { EMPTY_PRECO_FORM_VALUES, TIPO_CATEGORIA, TIPO_REGRA, type PrecoView } from "@/types/preco";
 
 const push = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }) }));
@@ -11,6 +11,7 @@ vi.mock("@/lib/api/services/preco", () => ({ getPreco: vi.fn(), createPreco: vi.
 
 import { createPreco, getPreco, updatePreco } from "@/lib/api/services/preco";
 import { toPrecoFormValues } from "@/lib/api/services/preco.mapper";
+import { inicioVigenciaDeHoje } from "../novoPreco";
 import { PrecoWizard } from "./PrecoWizard";
 import { PrecoWizardForm } from "./PrecoWizardForm";
 
@@ -44,13 +45,19 @@ beforeEach(() => {
   vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 
-async function avancarAteACategoria(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("button", { name: "Avançar" }));
-  await screen.findByText(/Etapa 2 de 4/);
-  await user.click(screen.getByRole("button", { name: "Avançar" }));
-  await screen.findByText(/Etapa 3 de 4/);
-  await user.click(screen.getByRole("button", { name: "Avançar" }));
-  await screen.findByText(/Etapa 4 de 4/);
+type Usuario = ReturnType<typeof userEvent.setup>;
+
+// A navegação é livre: qualquer etapa abre direto pelo indicador.
+async function irParaEtapa(user: Usuario, numero: number) {
+  await user.click(screen.getByRole("button", { name: new RegExp(`^Etapa ${numero}:`) }));
+  await screen.findByText(new RegExp(`Etapa ${numero} de 3`));
+}
+
+async function avancarAteACategoria(user: Usuario) {
+  await user.click(screen.getByRole("button", { name: /^Avançar/ }));
+  await screen.findByText(/Etapa 2 de 3/);
+  await user.click(screen.getByRole("button", { name: /^Avançar/ }));
+  await screen.findByText(/Etapa 3 de 3/);
 }
 
 describe("PrecoWizard: edição", () => {
@@ -126,6 +133,25 @@ describe("PrecoWizard: edição", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  it("salvar sem mudanças fica desabilitado e o painel só marca 'Alterado' depois de editar", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<PrecoWizard id={7} />);
+    await screen.findByLabelText("Descrição");
+    await irParaEtapa(user, 3);
+    expect(screen.getByRole("button", { name: "Salvar alterações" })).toBeDisabled();
+    expect(screen.getByText("Nenhuma alteração para salvar.")).toBeInTheDocument();
+    expect(screen.queryByText("Alterado")).not.toBeInTheDocument();
+
+    await irParaEtapa(user, 1);
+    const descricao = screen.getByLabelText("Descrição");
+    await user.clear(descricao);
+    await user.type(descricao, "Tarifa revisada");
+    expect(screen.getByText("Alterado")).toBeInTheDocument();
+    expect(screen.getByText("Descrição: Tarifa padrão rotativo → Tarifa revisada")).toBeInTheDocument();
+    await irParaEtapa(user, 3);
+    expect(screen.getByRole("button", { name: "Salvar alterações" })).toBeEnabled();
+  });
+
   it("cancelar sem alterações volta à lista sem selecionar nada", async () => {
     const user = userEvent.setup();
     renderWithProviders(<PrecoWizard id={7} />);
@@ -154,6 +180,168 @@ describe("PrecoWizard: cadastro", () => {
     // O back não devolve o id da tabela criada: a lista escolhe a de maior id.
     expect(push).toHaveBeenCalledWith("/precos?salvo=criado");
     expect(createPreco).toHaveBeenCalledTimes(1);
+  });
+
+  it("o cadastro novo vem com o início da vigência na data de hoje", async () => {
+    renderWithProviders(<PrecoWizard />);
+    expect(await screen.findByLabelText("Início da vigência")).toHaveValue(inicioVigenciaDeHoje());
+  });
+
+  it("navega livremente entre as etapas sem perder o que foi digitado", async () => {
+    const user = await renderCadastro();
+    const descricao = screen.getByLabelText("Descrição");
+    await user.clear(descricao);
+    await user.type(descricao, "Tarifa do evento");
+    await irParaEtapa(user, 3);
+    await irParaEtapa(user, 1);
+    expect(screen.getByLabelText("Descrição")).toHaveValue("Tarifa do evento");
+  });
+
+  it("o indicador diz o estado de cada etapa e o cabeçalho, o andamento", async () => {
+    const user = await renderCadastro();
+    expect(screen.getByText("Pronta para salvar")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Etapa 1: O básico, completa" })).toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText("Descrição"));
+    expect(screen.getByRole("button", { name: "Etapa 1: O básico, não preenchida" })).toBeInTheDocument();
+    expect(screen.getByText("Rascunho · 2 de 3 etapas")).toBeInTheDocument();
+
+    // Depois de visitada e deixada incompleta, a etapa passa a mostrar pendência.
+    await irParaEtapa(user, 2);
+    expect(screen.getByRole("button", { name: "Etapa 1: O básico, com pendência" })).toBeInTheDocument();
+  });
+
+  it("'Sem data de fim' desabilita o fim da vigência e desmarcar reabilita", async () => {
+    const user = await renderCadastro();
+    const semFim = screen.getByRole("checkbox", { name: "Sem data de fim" });
+    expect(semFim).toBeChecked();
+    expect(screen.getByLabelText("Fim da vigência")).toBeDisabled();
+
+    await user.click(semFim);
+    expect(screen.getByLabelText("Fim da vigência")).toBeEnabled();
+    await user.click(semFim);
+    expect(screen.getByLabelText("Fim da vigência")).toBeDisabled();
+  });
+
+  it("escolher o tipo de regra em cartões muda o tipo da tabela", async () => {
+    const user = await renderCadastro();
+    await user.click(screen.getByRole("radio", { name: /^Convênio/ }));
+    expect(screen.getByRole("radio", { name: /^Convênio/ })).toBeChecked();
+    expect(screen.getByRole("complementary", { name: "Resumo ao vivo da tabela" })).toHaveTextContent("Tipo: Convênio");
+  });
+
+  it("a grade de horários desenha a tabela e o resumo acompanha", async () => {
+    const user = await renderCadastro();
+    await irParaEtapa(user, 2);
+    expect(screen.getByRole("button", { name: "Segunda-feira, 06h" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Segunda-feira, 21h" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Segunda-feira, 22h" })).toHaveAttribute("aria-pressed", "false");
+    // O resumo em texto aparece na grade e no painel lateral.
+    expect(screen.getAllByText("Seg 06:00–22:00").length).toBeGreaterThan(0);
+    expect(screen.getByText("16 de 168 horas da semana com cobrança")).toBeInTheDocument();
+  });
+
+  it("pintar uma hora, um dia inteiro e usar atalhos atualiza o resumo", async () => {
+    const user = await renderCadastro();
+    await irParaEtapa(user, 2);
+
+    await user.click(screen.getByRole("button", { name: "Terça-feira, 10h" }));
+    expect(screen.getByRole("button", { name: "Terça-feira, 10h" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("Ter 10:00–11:00")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Alternar o dia inteiro: Domingo" }));
+    expect(screen.getByText("Dom 00:00–23:59")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "24 horas" }));
+    expect(screen.getByText("168 de 168 horas da semana com cobrança")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Limpar" }));
+    expect(screen.getByText("Nenhuma hora pintada na grade.")).toBeInTheDocument();
+  });
+
+  it("a grade não apaga horários que só o ajuste fino edita", async () => {
+    const user = userEvent.setup();
+    const quebrado = { diaSemana: "3", horaInicio: "08:30", horaFim: "12:15", dataInicio: "", dataFim: "", ativo: true };
+    const initial = toPrecoFormValues(TABELA);
+    renderWithProviders(
+      <PrecoWizardForm
+        title="Novo preço"
+        initial={{ ...initial, horarios: [...initial.horarios, quebrado] }}
+        onSave={createPreco}
+        savedFlag="criado"
+      />,
+    );
+    await screen.findByLabelText("Descrição");
+    await irParaEtapa(user, 2);
+
+    // Há um horário com minutos: o ajuste fino já abre, e a grade só desenha o de horas cheias.
+    expect(screen.getByLabelText("Hora de início — horário 2")).toHaveValue("08:30");
+    await user.click(screen.getByRole("button", { name: "Limpar" }));
+    expect(screen.getByText("Nenhuma hora pintada na grade.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Hora de início — horário 1")).toHaveValue("08:30");
+    expect(screen.queryByLabelText("Hora de início — horário 2")).not.toBeInTheDocument();
+  });
+
+  it("o limite da faixa é digitado em horas e minutos e grava a soma em minutos", async () => {
+    const user = await renderCadastro();
+    await irParaEtapa(user, 3);
+    expect(screen.getByLabelText("Horas — faixa 1")).toHaveValue("1");
+    expect(screen.getByLabelText("Minutos — faixa 1")).toHaveValue("0");
+
+    await user.type(screen.getByLabelText("Minutos — faixa 1"), "{Backspace}45");
+    expect(screen.getByLabelText("Horas — faixa 1")).toHaveValue("1");
+    expect(screen.getByLabelText("Minutos — faixa 1")).toHaveValue("45");
+
+    // Mais de 59 minutos viram horas.
+    await user.clear(screen.getByLabelText("Minutos — faixa 1"));
+    await user.type(screen.getByLabelText("Minutos — faixa 1"), "90");
+    expect(screen.getByLabelText("Horas — faixa 1")).toHaveValue("2");
+    expect(screen.getByLabelText("Minutos — faixa 1")).toHaveValue("30");
+  });
+
+  it("os modelos preenchem as faixas e cada degrau mostra o salto para o anterior", async () => {
+    const user = await renderCadastro();
+    await irParaEtapa(user, 3);
+    await user.click(screen.getByRole("button", { name: "Rotativo (1 h, 2 h, 3 h)" }));
+
+    expect(screen.getByLabelText("Salto em relação à faixa anterior: + R$ 6,00")).toBeInTheDocument();
+    expect(screen.getByLabelText("Salto em relação à faixa anterior: + R$ 4,00")).toBeInTheDocument();
+    expect(screen.getByText("Faixas sem problemas.")).toBeInTheDocument();
+  });
+
+  it("avisa, sem bloquear, quando um degrau custa menos que o anterior e quando a diária é menor que o último", async () => {
+    const user = await renderCadastro();
+    await irParaEtapa(user, 3);
+    await user.click(screen.getByRole("button", { name: "Rotativo (1 h, 2 h, 3 h)" }));
+
+    const valor3 = screen.getByLabelText("Valor (R$) — faixa 3");
+    await user.clear(valor3);
+    await user.type(valor3, "5,00");
+    expect(screen.getByRole("list", { name: "Avisos sobre as faixas" })).toHaveTextContent("A faixa de 3 h custa menos que a de 2 h.");
+
+    // Diária (R$ 35,00 na tabela) abaixo do último degrau.
+    await user.clear(valor3);
+    await user.type(valor3, "40,00");
+    expect(screen.getByRole("list", { name: "Avisos sobre as faixas" })).toHaveTextContent(/A diária \(R\$\s35,00\) é menor que o último degrau/);
+
+    // Aviso não impede salvar.
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+    await waitFor(() => expect(createPreco).toHaveBeenCalledTimes(1));
+  });
+
+  it("salvar com pendência leva à primeira etapa incompleta e mostra o que falta", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <PrecoWizardForm title="Novo preço" initial={EMPTY_PRECO_FORM_VALUES} onSave={createPreco} savedFlag="criado" />,
+    );
+    await irParaEtapa(user, 3);
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(await screen.findByText(/Etapa 1 de 3/)).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Há campos a corrigir na etapa 1 (O básico).");
+    expect(screen.getByRole("alert")).toHaveTextContent("Informe a descrição");
+    expect(createPreco).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("cancelar o cadastro não altera o endereço da lista além de voltar", async () => {

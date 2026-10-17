@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
@@ -11,11 +12,12 @@ import { Text } from "@/components/ui/Text";
 import { ApiError } from "@/lib/api/errors";
 import { createPreco, getPreco, updatePreco } from "@/lib/api/services/preco";
 import { getSituacao, toPrecoFormValues } from "@/lib/api/services/preco.mapper";
-import { EMPTY_PRECO_FORM_VALUES, type PrecoFormValues } from "@/types/preco";
+import type { PrecoFormValues } from "@/types/preco";
+import { novoPrecoFormValues } from "../novoPreco";
 import { Header, Page, StateBox, TitleGroup } from "./PrecoWizard.styles";
 import { PrecoWizardForm } from "./PrecoWizardForm";
 
-const STEPS = ["Informações", "Horários", "Faixas de valores", "Categorias"];
+const STEPS = ["O básico", "Quando vale", "Quanto cobra"];
 const SKELETON_FIELDS = 6;
 
 export interface PrecoWizardProps {
@@ -23,19 +25,21 @@ export interface PrecoWizardProps {
   id?: number;
 }
 
-export function PrecoWizard({ id }: PrecoWizardProps) {
-  if (id === undefined) {
-    return (
-      <PrecoWizardForm
-        title="Novo preço"
-        initial={EMPTY_PRECO_FORM_VALUES}
-        onSave={createPreco}
-        savedFlag="criado"
-      />
-    );
-  }
+const subscribeNada = () => () => undefined;
 
-  return <EditPrecoWizard id={id} />;
+// A data de hoje só existe no navegador (o servidor pode estar em outro fuso): o formulário aparece depois da hidratação.
+function NovoPrecoWizard() {
+  const [initial] = useState(() => novoPrecoFormValues());
+  const noNavegador = useSyncExternalStore(subscribeNada, () => true, () => false);
+
+  if (!noNavegador) {
+    return null;
+  }
+  return <PrecoWizardForm title="Novo preço" initial={initial} onSave={createPreco} savedFlag="criado" />;
+}
+
+export function PrecoWizard({ id }: PrecoWizardProps) {
+  return id === undefined ? <NovoPrecoWizard /> : <EditPrecoWizard id={id} />;
 }
 
 function EditPrecoWizard({ id }: { id: number }) {
@@ -50,7 +54,7 @@ function EditPrecoWizard({ id }: { id: number }) {
   if (isPending) {
     return (
       <Page>
-        <Card maxWidth="960px" role="status" aria-label="Carregando tabela de preço">
+        <Card maxWidth="1120px" role="status" aria-label="Carregando tabela de preço">
           <Header>
             <TitleGroup>
               <Text variant="heading" as="h1">

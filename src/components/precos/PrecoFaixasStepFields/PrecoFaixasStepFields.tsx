@@ -4,22 +4,56 @@ import { useEffect, useRef, useState } from "react";
 import { withForm } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
+import { EMPTY_PRECO_FAIXA, type PrecoFaixaValues, type PrecoFaixasValues } from "@/types/preco";
 import { parseMoney } from "@/lib/money";
-import { EMPTY_PRECO_FAIXA, type PrecoFaixasValues } from "@/types/preco";
-import { FaixasPreview, type FaixasPreviewDiaria } from "../FaixasPreview";
-import { formatMinutos } from "../format";
+import { avisosFaixas } from "../avisosFaixas";
+import { formatBRL } from "../format";
 import {
   EmptyHint,
   LiveRegion,
-  Row,
   RowList,
   Toolbar,
+  ToolbarActions,
   Wrapper,
 } from "../shared/RepeatableRows.styles";
 import { RemoveRowButton } from "../shared/RemoveRowButton";
-import { Layout, RowFields, RowFooter } from "./PrecoFaixasStepFields.styles";
+import { DuracaoFaixa } from "./DuracaoFaixa";
+import { Aviso, Avisos, FaixaRow, RowFields, RowFooter, Salto, SemAvisos } from "./PrecoFaixasStepFields.styles";
 
 const DEFAULT_VALUES: PrecoFaixasValues = { faixas: [] };
+
+// Modelos prontos: substituem a lista de faixas inteira.
+const MODELOS: { rotulo: string; faixas: PrecoFaixaValues[] }[] = [
+  {
+    rotulo: "Rotativo (1 h, 2 h, 3 h)",
+    faixas: [
+      { minutosLimite: "60", valor: "10,00", percentualConveniada: "" },
+      { minutosLimite: "120", valor: "16,00", percentualConveniada: "" },
+      { minutosLimite: "180", valor: "20,00", percentualConveniada: "" },
+    ],
+  },
+  {
+    rotulo: "A cada 30 min até 2 h",
+    faixas: [
+      { minutosLimite: "30", valor: "6,00", percentualConveniada: "" },
+      { minutosLimite: "60", valor: "10,00", percentualConveniada: "" },
+      { minutosLimite: "90", valor: "13,00", percentualConveniada: "" },
+      { minutosLimite: "120", valor: "16,00", percentualConveniada: "" },
+    ],
+  },
+];
+
+// Diferença para o degrau anterior ("+ R$ 4,00"); vazio na primeira faixa ou com valores incompletos.
+function descreverSalto(atual: string, anterior: string | undefined): string {
+  if (anterior === undefined) {
+    return "";
+  }
+  const diferenca = parseMoney(atual) - parseMoney(anterior);
+  if (!Number.isFinite(diferenca)) {
+    return "";
+  }
+  return `${diferenca < 0 ? "−" : "+"} ${formatBRL(Math.abs(diferenca))}`;
+}
 
 interface FaixasAnnouncerProps {
   count: number;
@@ -53,8 +87,8 @@ function FaixasAnnouncer({ count }: FaixasAnnouncerProps) {
 
 export const PrecoFaixasStepFields = withForm({
   defaultValues: DEFAULT_VALUES,
-  props: {} as { disabled?: boolean; showPercentual?: boolean; diaria?: FaixasPreviewDiaria },
-  render: function Render({ form, disabled, showPercentual = false, diaria }) {
+  props: {} as { disabled?: boolean; showPercentual?: boolean; diariaValor?: number },
+  render: function Render({ form, disabled, showPercentual = false, diariaValor = Number.NaN }) {
     // Mantém as faixas em ordem crescente de minutos quando o foco sai da linha (não reordena durante a digitação).
     function sortFaixas() {
       const faixas = form.state.values.faixas;
@@ -69,10 +103,22 @@ export const PrecoFaixasStepFields = withForm({
     }
 
     return (
-      <Layout>
-        <Wrapper>
-          <Toolbar>
-            <Text variant="muted">Defina o valor cobrado até cada limite de tempo.</Text>
+      <Wrapper>
+        <Toolbar>
+          <Text variant="muted">Modelos prontos ou degraus de tempo e valor, até cada limite.</Text>
+          <ToolbarActions>
+            {MODELOS.map((modelo) => (
+              <Button
+                key={modelo.rotulo}
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => form.setFieldValue("faixas", modelo.faixas.map((faixa) => ({ ...faixa })))}
+                disabled={disabled}
+              >
+                {modelo.rotulo}
+              </Button>
+            ))}
             <Button
               type="button"
               variant="secondary"
@@ -82,99 +128,112 @@ export const PrecoFaixasStepFields = withForm({
             >
               Adicionar faixa
             </Button>
-          </Toolbar>
+          </ToolbarActions>
+        </Toolbar>
 
-          <form.Subscribe selector={(state) => state.values.faixas.length}>
-            {(count) => (
-              <>
-                <FaixasAnnouncer count={count} />
-                {count === 0 ? (
-                  <EmptyHint>
-                    <Text variant="muted">Nenhuma faixa cadastrada.</Text>
-                  </EmptyHint>
-                ) : (
-                  <RowList>
-                    {Array.from({ length: count }, (_, index) => (
-                      <Row
-                        key={index}
-                        role="group"
-                        aria-label={`Faixa ${index + 1}`}
-                        data-faixa-row={index}
-                        onBlur={(event) => {
-                          if (!event.currentTarget.contains(event.relatedTarget)) {
-                            sortFaixas();
-                          }
-                        }}
-                      >
-                        <RowFields $withPercent={showPercentual}>
-                          <form.AppField name={`faixas[${index}].minutosLimite`}>
-                            {(field) => (
-                              <form.Subscribe selector={(state) => state.values.faixas[index]?.minutosLimite}>
-                                {(minutos) => (
-                                  <field.TextField
-                                    label={`Até (minutos) — faixa ${index + 1}`}
-                                    inputMode="numeric"
-                                    hint={minutos ? `= ${formatMinutos(Number(minutos))}` : undefined}
-                                    format={(value) => value.replace(/\D/g, "")}
-                                    disabled={disabled}
-                                  />
-                                )}
-                              </form.Subscribe>
-                            )}
-                          </form.AppField>
-                          <form.AppField name={`faixas[${index}].valor`}>
+        <form.Subscribe selector={(state) => state.values.faixas.length}>
+          {(count) => (
+            <>
+              <FaixasAnnouncer count={count} />
+              {count === 0 ? (
+                <EmptyHint>
+                  <Text variant="muted">Nenhuma faixa cadastrada.</Text>
+                </EmptyHint>
+              ) : (
+                <RowList>
+                  {Array.from({ length: count }, (_, index) => (
+                    <FaixaRow
+                      key={index}
+                      role="group"
+                      aria-label={`Faixa ${index + 1}`}
+                      data-faixa-row={index}
+                      onBlur={(event) => {
+                        if (!event.currentTarget.contains(event.relatedTarget)) {
+                          sortFaixas();
+                        }
+                      }}
+                    >
+                      <RowFields $withPercent={showPercentual}>
+                        <form.AppField name={`faixas[${index}].minutosLimite`}>
+                          {(field) => {
+                            const error = field.state.meta.isTouched ? field.state.meta.errors[0] : undefined;
+                            return (
+                              <DuracaoFaixa
+                                numero={index + 1}
+                                value={field.state.value}
+                                onChange={field.handleChange}
+                                onBlur={field.handleBlur}
+                                error={typeof error === "string" ? error : undefined}
+                                disabled={disabled}
+                              />
+                            );
+                          }}
+                        </form.AppField>
+                        <form.AppField name={`faixas[${index}].valor`}>
+                          {(field) => (
+                            <field.TextField
+                              label={`Valor (R$) — faixa ${index + 1}`}
+                              inputMode="decimal"
+                              format={(value) => value.replace(/[^\d.,]/g, "")}
+                              disabled={disabled}
+                            />
+                          )}
+                        </form.AppField>
+                        {showPercentual && (
+                          <form.AppField name={`faixas[${index}].percentualConveniada`}>
                             {(field) => (
                               <field.TextField
-                                label={`Valor (R$) — faixa ${index + 1}`}
+                                label={`% conveniada (opcional) — faixa ${index + 1}`}
                                 inputMode="decimal"
                                 format={(value) => value.replace(/[^\d.,]/g, "")}
                                 disabled={disabled}
                               />
                             )}
                           </form.AppField>
-                          {showPercentual && (
-                            <form.AppField name={`faixas[${index}].percentualConveniada`}>
-                              {(field) => (
-                                <field.TextField
-                                  label={`% conveniada (opcional) — faixa ${index + 1}`}
-                                  inputMode="decimal"
-                                  format={(value) => value.replace(/[^\d.,]/g, "")}
-                                  disabled={disabled}
-                                />
-                              )}
-                            </form.AppField>
+                        )}
+                      </RowFields>
+                      <RowFooter>
+                        <form.Subscribe selector={(state) => state.values.faixas[index]?.valor}>
+                          {(valor) => (
+                            <form.Subscribe selector={(state) => state.values.faixas[index - 1]?.valor}>
+                              {(anterior) => {
+                                const salto = descreverSalto(valor ?? "", anterior);
+                                return salto ? <Salto aria-label={`Salto em relação à faixa anterior: ${salto}`}>{salto}</Salto> : null;
+                              }}
+                            </form.Subscribe>
                           )}
-                        </RowFields>
-                        <RowFooter>
-                          <RemoveRowButton
-                            label={`Remover faixa ${index + 1}`}
-                            onClick={() => form.removeFieldValue("faixas", index)}
-                            disabled={disabled}
-                          />
-                        </RowFooter>
-                      </Row>
-                    ))}
-                  </RowList>
-                )}
-              </>
-            )}
-          </form.Subscribe>
-        </Wrapper>
-
-        <form.Subscribe selector={(state) => state.values.faixas}>
-          {(faixas) => (
-            <FaixasPreview
-              diaria={diaria}
-              faixas={faixas
-                .map((faixa) => ({
-                  minutosLimite: Number(faixa.minutosLimite),
-                  valor: parseMoney(faixa.valor),
-                }))
-                .filter((faixa) => faixa.minutosLimite > 0 && Number.isFinite(faixa.valor))}
-            />
+                        </form.Subscribe>
+                        <RemoveRowButton
+                          label={`Remover faixa ${index + 1}`}
+                          onClick={() => form.removeFieldValue("faixas", index)}
+                          disabled={disabled}
+                        />
+                      </RowFooter>
+                    </FaixaRow>
+                  ))}
+                </RowList>
+              )}
+            </>
           )}
         </form.Subscribe>
-      </Layout>
+        <form.Subscribe selector={(state) => state.values.faixas}>
+          {(faixas) => {
+            const avisos = avisosFaixas(faixas, diariaValor);
+            if (faixas.length === 0) {
+              return null;
+            }
+            return avisos.length > 0 ? (
+              <Avisos aria-label="Avisos sobre as faixas">
+                {avisos.map((aviso) => (
+                  <Aviso key={aviso}>{aviso}</Aviso>
+                ))}
+              </Avisos>
+            ) : (
+              <SemAvisos role="status">Faixas sem problemas.</SemAvisos>
+            );
+          }}
+        </form.Subscribe>
+      </Wrapper>
     );
   },
 });
