@@ -4,10 +4,13 @@ import styled, { css } from "styled-components";
 
 export type ModalSize = "sm" | "md" | "lg";
 
+// Largura máxima por tamanho. No desktop o modal acompanha o conteúdo, entre a largura mínima e a máxima,
+// para não ficar maior do que precisa.
 const WIDTHS: Record<ModalSize, string> = { sm: "480px", md: "600px", lg: "760px" };
+const MIN_WIDTHS: Record<ModalSize, string> = { sm: "360px", md: "440px", lg: "560px" };
 
-// Desktop: caixa centralizada com margem. No celular (abaixo de md) o modal ocupa a tela toda,
-// com cabeçalho e rodapé fixos e só o corpo rolando.
+// Desktop: caixa centralizada com margem, do tamanho do conteúdo. No celular (abaixo de md) o modal ocupa
+// a tela toda, com cabeçalho e rodapé fixos e só o corpo rolando.
 export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boolean }>`
   padding: 0;
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -16,7 +19,7 @@ export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boo
   box-shadow: ${({ theme }) => theme.shadows.md};
   overflow: hidden;
 
-  ${({ $fullScreenOnMobile, theme }) =>
+  ${({ $fullScreenOnMobile, $size, theme }) =>
     $fullScreenOnMobile
       ? css`
           width: 100%;
@@ -28,8 +31,10 @@ export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boo
           border-radius: 0;
 
           @media (min-width: ${theme.breakpoints.md}) {
-            width: calc(100% - ${theme.space[3] * 2}px);
-            height: auto;
+            width: fit-content;
+            min-width: min(${MIN_WIDTHS[$size]}, calc(100% - ${theme.space[3] * 2}px));
+            /* "auto" esticaria o <dialog> (posicionado com margin auto) até o max-height. */
+            height: fit-content;
             margin: auto;
             border: 1px solid ${theme.colors.border};
             border-radius: ${theme.radii.lg};
@@ -39,6 +44,11 @@ export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boo
           margin: auto;
           border-radius: ${theme.radii.lg};
           width: calc(100% - ${theme.space[3] * 2}px);
+
+          @media (min-width: ${theme.breakpoints.sm}) {
+            width: fit-content;
+            min-width: min(${MIN_WIDTHS[$size]}, calc(100% - ${theme.space[3] * 2}px));
+          }
         `}
 
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
