@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { BusinessHoursStepFields } from "@/components/adesao/BusinessHoursStepFields";
 import { CompanyStepFields } from "@/components/adesao/CompanyStepFields";
+import { PagamentosFields } from "@/components/empresa/PagamentosFields";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
@@ -13,7 +14,8 @@ import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
 import { updateEmpresa } from "@/lib/api/services/empresa";
-import { businessHoursSchema, companySchema } from "@/lib/schemas/adesao";
+import { businessHoursSchema, companySchema, paymentsSchema } from "@/lib/schemas/adesao";
+import { MEIOS_PAGAMENTO } from "@/types/adesao";
 import type { EmpresaFormValues } from "@/types/empresa";
 import { Actions, Page, Sections, TitleGroup } from "./MinhaEmpresa.styles";
 
@@ -26,7 +28,7 @@ export interface EmpresaFormProps {
 export function EmpresaForm({ initial }: EmpresaFormProps) {
   const queryClient = useQueryClient();
   const sectionsRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState({ empresa: true, funcionamento: true });
+  const [open, setOpen] = useState({ empresa: true, funcionamento: true, pagamentos: true });
   const { toast, showToast, dismissToast } = useToast();
 
   const mutation = useMutation({
@@ -35,6 +37,7 @@ export function EmpresaForm({ initial }: EmpresaFormProps) {
       queryClient.setQueryData(EMPRESA_QUERY_KEY, values);
       companyForm.reset(values.company);
       hoursForm.reset(values.hours);
+      paymentsForm.reset(values.payments);
       showToast("Dados da empresa salvos com sucesso.");
     },
   });
@@ -59,6 +62,16 @@ export function EmpresaForm({ initial }: EmpresaFormProps) {
     },
   });
 
+  const paymentsForm = useAppForm({
+    defaultValues: initial.payments,
+    validators: {
+      onChange: ({ value }) => {
+        const result = paymentsSchema.safeParse(value);
+        return result.success ? undefined : zodFieldErrors(result);
+      },
+    },
+  });
+
   const companyDirty = useStore(companyForm.store, (state) => state.isDirty);
   const hoursDirty = useStore(hoursForm.store, (state) => state.isDirty);
   const companyInvalid = useStore(
@@ -69,40 +82,57 @@ export function EmpresaForm({ initial }: EmpresaFormProps) {
     hoursForm.store,
     (state) => state.submissionAttempts > 0 && !state.isValid,
   );
+  const paymentsDirty = useStore(paymentsForm.store, (state) => state.isDirty);
+  const paymentsInvalid = useStore(
+    paymentsForm.store,
+    (state) => state.submissionAttempts > 0 && !state.isValid,
+  );
+  const meiosAceitos = useStore(paymentsForm.store, (state) =>
+    MEIOS_PAGAMENTO.filter(({ key }) => state.values[key])
+      .map((meio) => meio.curto)
+      .join(", "),
+  );
   const razaoSocial = useStore(companyForm.store, (state) => state.values.razaoSocial);
   const openDays = useStore(
     hoursForm.store,
     (state) => state.values.horarios.filter((day) => day.aberto).length,
   );
 
-  const isDirty = companyDirty || hoursDirty;
+  const isDirty = companyDirty || hoursDirty || paymentsDirty;
   const isSaving = mutation.isPending;
 
   async function handleSave() {
     // handleSubmit marca todos os campos como tocados e valida; sem erros, o estado fica válido.
-    await Promise.all([companyForm.handleSubmit(), hoursForm.handleSubmit()]);
+    await Promise.all([companyForm.handleSubmit(), hoursForm.handleSubmit(), paymentsForm.handleSubmit()]);
 
     const companyValid = companyForm.state.isValid;
     const hoursValid = hoursForm.state.isValid;
+    const paymentsValid = paymentsForm.state.isValid;
 
-    if (!companyValid || !hoursValid) {
+    if (!companyValid || !hoursValid || !paymentsValid) {
       setOpen((current) => ({
         empresa: current.empresa || !companyValid,
         funcionamento: current.funcionamento || !hoursValid,
+        pagamentos: current.pagamentos || !paymentsValid,
       }));
-      // Espera as seções abrirem antes de focar o primeiro campo inválido.
+      // Espera as seções abrirem antes de focar o primeiro campo inválido (o switch usa data-invalid).
       requestAnimationFrame(() => {
-        sectionsRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+        sectionsRef.current?.querySelector<HTMLElement>('[aria-invalid="true"], [data-invalid="true"]')?.focus();
       });
       return;
     }
 
-    mutation.mutate({ company: companyForm.state.values, hours: hoursForm.state.values });
+    mutation.mutate({
+      company: companyForm.state.values,
+      hours: hoursForm.state.values,
+      payments: paymentsForm.state.values,
+    });
   }
 
   function handleDiscard() {
     companyForm.reset();
     hoursForm.reset();
+    paymentsForm.reset();
     mutation.reset();
   }
 
@@ -136,6 +166,15 @@ export function EmpresaForm({ initial }: EmpresaFormProps) {
             hasError={hoursInvalid}
           >
             <BusinessHoursStepFields form={hoursForm} disabled={isSaving} />
+          </AccordionItem>
+          <AccordionItem
+            title="Pagamentos"
+            summary={meiosAceitos}
+            open={open.pagamentos}
+            onOpenChange={(value) => setOpen((current) => ({ ...current, pagamentos: value }))}
+            hasError={paymentsInvalid}
+          >
+            <PagamentosFields form={paymentsForm} disabled={isSaving} />
           </AccordionItem>
         </Accordion>
 

@@ -5,6 +5,7 @@ import {
   BusinessHoursData,
   CompanyData,
   DIAS_SEMANA,
+  PaymentsData,
   TipoEmpresa,
 } from "@/types/adesao";
 
@@ -25,6 +26,10 @@ export interface AdesaoPayload {
     };
     quantidadeVagasMoto: number;
     quantidadeVagasCarro: number;
+    dinheiro: boolean;
+    pix: boolean;
+    cartaoCredito: boolean;
+    cartaoDebito: boolean;
   };
   horarios: {
     aberto: boolean;
@@ -45,6 +50,7 @@ export interface AdesaoPayload {
 export interface AdesaoInput {
   company: CompanyData;
   hours: BusinessHoursData;
+  payments: PaymentsData;
   adminUser: AdminUserData;
 }
 
@@ -59,6 +65,21 @@ export function toEnderecoPayload(company: CompanyData): EnderecoPayload {
     cidade: company.cidade.trim(),
     estado: company.estado,
     cep: formatCEP(company.cep),
+  };
+}
+
+export type PagamentosPayload = Pick<
+  AdesaoPayload["empresa"],
+  "dinheiro" | "pix" | "cartaoCredito" | "cartaoDebito"
+>;
+
+// Os quatro meios seguem o nome do contrato; compartilhado pela adesão e pelo PUT de empresa.
+export function toPaymentsPayload(payments: PaymentsData): PagamentosPayload {
+  return {
+    dinheiro: payments.dinheiro,
+    pix: payments.pix,
+    cartaoCredito: payments.cartaoCredito,
+    cartaoDebito: payments.cartaoDebito,
   };
 }
 
@@ -80,7 +101,7 @@ export function toHorariosPayload(
 
 // Único ponto que traduz o formulário para o contrato do backend.
 // Formatos seguem o exemplo recebido: documentos/telefones só com dígitos, CEP com hífen.
-export function toAdesaoPayload({ company, hours, adminUser }: AdesaoInput): AdesaoPayload {
+export function toAdesaoPayload({ company, hours, payments, adminUser }: AdesaoInput): AdesaoPayload {
   return {
     empresa: {
       razaoSocial: company.razaoSocial.trim(),
@@ -91,6 +112,7 @@ export function toAdesaoPayload({ company, hours, adminUser }: AdesaoInput): Ade
       endereco: toEnderecoPayload(company),
       quantidadeVagasMoto: Number(company.quantidadeVagasMoto),
       quantidadeVagasCarro: Number(company.quantidadeVagasCarro),
+      ...toPaymentsPayload(payments),
     },
     horarios: toHorariosPayload(hours),
     usuario: {

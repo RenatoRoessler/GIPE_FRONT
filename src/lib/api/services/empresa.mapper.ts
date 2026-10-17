@@ -7,10 +7,17 @@ import {
   CompanyData,
   DayHours,
   DIAS_SEMANA,
+  PaymentsData,
   TipoEmpresa,
 } from "@/types/adesao";
 import type { EmpresaFormValues } from "@/types/empresa";
-import { EnderecoPayload, HorarioPayload, toEnderecoPayload, toHorariosPayload } from "./adesao.mapper";
+import {
+  EnderecoPayload,
+  HorarioPayload,
+  toEnderecoPayload,
+  toHorariosPayload,
+  toPaymentsPayload,
+} from "./adesao.mapper";
 
 // Corpo plano (sem o wrapper "empresa" da adesão). O GET é assumido com o mesmo formato do PUT.
 export interface EmpresaDto {
@@ -23,6 +30,10 @@ export interface EmpresaDto {
   quantidadeVagasMoto: number;
   quantidadeVagasCarro: number;
   horarios: HorarioPayload[];
+  dinheiro: boolean;
+  pix: boolean;
+  cartaoCredito: boolean;
+  cartaoDebito: boolean;
 }
 
 const CLOSED_DAY: DayHours = {
@@ -80,10 +91,19 @@ export function fromEmpresaResponse(dto: Partial<EmpresaDto>): EmpresaFormValues
     }),
   };
 
-  return { company, hours };
+  // Empresas cadastradas antes desta configuração não trazem os campos: seguem aceitando todos os meios
+  // até o administrador revisar. Só um `false` explícito desliga um meio.
+  const payments: PaymentsData = {
+    dinheiro: dto.dinheiro ?? true,
+    pix: dto.pix ?? true,
+    cartaoCredito: dto.cartaoCredito ?? true,
+    cartaoDebito: dto.cartaoDebito ?? true,
+  };
+
+  return { company, hours, payments };
 }
 
-export function toEmpresaPayload({ company, hours }: EmpresaFormValues): EmpresaDto {
+export function toEmpresaPayload({ company, hours, payments }: EmpresaFormValues): EmpresaDto {
   return {
     razaoSocial: company.razaoSocial.trim(),
     nomeFantasia: company.nomeFantasia.trim(),
@@ -94,5 +114,6 @@ export function toEmpresaPayload({ company, hours }: EmpresaFormValues): Empresa
     quantidadeVagasMoto: Number(company.quantidadeVagasMoto),
     quantidadeVagasCarro: Number(company.quantidadeVagasCarro),
     horarios: toHorariosPayload(hours, toApiTime),
+    ...toPaymentsPayload(payments),
   };
 }

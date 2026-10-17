@@ -41,6 +41,22 @@ export interface CompanyData {
   quantidadeVagasCarro: string;
 }
 
+// Meios de pagamento que a empresa aceita; definem o que a saída de veículos oferece.
+export interface PaymentsData {
+  dinheiro: boolean;
+  pix: boolean;
+  cartaoCredito: boolean;
+  cartaoDebito: boolean;
+}
+
+// Ordem de exibição na configuração; `curto` é o nome usado no resumo da seção.
+export const MEIOS_PAGAMENTO = [
+  { key: "dinheiro", label: "Dinheiro", curto: "Dinheiro" },
+  { key: "pix", label: "Pix", curto: "Pix" },
+  { key: "cartaoCredito", label: "Cartão de crédito", curto: "Crédito" },
+  { key: "cartaoDebito", label: "Cartão de débito", curto: "Débito" },
+] as const satisfies readonly { key: keyof PaymentsData; label: string; curto: string }[];
+
 export interface DayHours {
   aberto: boolean;
   aberto24Horas: boolean;
@@ -102,6 +118,14 @@ export const EMPTY_BUSINESS_HOURS_DATA: BusinessHoursData = {
     WEEKDAY_HOURS,
     CLOSED_DAY,
   ],
+};
+
+// Padrão da adesão: só dinheiro ligado.
+export const EMPTY_PAYMENTS_DATA: PaymentsData = {
+  dinheiro: true,
+  pix: false,
+  cartaoCredito: false,
+  cartaoDebito: false,
 };
 
 export const EMPTY_ADMIN_USER_DATA: AdminUserData = {

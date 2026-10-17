@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { AdminUserStepFields } from "@/components/adesao/AdminUserStepFields";
 import { BusinessHoursStepFields } from "@/components/adesao/BusinessHoursStepFields";
 import { CompanyStepFields } from "@/components/adesao/CompanyStepFields";
+import { PagamentosFields } from "@/components/empresa/PagamentosFields";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -15,7 +16,7 @@ import { PageBackground } from "@/components/ui/PageBackground";
 import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
 import { saveAdesao } from "@/lib/api/services/adesao";
-import { adminUserSchema, businessHoursSchema, companySchema } from "@/lib/schemas/adesao";
+import { adminUserSchema, businessHoursSchema, companySchema, paymentsSchema } from "@/lib/schemas/adesao";
 import {
   AdminUserData,
   BusinessHoursData,
@@ -23,6 +24,8 @@ import {
   EMPTY_ADMIN_USER_DATA,
   EMPTY_BUSINESS_HOURS_DATA,
   EMPTY_COMPANY_DATA,
+  EMPTY_PAYMENTS_DATA,
+  PaymentsData,
 } from "@/types/adesao";
 import { Actions, Form, Header, TitleGroup } from "./OnboardingWizard.styles";
 
@@ -38,6 +41,7 @@ export function OnboardingWizard() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const stepDescriptionRef = useRef<HTMLParagraphElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const isFirstRender = useRef(true);
 
   // Ao trocar de etapa, o foco vai para a descrição da nova etapa (leitores de tela e teclado).
@@ -53,6 +57,7 @@ export function OnboardingWizard() {
     mutationFn: (payload: {
       company: CompanyData;
       hours: BusinessHoursData;
+      payments: PaymentsData;
       adminUser: AdminUserData;
     }) => saveAdesao(payload),
     onSuccess: () => {
@@ -68,10 +73,30 @@ export function OnboardingWizard() {
         return result.success ? undefined : zodFieldErrors(result);
       },
     },
-    onSubmit: () => {
-      setStep(2);
+  });
+
+  // Os meios de pagamento fazem parte da etapa 1, mas têm formulário próprio (regra do conjunto).
+  const paymentsForm = useAppForm({
+    defaultValues: EMPTY_PAYMENTS_DATA,
+    validators: {
+      onChange: ({ value }) => {
+        const result = paymentsSchema.safeParse(value);
+        return result.success ? undefined : zodFieldErrors(result);
+      },
     },
   });
+
+  // Só avança quando a empresa e os pagamentos são válidos; senão foca o primeiro campo inválido.
+  async function handleNextFromCompany() {
+    await Promise.all([companyForm.handleSubmit(), paymentsForm.handleSubmit()]);
+    if (companyForm.state.isValid && paymentsForm.state.isValid) {
+      setStep(2);
+      return;
+    }
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"], [data-invalid="true"]')?.focus();
+    });
+  }
 
   const hoursForm = useAppForm({
     defaultValues: EMPTY_BUSINESS_HOURS_DATA,
@@ -98,6 +123,7 @@ export function OnboardingWizard() {
       await mutation.mutateAsync({
         company: companyForm.state.values,
         hours: hoursForm.state.values,
+        payments: paymentsForm.state.values,
         adminUser: value,
       });
     },
@@ -125,13 +151,15 @@ export function OnboardingWizard() {
 
         {step === 1 ? (
           <Form
+            ref={formRef}
             onSubmit={(event) => {
               event.preventDefault();
               event.stopPropagation();
-              void companyForm.handleSubmit();
+              void handleNextFromCompany();
             }}
           >
             <CompanyStepFields form={companyForm} />
+            <PagamentosFields form={paymentsForm} />
             <Actions>
               <Button type="submit">Próximo</Button>
             </Actions>

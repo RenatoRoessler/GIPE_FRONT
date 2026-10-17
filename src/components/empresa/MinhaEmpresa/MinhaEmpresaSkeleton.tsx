@@ -12,6 +12,7 @@ import {
 
 const COMPANY_FIELDS = 11;
 const HOURS_ROWS = 4;
+const PAYMENT_ROWS = 2;
 
 function FieldSkeleton() {
   return (
@@ -22,7 +23,7 @@ function FieldSkeleton() {
   );
 }
 
-// Reproduz o layout dos dois accordions para evitar salto de layout quando os dados chegam.
+// Reproduz o layout dos três accordions para evitar salto de layout quando os dados chegam.
 export function MinhaEmpresaSkeleton() {
   return (
     <Sections role="status" aria-busy="true">
@@ -45,6 +46,15 @@ export function MinhaEmpresaSkeleton() {
         </SkeletonHeader>
         {Array.from({ length: HOURS_ROWS }, (_, index) => (
           <Skeleton key={index} height="44px" />
+        ))}
+      </SkeletonCard>
+      <SkeletonCard>
+        <SkeletonHeader>
+          <Skeleton width="25%" height="20px" />
+          <Skeleton width="30%" height="14px" />
+        </SkeletonHeader>
+        {Array.from({ length: PAYMENT_ROWS }, (_, index) => (
+          <Skeleton key={index} height="56px" />
         ))}
       </SkeletonCard>
     </Sections>

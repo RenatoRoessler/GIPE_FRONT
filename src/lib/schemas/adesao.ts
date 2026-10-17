@@ -103,6 +103,24 @@ export const businessHoursSchema = z
 
 export type BusinessHoursValues = z.infer<typeof businessHoursSchema>;
 
+export const PAGAMENTOS_MINIMO_MESSAGE = "Selecione ao menos um meio de pagamento";
+
+// O erro do conjunto fica no primeiro campo (`dinheiro`): `zodFieldErrors` ignora issues sem path e o
+// componente de pagamentos o exibe no nível do grupo.
+export const paymentsSchema = z
+  .object({
+    dinheiro: z.boolean(),
+    pix: z.boolean(),
+    cartaoCredito: z.boolean(),
+    cartaoDebito: z.boolean(),
+  })
+  .refine((value) => value.dinheiro || value.pix || value.cartaoCredito || value.cartaoDebito, {
+    message: PAGAMENTOS_MINIMO_MESSAGE,
+    path: ["dinheiro"],
+  });
+
+export type PaymentsValues = z.infer<typeof paymentsSchema>;
+
 export const adminUserSchema = z
   .object({
     nome: z.string().trim().min(1, "Informe o nome completo"),

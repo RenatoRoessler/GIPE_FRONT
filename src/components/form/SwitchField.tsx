@@ -7,6 +7,8 @@ export type SwitchFieldProps = {
   label: string;
   disabled?: boolean;
   "aria-label"?: string;
+  "aria-describedby"?: string;
+  invalid?: boolean;
   onChange?: (checked: boolean) => void;
 };
 
