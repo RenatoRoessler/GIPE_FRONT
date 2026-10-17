@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.118",
+      "type": "feat",
+      "scope": "saida",
+      "title": "busca a saída pelo token do cupom no lugar do código do ticket",
+      "description": "Na tela Registrar saída, o campo \"Código do ticket\" virou \"Token\". O\noperador pode digitar o código impresso no cupom ou colar o link do\ncupom; o token segue o mesmo caminho da leitura por QR Code e encontra\no veículo no pátio. A busca por placa e por sequencial continua igual.\n\nO visor da câmera deixou de repetir o token: ele aparece no campo\nToken, e o visor fica com o botão \"Limpar e ler novamente\".",
+      "date": "2026-10-17T15:03:27-03:00"
+    },
+    {
       "version": "1.0.116",
       "type": "feat",
       "scope": "saida",
