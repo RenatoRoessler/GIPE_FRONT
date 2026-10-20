@@ -1,7 +1,6 @@
 "use client";
 
 import styled from "styled-components";
-import { MOLDURA_LARGURA, MOLDURA_PROPORCAO } from "./useLeitorPlaca";
 
 export const Content = styled.div`
   display: flex;
@@ -20,15 +19,12 @@ export const Visor = styled.div`
   background-color: ${({ theme }) => theme.colors.surface};
 `;
 
-// Área da imagem que o OCR lê; as mesmas medidas recortam o quadro em useLeitorPlaca.
+// A placa é procurada no quadro inteiro; a moldura só enquadra o visor, como no leitor de QR.
 export const Moldura = styled.div`
   position: absolute;
-  top: 50%;
-  left: 50%;
+  inset: 0;
   z-index: 2;
-  width: ${MOLDURA_LARGURA * 100}%;
-  aspect-ratio: ${MOLDURA_PROPORCAO};
-  transform: translate(-50%, -50%);
+  pointer-events: none;
 `;
 
 export const Mensagem = styled.p`

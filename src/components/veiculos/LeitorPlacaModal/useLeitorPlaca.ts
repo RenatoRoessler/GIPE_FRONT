@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { criarConsenso, criarReconhecedorPlaca, extrairPlaca, type ReconhecedorPlaca } from "@/lib/ocrPlaca";
+import { criarConsenso, extrairPlaca } from "@/lib/ocrPlaca";
+import { criarReconhecedorPlaca, type ReconhecedorPlaca } from "@/lib/reconhecedorPlaca";
 
 export type LeitorPlacaEstado = "ocioso" | "abrindo" | "lendo" | "negada" | "indisponivel" | "sem-leitura";
 
@@ -24,54 +25,8 @@ export interface UseLeitorPlaca {
   iniciar: () => void;
 }
 
-// A moldura de enquadramento ocupa 80% da largura do vídeo, em proporção de placa (≈ 3:1).
-export const MOLDURA_LARGURA = 0.8;
-export const MOLDURA_PROPORCAO = 3;
-const ALTURA_OCR = 96;
 const TEMPO_LIMITE_MS = 15000;
 const INTERVALO_MS = 400;
-
-// Recorta a moldura, passa para tons de cinza e estica o contraste para o OCR.
-function prepararQuadro(video: HTMLVideoElement, canvas: HTMLCanvasElement): boolean {
-  const contexto = canvas.getContext("2d", { willReadFrequently: true });
-  if (!contexto || !video.videoWidth || !video.videoHeight) {
-    return false;
-  }
-
-  const largura = video.videoWidth * MOLDURA_LARGURA;
-  const altura = Math.min(largura / MOLDURA_PROPORCAO, video.videoHeight);
-  canvas.height = ALTURA_OCR;
-  canvas.width = Math.round(ALTURA_OCR * (largura / altura));
-  contexto.drawImage(
-    video,
-    (video.videoWidth - largura) / 2,
-    (video.videoHeight - altura) / 2,
-    largura,
-    altura,
-    0,
-    0,
-    canvas.width,
-    canvas.height,
-  );
-
-  const imagem = contexto.getImageData(0, 0, canvas.width, canvas.height);
-  const { data } = imagem;
-  let minimo = 255;
-  let maximo = 0;
-  for (let i = 0; i < data.length; i += 4) {
-    const cinza = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
-    data[i] = data[i + 1] = data[i + 2] = cinza;
-    minimo = Math.min(minimo, cinza);
-    maximo = Math.max(maximo, cinza);
-  }
-  const faixa = Math.max(maximo - minimo, 1);
-  for (let i = 0; i < data.length; i += 4) {
-    const valor = Math.round(((data[i] - minimo) / faixa) * 255);
-    data[i] = data[i + 1] = data[i + 2] = valor;
-  }
-  contexto.putImageData(imagem, 0, 0);
-  return true;
-}
 
 export function useLeitorPlaca({
   ativo,
@@ -170,7 +125,6 @@ export function useLeitorPlaca({
     }
 
     function varrer(video: HTMLVideoElement, reconhecedor: ReconhecedorPlaca, atual: number) {
-      const canvas = document.createElement("canvas");
       const consenso = criarConsenso();
 
       limiteRef.current = setTimeout(() => {
@@ -187,8 +141,8 @@ export function useLeitorPlaca({
         }
         const inicio = Date.now();
         try {
-          if (video.readyState >= 2 && prepararQuadro(video, canvas)) {
-            const texto = await reconhecedor.reconhecer(canvas);
+          if (video.readyState >= 2) {
+            const texto = await reconhecedor.reconhecer(video);
             if (atual !== sessaoRef.current) {
               return;
             }

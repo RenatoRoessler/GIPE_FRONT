@@ -15,8 +15,6 @@ const leitor = vi.hoisted(() => ({
 vi.mock("./useLeitorPlaca", async () => {
   const { createRef } = await import("react");
   return {
-    MOLDURA_LARGURA: 0.8,
-    MOLDURA_PROPORCAO: 3,
     useLeitorPlaca: (options: UseLeitorPlacaOptions) => {
       leitor.options = options;
       return {

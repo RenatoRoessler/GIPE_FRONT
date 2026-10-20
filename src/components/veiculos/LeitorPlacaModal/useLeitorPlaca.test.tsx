@@ -5,10 +5,7 @@ import { useLeitorPlaca } from "./useLeitorPlaca";
 const reconhecer = vi.hoisted(() => vi.fn());
 const encerrar = vi.hoisted(() => vi.fn());
 const criarReconhecedorPlaca = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/ocrPlaca", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/ocrPlaca")>()),
-  criarReconhecedorPlaca,
-}));
+vi.mock("@/lib/reconhecedorPlaca", () => ({ criarReconhecedorPlaca }));
 
 interface HarnessProps {
   ativo: boolean;
@@ -51,13 +48,6 @@ beforeEach(() => {
   Object.defineProperty(navigator, "mediaDevices", { value: { getUserMedia }, configurable: true });
   vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, "readyState", "get").mockReturnValue(4);
-  vi.spyOn(HTMLVideoElement.prototype, "videoWidth", "get").mockReturnValue(640);
-  vi.spyOn(HTMLVideoElement.prototype, "videoHeight", "get").mockReturnValue(480);
-  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
-    drawImage: vi.fn(),
-    getImageData: () => ({ data: new Uint8ClampedArray([10, 20, 30, 255, 200, 210, 220, 255]) }),
-    putImageData: vi.fn(),
-  } as unknown as CanvasRenderingContext2D);
 });
 
 afterEach(() => {
@@ -67,9 +57,11 @@ afterEach(() => {
 const estado = () => screen.getByTestId("estado").textContent;
 
 describe("useLeitorPlaca", () => {
-  it("abre a câmera traseira, sem áudio, e passa a ler", async () => {
+  it("abre a câmera traseira, sem áudio, e passa a ler o vídeo", async () => {
     render(<Harness ativo />);
     await waitFor(() => expect(estado()).toBe("lendo"));
+    await waitFor(() => expect(reconhecer).toHaveBeenCalled());
+    expect(reconhecer.mock.calls[0][0]).toBe(screen.getByTestId("video"));
     expect(getUserMedia).toHaveBeenCalledWith({ video: { facingMode: { ideal: "environment" } }, audio: false });
     expect(criarReconhecedorPlaca).toHaveBeenCalledTimes(1);
   });

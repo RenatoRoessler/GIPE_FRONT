@@ -51,35 +51,3 @@ export function criarConsenso(leiturasNecessarias = 2) {
     },
   };
 }
-
-export interface ReconhecedorPlaca {
-  // Texto cru reconhecido na imagem (o recorte já deve conter só a placa).
-  reconhecer: (imagem: HTMLCanvasElement) => Promise<string>;
-  encerrar: () => Promise<void>;
-}
-
-const CARACTERES_PLACA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-// Cria o OCR sob demanda: o tesseract.js só é baixado aqui, e seus arquivos vêm de public/ocr (ver scripts/copy-ocr-assets.mjs).
-export async function criarReconhecedorPlaca(): Promise<ReconhecedorPlaca> {
-  const { default: Tesseract } = await import("tesseract.js");
-  // O worker nasce de um blob, então os caminhos precisam ser absolutos.
-  const base = `${window.location.origin}/ocr`;
-
-  const worker = await Tesseract.createWorker("eng", Tesseract.OEM.LSTM_ONLY, {
-    workerPath: `${base}/worker.min.js`,
-    corePath: `${base}/core`,
-    langPath: `${base}/lang`,
-  });
-  await worker.setParameters({
-    tessedit_char_whitelist: CARACTERES_PLACA,
-    tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-  });
-
-  return {
-    reconhecer: async (imagem) => (await worker.recognize(imagem)).data.text,
-    encerrar: async () => {
-      await worker.terminate();
-    },
-  };
-}

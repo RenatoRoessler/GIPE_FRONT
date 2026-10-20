@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { criarConsenso, extrairPlaca } from "./ocrPlaca";
 
 describe("extrairPlaca", () => {
@@ -54,41 +54,5 @@ describe("criarConsenso", () => {
     consenso.registrar("ABC1D23");
     consenso.reiniciar();
     expect(consenso.registrar("ABC1D23")).toBeNull();
-  });
-});
-
-describe("criarReconhecedorPlaca", () => {
-  it("cria o worker com arquivos locais, só letras e números e linha única", async () => {
-    const recognize = vi.fn().mockResolvedValue({ data: { text: "ABC1D23\n" } });
-    const setParameters = vi.fn().mockResolvedValue(undefined);
-    const terminate = vi.fn().mockResolvedValue(undefined);
-    const createWorker = vi.fn().mockResolvedValue({ recognize, setParameters, terminate });
-    vi.doMock("tesseract.js", () => ({
-      default: { createWorker, OEM: { LSTM_ONLY: 1 }, PSM: { SINGLE_LINE: "7" } },
-    }));
-
-    const { criarReconhecedorPlaca } = await import("./ocrPlaca");
-    const reconhecedor = await criarReconhecedorPlaca();
-
-    const [idioma, motor, caminhos] = createWorker.mock.calls[0];
-    expect(idioma).toBe("eng");
-    expect(motor).toBe(1);
-    expect(caminhos).toEqual({
-      workerPath: `${window.location.origin}/ocr/worker.min.js`,
-      corePath: `${window.location.origin}/ocr/core`,
-      langPath: `${window.location.origin}/ocr/lang`,
-    });
-    expect(setParameters).toHaveBeenCalledWith({
-      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-      tessedit_pageseg_mode: "7",
-    });
-
-    const canvas = document.createElement("canvas");
-    expect(await reconhecedor.reconhecer(canvas)).toBe("ABC1D23\n");
-    expect(recognize).toHaveBeenCalledWith(canvas);
-
-    await reconhecedor.encerrar();
-    expect(terminate).toHaveBeenCalledTimes(1);
-    vi.doUnmock("tesseract.js");
   });
 });
