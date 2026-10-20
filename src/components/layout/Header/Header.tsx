@@ -1,5 +1,6 @@
 "use client";
 
+import { InstallPwaButton } from "@/components/layout/InstallPwaButton";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Logo } from "@/components/ui/Logo";
 import { Text } from "@/components/ui/Text";
@@ -36,6 +37,7 @@ export function Header() {
             </Text>
           )}
         </Welcome>
+        <InstallPwaButton variant="icon" />
         <ThemeToggleButton
           type="button"
           onClick={toggleThemeMode}

@@ -1,3 +1,4 @@
+import { InstallPwaButton } from "@/components/layout/InstallPwaButton";
 import { DashboardContent } from "@/components/home/DashboardContent";
 import { Card } from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
@@ -12,6 +13,7 @@ export default function DashboardPage() {
         <Text variant="heading">Bem-vindo ao GIPE</Text>
         <Text variant="muted">Mais informações aparecerão aqui em breve.</Text>
       </Card>
+      <InstallPwaButton variant="full" />
       <ActionRow>
         <RegistrarEntradaButton />
         <RegistrarSaidaButton />

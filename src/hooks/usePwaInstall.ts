@@ -1,10 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+// O navegador dispara `beforeinstallprompt` uma única vez; guardamos o evento fora do React
+// para que qualquer botão de instalar (header, dashboard, menu) o encontre, mesmo montado depois.
+let installEvent: BeforeInstallPromptEvent | null = null;
+let installed = false;
+let listening = false;
+const listeners = new Set<() => void>();
+
+function emit() {
+  snapshot = computeSnapshot();
+  listeners.forEach((listener) => listener());
 }
 
 function isStandalone() {
@@ -14,45 +26,68 @@ function isStandalone() {
   );
 }
 
+interface PwaInstallState {
+  canInstall: boolean;
+  showIosHint: boolean;
+}
+
+const serverSnapshot: PwaInstallState = { canInstall: false, showIosHint: false };
+
+function computeSnapshot(): PwaInstallState {
+  const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const standalone = installed || isStandalone();
+  return {
+    canInstall: !standalone && installEvent !== null,
+    showIosHint: !standalone && isIos && installEvent === null,
+  };
+}
+
+let snapshot: PwaInstallState | null = null;
+
+function getSnapshot() {
+  snapshot ??= computeSnapshot();
+  return snapshot;
+}
+
+function startListening() {
+  if (listening) return;
+  listening = true;
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    installEvent = event as BeforeInstallPromptEvent;
+    emit();
+  });
+  window.addEventListener("appinstalled", () => {
+    installed = true;
+    installEvent = null;
+    emit();
+  });
+}
+
+function subscribe(listener: () => void) {
+  startListening();
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
 export function usePwaInstall() {
-  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isIos, setIsIos] = useState(false);
-  const [installed, setInstalled] = useState(true);
-
-  useEffect(() => {
-    // Detecção depende do navegador, então só roda após a montagem (evita divergência na hidratação).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setInstalled(isStandalone());
-    setIsIos(/iPad|iPhone|iPod/.test(navigator.userAgent));
-
-    function handleBeforeInstall(event: Event) {
-      event.preventDefault();
-      setInstallEvent(event as BeforeInstallPromptEvent);
-    }
-
-    function handleInstalled() {
-      setInstalled(true);
-      setInstallEvent(null);
-    }
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
-    window.addEventListener("appinstalled", handleInstalled);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
-      window.removeEventListener("appinstalled", handleInstalled);
-    };
-  }, []);
+  const { canInstall, showIosHint } = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    () => serverSnapshot,
+  );
 
   const install = useCallback(async () => {
     if (!installEvent) return;
-    await installEvent.prompt();
-    await installEvent.userChoice;
-    setInstallEvent(null);
-  }, [installEvent]);
+    const event = installEvent;
+    await event.prompt();
+    await event.userChoice;
+    installEvent = null;
+    emit();
+  }, []);
 
-  return {
-    canInstall: !installed && installEvent !== null,
-    showIosHint: !installed && isIos,
-    install,
-  };
+  return { canInstall, showIosHint, install };
 }
