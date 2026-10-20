@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.149",
+      "type": "feat",
+      "scope": "veiculos",
+      "title": "permite ler a placa pela câmera na entrada e na saída",
+      "description": "O campo de placa da entrada de veículo e da busca manual da saída ganha um\nbotão com ícone de câmera. Ao tocar, a câmera abre, o sistema reconhece a\nplaca no próprio aparelho (sem enviar imagem a terceiros) e mostra o que leu\npara o operador conferir, corrigir e confirmar antes de preencher o campo.\nSe a leitura falhar, a câmera for negada ou não existir, o operador pode\ntentar de novo ou digitar a placa.\n\n- Botão de câmera no design system e espaço à direita em Input e PlateField\n- Modal com leitura e conferência, com mensagens para cada tipo de falha\n- Extração da placa com correção de confusões e confirmação em 2 leituras\n- Na entrada, a placa lida também consulta o cadastro do veículo",
+      "date": "2026-10-20T18:53:04-03:00"
+    },
+    {
       "version": "1.0.146",
       "type": "feat",
       "scope": "pwa",
