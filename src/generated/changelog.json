@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.144",
+      "type": "feat",
+      "scope": "pwa",
+      "title": "permite instalar o sistema no celular ou computador",
+      "description": "O GIPE agora pode ser instalado como aplicativo. Ao entrar no sistema, o\nmenu do usuário mostra \"Instalar aplicativo\" (no iPhone, aparece a dica de\ncomo adicionar à tela de início). Sem internet, o app mostra uma página\navisando a falta de conexão, e nenhum dado é guardado no aparelho.\n\n- Manifest, ícones e metatags do iOS\n- Service worker apenas para instalação e página offline\n- Proxy libera manifest, service worker e ícones sem login",
+      "date": "2026-10-20T18:16:26-03:00"
+    },
+    {
       "version": "1.0.142",
       "type": "feat",
       "scope": "precos",
