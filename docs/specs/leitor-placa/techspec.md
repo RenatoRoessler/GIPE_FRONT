@@ -1,5 +1,7 @@
 # Tech Spec: Leitor de placa pela câmera
 
+> **Atualização (2026-10-20):** o OCR genérico (`tesseract.js`) foi trocado por **dois modelos feitos para placas** rodando no aparelho com `onnxruntime-web`: um detector que acha a placa no quadro inteiro e um leitor de caracteres. Com fotos reais de carros, o Tesseract errou até com a placa recortada à mão (`QXV7G23` virava `QXV7623`, `IWT8659` virava `NT8859`) e quase não achava a placa no quadro inteiro; os modelos de placa acertaram as duas em todos os enquadramentos testados (retrato, paisagem 16:9 e placa pequena). As seções abaixo foram ajustadas; onde aparecer "moldura de enquadramento" ou "recorte", vale o novo comportamento: a placa é procurada no quadro todo.
+
 ## Referências
 - PRD: ./prd.md
 - Design: ./design.md (resumo na seção "Design" abaixo)
@@ -11,7 +13,8 @@
 - **Componentes novos**:
   - `src/components/ui/CameraButton/` (`CameraButton.tsx`, `CameraButton.styles.ts`, `index.ts`): botão circular com ícone de câmera.
   - `src/components/veiculos/LeitorPlacaModal/` (`LeitorPlacaModal.tsx`, `LeitorPlacaModal.styles.ts`, `useLeitorPlaca.ts`, `index.ts`): modal e hook de leitura.
-  - `src/lib/ocrPlaca.ts`: carga do OCR e extração da placa a partir do texto.
+  - `src/lib/ocrPlaca.ts`: extração da placa a partir do texto e consenso entre leituras.
+  - `src/lib/reconhecedorPlaca.ts`: detector e leitor de placa (onnxruntime-web).
 - **Tokens de tema**: nenhum novo (ver `design.md`, seção 3).
 
 ## Arquitetura da solução
@@ -24,21 +27,19 @@
 | `src/components/veiculos/EntradaVeiculoModal/EntradaVeiculoModal.tsx` | Passa `action={<CameraButton />}` ao `PlateField`; guarda `leitorAberto`; ao confirmar, `field.handleChange(placa)` (mesmo caminho da digitação, para disparar a consulta de placa existente). Botão desabilitado enquanto envia. |
 | `src/components/veiculos/BuscaManualSaida/BuscaManualSaida.tsx` | Passa `endAction` ao `Input` de placa; ao confirmar, chama `onChange("placa", placa)`. |
 | `src/proxy.ts` | Adicionar `ocr` às exclusões do `matcher` (arquivos do OCR em `public/ocr/`, buscados sem cookie). |
-| `package.json` | Nova dependência `tesseract.js`; script que copia os arquivos do OCR para `public/ocr/` (ver abaixo). |
+| `package.json` | Nova dependência `onnxruntime-web`; script `postinstall` que copia o runtime WASM para `public/ocr/ort/` (ver abaixo). |
 
-### Reconhecimento da placa (OCR no aparelho)
-- **Biblioteca**: `tesseract.js` (7.x, última versão estável no npm; fixar versão exata como as demais dependências do projeto). Roda em Web Worker, em WebAssembly, sem serviço externo.
-- **Arquivos auto-hospedados**: por padrão a biblioteca baixa worker, núcleo WASM e dados de idioma de CDNs de terceiros. Isso contraria o PRD (sem terceiros) e depende de rede externa. Os três são copiados para `public/ocr/` (worker de `tesseract.js`, núcleo de `tesseract.js-core`, dados do idioma `eng` de `@tesseract.js-data/eng`) e passados via `workerPath`, `corePath` e `langPath`. `public/ocr/` é gerado por script e entra no `.gitignore` (não versionar binários de terceiros).
-- **Carga sob demanda**: `src/lib/ocrPlaca.ts` faz `import("tesseract.js")` somente quando o modal abre, no mesmo espírito do `import("jsqr")` do `useLeitorQr`. Nada disso entra no bundle inicial. O worker é criado uma vez por abertura do modal e encerrado (`terminate`) ao fechar.
-- **Configuração do OCR**: idioma `eng`; `tessedit_char_whitelist` = `ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`; modo de página de linha única (`PSM.SINGLE_LINE`).
-- **Pré-processamento** (canvas, por quadro): recortar a região da moldura de enquadramento (não o vídeo inteiro), converter para escala de cinza e aumentar o contraste; ampliar para altura fixa (≈ 96 px) antes de enviar ao OCR.
-- **Extração e validação** (`ocrPlaca.ts`):
-  - `extrairPlaca(texto: string): string | null`: normaliza com `normalizePlaca` e procura uma janela de 7 caracteres que seja válida por `isValidPlaca`.
-  - Correção de confusões típicas só nas posições em que o tipo é conhecido (3 primeiras = letras: `0→O`, `1→I`, `5→S`, `8→B`; posições 4, 6 e 7 = dígitos: `O→0`, `I→1`, `S→5`, `B→8`; a 5ª aceita letra ou dígito e define o padrão, como em `getPlacaTipo`). Só devolve resultado se, depois da correção, `isValidPlaca` for verdadeiro.
-  - Texto que não vira placa válida é descartado e a leitura continua (RF-03).
-- **Confiança por consenso**: a placa só vai para a conferência quando o mesmo valor válido é lido em **2 quadros consecutivos**. A conferência humana (RF-04) continua obrigatória; o consenso só reduz ruído.
-- **Tempo esgotado**: sem placa válida em ~15 s a leitura para e vai ao estado "Não consegui ler" (RF-03).
-- **Cadência**: um quadro por vez (flag `ocupado`, como no `useLeitorQr`), com intervalo mínimo de ~400 ms para não saturar a CPU em aparelhos fracos.
+### Reconhecimento da placa (no aparelho)
+- **Runtime**: `onnxruntime-web` 1.22 (entrada `onnxruntime-web/wasm`, só CPU/WASM), carregado com `import()` somente quando o modal abre. Uma thread (`numThreads = 1`), pois o app não tem isolamento entre origens.
+- **Modelos** (versionados em `public/ocr/modelos/`, ≈ 13 MB, sem rede de terceiros em tempo de execução):
+  - `placa-detector.onnx`: `yolo-v9-t-512-license-plates-end2end` (open-image-models, MIT). Entrada `float32 [1,3,512,512]` (RGB 0–1, quadro encaixado com bordas cinza 114); saída com linhas `[lote, x1, y1, x2, y2, classe, confiança]`.
+  - `placa-leitor.onnx`: `cct_s_v2_global` (fast-plate-ocr, MIT). Entrada `uint8 [1,64,128,3]` (recorte da placa em RGB); saída `plate` com 10 posições × 37 símbolos (`0-9A-Z_`) em probabilidades.
+- **Runtime copiado de `node_modules`**: `scripts/copy-ocr-assets.mjs` (postinstall) copia `ort-wasm-simd-threaded.{mjs,wasm}` para `public/ocr/ort/` (≈ 11 MB, fora do git). O `proxy.ts` já exclui `ocr` do `matcher`.
+- **Fluxo por leitura** (`src/lib/reconhecedorPlaca.ts`, `reconhecer(video)`): desenha o quadro inteiro do vídeo no detector, pega a caixa mais confiante (≥ 0.4), recorta a placa do vídeo com folga (4% na largura e 6% na altura) para 128×64, lê os caracteres e só devolve o texto se a menor probabilidade entre os caracteres for ≥ 0.8.
+- **Funções puras testadas**: `calcularLetterbox`, `melhorDeteccao` e `decodificarPlaca`.
+- **Validação e correção** (`src/lib/ocrPlaca.ts`): `extrairPlaca` só devolve placa que passa em `isValidPlaca`, com correção de confusões nas posições onde o tipo é conhecido; `criarConsenso` exige o mesmo valor em **2 leituras consecutivas**. Mantidos do desenho anterior.
+- **Tempo esgotado**: sem placa válida em ≈ 15 s a leitura para e vai ao estado "Não consegui ler".
+- **Cadência**: uma leitura por vez e intervalo mínimo ≈ 400 ms. Medido em Chrome: ≈ 200 ms por leitura e ≈ 0,5 s para carregar modelos e runtime (rede local).
 
 ### Câmera e ciclo de vida (`useLeitorPlaca`)
 - Mesmo contrato do `useLeitorQr` (`videoRef`, `estado`, `iniciar`), com estados `ocioso | abrindo | lendo | negada | indisponivel | sem-leitura` e saída `onPlaca(placa)`.
@@ -51,7 +52,7 @@
 - **Client Component** (câmera, estado e worker).
 - Props: `open: boolean`, `onClose: () => void`, `onConfirm: (placa: string) => void`.
 - Usa `Modal` com `closeOnBackdrop={false}` (câmera ativa) e `fullScreenOnMobile`.
-- Etapas: `leitura` (visor + moldura) e `conferencia` (`PlateDisplay size="md"` + `Input` editável normalizado por `normalizePlaca`, `maxLength={7}`; **Usar placa** só habilita com `isValidPlaca`).
+- Etapas: `leitura` (visor com cantos de enquadramento; a placa é procurada no quadro inteiro) e `conferencia` (`PlateDisplay size="md"` + `Input` editável normalizado por `normalizePlaca`, `maxLength={7}`; **Usar placa** só habilita com `isValidPlaca`).
 - Erros: mensagens e botões conforme a tabela de estados do `design.md`; "Digitar" = `onClose`, e o foco volta ao campo de placa.
 - Na conferência a câmera já está desligada (o stream é parado ao reconhecer); **Ler de novo** reinicia o hook.
 
@@ -66,8 +67,8 @@ Todas as peças novas são **Client Components** (câmera, worker, estado). Nenh
 Sem mudança de API nem de tipos de domínio. O resultado da leitura é uma `string` de placa normalizada. Tipos locais (`LeitorPlacaEstado`, props) ficam junto dos componentes.
 
 ## Decisões técnicas e trade-offs
-- **OCR no aparelho (`tesseract.js`) em vez de serviço externo**: atende "sem custo e sem enviar imagem a terceiros" (PRD). Trade-off: precisão menor que a de serviços especializados em placa, mitigada por moldura, pré-processamento, whitelist, validação de formato e confirmação humana.
-- **Arquivos do OCR auto-hospedados**: evita CDN de terceiros; o custo é peso no deploy (dezenas de MB em `public/ocr`, baixados só quando o modal abre) e um script de cópia.
+- **Modelos de placa no aparelho em vez de OCR genérico ou serviço externo**: atende "sem custo e sem enviar imagem a terceiros" (PRD). O OCR genérico (`tesseract.js`) foi testado primeiro e reprovado com fotos reais; o detector mais o leitor de placas resolveu os mesmos casos. Trade-off: ≈ 24 MB de arquivos estáticos (modelos e runtime), baixados só quando o modal abre.
+- **Arquivos hospedados no projeto**: evita CDN de terceiros; os modelos são versionados (não há pacote npm deles) e o runtime vem de `node_modules` pelo script de cópia.
 - **Carga sob demanda**: o OCR só é baixado na primeira abertura do modal; o navegador faz cache HTTP desses arquivos. O service worker do PWA não guarda cache de dados, então não interfere. Mostrar "Preparando leitura…" enquanto o worker carrega.
 - **Consenso de 2 quadros**: pequena latência a mais em troca de menos leituras erradas apresentadas ao operador.
 - **Não generalizar `useLeitorQr`**: evita risco de regressão no leitor de QR; a duplicação mínima de abertura/parada da câmera é aceitável por ora.
@@ -75,17 +76,19 @@ Sem mudança de API nem de tipos de domínio. O resultado da leitura é uma `str
 - **Preencher o campo, não disparar ação**: confirmar só preenche a placa (RF-04); a consulta de placa da entrada e a busca da saída continuam sendo disparadas pelo fluxo normal.
 
 ## Riscos / pontos de atenção
-- **Precisão do OCR** em placas sujas, refletidas, à noite ou muito inclinadas pode cair bastante. Validar com fotos reais antes de dar por concluída (a métrica do PRD ainda está `[A DEFINIR]`).
+- **Precisão**: validada com 2 fotos reais (placa Mercosul e antiga, em garagem com pouca luz): 100% de acerto em retrato, paisagem 16:9 e placa pequena. É uma amostra pequena; validar com mais fotos antes de dar por concluída (a métrica do PRD segue `[A DEFINIR]`).
+- **Licença dos modelos**: os repositórios `open-image-models` e `fast-plate-ocr` são MIT, mas o detector é um YOLOv9 treinado por eles; confirmar se os pesos derivados da arquitetura YOLOv9 (originalmente GPL-3.0) podem ser redistribuídos neste produto.
 - **Desempenho em celulares antigos**: WASM + OCR contínuo pode esquentar ou travar; cadência limitada e tempo esgotado mitigam. Testar em um aparelho modesto.
 - **Contexto seguro**: `getUserMedia` só funciona em HTTPS ou `localhost`; ambientes internos em HTTP não vão funcionar (mensagem específica já prevista).
 - **iOS Safari**: `video.play()` exige `playsInline` e `muted`, como já feito no `LeitorQrSaida`; testar a permissão também no PWA instalado.
-- **Peso e licença**: confirmar a licença (Apache-2.0) e o tamanho final de `public/ocr/`; o dado de idioma `eng` na variante "fast" basta e é menor que o "best".
-- **CSP**: se uma CSP for adotada no futuro, o worker e o WASM exigirão `worker-src` e `wasm-unsafe-eval`. Hoje não há CSP em `next.config.ts`.
+- **Peso**: `public/ocr/` soma ≈ 24 MB (13 MB de modelos versionados e 11 MB de runtime gerado).
+- **CSP**: se uma CSP for adotada no futuro, o WASM exigirá `wasm-unsafe-eval`. Hoje não há CSP em `next.config.ts`.
 - **`proxy.ts`**: sem excluir `ocr` do `matcher`, requisições sem cookie de sessão seriam redirecionadas para `/login`. Excluir como foi feito para `icons`.
 - **Ao implementar**: conferir a doc desta versão do Next em `node_modules/next/dist/docs/` (arquivos em `public/` e `matcher` do proxy) antes de mexer em `proxy.ts`, conforme `AGENTS.md`.
 
 ## Testes
-- `ocrPlaca.test.ts`: extração e correção de confusões (placa antiga e Mercosul, ruído, texto sem placa).
+- `ocrPlaca.test.ts`: extração e correção de confusões (placa antiga e Mercosul, ruído, texto sem placa) e consenso.
+- `reconhecedorPlaca.test.ts`: `calcularLetterbox`, `melhorDeteccao`, `decodificarPlaca` e a montagem do runtime com `onnxruntime-web` simulado.
 - `LeitorPlacaModal.test.tsx` (mockando `getUserMedia` e o módulo de OCR): leitura → conferência → confirmar; editar na conferência; câmera negada; indisponível; tempo esgotado; parada dos tracks ao fechar.
 - `CameraButton.test.tsx`: rótulo acessível e `disabled`.
 - Ajustar os testes de `EntradaVeiculoModal` e `BuscaManualSaida`: botão presente; confirmar preenche o campo; desabilitado enquanto envia.
@@ -96,4 +99,4 @@ Sem mudança de API nem de tipos de domínio. O resultado da leitura é uma `str
 - Guardar foto ou enviar imagem a qualquer servidor.
 - Leitura contínua/automática sem ação do operador e reconhecimento de modelo ou cor.
 - Botão de câmera em outros campos de placa (ex.: mensalistas).
-- Treinar ou ajustar um modelo próprio de OCR.
+- Treinar ou ajustar um modelo próprio.

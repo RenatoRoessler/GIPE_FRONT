@@ -1,5 +1,7 @@
 # Design Spec: Leitor de placa pela câmera
 
+> **Atualização (2026-10-20):** o leitor passou a procurar a placa no quadro inteiro (ver `techspec.md`). Por isso a moldura em proporção de placa virou apenas os cantos de enquadramento do visor, como no leitor de QR, e o operador não precisa encher o visor com a placa.
+
 Insumo para o Tech Spec. Baseado em `prd.md` (RF-01 a RF-06). Segue o design system (`src/styles/theme.ts` + `src/components/ui`); nenhum valor visual solto.
 
 Três superfícies: **(A)** botão de câmera no campo de placa da entrada, **(B)** botão de câmera no campo de placa da busca manual da saída e **(C)** o modal de leitura, único e compartilhado por A e B.
@@ -57,7 +59,7 @@ Leitura                              Conferência
 | Estado | Comportamento visual |
 |--------|----------------------|
 | Abrindo câmera | Visor com `colors.surface` e mensagem "Abrindo câmera…". |
-| Lendo | Vídeo ocupando o visor, com **moldura de enquadramento** em proporção de placa (largura ≈ 3× a altura) centralizada. Cantos da moldura em `colors.warn`, como a mira do leitor de QR. Texto de apoio abaixo: "Aponte a câmera para a placa". |
+| Lendo | Vídeo ocupando o visor, com **cantos de enquadramento** nas extremidades do visor. Cantos em `colors.warn`, como a mira do leitor de QR. Texto de apoio abaixo: "Aponte a câmera para a placa". |
 | Reconhecido | Cantos da moldura passam a `colors.success`, vibração curta (como no QR) e vai para a etapa de conferência. |
 | Conferência | `PlateDisplay size="md"` mostrando a placa lida (variante Mercosul/antiga derivada), abaixo o `Input` de placa com o valor, editável e normalizado como a digitação manual. Botões: **Usar placa** (`Button` primary) e **Ler de novo** (`Button` secondary). |
 | Sem sucesso (tempo esgotado) | Moldura em `colors.danger`; mensagem "Não consegui ler a placa. Tente de novo ou digite." com botões **Tentar de novo** (primary) e **Digitar** (secondary, fecha o modal e devolve o foco ao campo). |
