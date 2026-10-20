@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.146",
+      "type": "feat",
+      "scope": "pwa",
+      "title": "adiciona botão de instalar no header e no dashboard",
+      "description": "O usuário pode instalar o aplicativo direto pelo cabeçalho (botão com\nícone de download) e pelo dashboard (botão com explicação). No iPhone e\niPad, o dashboard mostra como adicionar à tela de início.\n\nO evento de instalação do navegador agora é guardado fora do React, para\nque qualquer botão o encontre mesmo que seja exibido depois que o\nnavegador o disparou.",
+      "date": "2026-10-20T18:30:14-03:00"
+    },
+    {
       "version": "1.0.144",
       "type": "feat",
       "scope": "pwa",
