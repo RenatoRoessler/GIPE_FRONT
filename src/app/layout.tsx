@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import StyledComponentsRegistry from "@/lib/registry";
+import { ServiceWorkerRegister } from "@/components/layout/ServiceWorkerRegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,6 +17,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "GIPE — Gestão Inteligente para Estacionamentos",
   description: "Sistema de gestão de estacionamentos.",
+  applicationName: "GIPE",
+  appleWebApp: { capable: true, title: "GIPE", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2C5CE0",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -23,6 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

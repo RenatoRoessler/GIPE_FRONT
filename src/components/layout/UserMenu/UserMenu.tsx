@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { clearToken } from "@/lib/auth";
+import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { clearRememberedLogin } from "@/lib/rememberedLogin";
 import {
   Avatar,
   Divider,
   Dropdown,
   DropdownItemLink,
+  InstallButton,
+  InstallHint,
   LogoutButton,
   Wrapper,
 } from "./UserMenu.styles";
@@ -25,6 +28,7 @@ export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { canInstall, showIosHint, install } = usePwaInstall();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -77,6 +81,21 @@ export function UserMenu() {
           >
             Editar Usuário
           </DropdownItemLink>
+          {canInstall && (
+            <InstallButton
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setIsOpen(false);
+                void install();
+              }}
+            >
+              Instalar aplicativo
+            </InstallButton>
+          )}
+          {!canInstall && showIosHint && (
+            <InstallHint>Para instalar: toque em Compartilhar e depois em &ldquo;Adicionar à Tela de Início&rdquo;.</InstallHint>
+          )}
           <Divider />
           <LogoutButton type="button" role="menuitem" onClick={handleLogout}>
             Sair

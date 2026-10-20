@@ -85,3 +85,30 @@ export const LogoutButton = styled.button`
     outline-offset: 2px;
   }
 `;
+
+export const InstallButton = styled.button`
+  padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.sm};
+  background: none;
+  text-align: left;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.surface};
+  }
+
+  &:focus-visible {
+    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline-offset: 2px;
+  }
+`;
+
+export const InstallHint = styled.p`
+  margin: 0;
+  padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textMuted};
+`;

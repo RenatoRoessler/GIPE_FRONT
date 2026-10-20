@@ -19,6 +19,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Todas as rotas, exceto arquivos estáticos e a pasta public/assets (a logo aparece na adesão, sem login).
-  matcher: ["/((?!_next/static|_next/image|assets|favicon.ico|icon.png).*)"],
+  // Todas as rotas, exceto arquivos estáticos, public/assets (a logo aparece na adesão, sem login) e os arquivos do PWA
+  // (manifest, service worker, ícones e página offline), que o navegador busca sem cookie.
+  matcher: ["/((?!_next/static|_next/image|assets|icons|favicon.ico|icon.png|manifest.webmanifest|sw.js|offline.html).*)"],
 };
