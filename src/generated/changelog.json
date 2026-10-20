@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.152",
+      "type": "fix",
+      "scope": "veiculos",
+      "title": "melhora a leitura da placa pela câmera",
+      "description": "A leitura anterior errava com fotos reais de carros e quase não achava a\nplaca quando o carro inteiro aparecia na câmera. Agora o sistema encontra a\nplaca no quadro todo e lê os caracteres com modelos feitos para placas,\nque rodam no próprio aparelho (nenhuma imagem sai dele). Em fotos reais de\nplaca Mercosul e antiga, a leitura saiu certa, cada uma em cerca de 200 ms.\n\n- O operador não precisa mais encher a tela com a placa\n- Leituras incertas são descartadas e a conferência continua obrigatória\n- Troca o tesseract.js pelo onnxruntime-web, com os modelos versionados em\n  public/ocr/modelos e o runtime copiado de node_modules no postinstall",
+      "date": "2026-10-20T19:08:30-03:00"
+    },
+    {
       "version": "1.0.149",
       "type": "feat",
       "scope": "veiculos",
