@@ -1,9 +1,24 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { SaidaBuscaValues } from "@/lib/schemas/saida";
 import { renderWithTheme } from "@/test/render";
 import { BuscaManualSaida, SEQUENCIAL_ENTER_HINT, type BuscaManualSaidaProps } from "./BuscaManualSaida";
+
+// O leitor em si é testado à parte: aqui ele só devolve uma placa lida.
+vi.mock("../LeitorPlacaModal", () => ({
+  LeitorPlacaModal: ({ open, onConfirm, onDigitar }: { open: boolean; onConfirm: (placa: string) => void; onDigitar: () => void }) =>
+    open ? (
+      <div role="dialog" aria-label="Leitor de placa">
+        <button type="button" onClick={() => onConfirm("ABC1D23")}>
+          confirmar leitura
+        </button>
+        <button type="button" onClick={onDigitar}>
+          digitar leitura
+        </button>
+      </div>
+    ) : null,
+}));
 
 const VAZIO: SaidaBuscaValues = { placa: "", token: "", sequencial: "" };
 
@@ -107,5 +122,46 @@ describe("BuscaManualSaida", () => {
     renderBusca({ values: { ...VAZIO, sequencial: "12" }, errors: { sequencial: "Use apenas números" } });
     expect(screen.getByText("Use apenas números")).toBeInTheDocument();
     expect(screen.queryByText(SEQUENCIAL_ENTER_HINT)).not.toBeInTheDocument();
+  });
+
+  describe("leitor de placa", () => {
+    const camera = () => screen.getByRole("button", { name: "Ler placa pela câmera" });
+
+    it("mostra a câmera só no campo da placa", () => {
+      renderBusca();
+      expect(screen.getAllByRole("button", { name: "Ler placa pela câmera" })).toHaveLength(1);
+    });
+
+    it("preenche a placa lida sem disparar a consulta", async () => {
+      const { onChange, onEnter } = renderBusca();
+      await userEvent.click(camera());
+      await userEvent.click(screen.getByRole("button", { name: "confirmar leitura" }));
+      expect(onChange).toHaveBeenCalledWith("placa", "ABC1D23");
+      expect(onEnter).not.toHaveBeenCalled();
+      expect(screen.queryByRole("dialog", { name: "Leitor de placa" })).not.toBeInTheDocument();
+    });
+
+    it("devolve o foco ao campo da placa ao escolher digitar", async () => {
+      renderBusca();
+      await userEvent.click(camera());
+      await userEvent.click(screen.getByRole("button", { name: "digitar leitura" }));
+      await waitFor(() => expect(placa()).toHaveFocus());
+    });
+
+    it("desabilita a câmera com disabled ou quando outro campo está preenchido", () => {
+      const { unmount } = renderWithTheme(
+        <BuscaManualSaida values={VAZIO} errors={{}} onChange={() => {}} disabled />,
+      );
+      expect(camera()).toBeDisabled();
+      unmount();
+
+      renderWithTheme(<BuscaManualSaida values={{ ...VAZIO, token: "7K3Q9X" }} errors={{}} onChange={() => {}} />);
+      expect(camera()).toBeDisabled();
+    });
+
+    it("mantém a câmera habilitada quando a própria placa está preenchida", () => {
+      renderBusca({ values: { ...VAZIO, placa: "ABC1D23" } });
+      expect(camera()).toBeEnabled();
+    });
   });
 });

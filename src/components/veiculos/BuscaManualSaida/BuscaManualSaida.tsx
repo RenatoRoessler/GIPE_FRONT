@@ -1,9 +1,11 @@
 "use client";
 
-import type { KeyboardEvent } from "react";
+import { useId, useState, type KeyboardEvent } from "react";
+import { CameraButton } from "@/components/ui/CameraButton";
 import { Input } from "@/components/ui/Input";
 import { normalizePlaca } from "@/lib/placa";
 import type { SaidaBuscaValues } from "@/lib/schemas/saida";
+import { LeitorPlacaModal } from "../LeitorPlacaModal";
 import { FieldGrid, Hint } from "../Saida.styles";
 import { Aviso, Divisor, Wrapper } from "./BuscaManualSaida.styles";
 
@@ -37,7 +39,21 @@ export function BuscaManualSaida({
   aviso,
   disabled = false,
 }: BuscaManualSaidaProps) {
+  const placaId = useId();
+  const [leitorAberto, setLeitorAberto] = useState(false);
   const filled = (Object.keys(LABELS) as SaidaBuscaField[]).find((field) => values[field] !== "");
+
+  function handlePlacaLida(placa: string) {
+    setLeitorAberto(false);
+    // Só preenche o campo: a consulta segue o fluxo normal (debounce ou Enter).
+    onChange("placa", placa);
+  }
+
+  function handleDigitarPlaca() {
+    setLeitorAberto(false);
+    // O modal devolve o foco ao botão que o abriu ao fechar; o campo da placa toma o foco logo depois.
+    setTimeout(() => document.getElementById(placaId)?.focus());
+  }
 
   function fieldProps(field: SaidaBuscaField, hintPadrao?: string) {
     const blocked = filled !== undefined && filled !== field;
@@ -64,6 +80,14 @@ export function BuscaManualSaida({
       <FieldGrid>
         <Input
           {...fieldProps("placa")}
+          id={placaId}
+          endAction={
+            <CameraButton
+              size="sm"
+              disabled={disabled || (filled !== undefined && filled !== "placa")}
+              onClick={() => setLeitorAberto(true)}
+            />
+          }
           onChange={(event) => onChange("placa", normalizePlaca(event.target.value))}
           autoCapitalize="characters"
           spellCheck={false}
@@ -83,6 +107,12 @@ export function BuscaManualSaida({
         />
       </FieldGrid>
       <Aviso aria-live="polite">{aviso}</Aviso>
+      <LeitorPlacaModal
+        open={leitorAberto}
+        onClose={() => setLeitorAberto(false)}
+        onConfirm={handlePlacaLida}
+        onDigitar={handleDigitarPlaca}
+      />
     </Wrapper>
   );
 }

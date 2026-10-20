@@ -2,11 +2,14 @@
 
 import styled from "styled-components";
 
+const ACTION_SIZE = 40;
+
 // Campo transparente dentro da placa: o PlateDisplay faz o papel da caixa do input.
-export const PlateInput = styled.input`
+export const PlateInput = styled.input<{ $hasAction?: boolean }>`
   width: 100%;
   min-width: 0;
-  padding: 0 ${({ theme }) => theme.space[2]}px;
+  /* Com ação à direita, o espaço é reservado dos dois lados para o número seguir centralizado. */
+  padding: 0 ${({ theme, $hasAction }) => ($hasAction ? `${ACTION_SIZE + theme.space[2]}px` : `${theme.space[2]}px`)};
   border: none;
   background: transparent;
   color: inherit;
@@ -35,4 +38,18 @@ export const PlateFrame = styled.div`
     outline: 3px solid ${({ theme }) => theme.colors.primary};
     outline-offset: 2px;
   }
+`;
+
+export const PlateRow = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+`;
+
+export const PlateAction = styled.div`
+  position: absolute;
+  top: 50%;
+  right: ${({ theme }) => theme.space[2]}px;
+  display: flex;
+  transform: translateY(-50%);
 `;

@@ -8,6 +8,21 @@ vi.mock("@/lib/api/services/patio", () => ({ registrarEntrada: vi.fn() }));
 vi.mock("@/lib/api/services/veiculo", () => ({ consultarPlaca: vi.fn(), listModelos: vi.fn().mockResolvedValue([]) }));
 vi.mock("@/lib/api/services/empresa", () => ({ getEmpresa: vi.fn().mockRejectedValue(new Error("sem empresa")) }));
 
+// O leitor em si é testado à parte: aqui ele só devolve uma placa lida.
+vi.mock("../LeitorPlacaModal", () => ({
+  LeitorPlacaModal: ({ open, onConfirm, onDigitar }: { open: boolean; onConfirm: (placa: string) => void; onDigitar: () => void }) =>
+    open ? (
+      <div role="dialog" aria-label="Leitor de placa">
+        <button type="button" onClick={() => onConfirm("ABC1D23")}>
+          confirmar leitura
+        </button>
+        <button type="button" onClick={onDigitar}>
+          digitar leitura
+        </button>
+      </div>
+    ) : null,
+}));
+
 import { registrarEntrada } from "@/lib/api/services/patio";
 import { consultarPlaca } from "@/lib/api/services/veiculo";
 import { EntradaVeiculoModal } from "./EntradaVeiculoModal";
@@ -113,5 +128,44 @@ describe("EntradaVeiculoModal", () => {
     await user.tab();
     await screen.findByText("Dados do cadastro preenchidos.");
     expect(screen.getByRole("radio", { name: "Prata" })).toBeChecked();
+  });
+
+  it("preenche a placa e consulta o cadastro ao confirmar a leitura da câmera", async () => {
+    vi.mocked(consultarPlaca).mockResolvedValue({
+      placa: "ABC1D23",
+      encontrado: true,
+      origem: "x",
+      modelo: "ONIX",
+      cor: "Vermelho",
+      categoria: 2,
+    });
+    const user = userEvent.setup();
+    renderModal();
+    await user.click(screen.getByRole("button", { name: "Ler placa pela câmera" }));
+    await user.click(screen.getByRole("button", { name: "confirmar leitura" }));
+
+    expect(screen.getByLabelText("Placa")).toHaveValue("ABC1D23");
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Vermelho" })).toBeChecked());
+    expect(consultarPlaca).toHaveBeenCalledWith("ABC1D23", expect.any(AbortSignal));
+    expect(screen.queryByRole("dialog", { name: "Leitor de placa" })).not.toBeInTheDocument();
+    expect(registrarEntrada).not.toHaveBeenCalled();
+  });
+
+  it("devolve o foco ao campo da placa ao escolher digitar", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await user.click(screen.getByRole("button", { name: "Ler placa pela câmera" }));
+    await user.click(screen.getByRole("button", { name: "digitar leitura" }));
+    await waitFor(() => expect(screen.getByLabelText("Placa")).toHaveFocus());
+  });
+
+  it("desabilita o botão de câmera enquanto envia a entrada", async () => {
+    vi.mocked(registrarEntrada).mockReturnValue(new Promise(() => {}));
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Ler placa pela câmera" })).toBeDisabled());
   });
 });

@@ -1,8 +1,9 @@
 "use client";
 
-import { InputHTMLAttributes, useId, useState } from "react";
+import { InputHTMLAttributes, ReactNode, useId, useState } from "react";
 import {
   ErrorText,
+  EndAction,
   Field,
   HintText,
   HintTone,
@@ -38,9 +39,11 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   // Texto de apoio anunciado por leitores de tela; não é exibido enquanto houver `error`.
   hint?: string;
   hintTone?: HintTone;
+  // Ação à direita do campo (ex.: botão de câmera); ignorada em campos de senha.
+  endAction?: ReactNode;
 }
 
-export function Input({ label, error, hint, hintTone = "muted", id, ...props }: InputProps) {
+export function Input({ label, error, hint, hintTone = "muted", endAction, id, ...props }: InputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const visibleHint = error ? undefined : hint;
@@ -55,7 +58,7 @@ export function Input({ label, error, hint, hintTone = "muted", id, ...props }: 
         <StyledInput
           id={inputId}
           $hasError={Boolean(error)}
-          $hasToggle={isPassword}
+          $hasEndAction={isPassword || Boolean(endAction)}
           aria-invalid={Boolean(error)}
           aria-describedby={
             error ? `${inputId}-error` : visibleHint ? `${inputId}-hint` : undefined
@@ -75,6 +78,7 @@ export function Input({ label, error, hint, hintTone = "muted", id, ...props }: 
             <EyeIcon crossed={isPasswordVisible} />
           </ToggleButton>
         )}
+        {!isPassword && endAction && <EndAction>{endAction}</EndAction>}
       </InputWrapper>
       {error && <ErrorText id={`${inputId}-error`}>{error}</ErrorText>}
       {visibleHint && (

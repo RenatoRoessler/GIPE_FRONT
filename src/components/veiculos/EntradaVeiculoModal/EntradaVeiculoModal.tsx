@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useEffect, useId, useRef, useState } from "react";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
+import { CameraButton } from "@/components/ui/CameraButton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Modal } from "@/components/ui/Modal";
@@ -13,6 +14,7 @@ import { isValidPlaca, normalizePlaca } from "@/lib/placa";
 import { entradaVeiculoSchema, type EntradaVeiculoValues } from "@/lib/schemas/veiculo";
 import { CATEGORIA_VEICULO_OPTIONS, COR_PADRAO, CORES_VEICULO, matchCor, type EntradaRegistrada } from "@/types/veiculo";
 import { CategoriaIcon } from "../categoriaIcons";
+import { LeitorPlacaModal } from "../LeitorPlacaModal";
 import { ReciboEntradaStep } from "../ReciboEntradaStep";
 import { useModelos } from "../useModelos";
 import { usePlacaLookup, type PlacaLookupStatus } from "../usePlacaLookup";
@@ -88,6 +90,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
     ({ values }) => isValidPlaca(values.placa) && CATEGORIAS.includes(values.categoria),
   );
   const [confirmingClose, setConfirmingClose] = useState(false);
+  const [leitorAberto, setLeitorAberto] = useState(false);
   const { data: modelos = [] } = useModelos(modeloTexto);
 
   // O listener do campo pode ser recriado a cada render; a ref garante a lista mais recente.
@@ -143,6 +146,19 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
     }
   }
 
+  function handlePlacaLida(placa: string) {
+    setLeitorAberto(false);
+    // Mesmo caminho da digitação: preenche o campo e consulta o cadastro da placa, sem registrar nada.
+    form.setFieldValue("placa", placa);
+    void handlePlacaBlur(placa);
+  }
+
+  function handleDigitarPlaca() {
+    setLeitorAberto(false);
+    // O modal devolve o foco ao botão que o abriu ao fechar; o campo da placa toma o foco logo depois.
+    setTimeout(() => document.getElementById(formId)?.querySelector<HTMLInputElement>('input[name="placa"]')?.focus());
+  }
+
   function handleModeloChange(texto: string) {
     const nome = texto.trim().toLowerCase();
     const sugestao = modelosRef.current.find((modelo) => modelo.nome.toLowerCase() === nome);
@@ -193,7 +209,16 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
             onBlur: ({ value }) => void handlePlacaBlur(value),
           }}
         >
-          {(field) => <field.PlateField label="Placa" autoFocus hint={hint} hintTone={tone} disabled={isSending} />}
+          {(field) => (
+            <field.PlateField
+              label="Placa"
+              autoFocus
+              hint={hint}
+              hintTone={tone}
+              disabled={isSending}
+              action={<CameraButton disabled={isSending} onClick={() => setLeitorAberto(true)} />}
+            />
+          )}
         </form.AppField>
         <form.AppField name="modelo" listeners={{ onChange: ({ value }) => handleModeloChange(value) }}>
           {(field) => (
@@ -225,6 +250,12 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
       </Form>
         </>
       )}
+      <LeitorPlacaModal
+        open={leitorAberto}
+        onClose={() => setLeitorAberto(false)}
+        onConfirm={handlePlacaLida}
+        onDigitar={handleDigitarPlaca}
+      />
       {confirmingClose && (
         <ConfirmDialog
           title="Descartar entrada?"

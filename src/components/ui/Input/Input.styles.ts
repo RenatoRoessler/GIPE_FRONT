@@ -22,11 +22,11 @@ export const InputWrapper = styled.div`
 
 const TOGGLE_SIZE = 32;
 
-export const StyledInput = styled.input<{ $hasError: boolean; $hasToggle?: boolean }>`
+export const StyledInput = styled.input<{ $hasError: boolean; $hasEndAction?: boolean }>`
   width: 100%;
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
-  ${({ $hasToggle, theme }) =>
-    $hasToggle &&
+  ${({ $hasEndAction, theme }) =>
+    $hasEndAction &&
     css`
       padding-right: ${TOGGLE_SIZE + theme.space[3]}px;
     `}
@@ -98,6 +98,15 @@ export const ToggleButton = styled.button`
     cursor: not-allowed;
     opacity: 0.6;
   }
+`;
+
+// Ação personalizada (ex.: botão de câmera) à direita do campo, no lugar do botão de senha.
+export const EndAction = styled.div`
+  position: absolute;
+  top: 50%;
+  right: ${({ theme }) => theme.space[1]}px;
+  display: flex;
+  transform: translateY(-50%);
 `;
 
 export type HintTone = "muted" | "success" | "danger";
