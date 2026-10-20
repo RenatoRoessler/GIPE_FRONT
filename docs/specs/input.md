@@ -1,8 +1,6 @@
-<task>adicionar configuraçãoes de pagamento no cadastro de empresa e adesao </task>
+<task>adicionar opção para leitor de placa de carros </task>
 <description>
-adicionar esses campos
-"dinheiro": true,
-"pix": true,
-"cartaoCredito": true,
-"cartaoDebito": true,
+nas telas de entrada e saida, criar um botão para ler placa do carro
+assim ![alt text](<Captura de tela 2026-10-20 183136.png>)
+icone de camera no campo de placa
 </description>
