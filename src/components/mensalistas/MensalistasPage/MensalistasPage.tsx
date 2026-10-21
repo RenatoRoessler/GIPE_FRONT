@@ -6,11 +6,12 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
-import type { Mensalista, MensalistaTipo } from "@/types/mensalista";
+import type { Mensalista, MensalistaTipo, SituacaoMensalista } from "@/types/mensalista";
 import { ABAS, parseAba } from "../aba";
 import { MensalistaFichaModal } from "../MensalistaFichaModal";
 import { MensalistaModal } from "../MensalistaModal";
 import { MensalistasList } from "../MensalistasList";
+import { PagamentoMensalistaModal } from "../PagamentoMensalistaModal";
 import { Header, Page } from "../Mensalistas.styles";
 import { TipoModal } from "../TipoModal";
 import { TiposList } from "../TiposList";
@@ -20,6 +21,7 @@ type ModalState =
   | { kind: "tipo"; tipo?: MensalistaTipo }
   | { kind: "mensalista"; mensalista?: Mensalista }
   | { kind: "ficha"; mensalista: Mensalista }
+  | { kind: "pagamento"; mensalista: Mensalista; situacao: SituacaoMensalista }
   | null;
 
 export function MensalistasPage() {
@@ -54,6 +56,7 @@ export function MensalistasPage() {
             onNovo={() => setModal({ kind: "mensalista" })}
             onEditar={(mensalista) => setModal({ kind: "mensalista", mensalista })}
             onVerFicha={(mensalista) => setModal({ kind: "ficha", mensalista })}
+            onReceberPagamento={(mensalista, situacao) => setModal({ kind: "pagamento", mensalista, situacao })}
             onToast={showToast}
             onCriarTipo={() => changeAba("tipos")}
           />
@@ -76,6 +79,15 @@ export function MensalistasPage() {
           mensalista={modal.mensalista}
           onClose={closeModal}
           onEditar={(mensalista) => setModal({ kind: "mensalista", mensalista })}
+          onReceberPagamento={(mensalista, situacao) => setModal({ kind: "pagamento", mensalista, situacao })}
+          onToast={showToast}
+        />
+      )}
+      {modal?.kind === "pagamento" && (
+        <PagamentoMensalistaModal
+          mensalista={modal.mensalista}
+          situacao={modal.situacao}
+          onClose={closeModal}
           onToast={showToast}
         />
       )}

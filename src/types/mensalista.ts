@@ -1,3 +1,4 @@
+import type { FormaPagamentoId } from "./caixa";
 import type { TipoCategoria } from "./preco";
 
 export const TIPO_PESSOA = { Fisica: 1, Juridica: 2 } as const;
@@ -171,3 +172,35 @@ export type TipoFormValues = {
   horarioSaida: string;
   ativo: boolean;
 };
+
+// EOrigemPagamento do back. Esta tela só registra pelo painel administrativo.
+export const ORIGEM_PAGAMENTO = { Patio: 1, PainelAdministrativo: 2, WebHook: 3, Site: 4 } as const;
+
+// Corpo do POST /Mensalista/pagamento. `empresaId` e `usuarioId` vêm sempre da sessão, nunca de um campo.
+export type PagamentoMensalistaPayload = {
+  empresaId: number;
+  mensalistaId: number;
+  // Maior que zero, até 2 casas.
+  valorPago: number;
+  formaPagamento: FormaPagamentoId;
+  origemPagamento: number;
+  usuarioId: number;
+};
+
+// Cobrança na resposta do pagamento. [A CONFIRMAR] os nomes exatos dos campos; o mapper é tolerante.
+export type CobrancaMensalista = {
+  cobrancaId: number | null;
+  valor: number;
+  vencimento: string | null;
+  dataPagamento: string | null;
+  formaPagamento: FormaPagamentoId | null;
+  status: number | null;
+};
+
+export type PagamentoMensalistaResultado = {
+  paga: CobrancaMensalista;
+  // null quando o back não devolve a próxima cobrança.
+  proxima: CobrancaMensalista | null;
+};
+
+export type PagamentoFormValues = { valorPago: string; formaPagamento: string };

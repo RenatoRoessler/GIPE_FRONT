@@ -62,7 +62,7 @@ function page(items: Mensalista[], extra: Partial<{ page: number; totalPages: nu
   return { items, page: 1, pageSize: 20, totalRecords: items.length, totalPages: items.length ? 1 : 0, ...extra };
 }
 
-const handlers = { onNovo: vi.fn(), onEditar: vi.fn(), onVerFicha: vi.fn(), onToast: vi.fn(), onCriarTipo: vi.fn() };
+const handlers = { onNovo: vi.fn(), onEditar: vi.fn(), onVerFicha: vi.fn(), onReceberPagamento: vi.fn(), onToast: vi.fn(), onCriarTipo: vi.fn() };
 
 describe("MensalistasList", () => {
   beforeEach(() => {

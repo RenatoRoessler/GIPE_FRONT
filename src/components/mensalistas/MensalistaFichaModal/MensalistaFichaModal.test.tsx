@@ -68,7 +68,7 @@ const contrato = (extra: Partial<ContratoMensalista> = {}): ContratoMensalista =
   ...extra,
 });
 
-const handlers = { onClose: vi.fn(), onEditar: vi.fn(), onToast: vi.fn() };
+const handlers = { onClose: vi.fn(), onEditar: vi.fn(), onReceberPagamento: vi.fn(), onToast: vi.fn() };
 
 beforeEach(() => {
   vi.mocked(getContratoMensalista).mockReset().mockResolvedValue(null);

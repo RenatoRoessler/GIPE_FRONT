@@ -4,10 +4,14 @@ import { formatCPF } from "@/lib/cpf";
 import { formatPhone } from "@/lib/phone";
 import { normalizePlaca } from "@/lib/placa";
 import { newUid } from "@/lib/uid";
+import type { SessaoIds } from "@/lib/session";
+import type { FormaPagamentoId } from "@/types/caixa";
 import type { TipoCategoria } from "@/types/preco";
 import { matchCor } from "@/types/veiculo";
 import {
+  ORIGEM_PAGAMENTO,
   TIPO_PESSOA,
+  type CobrancaMensalista,
   type Condutor,
   type CondutorFormValues,
   type Mensalista,
@@ -17,6 +21,8 @@ import {
   type MensalistaTipoPayload,
   type MensalistaVeiculo,
   type MensalistaVeiculoPayload,
+  type PagamentoMensalistaPayload,
+  type PagamentoMensalistaResultado,
   type TipoFormValues,
   type TipoPessoa,
   type VeiculoFormValues,
@@ -172,5 +178,78 @@ export function fromTipo(tipo: MensalistaTipo): TipoFormValues {
     horarioEntrada: fromHorario(tipo.horarioEntrada),
     horarioSaida: fromHorario(tipo.horarioSaida),
     ativo: tipo.ativo,
+  };
+}
+
+// [A CONFIRMAR] Nomes dos campos da resposta de POST /Mensalista/pagamento. Reduzir quando o formato real for conferido.
+const COBRANCA_PAGA_KEYS = ["cobrancaPaga", "paga", "pagamento"] as const;
+const COBRANCA_PROXIMA_KEYS = ["proximaCobranca", "proxima"] as const;
+
+function pick(raw: Record<string, unknown>, keys: readonly string[]): unknown {
+  for (const key of keys) {
+    if (raw[key] !== undefined && raw[key] !== null) {
+      return raw[key];
+    }
+  }
+  return undefined;
+}
+
+function numberOrNull(value: unknown): number | null {
+  const number = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
+  return typeof number === "number" && Number.isFinite(number) ? number : null;
+}
+
+function textOrNull(value: unknown): string | null {
+  return typeof value === "string" && value ? value : null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+
+function toCobranca(value: unknown): CobrancaMensalista | null {
+  const raw = asRecord(value);
+  if (!raw) {
+    return null;
+  }
+  return {
+    cobrancaId: numberOrNull(pick(raw, ["cobrancaId", "id"])),
+    valor: numberOrNull(pick(raw, ["valor", "valorCobranca", "valorPago"])) ?? 0,
+    vencimento: textOrNull(pick(raw, ["dataVencimento", "vencimento"])),
+    dataPagamento: textOrNull(pick(raw, ["dataPagamento", "dataBaixa"])),
+    formaPagamento: numberOrNull(raw.formaPagamento),
+    status: numberOrNull(raw.status),
+  };
+}
+
+export function toPagamentoPayload(
+  values: { mensalistaId: number; valorPago: number; formaPagamento: FormaPagamentoId },
+  sessao: SessaoIds,
+): PagamentoMensalistaPayload {
+  return {
+    empresaId: sessao.empresaId,
+    mensalistaId: values.mensalistaId,
+    valorPago: Math.round(values.valorPago * 100) / 100,
+    formaPagamento: values.formaPagamento,
+    origemPagamento: ORIGEM_PAGAMENTO.PainelAdministrativo,
+    usuarioId: sessao.usuarioId,
+  };
+}
+
+// Tolerante: sem a cobrança paga na resposta, a baixa é descrita pelo que foi enviado (`fallback`).
+export function fromPagamentoResponse(data: unknown, fallback: CobrancaMensalista): PagamentoMensalistaResultado {
+  const raw = asRecord(data) ?? {};
+  const paga = toCobranca(pick(raw, COBRANCA_PAGA_KEYS));
+  const proxima = toCobranca(pick(raw, COBRANCA_PROXIMA_KEYS));
+  return {
+    paga: paga
+      ? {
+          ...paga,
+          valor: paga.valor || fallback.valor,
+          formaPagamento: paga.formaPagamento ?? fallback.formaPagamento,
+          dataPagamento: paga.dataPagamento ?? fallback.dataPagamento,
+        }
+      : fallback,
+    proxima,
   };
 }

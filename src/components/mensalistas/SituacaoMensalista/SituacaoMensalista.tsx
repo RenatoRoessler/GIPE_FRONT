@@ -31,7 +31,7 @@ type Apresentacao = {
   stages?: Stages;
   trackTone?: StageTrackProps["tone"];
   // Rótulo da ação de contrato oferecida na linha.
-  action?: "Reenviar" | "Enviar contrato";
+  action?: "Reenviar" | "Enviar contrato" | "Receber pagamento";
 };
 
 export function apresentarSituacao(situacao: Situacao): Apresentacao | null {
@@ -60,6 +60,7 @@ export function apresentarSituacao(situacao: Situacao): Apresentacao | null {
         tone: "info",
         detail: situacao.aceitoEm ? `Contrato aceito em ${formatDate(situacao.aceitoEm)}` : "Contrato aceito",
         stages: stages("done", "done", "current"),
+        action: "Receber pagamento",
       };
     case "sem-contrato":
       return {
@@ -84,6 +85,8 @@ export interface SituacaoMensalistaProps {
   // Sem isto (ou com `somenteLeitura`) a ação de contrato não aparece.
   onReenviar?: () => void;
   reenviando?: boolean;
+  // Sem isto (ou com `somenteLeitura`) a ação de pagamento não aparece.
+  onReceberPagamento?: () => void;
   somenteLeitura?: boolean;
 }
 
@@ -92,6 +95,7 @@ export function SituacaoMensalista({
   nome,
   onReenviar,
   reenviando = false,
+  onReceberPagamento,
   somenteLeitura = false,
 }: SituacaoMensalistaProps) {
   const apresentacao = apresentarSituacao(situacao);
@@ -105,7 +109,8 @@ export function SituacaoMensalista({
   }
 
   const { label, tone, detail, stages: etapas, trackTone, action } = apresentacao;
-  const podeAgir = Boolean(action && onReenviar && !somenteLeitura);
+  const onAcao = action === "Receber pagamento" ? onReceberPagamento : onReenviar;
+  const podeAgir = Boolean(action && onAcao && !somenteLeitura);
 
   return (
     <Wrapper>
@@ -116,16 +121,22 @@ export function SituacaoMensalista({
       {detail && <Detail>{detail}</Detail>}
       {podeAgir && (
         <Actions>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            disabled={reenviando}
-            aria-label={`${action} ${action === "Reenviar" ? "contrato " : ""}para ${nome}`}
-            onClick={onReenviar}
-          >
-            {reenviando ? "Reenviando…" : action}
-          </Button>
+          {action === "Receber pagamento" ? (
+            <Button type="button" size="sm" aria-label={`Receber pagamento de ${nome}`} onClick={onReceberPagamento}>
+              {action}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={reenviando}
+              aria-label={`${action} ${action === "Reenviar" ? "contrato " : ""}para ${nome}`}
+              onClick={onReenviar}
+            >
+              {reenviando ? "Reenviando…" : action}
+            </Button>
+          )}
         </Actions>
       )}
     </Wrapper>

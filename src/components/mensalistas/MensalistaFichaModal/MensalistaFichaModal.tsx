@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { formatDate } from "@/components/caixa/format";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -8,7 +9,14 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { StageTrack } from "@/components/ui/StageTrack";
 import type { ToastVariant } from "@/components/ui/Toast";
 import { TIPO_PESSOA, type Mensalista, type SituacaoMensalista } from "@/types/mensalista";
-import { formatCategoria, formatDocumentoMensalista, formatValor, maskCpfParcial } from "../format";
+import {
+  formatCategoria,
+  formatDocumentoMensalista,
+  formatValor,
+  formatVencimento,
+  maskCpfParcial,
+} from "../format";
+import { formatDiaCobranca, podeRegistrarPagamento } from "../pagamento";
 import { apresentarSituacao } from "../SituacaoMensalista";
 import { derivarSituacao, precisaDoContrato } from "../situacao";
 import { useContratoMensalista } from "../useContratosMensalistas";
@@ -30,10 +38,23 @@ export interface MensalistaFichaModalProps {
   onClose: () => void;
   // Troca a ficha pelo formulário de edição.
   onEditar: (mensalista: Mensalista) => void;
+  // Troca a ficha pelo modal de pagamento, levando a situação já derivada.
+  onReceberPagamento: (mensalista: Mensalista, situacao: SituacaoMensalista) => void;
   onToast: (message: string, variant?: ToastVariant) => void;
 }
 
 // O que o operador deve entender sobre o contrato e o que falta para o mensalista ficar ativo.
+// O que o operador deve saber antes de receber: o primeiro pagamento depende do aceite do contrato.
+function fraseDoPagamento(situacao: SituacaoMensalista): string | null {
+  const estado = podeRegistrarPagamento(situacao);
+  if (!estado.pode) {
+    return estado.motivo === "carregando"
+      ? "Consultando o contrato…"
+      : "O primeiro pagamento só é liberado depois do aceite do contrato.";
+  }
+  return estado.primeiroPagamento ? "O primeiro pagamento ativa o cadastro." : null;
+}
+
 function fraseProximoPasso(situacao: SituacaoMensalista): string {
   switch (situacao.kind) {
     case "ativo":
@@ -57,11 +78,21 @@ function fraseProximoPasso(situacao: SituacaoMensalista): string {
   }
 }
 
-export function MensalistaFichaModal({ mensalista, onClose, onEditar, onToast }: MensalistaFichaModalProps) {
+export function MensalistaFichaModal({
+  mensalista,
+  onClose,
+  onEditar,
+  onReceberPagamento,
+  onToast,
+}: MensalistaFichaModalProps) {
+  const pagamentoAjudaId = useId();
   const dependeDoContrato = precisaDoContrato(mensalista);
   const contrato = useContratoMensalista(mensalista.mensalistaId, dependeDoContrato);
   const situacao = derivarSituacao(mensalista, dependeDoContrato ? contrato : undefined, new Date());
   const apresentacao = apresentarSituacao(situacao);
+  const pagamento = podeRegistrarPagamento(situacao);
+  const fraseDePagamento = fraseDoPagamento(situacao);
+  const acaoDeContrato = apresentacao?.action === "Reenviar" || apresentacao?.action === "Enviar contrato" ? apresentacao.action : null;
 
   const { reenviar, reenviandoId } = useReenviarContrato({
     onSuccess: ({ email }) =>
@@ -87,18 +118,31 @@ export function MensalistaFichaModal({ mensalista, onClose, onEditar, onToast }:
       size="lg"
       footer={
         <>
-          {apresentacao?.action && (
+          {acaoDeContrato && (
             <Button
               type="button"
               variant="secondary"
               disabled={reenviando}
               onClick={() => reenviar(mensalista.mensalistaId)}
             >
-              {reenviando ? "Reenviando…" : apresentacao.action === "Reenviar" ? "Reenviar contrato" : "Enviar contrato"}
+              {reenviando ? "Reenviando…" : acaoDeContrato === "Reenviar" ? "Reenviar contrato" : "Enviar contrato"}
             </Button>
           )}
-          <Button type="button" onClick={() => onEditar(mensalista)}>
+          <Button type="button" variant="secondary" onClick={() => onEditar(mensalista)}>
             Editar
+          </Button>
+          {/* aria-disabled (e não disabled) mantém o botão focável, e o motivo é lido pelo leitor de tela. */}
+          <Button
+            type="button"
+            aria-disabled={pagamento.pode ? undefined : true}
+            aria-describedby={pagamento.pode ? undefined : pagamentoAjudaId}
+            onClick={() => {
+              if (pagamento.pode) {
+                onReceberPagamento(mensalista, situacao);
+              }
+            }}
+          >
+            Registrar pagamento
           </Button>
         </>
       }
@@ -123,6 +167,24 @@ export function MensalistaFichaModal({ mensalista, onClose, onEditar, onToast }:
           <div role="status" aria-label="Carregando contrato">
             <Skeleton height="40px" />
           </div>
+        )}
+      </Section>
+
+      <Section aria-label="Pagamento">
+        <SectionTitle>Pagamento</SectionTitle>
+        <NextStep>
+          {[
+            `Vencimento ${formatVencimento(mensalista.diaVencimento)}`,
+            mensalista.dataProximoVencimento ? `próximo em ${formatDiaCobranca(mensalista.dataProximoVencimento)}` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </NextStep>
+        <NextStep>{`Mensalidade ${formatValor(mensalista.valorMensalidade)}`}</NextStep>
+        {fraseDePagamento && (
+          <NextStep id={pagamentoAjudaId} role={pagamento.pode ? undefined : "status"}>
+            {fraseDePagamento}
+          </NextStep>
         )}
       </Section>
 

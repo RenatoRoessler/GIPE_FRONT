@@ -1,4 +1,6 @@
 import { normalizeDocumento } from "@/lib/documento";
+import { getSessaoIds, SessaoSemIdsError } from "@/lib/session";
+import type { FormaPagamentoId } from "@/types/caixa";
 import type { Paginado } from "@/lib/api/types";
 import {
   CONTRATO_STATUS,
@@ -7,14 +9,17 @@ import {
   type Mensalista,
   type MensalistaFormValues,
   type MensalistaTipo,
+  type PagamentoMensalistaResultado,
   type TipoFormValues,
 } from "@/types/mensalista";
 import { api } from "../client";
 import { ApiError } from "../errors";
 import {
   fromMensalistaResponse,
+  fromPagamentoResponse,
   fromTipoResponse,
   toMensalistaPayload,
+  toPagamentoPayload,
   toTipoPayload,
 } from "./mensalista.mapper";
 
@@ -90,4 +95,27 @@ export async function getContratoMensalista(id: number): Promise<ContratoMensali
 export async function reenviarContrato(id: number): Promise<{ tokenExpiracao: string | null; email: string }> {
   const { data } = await api.post<Record<string, unknown>>(`/Mensalista/${id}/contrato/reenviar`);
   return { tokenExpiracao: textOrNull(data?.tokenExpiracao), email: String(data?.email ?? "") };
+}
+
+// Baixa a cobrança pendente mais recente, ativa o mensalista e gera a cobrança do mês seguinte, numa só transação.
+// Empresa e usuário que recebeu vêm da sessão; quem chama não os informa. Sem idempotência: não repetir às cegas.
+export async function pagarMensalista(values: {
+  mensalistaId: number;
+  valorPago: number;
+  formaPagamento: FormaPagamentoId;
+}): Promise<PagamentoMensalistaResultado> {
+  const sessao = getSessaoIds();
+  if (!sessao) {
+    throw new SessaoSemIdsError();
+  }
+  const payload = toPagamentoPayload(values, sessao);
+  const { data } = await api.post<unknown>("/Mensalista/pagamento", payload);
+  return fromPagamentoResponse(data, {
+    cobrancaId: null,
+    valor: payload.valorPago,
+    vencimento: null,
+    dataPagamento: new Date().toISOString(),
+    formaPagamento: payload.formaPagamento,
+    status: 1,
+  });
 }

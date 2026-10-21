@@ -10,8 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/u
 import { Text } from "@/components/ui/Text";
 import type { ToastVariant } from "@/components/ui/Toast";
 import { formatDocumentoAuto } from "@/lib/documento";
-import type { Mensalista } from "@/types/mensalista";
+import type { Mensalista, SituacaoMensalista as Situacao } from "@/types/mensalista";
 import { EditIcon } from "../EditIcon";
+import { PagamentoIcon } from "../PagamentoIcon";
 import { ViewIcon } from "../ViewIcon";
 import {
   formatCategoria,
@@ -20,6 +21,7 @@ import {
   formatValor,
   formatVencimento,
 } from "../format";
+import { podeRegistrarPagamento } from "../pagamento";
 import { ListError } from "../ListError";
 import { SituacaoMensalista } from "../SituacaoMensalista";
 import { derivarSituacao } from "../situacao";
@@ -47,6 +49,8 @@ export interface MensalistasListProps {
   onEditar: (mensalista: Mensalista) => void;
   // Abre a ficha (veículos, condutores e contrato) do mensalista.
   onVerFicha: (mensalista: Mensalista) => void;
+  // Abre o pagamento, levando a situação já derivada da linha.
+  onReceberPagamento: (mensalista: Mensalista, situacao: Situacao) => void;
   onToast: (message: string, variant?: ToastVariant) => void;
   // Leva o usuário à aba de tipos (sem tipo ativo não dá para cadastrar mensalistas).
   onCriarTipo: () => void;
@@ -57,7 +61,14 @@ function parsePage(value: string | null): number {
   return Number.isInteger(page) && page >= 1 ? page : 1;
 }
 
-export function MensalistasList({ onNovo, onEditar, onVerFicha, onToast, onCriarTipo }: MensalistasListProps) {
+export function MensalistasList({
+  onNovo,
+  onEditar,
+  onVerFicha,
+  onReceberPagamento,
+  onToast,
+  onCriarTipo,
+}: MensalistasListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pagina = parsePage(searchParams.get("pagina"));
@@ -190,7 +201,12 @@ export function MensalistasList({ onNovo, onEditar, onVerFicha, onToast, onCriar
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.items.map((mensalista) => (
+            {data.items.map((mensalista) => {
+              const situacao = derivarSituacao(mensalista, contratos.get(mensalista.mensalistaId), agora);
+              const pagamento = podeRegistrarPagamento(situacao);
+              // Quem aguarda o 1º pagamento já tem o botão na célula de situação; as demais linhas liberadas ganham o ícone.
+              const iconeDePagamento = pagamento.pode && situacao.kind !== "aguardando-pagamento";
+              return (
               <TableRow key={mensalista.mensalistaId}>
                 <TableCell data-label="Nome">
                   <Primary>{mensalista.nome}</Primary>
@@ -199,9 +215,10 @@ export function MensalistasList({ onNovo, onEditar, onVerFicha, onToast, onCriar
                 </TableCell>
                 <TableCell data-label="Situação">
                   <SituacaoMensalista
-                    situacao={derivarSituacao(mensalista, contratos.get(mensalista.mensalistaId), agora)}
+                    situacao={situacao}
                     nome={mensalista.nome}
                     onReenviar={() => reenviar(mensalista.mensalistaId)}
+                    onReceberPagamento={() => onReceberPagamento(mensalista, situacao)}
                     reenviando={reenviandoId === mensalista.mensalistaId}
                   />
                 </TableCell>
@@ -233,6 +250,16 @@ export function MensalistasList({ onNovo, onEditar, onVerFicha, onToast, onCriar
                     >
                       <ViewIcon />
                     </IconButton>
+                    {iconeDePagamento && (
+                      <IconButton
+                        type="button"
+                        aria-label={`Registrar pagamento de ${mensalista.nome}`}
+                        title="Registrar pagamento"
+                        onClick={() => onReceberPagamento(mensalista, situacao)}
+                      >
+                        <PagamentoIcon />
+                      </IconButton>
+                    )}
                     <IconButton
                       type="button"
                       aria-label={`Editar ${mensalista.nome}`}
@@ -244,7 +271,8 @@ export function MensalistasList({ onNovo, onEditar, onVerFicha, onToast, onCriar
                   </RowActions>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </TableArea>
