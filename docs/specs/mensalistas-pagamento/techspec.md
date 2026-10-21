@@ -300,3 +300,5 @@ Rodar `npm run lint`, `npm run test` e `npm run build` ao final.
 **Ainda aberto:**
 - **T1:** as claims do JWT para `empresaId` e `usuarioId` (`src/lib/session.ts`) são candidatas não confirmadas. Sem token válido, nada foi chamado na API real.
 - **T8 (roteiro manual):** os 8 itens contra a API real dependem de homologação e dados de teste. Ao executá-los, registrar aqui o formato real da resposta (`fromPagamentoResponse`), os textos reais de erro (`classificarErroPagamento`) e se a API aceita valor diferente da mensalidade.
+
+**Atualização (2026-10-21):** o back vai remover `empresaId` do corpo do pagamento. O front já não o envia nem o procura no token (`SessaoIds` agora é só `{ usuarioId }`). Continua aberto como o `usuarioId` será obtido; enquanto o token não trouxer um id numérico, o modal avisa e não envia.

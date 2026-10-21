@@ -16,7 +16,8 @@ Ordem: T1 → T2 → T3 e T4 (em qualquer ordem) → T5 → T6 → T7 → T8. A 
     - está registrado se a API aceita uma chave de idempotência;
     - o Tech Spec reflete a decisão (mantém ou remove `session.ts`, e reduz a lista de apelidos do mapper).
   - Depende de: um token válido ou de resposta do back (fora do código). Sem isso, seguir com as candidatas do Tech Spec e deixar o registro final para a T8.
-  - **Status (2026-10-21):** aberta. Sem token válido (Swagger exige 401), T2 a T4 seguiram com as claims candidatas de `src/lib/session.ts` (`empresa_id`/`empresaId` e `usuario_id`/`usuarioId`/`nameid`/`sub`), sem confirmação.
+  - **Atualização (2026-10-21):** o token só traz `empresa_guid` e um `nameidentifier` não numérico. O back vai **remover o `empresaId`** do corpo (a empresa é a do token); o `usuarioId` segue em aberto (sair do corpo, entrar no JWT, endpoint de sessão ou aceitar o `nameidentifier`). O front já não envia `empresaId`.
+  - **Status anterior (2026-10-21):** aberta. Sem token válido (Swagger exige 401), T2 a T4 seguiram com as claims candidatas de `src/lib/session.ts` (`empresa_id`/`empresaId` e `usuario_id`/`usuarioId`/`nameid`/`sub`), sem confirmação.
 
 - [x] T2 — Tipos, sessão e serviço de pagamento
   - Arquivos: `src/types/mensalista.ts`, `src/lib/session.ts` (+ `session.test.ts`), `src/lib/api/services/mensalista.ts`, `src/lib/api/services/mensalista.mapper.ts` (+ testes: `mensalista.mapper.test.ts`, `mensalista.test.ts`)
