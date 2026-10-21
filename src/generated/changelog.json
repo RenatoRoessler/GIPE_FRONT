@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.172",
+      "type": "feat",
+      "scope": "patio",
+      "title": "adiciona a tela de pátio com busca, filtros e saída pela lista",
+      "description": "O menu ganha a página Pátio, que lista os veículos que estão no pátio agora, do que\nestá há mais tempo para o que está há menos. Cada veículo mostra a placa, o modelo,\na cor, a categoria, a entrada, a permanência, a tabela de preço e quem registrou a\nentrada, e os mensalistas aparecem identificados.\n\n- A busca acha por placa, modelo ou ticket, e dois filtros separam mensalistas de\n  avulsos e escolhem a categoria. A lista se atualiza sozinha a cada minuto e pelo\n  botão Atualizar.\n- Registrar saída abre o fluxo de saída já com o veículo escolhido, sem ligar a câmera.\n  Depois da saída o veículo some da lista e o foco vai para o próximo.\n- O ícone de comprovante abre o comprovante do veículo em outra aba.\n- No celular, cada veículo vira um item compacto, com botões de 44px e sem rolagem\n  lateral.\n- Registrar uma entrada ou uma saída em qualquer tela passa a atualizar a lista do pátio.",
+      "date": "2026-10-21T17:39:42-03:00"
+    },
+    {
       "version": "1.0.166",
       "type": "feat",
       "scope": "mensalistas",
