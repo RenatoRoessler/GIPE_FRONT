@@ -111,7 +111,7 @@ describe("MensalistasList", () => {
     renderWithProviders(<MensalistasList {...handlers} />);
     await screen.findByText("Maria Souza");
 
-    await user.type(screen.getByLabelText("Buscar por CPF ou CNPJ"), "529.982");
+    await user.type(screen.getByLabelText("Buscar por nome, placa, CPF ou CNPJ"), "529.982");
 
     await waitFor(() =>
       expect(listMensalistas).toHaveBeenLastCalledWith({ pagina: 1, tamanhoPagina: 20, documento: "529982" }),
@@ -125,8 +125,8 @@ describe("MensalistasList", () => {
     renderWithProviders(<MensalistasList {...handlers} />);
     await screen.findByText("Maria Souza");
 
-    await user.type(screen.getByLabelText("Buscar por CPF ou CNPJ"), "5");
-    expect(replace).toHaveBeenCalledWith("/mensalistas", { scroll: false });
+    await user.type(screen.getByLabelText("Buscar por nome, placa, CPF ou CNPJ"), "5");
+    expect(replace).toHaveBeenCalledWith("/mensalistas?aba=lista", { scroll: false });
   });
 
   it("troca de página pedindo a página certa", async () => {
@@ -136,7 +136,7 @@ describe("MensalistasList", () => {
 
     const next = screen.getByRole("button", { name: /próxima/i });
     await userEvent.click(next);
-    expect(replace).toHaveBeenCalledWith("/mensalistas?pagina=2", { scroll: false });
+    expect(replace).toHaveBeenCalledWith("/mensalistas?aba=lista&pagina=2", { scroll: false });
   });
 
   it("vazio da busca mostra a mensagem e permite limpar", async () => {
@@ -147,13 +147,13 @@ describe("MensalistasList", () => {
     renderWithProviders(<MensalistasList {...handlers} />);
     await screen.findByText("Maria Souza");
 
-    await user.type(screen.getByLabelText("Buscar por CPF ou CNPJ"), "999");
+    await user.type(screen.getByLabelText("Buscar por nome, placa, CPF ou CNPJ"), "999");
     expect(await screen.findByText("Nenhum mensalista com esse documento.")).toBeInTheDocument();
-    expect(screen.getByLabelText("Buscar por CPF ou CNPJ")).toBeInTheDocument();
+    expect(screen.getByLabelText("Buscar por nome, placa, CPF ou CNPJ")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Limpar busca" }));
     expect(await screen.findByText("Maria Souza")).toBeInTheDocument();
-    expect(screen.getByLabelText("Buscar por CPF ou CNPJ")).toHaveValue("");
+    expect(screen.getByLabelText("Buscar por nome, placa, CPF ou CNPJ")).toHaveValue("");
   });
 
   it("vazio com tipo ativo oferece cadastrar o primeiro mensalista", async () => {

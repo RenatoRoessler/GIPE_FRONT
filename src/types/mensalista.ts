@@ -203,3 +203,35 @@ export type PagamentoMensalistaResultado = {
 };
 
 export type PagamentoFormValues = { valorPago: string; formaPagamento: string };
+
+// Grupos da agenda: os quatro primeiros aparecem sempre; "em-dia" e "inativos" só aparecem numa busca.
+export type AgendaGrupoId = "atrasados" | "hoje" | "semana" | "sem-pagamento" | "em-dia" | "inativos";
+
+// Um mensalista na agenda, já com o grupo e a situação derivada.
+export type AgendaItemData = {
+  mensalista: Mensalista;
+  grupo: AgendaGrupoId;
+  situacao: SituacaoMensalista;
+  // Próximo vencimento como dia local (sem hora); null quando o back não informa.
+  vence: Date | null;
+  // Maior que zero só em "atrasados".
+  diasAtraso: number;
+};
+
+export type AgendaGrupoData = { id: AgendaGrupoId; titulo: string; itens: AgendaItemData[] };
+
+export type AgendaResumoData = {
+  // Hoje + esta semana; os atrasados têm contagem própria.
+  quantidade: number;
+  total: number;
+  ate: Date;
+};
+
+export type Agenda = {
+  grupos: AgendaGrupoData[];
+  // Quem não precisa de ação agora (em dia ou desativado): fora dos grupos, mas achado pela busca.
+  ocultos: AgendaItemData[];
+  // Ativos com vencimento depois do fim da semana.
+  emDia: number;
+  resumo: AgendaResumoData;
+};

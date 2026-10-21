@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { StageTrack, type StageTrackProps } from "@/components/ui/StageTrack";
 import { StatusBadge, type StatusBadgeProps } from "@/components/ui/StatusBadge";
 import type { SituacaoMensalista as Situacao } from "@/types/mensalista";
-import { Actions, BadgeRow, Detail, Wrapper } from "./SituacaoMensalista.styles";
+import { Actions, AcaoSecundaria, BadgeRow, Detail, Wrapper } from "./SituacaoMensalista.styles";
 
 type Stages = StageTrackProps["stages"];
 
@@ -126,7 +126,7 @@ export function SituacaoMensalista({
               {action}
             </Button>
           ) : (
-            <Button
+            <AcaoSecundaria
               type="button"
               variant="secondary"
               size="sm"
@@ -135,7 +135,7 @@ export function SituacaoMensalista({
               onClick={onReenviar}
             >
               {reenviando ? "Reenviando…" : action}
-            </Button>
+            </AcaoSecundaria>
           )}
         </Actions>
       )}

@@ -12,7 +12,7 @@ import {
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn() }),
-  useSearchParams: () => ({ get: () => null }),
+  useSearchParams: () => ({ get: (key: string) => (key === "aba" ? "lista" : null) }),
 }));
 
 vi.mock("@/lib/api/services/mensalista", () => ({

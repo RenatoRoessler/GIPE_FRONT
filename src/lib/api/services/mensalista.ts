@@ -119,3 +119,31 @@ export async function pagarMensalista(values: {
     status: 1,
   });
 }
+
+export const AGENDA_PAGE_SIZE = 100;
+export const AGENDA_MAX_PAGES = 10;
+
+// Todos os cadastros para a agenda, que agrupa no cliente: a página 1 diz quantas há, e as demais vêm em paralelo.
+// A API pode devolver um pageSize menor que o pedido; as páginas seguintes usam o que ela devolveu.
+export async function listAllMensalistas({
+  tamanhoPagina = AGENDA_PAGE_SIZE,
+  maxPaginas = AGENDA_MAX_PAGES,
+}: { tamanhoPagina?: number; maxPaginas?: number } = {}): Promise<{
+  items: Mensalista[];
+  totalRecords: number;
+  truncado: boolean;
+}> {
+  const primeira = await listMensalistas({ pagina: 1, tamanhoPagina });
+  const tamanho = primeira.pageSize > 0 ? primeira.pageSize : tamanhoPagina;
+  const ultima = Math.min(primeira.totalPages, maxPaginas);
+  const demais = await Promise.all(
+    Array.from({ length: Math.max(0, ultima - 1) }, (_, indice) =>
+      listMensalistas({ pagina: indice + 2, tamanhoPagina: tamanho }),
+    ),
+  );
+  return {
+    items: [primeira, ...demais].flatMap((pagina) => pagina.items),
+    totalRecords: primeira.totalRecords,
+    truncado: primeira.totalPages > maxPaginas,
+  };
+}

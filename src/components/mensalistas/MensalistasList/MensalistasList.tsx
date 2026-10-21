@@ -10,7 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/u
 import { Text } from "@/components/ui/Text";
 import type { ToastVariant } from "@/components/ui/Toast";
 import { formatDocumentoAuto } from "@/lib/documento";
+import { buscaEhTexto } from "../agenda";
 import type { Mensalista, SituacaoMensalista as Situacao } from "@/types/mensalista";
+import { LISTA_URL } from "../aba";
 import { EditIcon } from "../EditIcon";
 import { PagamentoIcon } from "../PagamentoIcon";
 import { ViewIcon } from "../ViewIcon";
@@ -31,6 +33,8 @@ import { VeiculosResumo } from "../VeiculosResumo";
 import {
   EmptyState,
   IconButton,
+  ListaRow,
+  NomeLink,
   Primary,
   RowActions,
   SearchBox,
@@ -38,8 +42,10 @@ import {
   SubText,
   TableArea,
   Toolbar,
+  VerFichaIcone,
 } from "../Mensalistas.styles";
-import { MENSALISTAS_PAGE_SIZE, useMensalistas } from "../useMensalistas";
+import { MENSALISTAS_PAGE_SIZE } from "../useMensalistas";
+import { useMensalistasDaLista } from "../useMensalistasDaLista";
 import { useTiposMensalidade } from "../useTiposMensalidade";
 
 const SKELETON_ROWS = 8;
@@ -76,7 +82,7 @@ export function MensalistasList({
   // O termo fica só em estado local: o documento do cliente não vai para a URL.
   const [busca, setBusca] = useState("");
 
-  const { data, isPending, isError, error, refetch, isFetching, isPlaceholderData, documento } = useMensalistas(
+  const { data, isPending, isError, error, refetch, isFetching, isPlaceholderData, buscando, modoTexto } = useMensalistasDaLista(
     pagina,
     busca,
   );
@@ -93,20 +99,21 @@ export function MensalistasList({
   // Página fora do intervalo (ex.: registros removidos): volta para a última existente.
   useEffect(() => {
     if (data && data.totalPages > 0 && pagina > data.totalPages) {
-      router.replace(`/mensalistas?pagina=${data.totalPages}`, { scroll: false });
+      router.replace(`${LISTA_URL}&pagina=${data.totalPages}`, { scroll: false });
     }
   }, [data, pagina, router]);
 
   function goToPage(page: number) {
-    router.replace(page > 1 ? `/mensalistas?pagina=${page}` : "/mensalistas", { scroll: false });
+    router.replace(page > 1 ? `${LISTA_URL}&pagina=${page}` : LISTA_URL, { scroll: false });
     tableRef.current?.focus();
   }
 
   function changeBusca(value: string) {
-    setBusca(formatDocumentoAuto(value));
+    // Documento ganha a máscara; nome e placa ficam como digitados.
+    setBusca(buscaEhTexto(value) ? value : formatDocumentoAuto(value));
     // Resultado novo: volta ao início da lista.
     if (pagina > 1) {
-      router.replace("/mensalistas", { scroll: false });
+      router.replace(LISTA_URL, { scroll: false });
     }
   }
 
@@ -115,12 +122,12 @@ export function MensalistasList({
     <Toolbar>
       <SearchBox>
         <Input
-          label="Buscar por CPF ou CNPJ"
+          label="Buscar por nome, placa, CPF ou CNPJ"
           value={busca}
           onChange={(event) => changeBusca(event.target.value)}
           inputMode="text"
           autoComplete="off"
-          placeholder="Digite o início do documento"
+          placeholder="Nome, placa ou início do documento"
         />
       </SearchBox>
       <Button type="button" onClick={semTipoAtivo ? onCriarTipo : onNovo}>
@@ -133,31 +140,37 @@ export function MensalistasList({
     return (
       <>
         {toolbar}
-        <ListError error={error} what="os mensalistas" onRetry={() => void refetch()} retrying={isFetching} />
+        <ListError error={error ?? new Error("Erro desconhecido.")} what="os mensalistas" onRetry={() => void refetch()} retrying={isFetching} />
       </>
     );
   }
 
-  if (isPending) {
+  if (isPending || !data) {
     return (
-      <TableArea $refreshing={false} role="status" aria-label="Carregando mensalistas">
-        <SkeletonRows>
-          {Array.from({ length: SKELETON_ROWS }, (_, index) => (
-            <Skeleton key={index} height="20px" />
-          ))}
-        </SkeletonRows>
-      </TableArea>
+      <>
+        {/* Quem está buscando não pode perder o campo enquanto o conjunto completo chega (busca por nome ou placa). */}
+        {busca !== "" && toolbar}
+        <TableArea $refreshing={false} role="status" aria-label="Carregando mensalistas">
+          <SkeletonRows>
+            {Array.from({ length: SKELETON_ROWS }, (_, index) => (
+              <Skeleton key={index} height="20px" />
+            ))}
+          </SkeletonRows>
+        </TableArea>
+      </>
     );
   }
 
   if (data.items.length === 0) {
     // Busca sem resultado: a barra de busca continua visível.
-    if (documento) {
+    if (buscando) {
       return (
         <>
           {toolbar}
           <EmptyState>
-            <Text variant="muted">Nenhum mensalista com esse documento.</Text>
+            <Text variant="muted">
+              {modoTexto ? "Nenhum mensalista com esse nome ou placa." : "Nenhum mensalista com esse documento."}
+            </Text>
             <Button type="button" variant="secondary" onClick={() => setBusca("")}>
               Limpar busca
             </Button>
@@ -207,9 +220,11 @@ export function MensalistasList({
               // Quem aguarda o 1º pagamento já tem o botão na célula de situação; as demais linhas liberadas ganham o ícone.
               const iconeDePagamento = pagamento.pode && situacao.kind !== "aguardando-pagamento";
               return (
-              <TableRow key={mensalista.mensalistaId}>
+              <ListaRow key={mensalista.mensalistaId}>
                 <TableCell data-label="Nome">
-                  <Primary>{mensalista.nome}</Primary>
+                  <NomeLink type="button" onClick={() => onVerFicha(mensalista)}>
+                    {mensalista.nome}
+                  </NomeLink>
                   <SubText>{mensalista.email}</SubText>
                   <SubText>{formatCelular(mensalista.celular)}</SubText>
                 </TableCell>
@@ -242,14 +257,14 @@ export function MensalistasList({
                 <TableCell data-label="Vencimento">{formatVencimento(mensalista.diaVencimento)}</TableCell>
                 <TableCell data-label="Ações" align="right">
                   <RowActions>
-                    <IconButton
+                    <VerFichaIcone
                       type="button"
                       aria-label={`Ver ficha de ${mensalista.nome}`}
                       title="Ver ficha"
                       onClick={() => onVerFicha(mensalista)}
                     >
                       <ViewIcon />
-                    </IconButton>
+                    </VerFichaIcone>
                     {iconeDePagamento && (
                       <IconButton
                         type="button"
@@ -270,7 +285,7 @@ export function MensalistasList({
                     </IconButton>
                   </RowActions>
                 </TableCell>
-              </TableRow>
+              </ListaRow>
               );
             })}
           </TableBody>

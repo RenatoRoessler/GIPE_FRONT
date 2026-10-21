@@ -7,12 +7,13 @@ import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
 import type { Mensalista, MensalistaTipo, SituacaoMensalista } from "@/types/mensalista";
-import { ABAS, parseAba } from "../aba";
+import { ABAS, abaUrl, parseAba, type AbaId } from "../aba";
+import { AgendaView } from "../AgendaView";
 import { MensalistaFichaModal } from "../MensalistaFichaModal";
 import { MensalistaModal } from "../MensalistaModal";
 import { MensalistasList } from "../MensalistasList";
 import { PagamentoMensalistaModal } from "../PagamentoMensalistaModal";
-import { Header, Page } from "../Mensalistas.styles";
+import { Header, NovoFlutuante, NovoNoCabecalho, Page } from "../Mensalistas.styles";
 import { TipoModal } from "../TipoModal";
 import { TiposList } from "../TiposList";
 
@@ -27,29 +28,43 @@ type ModalState =
 export function MensalistasPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const aba = parseAba(searchParams.get("aba"));
+  const aba = parseAba(searchParams.get("aba"), { temPagina: searchParams.get("pagina") !== null });
   const [modal, setModal] = useState<ModalState>(null);
   const { toast, showToast, dismissToast } = useToast();
 
   function changeAba(next: string) {
     // Cada aba tem a própria paginação: ao trocar, a página volta ao início.
-    router.replace(next === "mensalistas" ? "/mensalistas" : `/mensalistas?aba=${next}`, { scroll: false });
+    router.replace(abaUrl(next as AbaId), { scroll: false });
   }
 
   const closeModal = () => setModal(null);
 
   return (
-    <Page>
+    <Page $reservaFab={aba === "agenda"}>
       <Header>
         <Text variant="heading" as="h1">
           Mensalistas
         </Text>
+        {aba === "agenda" && (
+          <NovoNoCabecalho type="button" onClick={() => setModal({ kind: "mensalista" })}>
+            Novo mensalista
+          </NovoNoCabecalho>
+        )}
       </Header>
       <Tabs tabs={[...ABAS]} value={aba} onChange={changeAba} aria-label="Seções de mensalistas">
         {aba === "tipos" ? (
           <TiposList
             onNovo={() => setModal({ kind: "tipo" })}
             onEditar={(tipo) => setModal({ kind: "tipo", tipo })}
+          />
+        ) : aba === "agenda" ? (
+          <AgendaView
+            onNovo={() => setModal({ kind: "mensalista" })}
+            onVerFicha={(mensalista) => setModal({ kind: "ficha", mensalista })}
+            onReceberPagamento={(mensalista, situacao) => setModal({ kind: "pagamento", mensalista, situacao })}
+            onVerLista={() => changeAba("lista")}
+            onToast={showToast}
+            bloqueado={modal !== null}
           />
         ) : (
           <MensalistasList
@@ -92,6 +107,11 @@ export function MensalistasPage() {
         />
       )}
       {modal?.kind === "tipo" &&<TipoModal tipo={modal.tipo} onClose={closeModal} onSuccess={showToast} />}
+      {aba === "agenda" && (
+        <NovoFlutuante type="button" aria-label="Novo mensalista" onClick={() => setModal({ kind: "mensalista" })}>
+          + Novo
+        </NovoFlutuante>
+      )}
       {toast && <Toast message={toast.message} variant={toast.variant} onDismiss={dismissToast} />}
     </Page>
   );
