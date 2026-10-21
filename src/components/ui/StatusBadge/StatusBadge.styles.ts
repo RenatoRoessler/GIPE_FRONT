@@ -2,7 +2,7 @@
 
 import styled, { css } from "styled-components";
 
-export type StatusBadgeTone = "success" | "neutral" | "info" | "warn";
+export type StatusBadgeTone = "success" | "neutral" | "info" | "warn" | "danger";
 
 export const StyledStatusBadge = styled.span<{ $tone: StatusBadgeTone }>`
   display: inline-flex;
@@ -30,6 +30,22 @@ export const StyledStatusBadge = styled.span<{ $tone: StatusBadgeTone }>`
         return css`
           background-color: ${theme.colors.warn};
           color: ${theme.colors.onWarn};
+        `;
+      // O texto usa a cor do tema (danger sobre fundo claro não alcança 4,5:1); o ponto reforça sem carregar o texto.
+      case "danger":
+        return css`
+          gap: ${theme.space[2]}px;
+          background-color: ${theme.colors.dangerSoft};
+          color: ${theme.colors.text};
+
+          &::before {
+            content: "";
+            flex: none;
+            width: 8px;
+            height: 8px;
+            border-radius: ${theme.radii.full};
+            background-color: ${theme.colors.danger};
+          }
         `;
       default:
         return css`

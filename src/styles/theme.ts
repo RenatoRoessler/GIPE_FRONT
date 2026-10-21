@@ -38,6 +38,7 @@ type ThemeColors = {
   onWarn: string;
   steel: string;
   danger: string;
+  dangerSoft: string;
   success: string;
   background: string;
   surface: string;
@@ -92,6 +93,7 @@ export const lightTheme: AppTheme = {
     onWarn: "#131A2B",
     steel: "#8A95A3",
     danger: "#E23D4E",
+    dangerSoft: "rgba(226, 61, 78, 0.12)",
     success: "#1F9D6C",
     background: "#FFFFFF",
     surface: "#F3F5FA",
@@ -125,6 +127,7 @@ export const darkTheme: AppTheme = {
     onWarn: "#1A1A1A",
     steel: "#5A6573",
     danger: "#FF6B6B",
+    dangerSoft: "rgba(255, 107, 107, 0.16)",
     success: "#4FBE86",
     background: "#1A1A1A",
     surface: "#232323",
@@ -170,6 +173,7 @@ export const signageLightTheme: AppTheme = {
     onWarn: "#14202E",
     steel: "#8A95A3",
     danger: "#C8283A",
+    dangerSoft: "rgba(200, 40, 58, 0.12)",
     success: "#17803F",
     background: "#FFFFFF",
     surface: "#EDF0F4",
@@ -202,6 +206,7 @@ export const signageDarkTheme: AppTheme = {
     onWarn: "#14202E",
     steel: "#5A6573",
     danger: "#FF6B6B",
+    dangerSoft: "rgba(255, 107, 107, 0.16)",
     success: "#5FD08E",
     background: "#151C25",
     surface: "#0D1218",
