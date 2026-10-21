@@ -8,7 +8,7 @@ Ordem: T1 → T2 → T3 e T4 (em qualquer ordem) → T5 → T6 → T7 → T8. A 
 
 ## Base (sessão, serviço, regras)
 
-- [ ] T1 — Confirmar os ids da sessão e o contrato do pagamento
+- [x] T1 — Confirmar os ids da sessão e o contrato do pagamento
   - Arquivos: `docs/specs/mensalistas-pagamento/techspec.md` (atualizar §3 e §8)
   - Pronto quando:
     - com um token válido (ou resposta do back), está registrado em quais claims do JWT vêm `empresaId` e `usuarioId` numéricos, **ou** está decidido o plano B (o back lê empresa e usuário do token e o front deixa de enviá-los);
@@ -16,7 +16,8 @@ Ordem: T1 → T2 → T3 e T4 (em qualquer ordem) → T5 → T6 → T7 → T8. A 
     - está registrado se a API aceita uma chave de idempotência;
     - o Tech Spec reflete a decisão (mantém ou remove `session.ts`, e reduz a lista de apelidos do mapper).
   - Depende de: um token válido ou de resposta do back (fora do código). Sem isso, seguir com as candidatas do Tech Spec e deixar o registro final para a T8.
-  - **Atualização (2026-10-21):** o token só traz `empresa_guid` e um `nameidentifier` não numérico. O back vai **remover o `empresaId`** do corpo (a empresa é a do token); o `usuarioId` segue em aberto (sair do corpo, entrar no JWT, endpoint de sessão ou aceitar o `nameidentifier`). O front já não envia `empresaId`.
+  - **Resolvida (2026-10-21):** o back removeu `empresaId` e `usuarioId` do corpo do pagamento (os dois são os do token). O front deixou de ler o token: `src/lib/session.ts` foi removido e o corpo leva só `mensalistaId`, `valorPago`, `formaPagamento` e `origemPagamento`. Falta confirmar o formato real da resposta, a idempotência e o valor diferente da mensalidade na T8.
+  - **Histórico:** o token só traz `empresa_guid` e um `nameidentifier` não numérico. O back vai **remover o `empresaId`** do corpo (a empresa é a do token); o `usuarioId` segue em aberto (sair do corpo, entrar no JWT, endpoint de sessão ou aceitar o `nameidentifier`). O front já não envia `empresaId`.
   - **Status anterior (2026-10-21):** aberta. Sem token válido (Swagger exige 401), T2 a T4 seguiram com as claims candidatas de `src/lib/session.ts` (`empresa_id`/`empresaId` e `usuario_id`/`usuarioId`/`nameid`/`sub`), sem confirmação.
 
 - [x] T2 — Tipos, sessão e serviço de pagamento

@@ -302,3 +302,5 @@ Rodar `npm run lint`, `npm run test` e `npm run build` ao final.
 - **T8 (roteiro manual):** os 8 itens contra a API real dependem de homologação e dados de teste. Ao executá-los, registrar aqui o formato real da resposta (`fromPagamentoResponse`), os textos reais de erro (`classificarErroPagamento`) e se a API aceita valor diferente da mensalidade.
 
 **Atualização (2026-10-21):** o back vai remover `empresaId` do corpo do pagamento. O front já não o envia nem o procura no token (`SessaoIds` agora é só `{ usuarioId }`). Continua aberto como o `usuarioId` será obtido; enquanto o token não trouxer um id numérico, o modal avisa e não envia.
+
+**Resolvido (2026-10-21):** o back removeu `empresaId` e `usuarioId` do corpo do pagamento; os dois vêm do token. `src/lib/session.ts`, `SessaoIds`, `SessaoSemIdsError` e o tipo de erro `sessao-sem-ids` foram removidos, e `pagarMensalista` envia só `mensalistaId`, `valorPago`, `formaPagamento` e `origemPagamento` (2, painel administrativo). O que segue aberto é a T8: o formato real da resposta, os textos reais dos erros, a idempotência e se o valor pago pode diferir da mensalidade.
