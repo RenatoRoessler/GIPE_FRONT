@@ -1,5 +1,4 @@
 import { normalizeDocumento } from "@/lib/documento";
-import { getSessaoIds, SessaoSemIdsError } from "@/lib/session";
 import type { FormaPagamentoId } from "@/types/caixa";
 import type { Paginado } from "@/lib/api/types";
 import {
@@ -98,17 +97,13 @@ export async function reenviarContrato(id: number): Promise<{ tokenExpiracao: st
 }
 
 // Baixa a cobrança pendente mais recente, ativa o mensalista e gera a cobrança do mês seguinte, numa só transação.
-// Empresa e usuário que recebeu vêm da sessão; quem chama não os informa. Sem idempotência: não repetir às cegas.
+// Empresa e usuário que recebeu são os do token: o back os identifica, e o corpo não os leva. Sem idempotência: não repetir às cegas.
 export async function pagarMensalista(values: {
   mensalistaId: number;
   valorPago: number;
   formaPagamento: FormaPagamentoId;
 }): Promise<PagamentoMensalistaResultado> {
-  const sessao = getSessaoIds();
-  if (!sessao) {
-    throw new SessaoSemIdsError();
-  }
-  const payload = toPagamentoPayload(values, sessao);
+  const payload = toPagamentoPayload(values);
   const { data } = await api.post<unknown>("/Mensalista/pagamento", payload);
   return fromPagamentoResponse(data, {
     cobrancaId: null,

@@ -2,7 +2,6 @@ import { formaPagamentoLabel } from "@/components/caixa/format";
 import { ApiError } from "@/lib/api/errors";
 import { formatBRL, parseMoney } from "@/lib/money";
 import { pagamentoSchema } from "@/lib/schemas/pagamento";
-import { SessaoSemIdsError } from "@/lib/session";
 import type { Mensalista, SituacaoMensalista } from "@/types/mensalista";
 
 export type EstadoPagamento =
@@ -85,15 +84,13 @@ export function explicarVencimento(diaCadastro: number, vencimento: string | nul
   return `Dia ${diaCadastro} do cadastro; ${MESES[mesAnterior - 1]} não tem dia ${diaCadastro}, então vence em ${dd(data.dia)}/${dd(data.mes)}.`;
 }
 
-export type PagamentoErroKind = "contrato-nao-aceito" | "sem-cobranca" | "sessao" | "sessao-sem-ids" | "rede" | "generico";
+export type PagamentoErroKind = "contrato-nao-aceito" | "sem-cobranca" | "sessao" | "rede" | "generico";
 
 export const MENSAGENS_ERRO_PAGAMENTO: Record<Exclude<PagamentoErroKind, "generico">, string> = {
   "contrato-nao-aceito":
     "O primeiro pagamento só é liberado depois do aceite do contrato. Reenvie o contrato ao mensalista e tente de novo depois.",
   "sem-cobranca": "Este mensalista não tem cobrança pendente para receber.",
   sessao: "Não foi possível registrar o pagamento com este usuário. Entre novamente e tente de novo.",
-  "sessao-sem-ids":
-    "Sua sessão não traz o código do usuário que o pagamento exige. Nada foi enviado. Entrar de novo não resolve: avise o suporte.",
   rede: "Não conseguimos confirmar se o pagamento foi registrado. Confira a situação do mensalista antes de tentar de novo.",
 };
 
@@ -104,9 +101,6 @@ const SEM_COBRANCA = /pendente|cobran[cç]a/i;
 export function classificarErroPagamento(error: unknown): { kind: PagamentoErroKind; message: string } {
   if (!(error instanceof ApiError)) {
     return { kind: "generico", message: "Não foi possível registrar o pagamento. Tente novamente." };
-  }
-  if (error instanceof SessaoSemIdsError) {
-    return { kind: "sessao-sem-ids", message: MENSAGENS_ERRO_PAGAMENTO["sessao-sem-ids"] };
   }
   if (error.kind === "network" || error.kind === "timeout") {
     return { kind: "rede", message: MENSAGENS_ERRO_PAGAMENTO.rede };

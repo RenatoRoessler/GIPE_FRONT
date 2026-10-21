@@ -2,7 +2,6 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
-import { SessaoSemIdsError } from "@/lib/session";
 import { renderWithProviders } from "@/test/render";
 import { TIPO_PESSOA, type Mensalista, type PagamentoMensalistaResultado, type SituacaoMensalista } from "@/types/mensalista";
 
@@ -235,17 +234,5 @@ describe("erros do pagamento", () => {
       expect(await screen.findByText("Não foi possível conferir agora. Tente conferir de novo.")).toBeInTheDocument();
       expect(botaoConfirmar()).toBeDisabled();
     });
-  });
-});
-
-describe("sessão sem os ids da empresa e do usuário", () => {
-  it("explica que nada foi enviado e que entrar de novo não resolve", async () => {
-    const user = userEvent.setup();
-    vi.mocked(pagarMensalista).mockRejectedValue(new SessaoSemIdsError());
-    abrir();
-
-    await user.click(botaoConfirmar());
-
-    expect(await screen.findByRole("alert")).toHaveTextContent("Nada foi enviado. Entrar de novo não resolve: avise o suporte.");
   });
 });

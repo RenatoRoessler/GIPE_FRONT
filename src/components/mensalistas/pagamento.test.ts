@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { ApiError } from "@/lib/api/errors";
-import { SessaoSemIdsError } from "@/lib/session";
 import type { SituacaoMensalista } from "@/types/mensalista";
 import {
   classificarErroPagamento,
@@ -94,7 +93,6 @@ describe("classificarErroPagamento", () => {
     [new ApiError("network"), "rede"],
     [new ApiError("timeout"), "rede"],
     [new ApiError("unauthorized", "Sessão expirada. Faça login novamente.", 401), "sessao"],
-    [new SessaoSemIdsError(), "sessao-sem-ids"],
     [new ApiError("validation", "O contrato ainda não foi aceito.", 400), "contrato-nao-aceito"],
     [new ApiError("validation", "Aceite do contrato pendente.", 400), "contrato-nao-aceito"],
     [new ApiError("validation", "Mensalista sem cobrança pendente.", 400), "sem-cobranca"],

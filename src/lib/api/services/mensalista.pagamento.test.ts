@@ -2,9 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ORIGEM_PAGAMENTO } from "@/types/mensalista";
 
 vi.mock("../client", () => ({ api: { post: vi.fn() } }));
-vi.mock("@/lib/session", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/lib/session")>()), getSessaoIds: vi.fn() }));
 
-import { getSessaoIds, SessaoSemIdsError } from "@/lib/session";
 import { api } from "../client";
 import { ApiError } from "../errors";
 import { pagarMensalista } from "./mensalista";
@@ -20,16 +18,17 @@ const fallback = {
 };
 
 describe("toPagamentoPayload", () => {
-  it("usa a sessão, a origem do painel e arredonda a centavos", () => {
-    expect(
-      toPagamentoPayload({ mensalistaId: 5, valorPago: 280.004, formaPagamento: 2 }, { usuarioId: 42 }),
-    ).toEqual({
+  it("usa a origem do painel, arredonda a centavos e não leva empresa nem usuário", () => {
+    const payload = toPagamentoPayload({ mensalistaId: 5, valorPago: 280.004, formaPagamento: 2 });
+
+    expect(payload).toEqual({
       mensalistaId: 5,
       valorPago: 280,
       formaPagamento: 2,
       origemPagamento: ORIGEM_PAGAMENTO.PainelAdministrativo,
-      usuarioId: 42,
     });
+    expect(payload).not.toHaveProperty("empresaId");
+    expect(payload).not.toHaveProperty("usuarioId");
   });
 });
 
@@ -70,11 +69,9 @@ describe("fromPagamentoResponse", () => {
 describe("pagarMensalista", () => {
   beforeEach(() => {
     vi.mocked(api.post).mockReset();
-    vi.mocked(getSessaoIds).mockReset();
   });
 
-  it("envia o usuário da sessão (a empresa é a do token) para POST /Mensalista/pagamento", async () => {
-    vi.mocked(getSessaoIds).mockReturnValue({ usuarioId: 42 });
+  it("envia só o pagamento para POST /Mensalista/pagamento (empresa e usuário são os do token)", async () => {
     vi.mocked(api.post).mockResolvedValue({ data: { cobrancaPaga: { valor: 280 }, proximaCobranca: { valor: 280, dataVencimento: "2026-11-05" } } });
 
     const result = await pagarMensalista({ mensalistaId: 5, valorPago: 280, formaPagamento: 2 });
@@ -84,23 +81,11 @@ describe("pagarMensalista", () => {
       valorPago: 280,
       formaPagamento: 2,
       origemPagamento: 2,
-      usuarioId: 42,
     });
     expect(result.proxima?.vencimento).toBe("2026-11-05");
   });
 
-  it("sem ids na sessão, falha como sessão expirada e não chama a API", async () => {
-    vi.mocked(getSessaoIds).mockReturnValue(null);
-
-    await expect(pagarMensalista({ mensalistaId: 5, valorPago: 280, formaPagamento: 1 })).rejects.toBeInstanceOf(
-      SessaoSemIdsError,
-    );
-    await expect(pagarMensalista({ mensalistaId: 5, valorPago: 280, formaPagamento: 1 })).rejects.toBeInstanceOf(ApiError);
-    expect(api.post).not.toHaveBeenCalled();
-  });
-
   it("repassa o erro da API", async () => {
-    vi.mocked(getSessaoIds).mockReturnValue({ usuarioId: 42 });
     vi.mocked(api.post).mockRejectedValue(new ApiError("validation", "Sem cobrança pendente.", 400));
 
     await expect(pagarMensalista({ mensalistaId: 5, valorPago: 280, formaPagamento: 1 })).rejects.toThrow("Sem cobrança pendente.");

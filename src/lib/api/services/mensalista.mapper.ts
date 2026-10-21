@@ -4,7 +4,6 @@ import { formatCPF } from "@/lib/cpf";
 import { formatPhone } from "@/lib/phone";
 import { normalizePlaca } from "@/lib/placa";
 import { newUid } from "@/lib/uid";
-import type { SessaoIds } from "@/lib/session";
 import type { FormaPagamentoId } from "@/types/caixa";
 import type { TipoCategoria } from "@/types/preco";
 import { matchCor } from "@/types/veiculo";
@@ -222,16 +221,16 @@ function toCobranca(value: unknown): CobrancaMensalista | null {
   };
 }
 
-export function toPagamentoPayload(
-  values: { mensalistaId: number; valorPago: number; formaPagamento: FormaPagamentoId },
-  sessao: SessaoIds,
-): PagamentoMensalistaPayload {
+export function toPagamentoPayload(values: {
+  mensalistaId: number;
+  valorPago: number;
+  formaPagamento: FormaPagamentoId;
+}): PagamentoMensalistaPayload {
   return {
     mensalistaId: values.mensalistaId,
     valorPago: Math.round(values.valorPago * 100) / 100,
     formaPagamento: values.formaPagamento,
     origemPagamento: ORIGEM_PAGAMENTO.PainelAdministrativo,
-    usuarioId: sessao.usuarioId,
   };
 }
 
