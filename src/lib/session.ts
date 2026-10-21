@@ -1,18 +1,18 @@
 import { getToken } from "@/lib/auth";
 import { ApiError } from "@/lib/api/errors";
 
-export type SessaoIds = { empresaId: number; usuarioId: number };
+export type SessaoIds = { usuarioId: number };
 
-// O token não traz o código numérico da empresa e do usuário: nada foi enviado à API.
+// O token não traz o código numérico do usuário: nada foi enviado à API.
 export class SessaoSemIdsError extends ApiError {
   constructor() {
-    super("unauthorized", "A sessão não traz o código da empresa e do usuário.");
+    super("unauthorized", "A sessão não traz o código do usuário.");
     this.name = "SessaoSemIdsError";
   }
 }
 
-// [A CONFIRMAR] Nomes das claims do JWT que trazem os ids numéricos. A primeira inteira e positiva vale.
-const EMPRESA_ID_CLAIMS = ["empresa_id", "empresaId", "EmpresaId"] as const;
+// [A CONFIRMAR] Nomes das claims do JWT que trazem o id numérico do usuário. A primeira inteira e positiva vale.
+// A empresa não entra: o back a identifica pelo empresa_guid do token.
 // A claim `nameidentifier` do .NET chega com o nome longo do esquema da Microsoft.
 const NAME_IDENTIFIER = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
 const USUARIO_ID_CLAIMS = ["usuario_id", "usuarioId", "UsuarioId", NAME_IDENTIFIER, "nameid", "sub"] as const;
@@ -59,7 +59,6 @@ export function getSessaoIds(): SessaoIds | null {
   if (!payload) {
     return null;
   }
-  const empresaId = firstId(payload, EMPRESA_ID_CLAIMS);
   const usuarioId = firstId(payload, USUARIO_ID_CLAIMS);
-  return empresaId !== null && usuarioId !== null ? { empresaId, usuarioId } : null;
+  return usuarioId !== null ? { usuarioId } : null;
 }

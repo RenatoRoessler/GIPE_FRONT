@@ -93,7 +93,7 @@ export const MENSAGENS_ERRO_PAGAMENTO: Record<Exclude<PagamentoErroKind, "generi
   "sem-cobranca": "Este mensalista não tem cobrança pendente para receber.",
   sessao: "Não foi possível registrar o pagamento com este usuário. Entre novamente e tente de novo.",
   "sessao-sem-ids":
-    "Sua sessão não traz o código da empresa e do usuário que o pagamento exige. Nada foi enviado. Entrar de novo não resolve: avise o suporte.",
+    "Sua sessão não traz o código do usuário que o pagamento exige. Nada foi enviado. Entrar de novo não resolve: avise o suporte.",
   rede: "Não conseguimos confirmar se o pagamento foi registrado. Confira a situação do mensalista antes de tentar de novo.",
 };
 

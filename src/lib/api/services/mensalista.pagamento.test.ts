@@ -22,9 +22,8 @@ const fallback = {
 describe("toPagamentoPayload", () => {
   it("usa a sessão, a origem do painel e arredonda a centavos", () => {
     expect(
-      toPagamentoPayload({ mensalistaId: 5, valorPago: 280.004, formaPagamento: 2 }, { empresaId: 7, usuarioId: 42 }),
+      toPagamentoPayload({ mensalistaId: 5, valorPago: 280.004, formaPagamento: 2 }, { usuarioId: 42 }),
     ).toEqual({
-      empresaId: 7,
       mensalistaId: 5,
       valorPago: 280,
       formaPagamento: 2,
@@ -74,14 +73,13 @@ describe("pagarMensalista", () => {
     vi.mocked(getSessaoIds).mockReset();
   });
 
-  it("envia empresa e usuário da sessão para POST /Mensalista/pagamento", async () => {
-    vi.mocked(getSessaoIds).mockReturnValue({ empresaId: 7, usuarioId: 42 });
+  it("envia o usuário da sessão (a empresa é a do token) para POST /Mensalista/pagamento", async () => {
+    vi.mocked(getSessaoIds).mockReturnValue({ usuarioId: 42 });
     vi.mocked(api.post).mockResolvedValue({ data: { cobrancaPaga: { valor: 280 }, proximaCobranca: { valor: 280, dataVencimento: "2026-11-05" } } });
 
     const result = await pagarMensalista({ mensalistaId: 5, valorPago: 280, formaPagamento: 2 });
 
     expect(api.post).toHaveBeenCalledWith("/Mensalista/pagamento", {
-      empresaId: 7,
       mensalistaId: 5,
       valorPago: 280,
       formaPagamento: 2,
@@ -102,7 +100,7 @@ describe("pagarMensalista", () => {
   });
 
   it("repassa o erro da API", async () => {
-    vi.mocked(getSessaoIds).mockReturnValue({ empresaId: 7, usuarioId: 42 });
+    vi.mocked(getSessaoIds).mockReturnValue({ usuarioId: 42 });
     vi.mocked(api.post).mockRejectedValue(new ApiError("validation", "Sem cobrança pendente.", 400));
 
     await expect(pagarMensalista({ mensalistaId: 5, valorPago: 280, formaPagamento: 1 })).rejects.toThrow("Sem cobrança pendente.");

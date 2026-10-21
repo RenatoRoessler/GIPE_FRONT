@@ -176,9 +176,8 @@ export type TipoFormValues = {
 // EOrigemPagamento do back. Esta tela só registra pelo painel administrativo.
 export const ORIGEM_PAGAMENTO = { Patio: 1, PainelAdministrativo: 2, WebHook: 3, Site: 4 } as const;
 
-// Corpo do POST /Mensalista/pagamento. `empresaId` e `usuarioId` vêm sempre da sessão, nunca de um campo.
+// Corpo do POST /Mensalista/pagamento. A empresa é a do token (o back a identifica); `usuarioId` vem da sessão, nunca de um campo.
 export type PagamentoMensalistaPayload = {
-  empresaId: number;
   mensalistaId: number;
   // Maior que zero, até 2 casas.
   valorPago: number;

@@ -227,7 +227,6 @@ export function toPagamentoPayload(
   sessao: SessaoIds,
 ): PagamentoMensalistaPayload {
   return {
-    empresaId: sessao.empresaId,
     mensalistaId: values.mensalistaId,
     valorPago: Math.round(values.valorPago * 100) / 100,
     formaPagamento: values.formaPagamento,
