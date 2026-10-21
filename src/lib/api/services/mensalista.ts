@@ -1,7 +1,16 @@
 import { normalizeDocumento } from "@/lib/documento";
 import type { Paginado } from "@/lib/api/types";
-import type { Mensalista, MensalistaFormValues, MensalistaTipo, TipoFormValues } from "@/types/mensalista";
+import {
+  CONTRATO_STATUS,
+  type ContratoMensalista,
+  type ContratoStatus,
+  type Mensalista,
+  type MensalistaFormValues,
+  type MensalistaTipo,
+  type TipoFormValues,
+} from "@/types/mensalista";
 import { api } from "../client";
+import { ApiError } from "../errors";
 import {
   fromMensalistaResponse,
   fromTipoResponse,
@@ -47,4 +56,38 @@ export async function createTipoMensalidade(values: TipoFormValues): Promise<{ m
 
 export async function updateTipoMensalidade(id: number, values: TipoFormValues): Promise<void> {
   await api.put(`/Mensalista/tipo/${id}`, toTipoPayload(values));
+}
+
+function toContratoStatus(value: unknown): ContratoStatus {
+  return value === CONTRATO_STATUS.Aceito || value === CONTRATO_STATUS.Cancelado ? value : CONTRATO_STATUS.Pendente;
+}
+
+function textOrNull(value: unknown): string | null {
+  return typeof value === "string" && value ? value : null;
+}
+
+// Contrato mais recente do mensalista. 404 = o mensalista não tem contrato (ex.: cadastrado antes do contrato existir).
+export async function getContratoMensalista(id: number): Promise<ContratoMensalista | null> {
+  try {
+    const { data } = await api.get<Record<string, unknown>>(`/Mensalista/${id}/contrato`);
+    return {
+      status: toContratoStatus(data.status),
+      versao: String(data.versao ?? ""),
+      titulo: String(data.titulo ?? ""),
+      dataGeracao: textOrNull(data.dataGeracao),
+      tokenExpiracao: textOrNull(data.tokenExpiracao),
+      dataAceite: textOrNull(data.dataAceite),
+    };
+  } catch (error) {
+    if (error instanceof ApiError && error.kind === "not_found") {
+      return null;
+    }
+    throw error;
+  }
+}
+
+// O link anterior deixa de funcionar. Sem contrato (ou cancelado) o back gera um novo. 400 se já foi aceito.
+export async function reenviarContrato(id: number): Promise<{ tokenExpiracao: string | null; email: string }> {
+  const { data } = await api.post<Record<string, unknown>>(`/Mensalista/${id}/contrato/reenviar`);
+  return { tokenExpiracao: textOrNull(data?.tokenExpiracao), email: String(data?.email ?? "") };
 }

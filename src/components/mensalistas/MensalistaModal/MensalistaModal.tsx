@@ -2,8 +2,9 @@
 
 import { useStore } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useAppForm, zodFieldErrors } from "@/components/form";
+import { LeitorPlacaModal } from "@/components/veiculos/LeitorPlacaModal";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
@@ -13,7 +14,7 @@ import { createMensalista, updateMensalista } from "@/lib/api/services/mensalist
 import { fromMensalista } from "@/lib/api/services/mensalista.mapper";
 import { formatDocumento } from "@/lib/documento";
 import { formatPhone } from "@/lib/phone";
-import { mensalistaSchema } from "@/lib/schemas/mensalista";
+import { createMensalistaSchema } from "@/lib/schemas/mensalista";
 import {
   TIPO_PESSOA,
   type Mensalista,
@@ -21,9 +22,17 @@ import {
   type MensalistaTipo,
   type TipoPessoa,
 } from "@/types/mensalista";
+import type { TipoCategoria } from "@/types/preco";
 import { formatCategoria, formatValor } from "../format";
+import { SituacaoMensalista } from "../SituacaoMensalista";
+import { derivarSituacao, precisaDoContrato } from "../situacao";
+import { useContratoMensalista } from "../useContratosMensalistas";
 import { MENSALISTAS_QUERY_KEY, useTiposMensalidade } from "../useTiposMensalidade";
+import { ajustarCategorias, EMPTY_MENSALISTA_VALUES, novoCondutor } from "./mensalistaForm";
 import { FieldRow, Form, Note } from "./MensalistaModal.styles";
+import { mapMensalistaServerError } from "./serverErrors";
+import { SectionTitle } from "./Veiculos.styles";
+import { VeiculosSection } from "./VeiculosSection";
 
 export interface MensalistaModalProps {
   // Presente => edição.
@@ -33,17 +42,6 @@ export interface MensalistaModalProps {
   // Sem tipo ativo não há como cadastrar: leva o usuário à aba de tipos.
   onGoToTipos?: () => void;
 }
-
-const EMPTY_VALUES: MensalistaFormValues = {
-  mensalistaTipoId: "",
-  tipoPessoa: String(TIPO_PESSOA.Fisica),
-  documento: "",
-  nome: "",
-  email: "",
-  celular: "",
-  diaVencimento: "",
-  ativo: true,
-};
 
 const PESSOA_OPTIONS = [
   { value: String(TIPO_PESSOA.Fisica), label: "Pessoa física" },
@@ -55,12 +53,34 @@ function tipoLabel(tipo: MensalistaTipo): string {
   return tipo.ativo ? base : `${base} (inativo)`;
 }
 
+// Mensalista inativo: o switch não ativa ninguém (a ativação é pelo primeiro pagamento), então mostra só onde ele está.
+function SituacaoSomenteLeitura({ mensalista }: { mensalista: Mensalista }) {
+  const dependeDoContrato = precisaDoContrato(mensalista);
+  const contrato = useContratoMensalista(mensalista.mensalistaId, dependeDoContrato);
+  const situacao = derivarSituacao(mensalista, dependeDoContrato ? contrato : undefined, new Date());
+  return <SituacaoMensalista situacao={situacao} nome={mensalista.nome} somenteLeitura />;
+}
+
+function categoriaDoTipoSelecionado(tipos: MensalistaTipo[] | undefined, tipoId: string): TipoCategoria | null {
+  return tipos?.find((tipo) => String(tipo.mensalistaTipoId) === tipoId)?.categoria ?? null;
+}
+
 export function MensalistaModal({ mensalista, onClose, onSuccess, onGoToTipos }: MensalistaModalProps) {
   const formId = useId();
+  const formRef = useRef<HTMLFormElement>(null);
   const queryClient = useQueryClient();
   const isEdit = Boolean(mensalista);
-  const initialValues = useMemo(() => (mensalista ? fromMensalista(mensalista) : EMPTY_VALUES), [mensalista]);
+  const initialValues = useMemo(
+    () => (mensalista ? fromMensalista(mensalista) : EMPTY_MENSALISTA_VALUES),
+    [mensalista],
+  );
   const [confirmingClose, setConfirmingClose] = useState(false);
+  // Índice do veículo cuja placa está sendo lida pela câmera (um único leitor para todos).
+  const [leitorIndex, setLeitorIndex] = useState<number | null>(null);
+  const [notaCategorias, setNotaCategorias] = useState<string | null>(null);
+  // A mensagem do back citou a placa de um veículo: o erro vai para o campo dele, não para o banner.
+  const [erroNoCampo, setErroNoCampo] = useState(false);
+  const [revelar, setRevelar] = useState<{ uid: string; vez: number } | null>(null);
   const { data: tipos } = useTiposMensalidade();
 
   // Cadastro: só tipos ativos. Edição: também o tipo atual, mesmo que tenha sido desativado.
@@ -78,13 +98,31 @@ export function MensalistaModal({ mensalista, onClose, onSuccess, onGoToTipos }:
       if (mensalista) {
         await updateMensalista(mensalista.mensalistaId, values);
       } else {
-        await createMensalista({ ...values, ativo: true });
+        // Nasce inativo: a ativação acontece no primeiro pagamento.
+        await createMensalista({ ...values, ativo: false });
       }
     },
-    onSuccess: async () => {
+    onMutate: () => setErroNoCampo(false),
+    onSuccess: async (_data, values) => {
       await queryClient.invalidateQueries({ queryKey: MENSALISTAS_QUERY_KEY });
-      onSuccess(isEdit ? "Mensalista atualizado." : "Mensalista cadastrado.");
+      onSuccess(
+        isEdit ? "Mensalista atualizado." : `Mensalista cadastrado. Enviamos o contrato para ${values.email.trim()}.`,
+      );
       onClose();
+    },
+    onError: (error, values) => {
+      const alvo = mapMensalistaServerError(error.message, values.veiculos);
+      if (!alvo) {
+        return;
+      }
+      form.setFieldMeta(`veiculos[${alvo.index}].placa`, (meta) => ({
+        ...meta,
+        isTouched: true,
+        errorMap: { ...meta.errorMap, onServer: error.message },
+      }));
+      setErroNoCampo(true);
+      // `vez` muda a cada erro, para reabrir o veículo mesmo que o erro seja no mesmo de antes.
+      setRevelar((atual) => ({ uid: values.veiculos[alvo.index].uid, vez: (atual?.vez ?? 0) + 1 }));
     },
   });
 
@@ -92,7 +130,9 @@ export function MensalistaModal({ mensalista, onClose, onSuccess, onGoToTipos }:
     defaultValues: initialValues,
     validators: {
       onChange: ({ value }) => {
-        const result = mensalistaSchema.safeParse(value);
+        // A regra de categoria do veículo depende do tipo escolhido.
+        const schema = createMensalistaSchema({ categoriaTipo: categoriaDoTipoSelecionado(tipos, value.mensalistaTipoId) });
+        const result = schema.safeParse(value);
         return result.success ? undefined : zodFieldErrors(result);
       },
     },
@@ -100,10 +140,58 @@ export function MensalistaModal({ mensalista, onClose, onSuccess, onGoToTipos }:
   });
 
   const values = useStore(form.store, (state) => state.values);
+  const tentativas = useStore(form.store, (state) => state.submissionAttempts);
   const pessoa = Number(values.tipoPessoa) as TipoPessoa;
   const isJuridica = pessoa === TIPO_PESSOA.Juridica;
+  const categoriaTipo = categoriaDoTipoSelecionado(tipos, values.mensalistaTipoId);
   const hasChanges = JSON.stringify(values) !== JSON.stringify(initialValues);
   const isSending = mutation.isPending;
+
+  // Tentou salvar com erros: depois que a seção de veículos abre os itens com problema (um frame depois da
+  // validação), o foco vai ao primeiro campo inválido.
+  useEffect(() => {
+    if (tentativas === 0) {
+      return;
+    }
+    let segundo = 0;
+    const primeiro = requestAnimationFrame(() => {
+      segundo = requestAnimationFrame(() => {
+        if (!form.state.isValid) {
+          formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+        }
+      });
+    });
+    return () => {
+      cancelAnimationFrame(primeiro);
+      cancelAnimationFrame(segundo);
+    };
+  }, [tentativas, form]);
+
+  function handleTipoChange(tipoId: string) {
+    mutation.reset();
+    const categoria = categoriaDoTipoSelecionado(tipos, tipoId);
+    const ajuste = ajustarCategorias(form.state.values.veiculos, categoria);
+    if (ajuste.alterou && categoria !== null) {
+      form.setFieldValue("veiculos", ajuste.veiculos);
+      setNotaCategorias(`Categorias dos veículos ajustadas para ${formatCategoria(categoria)}.`);
+    } else {
+      setNotaCategorias(null);
+    }
+  }
+
+  function handlePessoaChange(tipoPessoa: string) {
+    // Trocar a pessoa muda a máscara: o documento digitado deixa de valer.
+    form.setFieldValue("documento", "");
+    // Condutores só existem para pessoa jurídica, e ela exige ao menos um por veículo.
+    const juridica = Number(tipoPessoa) === TIPO_PESSOA.Juridica;
+    form.setFieldValue(
+      "veiculos",
+      form.state.values.veiculos.map((veiculo) => ({
+        ...veiculo,
+        condutores: juridica ? (veiculo.condutores.length > 0 ? veiculo.condutores : [novoCondutor()]) : [],
+      })),
+    );
+  }
 
   function handleClose() {
     if (isSending) {
@@ -135,7 +223,7 @@ export function MensalistaModal({ mensalista, onClose, onSuccess, onGoToTipos }:
         </>
       }
     >
-      {mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
+      {mutation.isError && !erroNoCampo && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
       {semTipoAtivo && (
         <Note role="status">
           <span>Crie um tipo de mensalidade antes de cadastrar mensalistas.</span>
@@ -148,13 +236,15 @@ export function MensalistaModal({ mensalista, onClose, onSuccess, onGoToTipos }:
       )}
       <Form
         id={formId}
+        ref={formRef}
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
           void form.handleSubmit();
         }}
       >
-        <form.AppField name="mensalistaTipoId" listeners={{ onChange: () => mutation.reset() }}>
+        <SectionTitle>Dados do mensalista</SectionTitle>
+        <form.AppField name="mensalistaTipoId" listeners={{ onChange: ({ value }) => handleTipoChange(value) }}>
           {(field) => (
             <field.SelectField label="Tipo de mensalidade" disabled={isSending || semTipoAtivo}>
               <option value="">Selecione</option>
@@ -167,13 +257,7 @@ export function MensalistaModal({ mensalista, onClose, onSuccess, onGoToTipos }:
           )}
         </form.AppField>
 
-        <form.AppField
-          name="tipoPessoa"
-          listeners={{
-            // Trocar a pessoa muda a máscara: o documento digitado deixa de valer.
-            onChange: () => form.setFieldValue("documento", ""),
-          }}
-        >
+        <form.AppField name="tipoPessoa" listeners={{ onChange: ({ value }) => handlePessoaChange(value) }}>
           {(field) => (
             <OptionGroup
               legend="Tipo de pessoa"
@@ -242,14 +326,44 @@ export function MensalistaModal({ mensalista, onClose, onSuccess, onGoToTipos }:
           )}
         </form.AppField>
 
-        {isEdit && (
+        {mensalista?.ativo && (
+          // Só desliga: o back não ativa um mensalista por aqui.
           <form.AppField name="ativo">
             {(field) => (
-              <field.SwitchField label={`Mensalista ${values.ativo ? "ativo" : "inativo"}`} disabled={isSending} />
+              <field.SwitchField
+                label={values.ativo ? "Mensalista ativo" : "Mensalista será desativado ao salvar"}
+                disabled={isSending}
+              />
             )}
           </form.AppField>
         )}
+        {mensalista && !mensalista.ativo && (
+          <>
+            <SectionTitle>Situação</SectionTitle>
+            <SituacaoSomenteLeitura mensalista={mensalista} />
+          </>
+        )}
+
+        {notaCategorias && <Note role="status">{notaCategorias}</Note>}
+        <VeiculosSection
+          form={form}
+          juridica={isJuridica}
+          categoriaTipo={categoriaTipo}
+          disabled={isSending}
+          onLerPlaca={setLeitorIndex}
+          revelar={revelar}
+        />
       </Form>
+      <LeitorPlacaModal
+        open={leitorIndex !== null}
+        onClose={() => setLeitorIndex(null)}
+        onConfirm={(placa) => {
+          if (leitorIndex !== null) {
+            form.setFieldValue(`veiculos[${leitorIndex}].placa`, placa);
+          }
+          setLeitorIndex(null);
+        }}
+      />
       {confirmingClose && (
         <ConfirmDialog
           title="Descartar alterações?"

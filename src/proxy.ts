@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/auth";
 
-// Únicas rotas acessíveis sem login: a adesão, o fluxo de acesso (login e recuperação de senha) e o comprovante do cliente.
-const PUBLIC_PATHS = ["/adesao", "/login", "/recuperar-senha", "/alterar-senha", "/comprovante"];
+// Únicas rotas acessíveis sem login: a adesão, o fluxo de acesso (login e recuperação de senha), o comprovante do
+// cliente e o contrato do mensalista (aceite pelo link do e-mail).
+const PUBLIC_PATHS = ["/adesao", "/login", "/recuperar-senha", "/alterar-senha", "/comprovante", "/contrato"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));

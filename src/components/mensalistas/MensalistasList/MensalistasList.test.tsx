@@ -16,9 +16,16 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/api/services/mensalista", () => ({
   listMensalistas: vi.fn(),
   listTiposMensalidade: vi.fn(),
+  getContratoMensalista: vi.fn(),
+  reenviarContrato: vi.fn(),
 }));
 
-import { listMensalistas, listTiposMensalidade } from "@/lib/api/services/mensalista";
+import {
+  getContratoMensalista,
+  listMensalistas,
+  listTiposMensalidade,
+  reenviarContrato,
+} from "@/lib/api/services/mensalista";
 import { MensalistasList } from "./MensalistasList";
 
 const maria: Mensalista = {
@@ -34,6 +41,10 @@ const maria: Mensalista = {
   celular: "11912345678",
   diaVencimento: 5,
   ativo: true,
+  veiculos: [],
+  situacao: null,
+  dataProximoVencimento: null,
+  diasAteProximoVencimento: null,
 };
 const joao: Mensalista = { ...maria, mensalistaId: 2, nome: "João Lima", ativo: false };
 
@@ -51,12 +62,14 @@ function page(items: Mensalista[], extra: Partial<{ page: number; totalPages: nu
   return { items, page: 1, pageSize: 20, totalRecords: items.length, totalPages: items.length ? 1 : 0, ...extra };
 }
 
-const handlers = { onNovo: vi.fn(), onEditar: vi.fn(), onCriarTipo: vi.fn() };
+const handlers = { onNovo: vi.fn(), onEditar: vi.fn(), onVerFicha: vi.fn(), onToast: vi.fn(), onCriarTipo: vi.fn() };
 
 describe("MensalistasList", () => {
   beforeEach(() => {
     vi.mocked(listMensalistas).mockReset();
     vi.mocked(listTiposMensalidade).mockReset().mockResolvedValue([tipoAtivo]);
+    vi.mocked(getContratoMensalista).mockReset().mockResolvedValue(null);
+    vi.mocked(reenviarContrato).mockReset();
     replace.mockReset();
     Object.values(handlers).forEach((fn) => fn.mockReset());
     pagina = null;

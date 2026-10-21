@@ -3,7 +3,9 @@ import { TIPO_PESSOA } from "@/types/mensalista";
 import {
   formatCnpjAlfanumerico,
   formatDocumento,
+  formatDocumentoAuto,
   isValidCnpjAlfanumerico,
+  isValidDocumentoAuto,
   isValidDocumento,
   normalizeDocumento,
 } from "./documento";
@@ -62,5 +64,38 @@ describe("CNPJ", () => {
 
   it("usa a máscara de CNPJ para pessoa jurídica", () => {
     expect(formatDocumento("11222333000181", TIPO_PESSOA.Juridica)).toBe("11.222.333/0001-81");
+  });
+});
+
+describe("formatDocumentoAuto", () => {
+  it("usa a máscara de CPF até 11 dígitos", () => {
+    expect(formatDocumentoAuto("529")).toBe("529");
+    expect(formatDocumentoAuto("5299822")).toBe("529.982.2");
+    expect(formatDocumentoAuto("52998224725")).toBe("529.982.247-25");
+  });
+
+  it("passa para a máscara de CNPJ com mais de 11 dígitos ou com letras", () => {
+    expect(formatDocumentoAuto("11222333000181")).toBe("11.222.333/0001-81");
+    expect(formatDocumentoAuto("12ab")).toBe("12.AB");
+  });
+
+  it("aceita texto já mascarado", () => {
+    expect(formatDocumentoAuto("529.982.247-25")).toBe("529.982.247-25");
+  });
+});
+
+describe("isValidDocumentoAuto", () => {
+  it("aceita CPF e CNPJ válidos, com ou sem máscara", () => {
+    expect(isValidDocumentoAuto("529.982.247-25")).toBe(true);
+    expect(isValidDocumentoAuto("52998224725")).toBe(true);
+    expect(isValidDocumentoAuto("11.222.333/0001-81")).toBe(true);
+    expect(isValidDocumentoAuto("12.ABC.345/01DE-35")).toBe(true);
+  });
+
+  it("recusa documento inválido, incompleto ou vazio", () => {
+    expect(isValidDocumentoAuto("111.111.111-11")).toBe(false);
+    expect(isValidDocumentoAuto("529.982.247")).toBe(false);
+    expect(isValidDocumentoAuto("11.222.333/0001-82")).toBe(false);
+    expect(isValidDocumentoAuto("")).toBe(false);
   });
 });

@@ -50,6 +50,10 @@ const maria: Mensalista = {
   celular: "11912345678",
   diaVencimento: 5,
   ativo: true,
+  veiculos: [],
+  situacao: null,
+  dataProximoVencimento: null,
+  diasAteProximoVencimento: null,
 };
 
 async function preencher(user: ReturnType<typeof userEvent.setup>, documento = "52998224725") {
@@ -109,14 +113,18 @@ describe("MensalistaModal", () => {
     await preencher(user);
     await user.click(screen.getByRole("button", { name: "Salvar" }));
 
-    await waitFor(() => expect(handlers.onSuccess).toHaveBeenCalledWith("Mensalista cadastrado."));
+    await waitFor(() => expect(handlers.onSuccess).toHaveBeenCalledWith(
+        "Mensalista cadastrado. Enviamos o contrato para maria@exemplo.com.",
+      ),
+    );
     expect(vi.mocked(createMensalista).mock.calls[0][0]).toMatchObject({
       mensalistaTipoId: "3",
       tipoPessoa: "1",
       documento: "529.982.247-25",
       celular: "(11) 91234-5678",
       diaVencimento: "5",
-      ativo: true,
+      // Nasce inativo: a ativação é pelo primeiro pagamento.
+      ativo: false,
     });
     expect(handlers.onClose).toHaveBeenCalled();
   });

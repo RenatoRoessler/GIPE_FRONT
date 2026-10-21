@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { mensalistaSchema, tipoSchema } from "./mensalista";
+import { zodFieldErrors } from "@/components/form/zodFieldErrors";
+import { createMensalistaSchema, mensalistaSchema, tipoSchema } from "./mensalista";
 
 const mensalistaValido = {
   mensalistaTipoId: "1",
@@ -10,6 +11,7 @@ const mensalistaValido = {
   celular: "(11) 91234-5678",
   diaVencimento: "5",
   ativo: true,
+  veiculos: [],
 };
 
 function erroEm(result: ReturnType<typeof mensalistaSchema.safeParse>, campo: string) {
@@ -89,5 +91,121 @@ describe("tipoSchema", () => {
   it("limita o nome a 100 caracteres", () => {
     expect(tipoSchema.safeParse({ ...tipoValido, tipoMensal: "a".repeat(101) }).success).toBe(false);
     expect(tipoSchema.safeParse({ ...tipoValido, tipoMensal: "" }).success).toBe(false);
+  });
+});
+
+describe("mensalistaSchema: veículos e condutores", () => {
+  const condutor = (cpf: string, nome = "Ana Lima") => ({ uid: cpf, nome, cpf });
+  const veiculo = (placa: string, extra: Record<string, unknown> = {}) => ({
+    uid: placa,
+    placa,
+    modelo: "Gol",
+    cor: "PRATA",
+    categoria: "2",
+    condutores: [],
+    ...extra,
+  });
+  const juridica = { ...mensalistaValido, tipoPessoa: "2", documento: "11.222.333/0001-81" };
+
+  function caminhos(result: { success: boolean; error?: { issues: { path: PropertyKey[] }[] } }) {
+    return result.success ? [] : result.error!.issues.map((issue) => issue.path.map(String).join("."));
+  }
+
+  it("aceita zero veículos", () => {
+    expect(mensalistaSchema.safeParse(mensalistaValido).success).toBe(true);
+  });
+
+  it("pessoa física: aceita veículo sem condutores", () => {
+    expect(mensalistaSchema.safeParse({ ...mensalistaValido, veiculos: [veiculo("ABC1D23")] }).success).toBe(true);
+  });
+
+  it("marca todas as ocorrências de placa repetida, mesmo com hífen e minúsculas", () => {
+    const result = mensalistaSchema.safeParse({
+      ...mensalistaValido,
+      veiculos: [veiculo("ABC1D23"), veiculo("BRA2E19"), veiculo("abc-1d23")],
+    });
+    expect(caminhos(result)).toEqual(["veiculos.0.placa", "veiculos.2.placa"]);
+  });
+
+  it("valida placa, modelo e cor", () => {
+    const result = mensalistaSchema.safeParse({
+      ...mensalistaValido,
+      veiculos: [veiculo("", { modelo: "x".repeat(81), cor: "y".repeat(51) }), veiculo("AB12")],
+    });
+    expect(caminhos(result)).toEqual(
+      expect.arrayContaining(["veiculos.0.placa", "veiculos.0.modelo", "veiculos.0.cor", "veiculos.1.placa"]),
+    );
+  });
+
+  it("tipo de categoria específica: só a categoria do tipo", () => {
+    const schema = createMensalistaSchema({ categoriaTipo: 2 });
+    expect(schema.safeParse({ ...mensalistaValido, veiculos: [veiculo("ABC1D23", { categoria: "2" })] }).success).toBe(true);
+    expect(caminhos(schema.safeParse({ ...mensalistaValido, veiculos: [veiculo("ABC1D23", { categoria: "3" })] }))).toEqual([
+      "veiculos.0.categoria",
+    ]);
+  });
+
+  it("tipo \"todas\": qualquer categoria de veículo, menos 99", () => {
+    const schema = createMensalistaSchema({ categoriaTipo: 99 });
+    expect(schema.safeParse({ ...mensalistaValido, veiculos: [veiculo("ABC1D23", { categoria: "5" })] }).success).toBe(true);
+    expect(caminhos(schema.safeParse({ ...mensalistaValido, veiculos: [veiculo("ABC1D23", { categoria: "99" })] }))).toEqual([
+      "veiculos.0.categoria",
+    ]);
+    expect(caminhos(schema.safeParse({ ...mensalistaValido, veiculos: [veiculo("ABC1D23", { categoria: "" })] }))).toEqual([
+      "veiculos.0.categoria",
+    ]);
+  });
+
+  it("pessoa jurídica: exige ao menos um condutor por veículo", () => {
+    const result = mensalistaSchema.safeParse({ ...juridica, veiculos: [veiculo("ABC1D23")] });
+    expect(caminhos(result)).toEqual(["veiculos.0.condutores"]);
+  });
+
+  it("pessoa jurídica: valida nome e CPF do condutor", () => {
+    const result = mensalistaSchema.safeParse({
+      ...juridica,
+      veiculos: [veiculo("ABC1D23", { condutores: [condutor("111.111.111-11", ""), condutor("")] })],
+    });
+    expect(caminhos(result)).toEqual(
+      expect.arrayContaining(["veiculos.0.condutores.0.cpf", "veiculos.0.condutores.0.nome", "veiculos.0.condutores.1.cpf"]),
+    );
+  });
+
+  it("pessoa jurídica: CPF repetido no mesmo veículo é recusado, em veículos diferentes é aceito", () => {
+    const mesmo = mensalistaSchema.safeParse({
+      ...juridica,
+      veiculos: [veiculo("ABC1D23", { condutores: [condutor("529.982.247-25"), condutor("52998224725", "Outro")] })],
+    });
+    expect(caminhos(mesmo)).toEqual(["veiculos.0.condutores.0.cpf", "veiculos.0.condutores.1.cpf"]);
+
+    const diferentes = mensalistaSchema.safeParse({
+      ...juridica,
+      veiculos: [
+        veiculo("ABC1D23", { condutores: [condutor("529.982.247-25")] }),
+        veiculo("BRA2E19", { condutores: [condutor("529.982.247-25")] }),
+      ],
+    });
+    expect(diferentes.success).toBe(true);
+  });
+
+  it("pessoa física ignora condutores", () => {
+    const result = mensalistaSchema.safeParse({
+      ...mensalistaValido,
+      veiculos: [veiculo("ABC1D23", { condutores: [condutor("111.111.111-11")] })],
+    });
+    // O CPF inválido do condutor ainda passa pelo schema de item, mas a regra de PJ não se aplica.
+    expect(caminhos(result)).not.toContain("veiculos.0.condutores");
+  });
+
+  it("zodFieldErrors gera nomes aninhados no formato do TanStack Form", () => {
+    const result = mensalistaSchema.safeParse({
+      ...juridica,
+      veiculos: [veiculo("ABC1D23", { condutores: [condutor("529.982.247-25"), condutor("111.111.111-11")] })],
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const errors = zodFieldErrors(result)?.fields ?? {};
+      expect(Object.keys(errors)).toContain("veiculos[0].condutores[1].cpf");
+    }
   });
 });

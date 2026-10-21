@@ -1,13 +1,15 @@
 "use client";
 
 import { useId } from "react";
-import { Box, Hint, LabelText, NativeInput, TextGroup, Wrapper } from "./Checkbox.styles";
+import { Box, ErrorMessage, Hint, LabelText, NativeInput, TextGroup, Wrapper } from "./Checkbox.styles";
 
 export interface CheckboxProps {
   label: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   hint?: string;
+  // Mensagem de erro (ex.: aceite obrigatório); aparece no lugar da dica.
+  error?: string;
   disabled?: boolean;
   name?: string;
 }
@@ -17,10 +19,12 @@ export function Checkbox({
   checked,
   onCheckedChange,
   hint,
+  error,
   disabled = false,
   name,
 }: CheckboxProps) {
   const hintId = useId();
+  const errorId = useId();
 
   return (
     <Wrapper $disabled={disabled}>
@@ -29,10 +33,11 @@ export function Checkbox({
         name={name}
         checked={checked}
         disabled={disabled}
-        aria-describedby={hint ? hintId : undefined}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? errorId : hint ? hintId : undefined}
         onChange={(event) => onCheckedChange(event.target.checked)}
       />
-      <Box $checked={checked} aria-hidden="true">
+      <Box $checked={checked} $error={Boolean(error)} aria-hidden="true">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path
             d="M2.5 7.5L5.5 10.5L11.5 3.5"
@@ -45,7 +50,7 @@ export function Checkbox({
       </Box>
       <TextGroup>
         <LabelText>{label}</LabelText>
-        {hint && <Hint id={hintId}>{hint}</Hint>}
+        {error ? <ErrorMessage id={errorId}>{error}</ErrorMessage> : hint && <Hint id={hintId}>{hint}</Hint>}
       </TextGroup>
     </Wrapper>
   );

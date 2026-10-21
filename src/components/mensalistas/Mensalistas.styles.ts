@@ -126,3 +126,27 @@ export const IconButton = styled.button`
     height: 20px;
   }
 `;
+
+// Placas da linha como um único botão: abre a ficha com os veículos.
+export const VeiculosTrigger = styled.button`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.space[2]}px;
+  min-height: 44px;
+  padding: ${({ theme }) => theme.space[1]}px;
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background-color: transparent;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primarySoft};
+  }
+
+  &:focus-visible {
+    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
+  }
+`;

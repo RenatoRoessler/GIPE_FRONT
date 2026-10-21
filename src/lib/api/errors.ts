@@ -6,6 +6,7 @@ export type ApiErrorKind =
   | "forbidden"
   | "not_found"
   | "validation"
+  | "rate_limited"
   | "server"
   | "network"
   | "timeout"
@@ -16,6 +17,7 @@ const DEFAULT_MESSAGES: Record<ApiErrorKind, string> = {
   forbidden: "Você não tem permissão para realizar esta ação.",
   not_found: "Recurso não encontrado.",
   validation: "Os dados enviados são inválidos.",
+  rate_limited: "Muitas tentativas. Aguarde um pouco e tente de novo.",
   server: "Erro no servidor. Tente novamente em instantes.",
   network: "Não foi possível conectar ao servidor.",
   timeout: "O servidor demorou para responder. Tente novamente.",
@@ -41,8 +43,25 @@ function kindFromStatus(status: number): ApiErrorKind {
   if (status === 403) return "forbidden";
   if (status === 404) return "not_found";
   if (status === 400 || status === 422) return "validation";
+  if (status === 429) return "rate_limited";
   if (status >= 500) return "server";
   return "unknown";
+}
+
+function nonEmpty(value: unknown): string | undefined {
+  return typeof value === "string" && value ? value : undefined;
+}
+
+// Ordem: message -> detail -> errors[0].message -> erros[0].mensagem.
+function messageFromBody(body: ApiErrorBody | undefined): string | undefined {
+  if (!body) return undefined;
+  const firstError = Array.isArray(body.errors) ? body.errors[0] : undefined;
+  return (
+    nonEmpty(body.message) ??
+    nonEmpty(body.detail) ??
+    nonEmpty(firstError?.message) ??
+    nonEmpty(body.erros?.[0]?.mensagem)
+  );
 }
 
 // Converte qualquer falha em ApiError, sem carregar config/headers do request (podem conter o token).
@@ -59,8 +78,7 @@ export function normalizeError(error: unknown): ApiError {
 
     const { status, data } = error.response;
     const body = typeof data === "object" && data !== null ? data : undefined;
-    const message = typeof body?.message === "string" && body.message ? body.message : undefined;
-    return new ApiError(kindFromStatus(status), message, status, body?.errors);
+    return new ApiError(kindFromStatus(status), messageFromBody(body), status, body?.errors);
   }
 
   return new ApiError("unknown");

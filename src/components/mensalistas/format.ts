@@ -1,6 +1,5 @@
 import { getCategoriaLabel } from "@/components/precos/format";
-import { formatCPF } from "@/lib/cpf";
-import { formatCnpjAlfanumerico, formatDocumento, normalizeDocumento } from "@/lib/documento";
+import { formatDocumento } from "@/lib/documento";
 import { formatBRL } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 import type { Mensalista, MensalistaTipo } from "@/types/mensalista";
@@ -37,8 +36,8 @@ export function formatCelular(celular: string): string {
   return formatPhone(celular);
 }
 
-// Máscara da busca por documento: só números até 11 caracteres => CPF; mais que isso (ou com letras) => CNPJ.
-export function formatBusca(value: string): string {
-  const clean = normalizeDocumento(value);
-  return clean.length <= 11 && /^\d*$/.test(clean) ? formatCPF(clean) : formatCnpjAlfanumerico(clean);
+// CPF de condutor na ficha de consulta: só os 3 primeiros e os 2 últimos dígitos ("529.***.***-25").
+export function maskCpfParcial(cpf: string): string {
+  const digits = cpf.replace(/\D/g, "");
+  return digits.length === 11 ? `${digits.slice(0, 3)}.***.***-${digits.slice(9)}` : "***.***.***-**";
 }

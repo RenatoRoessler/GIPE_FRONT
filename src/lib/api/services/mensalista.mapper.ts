@@ -1,16 +1,25 @@
 import { formatDocumento, normalizeDocumento } from "@/lib/documento";
 import { parseMoney } from "@/lib/money";
+import { formatCPF } from "@/lib/cpf";
 import { formatPhone } from "@/lib/phone";
+import { normalizePlaca } from "@/lib/placa";
+import { newUid } from "@/lib/uid";
 import type { TipoCategoria } from "@/types/preco";
+import { matchCor } from "@/types/veiculo";
 import {
   TIPO_PESSOA,
+  type Condutor,
+  type CondutorFormValues,
   type Mensalista,
   type MensalistaFormValues,
   type MensalistaPayload,
   type MensalistaTipo,
   type MensalistaTipoPayload,
+  type MensalistaVeiculo,
+  type MensalistaVeiculoPayload,
   type TipoFormValues,
   type TipoPessoa,
+  type VeiculoFormValues,
 } from "@/types/mensalista";
 
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
@@ -30,6 +39,20 @@ function formatValorInput(value: number): string {
   return value.toFixed(2).replace(".", ",");
 }
 
+function fromCondutorResponse(dto: Partial<Condutor>): Condutor {
+  return { nome: dto.nome ?? "", cpf: onlyDigits(dto.cpf ?? "") };
+}
+
+function fromVeiculoResponse(dto: Partial<MensalistaVeiculo>): MensalistaVeiculo {
+  return {
+    placa: normalizePlaca(dto.placa ?? ""),
+    modelo: dto.modelo ?? "",
+    cor: dto.cor ?? "",
+    categoria: (dto.categoria ?? 1) as TipoCategoria,
+    condutores: (dto.condutores ?? []).map(fromCondutorResponse),
+  };
+}
+
 // Respostas tolerantes: campos ausentes viram valores neutros em vez de quebrar a tela.
 export function fromMensalistaResponse(dto: Partial<Mensalista>): Mensalista {
   return {
@@ -47,6 +70,10 @@ export function fromMensalistaResponse(dto: Partial<Mensalista>): Mensalista {
     ativo: dto.ativo ?? true,
     cadastradoPor: dto.cadastradoPor ?? null,
     alteradoPor: dto.alteradoPor ?? null,
+    veiculos: (dto.veiculos ?? []).map(fromVeiculoResponse),
+    situacao: dto.situacao ?? null,
+    dataProximoVencimento: dto.dataProximoVencimento ?? null,
+    diasAteProximoVencimento: dto.diasAteProximoVencimento ?? null,
   };
 }
 
@@ -64,16 +91,51 @@ export function fromTipoResponse(dto: Partial<MensalistaTipo>): MensalistaTipo {
   };
 }
 
+function toVeiculoPayload(veiculo: VeiculoFormValues, pessoa: TipoPessoa): MensalistaVeiculoPayload {
+  const payload: MensalistaVeiculoPayload = {
+    placa: normalizePlaca(veiculo.placa),
+    modelo: veiculo.modelo.trim(),
+    cor: veiculo.cor.trim(),
+    categoria: Number(veiculo.categoria) as TipoCategoria,
+  };
+  // O back recusa condutores para pessoa física: a chave nem é enviada.
+  if (pessoa === TIPO_PESSOA.Juridica) {
+    payload.condutores = veiculo.condutores.map((condutor) => ({
+      nome: condutor.nome.trim(),
+      cpf: onlyDigits(condutor.cpf),
+    }));
+  }
+  return payload;
+}
+
 export function toMensalistaPayload(values: MensalistaFormValues): MensalistaPayload {
+  const pessoa = Number(values.tipoPessoa) as TipoPessoa;
   return {
     mensalistaTipoId: Number(values.mensalistaTipoId),
-    tipoPessoa: Number(values.tipoPessoa) as TipoPessoa,
+    tipoPessoa: pessoa,
     documento: normalizeDocumento(values.documento),
     nome: values.nome.trim(),
     email: values.email.trim(),
     celular: onlyDigits(values.celular),
     diaVencimento: Number(values.diaVencimento),
     ativo: values.ativo,
+    veiculos: values.veiculos.map((veiculo) => toVeiculoPayload(veiculo, pessoa)),
+  };
+}
+
+function fromCondutor(condutor: Condutor): CondutorFormValues {
+  return { uid: newUid(), nome: condutor.nome, cpf: formatCPF(condutor.cpf) };
+}
+
+function fromVeiculo(veiculo: MensalistaVeiculo): VeiculoFormValues {
+  return {
+    uid: newUid(),
+    placa: veiculo.placa,
+    modelo: veiculo.modelo,
+    // Cor que bate com uma amostra vira o valor dela; as demais seguem como o cliente digitou.
+    cor: matchCor(veiculo.cor) ?? veiculo.cor,
+    categoria: String(veiculo.categoria),
+    condutores: veiculo.condutores.map(fromCondutor),
   };
 }
 
@@ -87,6 +149,7 @@ export function fromMensalista(mensalista: Mensalista): MensalistaFormValues {
     celular: formatPhone(mensalista.celular),
     diaVencimento: String(mensalista.diaVencimento),
     ativo: mensalista.ativo,
+    veiculos: mensalista.veiculos.map(fromVeiculo),
   };
 }
 

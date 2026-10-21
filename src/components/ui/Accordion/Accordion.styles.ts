@@ -16,10 +16,22 @@ export const Item = styled.section<{ $hasError: boolean }>`
   overflow: hidden;
 `;
 
+export const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
 export const Heading = styled.h2`
+  flex: 1;
+  min-width: 0;
   margin: 0;
   font-size: inherit;
   font-weight: inherit;
+`;
+
+export const Action = styled.div`
+  flex-shrink: 0;
+  padding-right: ${({ theme }) => theme.space[2]}px;
 `;
 
 export const Trigger = styled.button`

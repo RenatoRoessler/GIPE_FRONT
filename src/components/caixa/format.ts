@@ -1,3 +1,4 @@
+import { parseApiDate } from "@/lib/date";
 import { formatBRL } from "@/lib/money";
 import { FORMA_PAGAMENTO_OPTIONS, type Caixa, type Turno } from "@/types/caixa";
 
@@ -17,15 +18,6 @@ export function isTurnoAberto(turno: Turno): boolean {
 const dateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
 const dateOnly = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 const timeOnly = new Intl.DateTimeFormat("pt-BR", { timeStyle: "short" });
-
-// A API devolve data/hora sem fuso (microssegundos incluídos); trata como horário local.
-function parseApiDate(iso: string | null): Date | null {
-  if (!iso) {
-    return null;
-  }
-  const date = new Date(iso.replace(/(\.\d{3})\d+/, "$1"));
-  return Number.isNaN(date.getTime()) ? null : date;
-}
 
 export function formatDateTime(iso: string | null): string {
   const date = parseApiDate(iso);

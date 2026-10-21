@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  formatBusca,
   formatCategoria,
   formatDocumentoMensalista,
   formatHorario,
   formatValor,
   formatVencimento,
+  maskCpfParcial,
 } from "./format";
 
 describe("formatHorario", () => {
@@ -53,19 +53,14 @@ describe("formatDocumentoMensalista", () => {
   });
 });
 
-describe("formatBusca", () => {
-  it("usa a máscara de CPF até 11 dígitos", () => {
-    expect(formatBusca("529")).toBe("529");
-    expect(formatBusca("5299822")).toBe("529.982.2");
-    expect(formatBusca("52998224725")).toBe("529.982.247-25");
+describe("maskCpfParcial", () => {
+  it("mostra só os 3 primeiros e os 2 últimos dígitos", () => {
+    expect(maskCpfParcial("52998224725")).toBe("529.***.***-25");
+    expect(maskCpfParcial("529.982.247-25")).toBe("529.***.***-25");
   });
 
-  it("passa para a máscara de CNPJ com mais de 11 dígitos ou com letras", () => {
-    expect(formatBusca("11222333000181")).toBe("11.222.333/0001-81");
-    expect(formatBusca("12ab")).toBe("12.AB");
-  });
-
-  it("aceita texto já mascarado", () => {
-    expect(formatBusca("529.982.247-25")).toBe("529.982.247-25");
+  it("não vaza um CPF incompleto", () => {
+    expect(maskCpfParcial("529")).toBe("***.***.***-**");
+    expect(maskCpfParcial("")).toBe("***.***.***-**");
   });
 });

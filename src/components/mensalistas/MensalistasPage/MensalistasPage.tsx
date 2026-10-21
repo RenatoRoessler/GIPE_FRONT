@@ -8,6 +8,7 @@ import { Toast } from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
 import type { Mensalista, MensalistaTipo } from "@/types/mensalista";
 import { ABAS, parseAba } from "../aba";
+import { MensalistaFichaModal } from "../MensalistaFichaModal";
 import { MensalistaModal } from "../MensalistaModal";
 import { MensalistasList } from "../MensalistasList";
 import { Header, Page } from "../Mensalistas.styles";
@@ -15,7 +16,11 @@ import { TipoModal } from "../TipoModal";
 import { TiposList } from "../TiposList";
 
 // `tipo`/`mensalista` ausentes = cadastro; presentes = edição.
-type ModalState = { kind: "tipo"; tipo?: MensalistaTipo } | { kind: "mensalista"; mensalista?: Mensalista } | null;
+type ModalState =
+  | { kind: "tipo"; tipo?: MensalistaTipo }
+  | { kind: "mensalista"; mensalista?: Mensalista }
+  | { kind: "ficha"; mensalista: Mensalista }
+  | null;
 
 export function MensalistasPage() {
   const router = useRouter();
@@ -48,6 +53,8 @@ export function MensalistasPage() {
           <MensalistasList
             onNovo={() => setModal({ kind: "mensalista" })}
             onEditar={(mensalista) => setModal({ kind: "mensalista", mensalista })}
+            onVerFicha={(mensalista) => setModal({ kind: "ficha", mensalista })}
+            onToast={showToast}
             onCriarTipo={() => changeAba("tipos")}
           />
         )}
@@ -64,7 +71,15 @@ export function MensalistasPage() {
           }}
         />
       )}
-      {modal?.kind === "tipo" && <TipoModal tipo={modal.tipo} onClose={closeModal} onSuccess={showToast} />}
+      {modal?.kind === "ficha" && (
+        <MensalistaFichaModal
+          mensalista={modal.mensalista}
+          onClose={closeModal}
+          onEditar={(mensalista) => setModal({ kind: "mensalista", mensalista })}
+          onToast={showToast}
+        />
+      )}
+      {modal?.kind === "tipo" &&<TipoModal tipo={modal.tipo} onClose={closeModal} onSuccess={showToast} />}
       {toast && <Toast message={toast.message} variant={toast.variant} onDismiss={dismissToast} />}
     </Page>
   );

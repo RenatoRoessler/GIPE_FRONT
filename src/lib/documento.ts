@@ -34,6 +34,13 @@ export function formatDocumento(value: string, tipoPessoa: TipoPessoa): string {
   return tipoPessoa === TIPO_PESSOA.Fisica ? formatCPF(value) : formatCnpjAlfanumerico(value);
 }
 
+// Para campos em que a pessoa não escolhe o tipo: até 11 dígitos (só números) usa a máscara de CPF; mais que isso,
+// ou com letras, a de CNPJ.
+export function formatDocumentoAuto(value: string): string {
+  const clean = normalizeDocumento(value);
+  return clean.length <= 11 && /^\d*$/.test(clean) ? formatCPF(clean) : formatCnpjAlfanumerico(clean);
+}
+
 // Valor de cada caractere = código ASCII − 48 (0–9 e A–Z), conforme o CNPJ alfanumérico.
 function charValue(char: string): number {
   return char.charCodeAt(0) - 48;
@@ -56,6 +63,15 @@ export function isValidCnpjAlfanumerico(value: string): boolean {
   const first = checkDigit(chars, WEIGHTS_FIRST);
   const second = checkDigit(chars.slice(0, 12) + first, WEIGHTS_SECOND);
   return chars.endsWith(`${first}${second}`);
+}
+
+// Sem saber o tipo de pessoa: 11 dígitos valem como CPF; 14 caracteres, como CNPJ (inclusive alfanumérico).
+export function isValidDocumentoAuto(value: string): boolean {
+  const clean = normalizeDocumento(value);
+  if (/^\d{11}$/.test(clean)) {
+    return isValidCPF(clean);
+  }
+  return clean.length === CNPJ_LENGTH && isValidCnpjAlfanumerico(clean);
 }
 
 export function isValidDocumento(value: string, tipoPessoa: TipoPessoa): boolean {

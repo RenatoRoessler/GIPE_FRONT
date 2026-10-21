@@ -25,7 +25,7 @@ export const NativeInput = styled.input`
   cursor: inherit;
 `;
 
-export const Box = styled.span<{ $checked: boolean }>`
+export const Box = styled.span<{ $checked: boolean; $error?: boolean }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -33,7 +33,8 @@ export const Box = styled.span<{ $checked: boolean }>`
   width: 20px;
   height: 20px;
   border: 1px solid
-    ${({ theme, $checked }) => ($checked ? theme.colors.primary : theme.colors.border)};
+    ${({ theme, $checked, $error }) =>
+      $error ? theme.colors.danger : $checked ? theme.colors.primary : theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.sm};
   background-color: ${({ theme, $checked }) =>
     $checked ? theme.colors.primary : theme.colors.surface};
@@ -67,4 +68,10 @@ export const Hint = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.regular};
   color: ${({ theme }) => theme.colors.textMuted};
+`;
+
+export const ErrorMessage = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.regular};
+  color: ${({ theme }) => theme.colors.danger};
 `;

@@ -2,8 +2,10 @@
 
 import { HTMLAttributes, ReactNode, useId } from "react";
 import {
+  Action,
   Chevron,
   Heading,
+  HeaderRow,
   Item,
   List,
   Panel,
@@ -23,6 +25,8 @@ export interface AccordionItemProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   hasError?: boolean;
+  // Ação ao lado do cabeçalho (ex.: remover o item); fica fora do botão que abre e fecha o painel.
+  action?: ReactNode;
   children: ReactNode;
 }
 
@@ -33,6 +37,7 @@ export function AccordionItem({
   open,
   onOpenChange,
   hasError = false,
+  action,
   children,
 }: AccordionItemProps) {
   const id = useId();
@@ -41,38 +46,41 @@ export function AccordionItem({
 
   return (
     <Item $hasError={hasError}>
-      <Heading>
-        <Trigger
-          type="button"
-          id={triggerId}
-          aria-expanded={open}
-          aria-controls={panelId}
-          onClick={() => onOpenChange(!open)}
-        >
-          <TitleGroup>
-            <Title>{title}</Title>
-            {(summary || hasError) && (
-              <Summary $hasError={hasError}>
-                {hasError ? "Há campos para corrigir" : summary}
-              </Summary>
-            )}
-          </TitleGroup>
-          <Chevron
-            $open={open}
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+      <HeaderRow>
+        <Heading>
+          <Trigger
+            type="button"
+            id={triggerId}
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={() => onOpenChange(!open)}
           >
-            <path d="m6 9 6 6 6-6" />
-          </Chevron>
-        </Trigger>
-      </Heading>
+            <TitleGroup>
+              <Title>{title}</Title>
+              {(summary || hasError) && (
+                <Summary $hasError={hasError}>
+                  {hasError ? "Há campos para corrigir" : summary}
+                </Summary>
+              )}
+            </TitleGroup>
+            <Chevron
+              $open={open}
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </Chevron>
+          </Trigger>
+        </Heading>
+        {action && <Action>{action}</Action>}
+      </HeaderRow>
       <Panel id={panelId} role="region" aria-labelledby={triggerId} hidden={!open}>
         {children}
       </Panel>

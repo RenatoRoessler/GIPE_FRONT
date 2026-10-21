@@ -23,6 +23,7 @@ const form: MensalistaFormValues = {
   celular: "(11) 91234-5678",
   diaVencimento: "5",
   ativo: true,
+  veiculos: [],
 };
 
 describe("toMensalistaPayload", () => {
@@ -36,6 +37,7 @@ describe("toMensalistaPayload", () => {
       celular: "11912345678",
       diaVencimento: 5,
       ativo: true,
+      veiculos: [],
     });
   });
 
@@ -60,6 +62,10 @@ describe("fromMensalista", () => {
     celular: "11912345678",
     diaVencimento: 5,
     ativo: false,
+    veiculos: [],
+    situacao: null,
+    dataProximoVencimento: null,
+    diasAteProximoVencimento: null,
   };
 
   it("formata documento e celular para o formulário", () => {
@@ -72,6 +78,7 @@ describe("fromMensalista", () => {
       celular: "(11) 91234-5678",
       diaVencimento: "5",
       ativo: false,
+      veiculos: [],
     });
   });
 
@@ -174,5 +181,84 @@ describe("serviço de mensalistas", () => {
   it("lista tipos tolerando resposta vazia", async () => {
     vi.mocked(api.get).mockResolvedValue({ data: null });
     await expect(listTiposMensalidade()).resolves.toEqual([]);
+  });
+});
+
+describe("veículos e condutores", () => {
+  const veiculoForm = {
+    uid: "u1",
+    placa: "abc-1d23",
+    modelo: " Gol ",
+    cor: " Prata ",
+    categoria: "2",
+    condutores: [{ uid: "c1", nome: " Ana Lima ", cpf: "529.982.247-25" }],
+  };
+
+  it("PJ envia condutores com CPF só dígitos e sem uid", () => {
+    const payload = toMensalistaPayload({ ...form, tipoPessoa: "2", veiculos: [veiculoForm] });
+    expect(payload.veiculos).toEqual([
+      {
+        placa: "ABC1D23",
+        modelo: "Gol",
+        cor: "Prata",
+        categoria: 2,
+        condutores: [{ nome: "Ana Lima", cpf: "52998224725" }],
+      },
+    ]);
+  });
+
+  it("PF não envia a chave condutores", () => {
+    const [veiculo] = toMensalistaPayload({ ...form, tipoPessoa: "1", veiculos: [veiculoForm] }).veiculos;
+    expect(veiculo).not.toHaveProperty("condutores");
+  });
+
+  it("sem veículos envia lista vazia (no PUT remove todos)", () => {
+    expect(toMensalistaPayload(form).veiculos).toEqual([]);
+  });
+
+  it("resposta tolerante: veículos ausentes viram lista vazia e a placa é normalizada", () => {
+    expect(fromMensalistaResponse({ nome: "X" }).veiculos).toEqual([]);
+    const mensalista = fromMensalistaResponse({
+      veiculos: [{ placa: "abc-1234", modelo: "Uno", cor: "Azul", categoria: 2, condutores: [{ nome: "Ana", cpf: "529.982.247-25" }] }],
+      situacao: "Em Dia",
+      dataProximoVencimento: "2026-11-05",
+      diasAteProximoVencimento: 15,
+    });
+    expect(mensalista.veiculos[0]).toEqual({
+      placa: "ABC1234",
+      modelo: "Uno",
+      cor: "Azul",
+      categoria: 2,
+      condutores: [{ nome: "Ana", cpf: "52998224725" }],
+    });
+    expect(mensalista.situacao).toBe("Em Dia");
+    expect(mensalista.diasAteProximoVencimento).toBe(15);
+  });
+
+  it("resposta sem situação nem vencimento vira null", () => {
+    const mensalista = fromMensalistaResponse({});
+    expect(mensalista.situacao).toBeNull();
+    expect(mensalista.dataProximoVencimento).toBeNull();
+    expect(mensalista.diasAteProximoVencimento).toBeNull();
+  });
+
+  it("ida e volta: gera uid, mascara o CPF e preserva cor fora da lista", () => {
+    const mensalista = fromMensalistaResponse({
+      tipoPessoa: 2,
+      veiculos: [
+        { placa: "ABC1D23", modelo: "Fiorino", cor: "Branco", categoria: 3, condutores: [{ nome: "Ana", cpf: "52998224725" }] },
+        { placa: "BRA2E19", modelo: "Kombi", cor: "Verde-musgo", categoria: 3, condutores: [] },
+      ],
+    });
+    const { veiculos } = fromMensalista(mensalista);
+    expect(veiculos[0]).toMatchObject({ placa: "ABC1D23", cor: "BRANCO", categoria: "3" });
+    expect(veiculos[0].condutores[0]).toMatchObject({ nome: "Ana", cpf: "529.982.247-25" });
+    expect(veiculos[0].uid).toBeTruthy();
+    expect(veiculos[0].uid).not.toBe(veiculos[1].uid);
+    expect(veiculos[1].cor).toBe("Verde-musgo");
+
+    // O PUT reenvia o texto da cor intacto.
+    const payload = toMensalistaPayload({ ...fromMensalista(mensalista), mensalistaTipoId: "1" });
+    expect(payload.veiculos[1].cor).toBe("Verde-musgo");
   });
 });

@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Pagination } from "@/components/ui/Pagination";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/Table";
 import { Text } from "@/components/ui/Text";
+import type { ToastVariant } from "@/components/ui/Toast";
+import { formatDocumentoAuto } from "@/lib/documento";
 import type { Mensalista } from "@/types/mensalista";
 import { EditIcon } from "../EditIcon";
+import { ViewIcon } from "../ViewIcon";
 import {
-  formatBusca,
   formatCategoria,
   formatCelular,
   formatDocumentoMensalista,
@@ -20,6 +21,11 @@ import {
   formatVencimento,
 } from "../format";
 import { ListError } from "../ListError";
+import { SituacaoMensalista } from "../SituacaoMensalista";
+import { derivarSituacao } from "../situacao";
+import { useContratosMensalistas } from "../useContratosMensalistas";
+import { useReenviarContrato } from "../useReenviarContrato";
+import { VeiculosResumo } from "../VeiculosResumo";
 import {
   EmptyState,
   IconButton,
@@ -39,6 +45,9 @@ const SKELETON_ROWS = 8;
 export interface MensalistasListProps {
   onNovo: () => void;
   onEditar: (mensalista: Mensalista) => void;
+  // Abre a ficha (veículos, condutores e contrato) do mensalista.
+  onVerFicha: (mensalista: Mensalista) => void;
+  onToast: (message: string, variant?: ToastVariant) => void;
   // Leva o usuário à aba de tipos (sem tipo ativo não dá para cadastrar mensalistas).
   onCriarTipo: () => void;
 }
@@ -48,7 +57,7 @@ function parsePage(value: string | null): number {
   return Number.isInteger(page) && page >= 1 ? page : 1;
 }
 
-export function MensalistasList({ onNovo, onEditar, onCriarTipo }: MensalistasListProps) {
+export function MensalistasList({ onNovo, onEditar, onVerFicha, onToast, onCriarTipo }: MensalistasListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pagina = parsePage(searchParams.get("pagina"));
@@ -62,6 +71,13 @@ export function MensalistasList({ onNovo, onEditar, onCriarTipo }: MensalistasLi
   );
   const { data: tipos } = useTiposMensalidade();
   const semTipoAtivo = tipos !== undefined && !tipos.some((tipo) => tipo.ativo);
+  const contratos = useContratosMensalistas(data?.items ?? []);
+  const { reenviar, reenviandoId } = useReenviarContrato({
+    onSuccess: ({ email }) =>
+      onToast(`Novo link enviado para ${email}. Vale por 7 dias; o link anterior deixa de funcionar.`),
+    onError: (message) => onToast(message, "error"),
+  });
+  const agora = new Date();
 
   // Página fora do intervalo (ex.: registros removidos): volta para a última existente.
   useEffect(() => {
@@ -76,7 +92,7 @@ export function MensalistasList({ onNovo, onEditar, onCriarTipo }: MensalistasLi
   }
 
   function changeBusca(value: string) {
-    setBusca(formatBusca(value));
+    setBusca(formatDocumentoAuto(value));
     // Resultado novo: volta ao início da lista.
     if (pagina > 1) {
       router.replace("/mensalistas", { scroll: false });
@@ -160,13 +176,14 @@ export function MensalistasList({ onNovo, onEditar, onCriarTipo }: MensalistasLi
           <TableHead>
             <TableRow>
               <TableCell head>Nome</TableCell>
+              <TableCell head>Situação</TableCell>
+              <TableCell head>Veículos</TableCell>
               <TableCell head>Documento</TableCell>
               <TableCell head>Tipo</TableCell>
               <TableCell head align="right">
                 Mensalidade
               </TableCell>
               <TableCell head>Vencimento</TableCell>
-              <TableCell head>Situação</TableCell>
               <TableCell head align="right">
                 Ações
               </TableCell>
@@ -180,6 +197,21 @@ export function MensalistasList({ onNovo, onEditar, onCriarTipo }: MensalistasLi
                   <SubText>{mensalista.email}</SubText>
                   <SubText>{formatCelular(mensalista.celular)}</SubText>
                 </TableCell>
+                <TableCell data-label="Situação">
+                  <SituacaoMensalista
+                    situacao={derivarSituacao(mensalista, contratos.get(mensalista.mensalistaId), agora)}
+                    nome={mensalista.nome}
+                    onReenviar={() => reenviar(mensalista.mensalistaId)}
+                    reenviando={reenviandoId === mensalista.mensalistaId}
+                  />
+                </TableCell>
+                <TableCell data-label="Veículos">
+                  <VeiculosResumo
+                    veiculos={mensalista.veiculos}
+                    nome={mensalista.nome}
+                    onAbrir={() => onVerFicha(mensalista)}
+                  />
+                </TableCell>
                 <TableCell data-label="Documento" numeric>
                   {formatDocumentoMensalista(mensalista)}
                 </TableCell>
@@ -191,13 +223,16 @@ export function MensalistasList({ onNovo, onEditar, onCriarTipo }: MensalistasLi
                   {formatValor(mensalista.valorMensalidade)}
                 </TableCell>
                 <TableCell data-label="Vencimento">{formatVencimento(mensalista.diaVencimento)}</TableCell>
-                <TableCell data-label="Situação">
-                  <StatusBadge tone={mensalista.ativo ? "success" : "neutral"}>
-                    {mensalista.ativo ? "Ativo" : "Inativo"}
-                  </StatusBadge>
-                </TableCell>
                 <TableCell data-label="Ações" align="right">
                   <RowActions>
+                    <IconButton
+                      type="button"
+                      aria-label={`Ver ficha de ${mensalista.nome}`}
+                      title="Ver ficha"
+                      onClick={() => onVerFicha(mensalista)}
+                    >
+                      <ViewIcon />
+                    </IconButton>
                     <IconButton
                       type="button"
                       aria-label={`Editar ${mensalista.nome}`}
