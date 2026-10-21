@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.166",
+      "type": "feat",
+      "scope": "mensalistas",
+      "title": "adiciona a agenda de vencimentos e melhora a lista no celular",
+      "description": "A página de Mensalistas ganha a aba Agenda, que passa a ser a primeira. Ela mostra\nquem atender primeiro: atrasados, vencem hoje, esta semana e ainda sem pagamento,\ncom um resumo de quanto vence até domingo. Cada linha tem a ação certa, como\nReceber ou Reenviar o contrato, e o nome abre a ficha. Depois de um pagamento o\nitem sai do grupo e o foco vai para o próximo da fila.\n\n- A busca por nome, placa ou documento vale na agenda e na lista, e acha também\n  quem está em dia ou inativo.\n- A lista continua com todos os cadastros, agora na aba Lista. Endereços antigos\n  com número de página seguem abrindo a lista.\n- No celular, a lista deixa de ser uma tabela de oito colunas e vira itens de três\n  linhas, com uma placa e o total das demais, botões de 44px e sem rolagem lateral.\n  O botão de novo mensalista fica flutuante no canto da tela.\n- Botões secundários em listas ganham contorno para não sumirem no fundo da página.",
+      "date": "2026-10-21T16:57:39-03:00"
+    },
+    {
       "version": "1.0.159",
       "type": "feat",
       "scope": "mensalistas",
