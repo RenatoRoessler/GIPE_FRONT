@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.159",
+      "type": "feat",
+      "scope": "mensalistas",
+      "title": "adiciona o registro de pagamento da mensalidade",
+      "description": "O operador pode registrar o pagamento de um mensalista pela ficha ou pela\nlista. Informa o valor pago e a forma de pagamento (dinheiro, Pix, débito,\ncrédito, boleto ou transferência) e, ao confirmar, a cobrança é paga, o\nmensalista fica ativo e a próxima mensalidade é gerada. O comprovante mostra\no valor recebido, a forma e a data da próxima cobrança.\n\n- O primeiro pagamento só é liberado depois do aceite do contrato; a ficha\n  explica o motivo e oferece reenviar o contrato.\n- Se a conexão falhar no envio, o sistema pede para conferir a situação do\n  mensalista antes de tentar de novo, para não registrar o pagamento duas vezes.\n- Erros de contrato não aceito, sem cobrança pendente e de permissão têm\n  mensagens próprias.\n\nEmpresa e usuário que recebeu o pagamento vêm da sessão. Enquanto o token não\ntrouxer os códigos numéricos que a API exige, o modal avisa e não envia nada.",
+      "date": "2026-10-21T15:48:09-03:00"
+    },
+    {
+      "version": "1.0.156",
+      "type": "feat",
+      "scope": null,
+      "title": "finaliza fluxo de mensalista com veículos, contrato e aceite",
+      "description": "- Faz o normalizeError ler detail, errors[] e erros[], e classifica o 429 como rate_limited\n- Adiciona veículos e condutores aos tipos, ao mapper e ao schema de mensalista, com categoria dependente do tipo\n- Cria os serviços de contrato (consulta, reenvio e aceite) e classifyContratoError para separar link vencido, inválido e documento que não confere\n- Cria o StageTrack no design system e adiciona action no AccordionItem, error no Checkbox e ref no Button\n- Adiciona à lista de mensalistas as colunas Veículos e Situação, o reenvio do contrato e a ficha do mensalista\n- Adiciona ao MensalistaModal a seção de veículos e condutores, o leitor de placa, o ajuste de categoria ao trocar o tipo e o erro de placa do servidor no veículo certo\n- Passa o cadastro a enviar ativo=false e deixa o interruptor de ativo só desligar\n- Cria a página pública /contrato com folha de leitura, confirmação por documento, contagem para o limite de tentativas e selo de aceite com impressão\n- Libera /contrato no proxy sem login e move parseApiDate para lib/date\n- Cobre as mudanças com testes de serviços, schemas, hooks, lista, modal, ficha, página pública e proxy",
+      "date": "2026-10-21T09:14:04-03:00"
+    },
+    {
       "version": "1.0.152",
       "type": "fix",
       "scope": "veiculos",
