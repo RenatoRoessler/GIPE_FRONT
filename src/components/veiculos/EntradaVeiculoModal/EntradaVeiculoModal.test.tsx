@@ -1,6 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
 import { renderWithProviders } from "@/test/render";
 import type { EntradaRegistrada } from "@/types/veiculo";
 
@@ -167,5 +168,35 @@ describe("EntradaVeiculoModal", () => {
     await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
     await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Ler placa pela câmera" })).toBeDisabled());
+  });
+});
+
+describe("EntradaVeiculoModal: lista do pátio", () => {
+  it("registrar a entrada invalida a lista do pátio", async () => {
+    vi.mocked(registrarEntrada).mockResolvedValue(registrada);
+    const user = userEvent.setup();
+    const { queryClient } = renderModal();
+    const invalidar = vi.spyOn(queryClient, "invalidateQueries");
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+
+    await screen.findByText("Entrada registrada");
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: PATIO_QUERY_KEY });
+  });
+
+  it("uma entrada recusada não mexe na lista do pátio", async () => {
+    vi.mocked(registrarEntrada).mockRejectedValue(new Error("Sem caixa aberto."));
+    const user = userEvent.setup();
+    const { queryClient } = renderModal();
+    const invalidar = vi.spyOn(queryClient, "invalidateQueries");
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+
+    await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
+    expect(invalidar).not.toHaveBeenCalledWith({ queryKey: PATIO_QUERY_KEY });
   });
 });

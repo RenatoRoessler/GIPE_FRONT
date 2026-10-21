@@ -75,6 +75,16 @@ function VehicleOutIcon(props: IconProps) {
   );
 }
 
+// Estacionamento: a letra P num quadrado.
+function YardIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      <path d="M10 17V8h3a2.5 2.5 0 0 1 0 5h-3" />
+    </IconBase>
+  );
+}
+
 function CashierIcon(props: IconProps) {
   return (
     <IconBase {...props}>
@@ -109,6 +119,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   members: MembersIcon,
   vehicleIn: VehicleInIcon,
   vehicleOut: VehicleOutIcon,
+  yard: YardIcon,
   cashier: CashierIcon,
   reports: ReportsIcon,
   company: CompanyIcon,

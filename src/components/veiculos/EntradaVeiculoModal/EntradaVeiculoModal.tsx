@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useRef, useState } from "react";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +9,7 @@ import { CameraButton } from "@/components/ui/CameraButton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Modal } from "@/components/ui/Modal";
+import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
 import { registrarEntrada } from "@/lib/api/services/patio";
 import { isValidPlaca, normalizePlaca } from "@/lib/placa";
 import { entradaVeiculoSchema, type EntradaVeiculoValues } from "@/lib/schemas/veiculo";
@@ -53,6 +54,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   // Com a entrada registrada, o modal passa do formulário para o comprovante.
   const [entrada, setEntrada] = useState<EntradaRegistrada | null>(null);
 
+  const queryClient = useQueryClient();
   const mutation = useMutation({
     // O código do ticket é gerado pelo backend.
     mutationFn: (values: EntradaVeiculoValues) =>
@@ -64,7 +66,11 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
         modelo: values.modelo.trim(),
         cor: values.cor,
       }),
-    onSuccess: (registrada) => setEntrada(registrada),
+    onSuccess: (registrada) => {
+      setEntrada(registrada);
+      // O veículo entrou no pátio: a lista do pátio precisa mostrá-lo.
+      void queryClient.invalidateQueries({ queryKey: PATIO_QUERY_KEY });
+    },
   });
 
   const form = useAppForm({

@@ -6,6 +6,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Modal } from "@/components/ui/Modal";
 import { formatBRL } from "@/lib/money";
+import type { SaidaBusca } from "@/types/saida";
 import { BuscaManualSaida } from "../BuscaManualSaida";
 import { LeitorQrSaida } from "../LeitorQrSaida";
 import { PagamentoSaida } from "../PagamentoSaida";
@@ -17,6 +18,8 @@ import { useSaidaFlow, type SaidaFase } from "./useSaidaFlow";
 export interface SaidaVeiculoModalProps {
   onClose: () => void;
   onSuccess: (message: string) => void;
+  // Veículo já escolhido (vindo da lista do pátio): abre direto em "Confirmar saída".
+  buscaInicial?: SaidaBusca;
 }
 
 const TITULOS: Record<SaidaFase, string> = {
@@ -32,8 +35,8 @@ const ANUNCIOS: Record<SaidaFase, string> = {
   recibo: "",
 };
 
-export function SaidaVeiculoModal({ onClose, onSuccess }: SaidaVeiculoModalProps) {
-  const flow = useSaidaFlow();
+export function SaidaVeiculoModal({ onClose, onSuccess, buscaInicial }: SaidaVeiculoModalProps) {
+  const flow = useSaidaFlow({ buscaInicial });
   const [confirmingClose, setConfirmingClose] = useState(false);
   const tituloRef = useRef<HTMLHeadingElement>(null);
   const faseAnterior = useRef(flow.fase);
@@ -104,7 +107,7 @@ export function SaidaVeiculoModal({ onClose, onSuccess }: SaidaVeiculoModalProps
     <Modal open title={TITULOS[fase]} size="lg" closeOnBackdrop={false} onClose={handleClose} footer={footer}>
       <FaseConteudo key={fase}>
         <FaseTitulo ref={tituloRef} tabIndex={-1}>
-          {ANUNCIOS[fase]}
+          {fase === "pagamento" && !consulta ? "Procurando o veículo no pátio." : ANUNCIOS[fase]}
         </FaseTitulo>
         {fase === "pesquisa" ? (
           <Layout>

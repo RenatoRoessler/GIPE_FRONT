@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
 import { consultarSaida, registrarSaida, resolverBuscaPorToken } from "@/lib/api/services/patio";
 import { parseMoney } from "@/lib/money";
 import { saidaBuscaSchema, toSaidaBusca, type SaidaBuscaValues } from "@/lib/schemas/saida";
@@ -35,12 +36,20 @@ type ConfirmResult =
   | { tipo: "mudou"; nova: SaidaConsulta }
   | { tipo: "registrada"; resultado: SaidaResultado };
 
-export function useSaidaFlow() {
-  const queryClient = useQueryClient();
+export interface UseSaidaFlowOptions {
+  // Veículo já escolhido (vindo da lista do pátio): o fluxo abre direto na confirmação, sem pesquisa nem leitor de QR.
+  buscaInicial?: SaidaBusca;
+}
 
-  const [buscaValues, setBuscaValues] = useState<SaidaBuscaValues>(EMPTY_BUSCA);
+export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
+  const queryClient = useQueryClient();
+  const valoresIniciais: SaidaBuscaValues = buscaInicial?.tipo === "placa" ? { ...EMPTY_BUSCA, placa: buscaInicial.valor } : EMPTY_BUSCA;
+
+  const [buscaValues, setBuscaValues] = useState<SaidaBuscaValues>(valoresIniciais);
   const [buscaErrors, setBuscaErrors] = useState<Partial<Record<SaidaBuscaField, string>>>({});
-  const [busca, setBusca] = useState<SaidaBusca | null>(null);
+  const [busca, setBusca] = useState<SaidaBusca | null>(buscaInicial ?? null);
+  // Vale enquanto o operador não mexer na pesquisa: com um veículo escolhido, a fase é a de confirmação desde o início.
+  const [direto, setDireto] = useState(buscaInicial !== undefined);
   const [avisoQr, setAvisoQr] = useState<string | undefined>();
   const [valorAnterior, setValorAnterior] = useState<number | null>(null);
   // Escolha do operador; a forma usada é derivada dela e dos meios que a empresa aceita.
@@ -105,6 +114,8 @@ export function useSaidaFlow() {
       }
       setConsultaRecibo(variables.consulta);
       setResultado(data.resultado);
+      // O veículo deixou o pátio: a lista do pátio precisa refletir isso.
+      void queryClient.invalidateQueries({ queryKey: PATIO_QUERY_KEY });
     },
   });
 
@@ -133,6 +144,7 @@ export function useSaidaFlow() {
   });
 
   const novaBusca = useCallback((proxima: SaidaBusca | null) => {
+    setDireto(false);
     ultimoValorRef.current = null;
     setValorAnterior(null);
     setRecebido("");
@@ -149,7 +161,10 @@ export function useSaidaFlow() {
   });
 
   const consulta = consultaQuery.data ?? null;
-  const fase: SaidaFase = resultado ? "recibo" : consulta ? "pagamento" : "pesquisa";
+  // Aberta a partir da lista, a fase é a de confirmação já na consulta; se ela falha (o veículo saiu em outro terminal),
+  // cai na pesquisa com o aviso e a placa preenchida.
+  const carregandoDireto = direto && busca !== null && !consultaQuery.isError;
+  const fase: SaidaFase = resultado ? "recibo" : consulta || carregandoDireto ? "pagamento" : "pesquisa";
 
   // Meios de pagamento aceitos pela empresa: carregados na abertura do modal (e deixam a empresa em cache para o recibo).
   const meios = useMeiosPagamento();
@@ -288,9 +303,10 @@ export function useSaidaFlow() {
   const falhaAtualizacao = consultaQuery.isError && consulta !== null ? ATUALIZACAO_FALHOU : undefined;
   const aviso = avisoQr ?? erroConsulta ?? falhaAtualizacao;
 
+  // A placa vinda da lista não conta como algo digitado: cancelar logo na abertura não pede confirmação.
   const hasProgress =
     resultado === null &&
-    (consulta !== null || Object.values(buscaValues).some((value) => value !== ""));
+    (consulta !== null || (Object.keys(buscaValues) as SaidaBuscaField[]).some((campo) => buscaValues[campo] !== valoresIniciais[campo]));
 
   return {
     fase,
@@ -308,7 +324,8 @@ export function useSaidaFlow() {
     buscando,
     enviando,
     erroRegistro: confirmMutation.isError ? confirmMutation.error.message : undefined,
-    isBusy: buscando || enviando,
+    // Consultar não muda nada: enquanto o veículo escolhido na lista ainda carrega, o operador pode desistir.
+    isBusy: (buscando && !carregandoDireto) || enviando,
     hasProgress,
     handleToken,
     handleQrInvalido,

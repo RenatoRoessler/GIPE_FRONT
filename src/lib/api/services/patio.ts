@@ -1,3 +1,5 @@
+import { normalizePlaca } from "@/lib/placa";
+import type { PatioVeiculo } from "@/types/patio";
 import type { ComprovanteCliente, EntradaPayload, EntradaRegistrada } from "@/types/veiculo";
 import type { SaidaBusca, SaidaBuscaTipo, SaidaConsulta, SaidaPayload, SaidaRegistrada } from "@/types/saida";
 import { api } from "../client";
@@ -72,4 +74,41 @@ export async function registrarSaida(patioId: number, payload: SaidaPayload): Pr
     }
     throw error;
   }
+}
+
+function toNumber(value: unknown): number | null {
+  const number = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
+  return typeof number === "number" && Number.isFinite(number) ? number : null;
+}
+
+function toText(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value : null;
+}
+
+// Tolerante: um campo ausente ou fora do formato não derruba a tela. `quadroChaves` não é lido nesta versão.
+export function fromPatioResponse(raw: Record<string, unknown>): PatioVeiculo {
+  return {
+    patioId: toNumber(raw.patioId) ?? 0,
+    placa: normalizePlaca(typeof raw.placa === "string" ? raw.placa : ""),
+    categoria: toNumber(raw.categoria) ?? 0,
+    modelo: toText(raw.modelo),
+    cor: toText(raw.cor),
+    codigoTicket: toNumber(raw.codigoTicket),
+    sequencial: toNumber(raw.sequencial) ?? 0,
+    mensalista: raw.mensalista === true,
+    dataHoraEntrada: typeof raw.dataHoraEntrada === "string" ? raw.dataHoraEntrada : "",
+    minutosPermanencia: toNumber(raw.minutosPermanencia) ?? 0,
+    permanencia: typeof raw.permanencia === "string" ? raw.permanencia : "",
+    rotatividadeDescricao: toText(raw.rotatividadeDescricao),
+    usuarioEntrada: toText(raw.usuarioEntrada),
+    token: toText(raw.token),
+  };
+}
+
+// Veículos que estão no pátio agora; o back não pagina nem filtra.
+export async function listPatio(): Promise<PatioVeiculo[]> {
+  const { data } = await api.get<unknown>("/Patio");
+  return Array.isArray(data)
+    ? data.filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null).map(fromPatioResponse)
+    : [];
 }
