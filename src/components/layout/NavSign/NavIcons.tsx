@@ -3,6 +3,7 @@ import type { NavIconId } from "@/lib/nav";
 
 type IconProps = SVGAttributes<SVGSVGElement>;
 
+// Ícones do menu (pórtico do computador, barra inferior e painel do celular): os do protótipo aprovado, em traço de 2,4.
 function IconBase(props: IconProps) {
   return (
     <svg
@@ -11,7 +12,7 @@ function IconBase(props: IconProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="2.4"
       strokeLinecap="round"
       strokeLinejoin="round"
       {...props}
@@ -22,7 +23,7 @@ function IconBase(props: IconProps) {
 function HomeIcon(props: IconProps) {
   return (
     <IconBase {...props}>
-      <path d="M12 20V4M5 11l7-7 7 7" />
+      <path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z" />
     </IconBase>
   );
 }
@@ -30,7 +31,7 @@ function HomeIcon(props: IconProps) {
 function PricingIcon(props: IconProps) {
   return (
     <IconBase {...props}>
-      <path d="M12 3v18M8 7.5c0-1.5 1.5-2.5 4-2.5s4 1.2 4 3-2 2.5-4 3-4 1.3-4 3 1.5 2.5 4 2.5 4-1 4-2.5" />
+      <path d="M12 3v18M16 7.5c-.6-1.2-2-2-4-2-2.4 0-4 1.2-4 3s1.6 2.6 4 3 4 1.2 4 3-1.6 3-4 3c-2 0-3.4-.8-4-2" />
     </IconBase>
   );
 }
@@ -38,19 +39,18 @@ function PricingIcon(props: IconProps) {
 function UsersIcon(props: IconProps) {
   return (
     <IconBase {...props}>
-      <circle cx="9" cy="8" r="3" />
-      <path d="M3 20c0-3 2.5-5 6-5s6 2 6 5" />
-      <path d="M16 8a3 3 0 1 1 3.2 3M21 20c0-2.5-1.8-4.4-4.5-4.9" />
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.5a6.5 6.5 0 0 1 3.5 5.5" />
     </IconBase>
   );
 }
 
+// Entrada: seta entrando por uma porta.
 function VehicleInIcon(props: IconProps) {
   return (
     <IconBase {...props}>
-      <path d="M3 16v-3l1.6-4.2A2 2 0 0 1 6.5 7.5h7a2 2 0 0 1 1.9 1.3L17 13v3" />
-      <path d="M3 16h14M6.5 16a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3ZM14 16a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
-      <path d="M19 8v5M17 10.5h4" />
+      <path d="M3 12h11M10 8l4 4-4 4" />
+      <path d="M14 5h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5" />
     </IconBase>
   );
 }
@@ -59,18 +59,17 @@ function MembersIcon(props: IconProps) {
   return (
     <IconBase {...props}>
       <rect x="3" y="5" width="18" height="14" rx="2" />
-      <circle cx="9" cy="11" r="2" />
-      <path d="M6 16c.4-1.6 1.6-2.5 3-2.5s2.6.9 3 2.5M14.5 10h4M14.5 13h3" />
+      <path d="M3 10h18M7 15h4" />
     </IconBase>
   );
 }
 
+// Saída: seta saindo por uma porta.
 function VehicleOutIcon(props: IconProps) {
   return (
     <IconBase {...props}>
-      <path d="M3 16v-3l1.6-4.2A2 2 0 0 1 6.5 7.5h7a2 2 0 0 1 1.9 1.3L17 13v3" />
-      <path d="M3 16h14M6.5 16a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3ZM14 16a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
-      <path d="M20 7.5v5M22 10h-4" />
+      <path d="M21 12H10M17 8l4 4-4 4" />
+      <path d="M10 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5" />
     </IconBase>
   );
 }
@@ -80,7 +79,7 @@ function YardIcon(props: IconProps) {
   return (
     <IconBase {...props}>
       <rect x="4" y="4" width="16" height="16" rx="3" />
-      <path d="M10 17V8h3a2.5 2.5 0 0 1 0 5h-3" />
+      <path d="M10 16V8h3a2.5 2.5 0 0 1 0 5h-3" />
     </IconBase>
   );
 }
@@ -90,7 +89,6 @@ function CashierIcon(props: IconProps) {
     <IconBase {...props}>
       <rect x="3" y="6" width="18" height="12" rx="2" />
       <circle cx="12" cy="12" r="2.5" />
-      <path d="M6.5 9.5v.01M17.5 14.5v.01" />
     </IconBase>
   );
 }
@@ -98,7 +96,7 @@ function CashierIcon(props: IconProps) {
 function ReportsIcon(props: IconProps) {
   return (
     <IconBase {...props}>
-      <path d="M4 20V10M10 20V4M16 20v-7M4 20h16" />
+      <path d="M5 20V10M12 20V4M19 20v-7" />
     </IconBase>
   );
 }
@@ -106,8 +104,7 @@ function ReportsIcon(props: IconProps) {
 function CompanyIcon(props: IconProps) {
   return (
     <IconBase {...props}>
-      <path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M14 10h5a1 1 0 0 1 1 1v9M3 20h18" />
-      <path d="M8 8h2M8 12h2M8 16h2" />
+      <path d="M4 20V6l8-3v17M12 9h8v11M8 9v.01M8 13v.01M8 17v.01M16 13v.01M16 17v.01" />
     </IconBase>
   );
 }
