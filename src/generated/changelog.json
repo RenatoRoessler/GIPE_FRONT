@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.192",
+      "type": "feat",
+      "scope": "auth",
+      "title": "leva o usuário novo a criar a própria senha no primeiro acesso",
+      "description": "Quem entra pela primeira vez com a senha temporária enviada por e-mail agora é levado a uma tela para criar uma senha só sua, em vez de ficar preso no login sem explicação. Depois da troca, volta ao login e entra com a nova senha.\n\n- Nova tela \"Crie sua senha\", com o checklist de requisitos e a confirmação.\n- Se o prazo para trocar a senha acabar, a tela avisa e leva de volta ao login.\n- A senha temporária não é lembrada, mesmo com \"Lembrar senha\" marcado.",
+      "date": "2026-10-22T19:55:47-03:00"
+    },
+    {
+      "version": "1.0.191",
+      "type": "feat",
+      "scope": "usuarios",
+      "title": "adiciona a gestão de usuários da empresa e a troca de senha",
+      "description": "O administrador agora vê quem tem acesso à empresa, dá acesso a novas pessoas, muda o perfil e ativa ou inativa usuários. Qualquer usuário pode trocar a própria senha pelo menu.\n\n- Lista os usuários com perfil, status e data de criação, e marca o usuário logado.\n- Cadastro em duas etapas: consulta o CPF e, se a pessoa já existe no GIPE, mostra os dados só para conferência e pede apenas o perfil.\n- Edição de perfil e acesso, com confirmação antes de inativar ou rebaixar um administrador e proteção do último administrador ativo.\n- \"Alterar senha\" no menu do usuário, no lugar de \"Editar Usuário\".\n- O usuário logado passa a vir do token de acesso, não mais de um dado fixo.\n- O checklist de requisitos de senha aceita regras próprias de cada tela.",
+      "date": "2026-10-22T19:55:40-03:00"
+    },
+    {
       "version": "1.0.188",
       "type": "feat",
       "scope": "notas",
