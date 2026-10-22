@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.182",
+      "type": "feat",
+      "scope": "layout",
+      "title": "usa os ícones do protótipo aprovado no menu",
+      "description": "O menu do computador, a barra inferior e o painel do celular passam a usar os\nmesmos ícones: casa para Início, seta entrando por uma porta para Entrada, seta\nsaindo para Saída, e os demais no mesmo traço mais firme. Antes, o computador\ne o celular tinham ícones diferentes entre si.",
+      "date": "2026-10-22T11:15:06-03:00"
+    },
+    {
+      "version": "1.0.181",
+      "type": "feat",
+      "scope": "layout",
+      "title": "adiciona o menu inferior no celular e abre entrada e saída em modal",
+      "description": "No celular e no tablet, a navegação passa a ficar numa barra fixa na parte de\nbaixo da tela, ao alcance do polegar, com Início, Entrada, Saída e Menu. O\nbotão Menu abre um painel que sobe da base com todas as telas do sistema, e o\nbotão do topo deixa de existir. A barra respeita a área segura do aparelho e\no botão flutuante de novo mensalista fica acima dela.\n\nEntrada e Saída de veículos deixam de ser páginas: tocar nelas no menu (do\ncomputador, da barra inferior ou do painel) abre o modal na hora, por cima da\ntela atual, e o usuário continua onde estava. Os botões do Início e o botão de\nregistrar entrada do Pátio também abrem o modal direto. Quem abrir os\nendereços antigos é levado ao Início.",
+      "date": "2026-10-22T11:15:06-03:00"
+    },
+    {
       "version": "1.0.178",
       "type": "feat",
       "scope": "veiculos",
