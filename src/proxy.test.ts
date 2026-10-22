@@ -19,6 +19,7 @@ describe("proxy: rotas públicas", () => {
     "/adesao",
     "/recuperar-senha",
     "/alterar-senha",
+    "/primeiro-acesso",
   ])("%s abre sem sessão", (caminho) => {
     const resposta = chamar(caminho);
     expect(resposta.headers.get("location")).toBeNull();

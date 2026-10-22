@@ -3,24 +3,37 @@ import { onlyDigits } from "@/lib/digits";
 import { api } from "../client";
 import { ApiError } from "../errors";
 
-// Resposta do backend: { authenticated, accessToken, expiresAt, requiresCompanySelection, ... }.
-// Sem accessToken (ex.: seleção de empresa pendente, ainda não suportada) não há sessão a criar.
-const loginResponseSchema = z.object({ accessToken: z.string().min(1) });
+// Resposta do backend: { authenticated, accessToken, expiresAt, requiresCompanySelection, requiresPasswordChange,
+// passwordChangeToken, ... }. Sem accessToken e sem troca de senha exigida (ex.: seleção de empresa pendente, ainda
+// não suportada) não há sessão a criar.
+const sessaoSchema = z.object({ accessToken: z.string().min(1) });
+const trocaSenhaSchema = z.object({
+  requiresPasswordChange: z.literal(true),
+  passwordChangeToken: z.string().min(1),
+});
 
-function extractToken(body: unknown): string {
-  const parsed = loginResponseSchema.safeParse(body);
-  if (!parsed.success) throw new ApiError("unknown");
-  return parsed.data.accessToken;
+export type LoginResult =
+  | { kind: "sessao"; token: string }
+  // Primeiro acesso: o back não abre sessão; devolve só um token para trocar a senha temporária.
+  // O passwordChangeToken autoriza `alterarSenha` (PUT /Usuario/senha) no lugar da sessão.
+  | { kind: "trocar-senha"; passwordChangeToken: string };
+
+function toLoginResult(body: unknown): LoginResult {
+  const troca = trocaSenhaSchema.safeParse(body);
+  if (troca.success) return { kind: "trocar-senha", passwordChangeToken: troca.data.passwordChangeToken };
+  const sessao = sessaoSchema.safeParse(body);
+  if (sessao.success) return { kind: "sessao", token: sessao.data.accessToken };
+  throw new ApiError("unknown");
 }
 
 // Rejeita com ApiError. O 401 aqui significa credencial inválida, e não sessão expirada.
-export async function login(cpf: string, senha: string): Promise<{ token: string }> {
+export async function login(cpf: string, senha: string): Promise<LoginResult> {
   try {
     const { data } = await api.post<unknown>("/autenticacao/login", {
       login: onlyDigits(cpf),
       senha,
     });
-    return { token: extractToken(data) };
+    return toLoginResult(data);
   } catch (error) {
     if (error instanceof ApiError && error.kind === "unauthorized") {
       throw new ApiError("unauthorized", "CPF ou senha inválidos.", error.status, error.details);

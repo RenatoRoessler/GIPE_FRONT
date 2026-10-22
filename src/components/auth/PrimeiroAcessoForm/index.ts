@@ -1,0 +1,1 @@
+export { PrimeiroAcessoForm } from "./PrimeiroAcessoForm";

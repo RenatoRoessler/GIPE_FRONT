@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/useToast";
 import { login } from "@/lib/api/services/auth";
 import { clearToken, saveToken } from "@/lib/auth";
 import { formatCPF } from "@/lib/cpf";
+import { setPasswordChange } from "@/lib/passwordChangeSession";
 import {
   clearRememberedLogin,
   loadRememberedLogin,
@@ -43,14 +44,25 @@ export function LoginForm() {
       clearToken();
       return login(values.cpf, values.senha);
     },
-    onSuccess: async ({ token }, values) => {
-      saveToken(token);
-      if (remember) {
-        await saveRememberedLogin(values);
-      } else {
-        await clearRememberedLogin();
+    onSuccess: async (result, values) => {
+      switch (result.kind) {
+        case "trocar-senha":
+          // Primeiro acesso: não há sessão. O token de troca e a senha digitada (a temporária, que a API pede como
+          // senha atual) ficam só em memória, nunca na URL. Ela não pode ser lembrada, mesmo com "Lembrar senha" marcado.
+          setPasswordChange({ token: result.passwordChangeToken, senhaAtual: values.senha });
+          await clearRememberedLogin();
+          router.push("/primeiro-acesso");
+          return;
+        case "sessao":
+          saveToken(result.token);
+          if (remember) {
+            await saveRememberedLogin(values);
+          } else {
+            await clearRememberedLogin();
+          }
+          router.push("/dashboard");
+          return;
       }
-      router.push("/dashboard");
     },
   });
 
