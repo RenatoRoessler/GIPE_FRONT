@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import type { PatioFiltros, PatioVeiculo } from "@/types/patio";
-import { categoriaConhecida, corDoVeiculo, filtrarPatio, ordenarPatio, resumirPatio, rotuloCategoria } from "./patio";
+import {
+  categoriaConhecida,
+  chegadasPorHora,
+  corDoVeiculo,
+  estatisticasPatio,
+  filtrarPatio,
+  formatarMinutos,
+  ocupacaoPatio,
+  ordenarPatio,
+  resumirPatio,
+  rotuloCategoria,
+} from "./patio";
 
 let proximoId = 1;
 
@@ -177,5 +188,125 @@ describe("corDoVeiculo", () => {
     expect(corDoVeiculo(null)).toEqual({ texto: "—", amostra: null });
     expect(corDoVeiculo("")).toEqual({ texto: "—", amostra: null });
     expect(corDoVeiculo("   ")).toEqual({ texto: "—", amostra: null });
+  });
+});
+
+describe("estatisticasPatio", () => {
+  it("pátio vazio zera tudo, sem dividir por zero", () => {
+    const stats = estatisticasPatio([]);
+
+    expect(stats).toMatchObject({ total: 0, mensalistas: 0, percentualMensalistas: 0, mediaMinutos: 0, permanenciaLonga: 0, maisAntigo: null });
+    expect(stats.porCategoria).toEqual([]);
+    expect(stats.porPermanencia.every((faixa) => faixa.valor === 0)).toBe(true);
+  });
+
+  it("conta mensalistas, avulsos, percentual, média e permanência longa", () => {
+    const itens = [
+      veiculo({ placa: "AAA1A11", mensalista: true, minutosPermanencia: 60 }),
+      veiculo({ placa: "BBB1B11", mensalista: false, minutosPermanencia: 120 }),
+      veiculo({ placa: "CCC1C11", mensalista: false, minutosPermanencia: 5000 }),
+    ];
+
+    const stats = estatisticasPatio(itens);
+
+    expect(stats).toMatchObject({ total: 3, mensalistas: 1, avulsos: 2, percentualMensalistas: 33, mediaMinutos: 1727, permanenciaLonga: 1 });
+    expect(stats.maisAntigo?.placa).toBe("CCC1C11");
+  });
+
+  it("agrupa por categoria do maior para o menor, com rótulo e desempate alfabético", () => {
+    const itens = [veiculo({ categoria: 3 }), veiculo({ categoria: 1 }), veiculo({ categoria: 1 }), veiculo({ categoria: 50 })];
+
+    expect(estatisticasPatio(itens).porCategoria.map((c) => [c.rotulo, c.valor])).toEqual([
+      ["Moto", 2],
+      ["Carro médio", 1],
+      ["Categoria 50", 1],
+    ]);
+  });
+
+  it("distribui a permanência nas faixas, nos limites exatos", () => {
+    const minutos = [0, 59, 60, 179, 180, 479, 480, 1439, 1440, 4319, 4320, 9000];
+    const faixas = estatisticasPatio(minutos.map((m) => veiculo({ minutosPermanencia: m }))).porPermanencia;
+
+    expect(faixas.map((f) => f.valor)).toEqual([2, 2, 2, 2, 2, 2]);
+    expect(faixas.map((f) => f.longa)).toEqual([false, false, false, false, false, true]);
+  });
+
+  it("operador vazio ou nulo vira Sem operador", () => {
+    const itens = [veiculo({ usuarioEntrada: null }), veiculo({ usuarioEntrada: "  " }), veiculo({ usuarioEntrada: "ana" })];
+
+    expect(estatisticasPatio(itens).porOperador).toEqual([
+      { rotulo: "Sem operador", valor: 2 },
+      { rotulo: "ana", valor: 1 },
+    ]);
+  });
+});
+
+describe("formatarMinutos", () => {
+  it("escolhe a unidade pelo tamanho", () => {
+    expect(formatarMinutos(12)).toBe("12min");
+    expect(formatarMinutos(185)).toBe("3h 5min");
+    expect(formatarMinutos(1560)).toBe("1d 2h");
+  });
+});
+
+describe("ocupacaoPatio", () => {
+  const vagas = { moto: 12, carro: 23 };
+
+  it("moto ocupa vaga de moto e as demais categorias ocupam vaga de carro", () => {
+    const itens = [veiculo({ categoria: 1 }), veiculo({ categoria: 1 }), veiculo({ categoria: 2 }), veiculo({ categoria: 6 })];
+
+    expect(ocupacaoPatio(itens, vagas)).toEqual({
+      percentual: 11,
+      motos: { ocupadas: 2, vagas: 12 },
+      carros: { ocupadas: 2, vagas: 23 },
+    });
+  });
+
+  it("pátio vazio é 0%", () => {
+    expect(ocupacaoPatio([], vagas)?.percentual).toBe(0);
+  });
+
+  it("passa de 100% quando há mais veículos que vagas", () => {
+    const itens = Array.from({ length: 5 }, () => veiculo({ categoria: 1 }));
+
+    expect(ocupacaoPatio(itens, { moto: 2, carro: 2 })?.percentual).toBe(125);
+  });
+
+  it("sem vagas cadastradas devolve null", () => {
+    expect(ocupacaoPatio([veiculo()], { moto: 0, carro: 0 })).toBeNull();
+  });
+});
+
+describe("chegadasPorHora", () => {
+  const agora = new Date(2026, 9, 22, 14, 30);
+  const chegou = (dia: number, hora: number, minuto = 0) =>
+    veiculo({ dataHoraEntrada: `2026-10-${dia}T${String(hora).padStart(2, "0")}:${String(minuto).padStart(2, "0")}:00` });
+
+  it("conta só quem chegou hoje, por hora, e aponta o pico", () => {
+    const chegadas = chegadasPorHora([chegou(22, 8), chegou(22, 8, 40), chegou(22, 13), chegou(21, 9)], agora);
+
+    expect(chegadas.total).toBe(3);
+    expect(chegadas.pico).toEqual({ hora: 8, valor: 2 });
+    expect(chegadas.horas[0]).toEqual({ hora: 6, valor: 0 });
+    expect(chegadas.horas.find((item) => item.hora === 13)?.valor).toBe(1);
+  });
+
+  it("o eixo vai das 6h às 20h e cresce com chegadas fora desse intervalo", () => {
+    expect(chegadasPorHora([], agora).horas.map((item) => item.hora)).toEqual(Array.from({ length: 15 }, (_, i) => 6 + i));
+
+    const horas = chegadasPorHora([chegou(22, 4), chegou(22, 22)], agora).horas;
+    expect([horas[0].hora, horas.at(-1)?.hora]).toEqual([4, 22]);
+  });
+
+  it("sem chegadas hoje não há pico", () => {
+    expect(chegadasPorHora([chegou(20, 9)], agora)).toMatchObject({ total: 0, pico: null });
+  });
+
+  it("no empate o pico é a hora mais cedo", () => {
+    expect(chegadasPorHora([chegou(22, 10), chegou(22, 7)], agora).pico?.hora).toBe(7);
+  });
+
+  it("data inválida é ignorada", () => {
+    expect(chegadasPorHora([veiculo({ dataHoraEntrada: "" })], agora).total).toBe(0);
   });
 });

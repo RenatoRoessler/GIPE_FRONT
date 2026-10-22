@@ -32,3 +32,41 @@ export type PatioFiltros = {
 };
 
 export type PatioResumo = { total: number; mostrados: number };
+
+export type PatioContagem = { rotulo: string; valor: number };
+
+// Números do pátio inteiro (sem filtros) para os indicadores da home e do painel de gráficos.
+export type PatioEstatisticas = {
+  total: number;
+  mensalistas: number;
+  avulsos: number;
+  // Inteiro de 0 a 100; 0 quando o pátio está vazio.
+  percentualMensalistas: number;
+  mediaMinutos: number;
+  // Veículos há 3 dias ou mais no pátio.
+  permanenciaLonga: number;
+  maisAntigo: PatioVeiculo | null;
+  porCategoria: (PatioContagem & { categoria: number })[];
+  porPermanencia: (PatioContagem & { longa: boolean })[];
+  porOperador: PatioContagem[];
+};
+
+export type PatioVagas = { moto: number; carro: number };
+
+export type PatioOcupacaoGrupo = { ocupadas: number; vagas: number };
+
+export type PatioChegadaHora = { hora: number; valor: number };
+
+// Chegadas de hoje de quem ainda está no pátio, uma coluna por hora (de `horas[0]` até a última).
+export type PatioChegadas = {
+  horas: PatioChegadaHora[];
+  total: number;
+  pico: PatioChegadaHora | null;
+};
+
+export type PatioOcupacao = {
+  // Arredondado; passa de 100 quando há mais veículos que vagas.
+  percentual: number;
+  motos: PatioOcupacaoGrupo;
+  carros: PatioOcupacaoGrupo;
+};
