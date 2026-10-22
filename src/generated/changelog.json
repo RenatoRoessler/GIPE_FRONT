@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.175",
+      "type": "feat",
+      "scope": "patio",
+      "title": "troca os filtros por barra de proporção e chips",
+      "description": "Mensalistas e avulsos viram uma barra proporcional e as categorias\nviram chips com contagem; tocar em qualquer um filtra a lista e tocar\nde novo desfaz. O resumo do topo passa a mostrar a ocupação das vagas,\na permanência média e quantos veículos estão há 3 dias ou mais, e os\ngráficos do pátio ficam num bloco recolhido abaixo da lista.",
+      "date": "2026-10-22T09:12:28-03:00"
+    },
+    {
+      "version": "1.0.174",
+      "type": "feat",
+      "scope": "home",
+      "title": "adiciona os indicadores do pátio na página inicial",
+      "description": "Cria a seção \"Pátio agora\" na home com cinco indicadores (ocupação das\nvagas, veículos no pátio, % de mensalistas, permanência média e quantos\nestão há 3 dias ou mais) e gráficos de mensalistas e avulsos, categoria,\ntempo no pátio, operador de entrada e horário de chegada de quem está\nno pátio.\n\nA ocupação usa as vagas de moto e de carro cadastradas na empresa;\nsem vagas, só esse indicador some. Quem não tem acesso ao pátio não vê\na seção. Remove o card de boas-vindas, que não tinha mais função.",
+      "date": "2026-10-22T09:12:28-03:00"
+    },
+    {
       "version": "1.0.172",
       "type": "feat",
       "scope": "patio",
