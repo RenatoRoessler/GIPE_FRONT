@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIPE — opções de menu inferior (mobile)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page-bg: #F3F5F8; --page-text: #14202E; --page-muted: #4D5B6C; --page-border: #D5DBE3; --page-card: #FFFFFF;
+    --page-accent: #0A4AA0;
+  }
+  :root[data-page="dark"] {
+    --page-bg: #0D1218; --page-text: #E8EDF3; --page-muted: #9EABBA; --page-border: #27313D; --page-card: #151C25;
+    --page-accent: #7DB3FF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-page="light"]) {
+      --page-bg: #0D1218; --page-text: #E8EDF3; --page-muted: #9EABBA; --page-border: #27313D; --page-card: #151C25;
+      --page-accent: #7DB3FF;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--page-bg); color: var(--page-text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; line-height: 1.05; text-wrap: balance; }
+  .lede { max-width: 62ch; margin-top: 12px; color: var(--page-muted); }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .toolbar button { min-height: 44px; padding: 0 16px; border: 1px solid var(--page-border); border-radius: 10px; background: var(--page-card); color: var(--page-text); font: inherit; font-weight: 600; cursor: pointer; }
+  .toolbar button[aria-pressed="true"] { border-color: var(--page-accent); outline: 2px solid var(--page-accent); }
+  .toolbar button:focus-visible, .phone button:focus-visible { outline: 3px solid #FFCC00; outline-offset: 2px; box-shadow: 0 0 0 5px #14202E; }
+  .note { margin-top: 20px; padding: 12px 16px; border: 1px solid var(--page-border); border-radius: 12px; background: var(--page-card); color: var(--page-muted); font-size: .9rem; max-width: 72ch; }
+  .note strong { color: var(--page-text); }
+
+  section.opt { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--page-border); display: grid; gap: 24px; grid-template-columns: 1fr; }
+  @media (min-width: 900px) { section.opt { grid-template-columns: 280px 1fr; align-items: start; } }
+  .opt h2 { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-size: 1.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; line-height: 1.1; }
+  .opt .tag { display: inline-block; margin-bottom: 8px; padding: 2px 10px; border-radius: 999px; background: var(--page-accent); color: var(--page-bg); font-size: .8rem; font-weight: 700; }
+  .opt p { margin-top: 10px; color: var(--page-muted); max-width: 46ch; }
+  .opt ul { margin: 12px 0 0; padding-left: 18px; color: var(--page-muted); font-size: .92rem; }
+  .opt li + li { margin-top: 4px; }
+  .opt li strong { color: var(--page-text); }
+  .phones { display: flex; flex-wrap: wrap; gap: 28px 32px; }
+  .phones figure { display: flex; flex-direction: column; gap: 10px; }
+  .phones figcaption { font-size: .85rem; color: var(--page-muted); }
+
+  /* ===== Celular ===== */
+  .phone {
+    --primary: #0A4AA0; --primary-hover: #0D5CC4; --soft: #E3ECF8; --on: #FFFFFF; --edge: #FFFFFF;
+    --warn: #FFCC00; --onwarn: #14202E; --steel: #8A95A3; --bg: #FFFFFF; --surface: #EDF0F4;
+    --text: #14202E; --muted: #4D5B6C; --border: #D5DBE3; --shadow: 0 12px 32px -8px rgba(10,30,60,.25);
+    --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    position: relative; width: 300px; height: 600px; padding: 10px; border-radius: 38px; background: #14202E;
+    box-shadow: 0 24px 48px -16px rgba(10,30,60,.45);
+  }
+  .phone[data-tone="dark"] {
+    --primary: #1768D1; --primary-hover: #2A7BE6; --soft: rgba(23,104,209,.22); --on: #FFFFFF; --edge: #E8EDF3;
+    --bg: #151C25; --surface: #0D1218; --text: #E8EDF3; --muted: #9EABBA; --border: #27313D; --steel: #5A6573;
+    --shadow: 0 12px 32px -8px rgba(0,0,0,.6);
+  }
+  .screen { position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 30px; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .appbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; }
+  .brand { font-family: var(--display); font-size: 22px; font-weight: 700; letter-spacing: .06em; color: var(--primary); }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--soft); border: 1px solid var(--border); }
+  .content { flex: 1; min-height: 0; padding: 4px 16px 16px; overflow: hidden; }
+  .content h3 { font-family: var(--display); font-size: 28px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; line-height: 1; }
+  .sk { height: 12px; margin-top: 12px; border-radius: 6px; background: var(--surface); }
+  .sk.w60 { width: 60%; } .sk.w80 { width: 80%; }
+  .sk.block { height: 84px; border-radius: 12px; margin-top: 16px; }
+
+  svg.i { width: 24px; height: 24px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+  .bar { position: relative; z-index: 2; flex: none; }
+  .bar button { appearance: none; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+  .scrim { position: absolute; inset: 0; z-index: 3; background: rgba(20,32,46,.55); opacity: 0; pointer-events: none; transition: opacity .18s ease; }
+  .phone.is-open .scrim { opacity: 1; pointer-events: auto; }
+  .sheet { position: absolute; z-index: 4; left: 0; right: 0; bottom: 0; max-height: 82%; overflow: auto; transform: translateY(100%); transition: transform .22s cubic-bezier(.16,1,.3,1); background: var(--bg); border-radius: 22px 22px 0 0; box-shadow: var(--shadow); padding: 10px 14px 16px; }
+  .phone.is-open .sheet { transform: none; }
+  @media (prefers-reduced-motion: reduce) { .sheet, .scrim { transition: none; } }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px 10px; }
+  .sheet-head h4 { font-family: var(--display); font-size: 24px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+  .sheet-close { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--border) !important; border-radius: 50%; background: var(--surface) !important; color: var(--text) !important; }
+  .grabber { width: 40px; height: 5px; margin: 0 auto 4px; border-radius: 3px; background: var(--steel); }
+
+  /* placa de sinalização */
+  .plate { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 12px; border: 3px solid var(--edge) !important; border-radius: 10px; outline: 2px solid var(--primary); background: var(--primary) !important; color: var(--on) !important; font-family: var(--display); font-weight: 600; font-size: 18px; line-height: 1; letter-spacing: .02em; text-transform: uppercase; text-align: left; }
+  .plate.on { background: var(--warn) !important; color: var(--onwarn) !important; }
+  .plate svg.i { width: 22px; height: 22px; }
+
+  /* ===== Opção 1: placas na viga ===== */
+  .v1 { padding: 0 8px 8px; background: var(--bg); }
+  .v1 .beam { height: 8px; margin: 0 4px; border-radius: 4px; background: var(--steel); }
+  .v1 .row { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 4px 0; }
+  .v1 .row::before, .v1 .row::after { content: ""; position: absolute; top: 0; width: 0; }
+  .v1 .plate { flex-direction: column; justify-content: center; gap: 4px; min-height: 60px; padding: 6px 2px; font-size: 14px; text-align: center; position: relative; }
+  .v1 .plate::before { content: ""; position: absolute; top: -12px; left: 50%; width: 4px; height: 10px; margin-left: -2px; background: var(--steel); }
+
+  /* ===== Opção 2: barra limpa ===== */
+  .v2 { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--border); background: var(--bg); padding-bottom: 6px; }
+  .v2 button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 60px; color: var(--muted) !important; font-size: 12px; font-weight: 600; }
+  .v2 button .pill { display: grid; place-items: center; width: 52px; height: 30px; border-radius: 15px; }
+  .v2 button.on { color: var(--primary) !important; }
+  .v2 button.on .pill { background: var(--soft); }
+  .v2 button.on::before { content: ""; position: absolute; top: -1px; left: 22%; right: 22%; height: 3px; border-radius: 0 0 3px 3px; background: var(--primary); }
+
+  /* ===== Opção 3: entrada e saída em destaque ===== */
+  .v3 { display: grid; grid-template-columns: 0.7fr 1.3fr 1.3fr 0.7fr; gap: 6px; align-items: stretch; padding: 8px 8px 10px; border-top: 1px solid var(--border); background: var(--bg); }
+  .v3 .side { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 58px; color: var(--muted) !important; font-size: 12px; font-weight: 600; }
+  .v3 .side.on { color: var(--primary) !important; }
+  .v3 .plate { flex-direction: column; justify-content: center; gap: 4px; min-height: 58px; padding: 6px; font-size: 17px; text-align: center; }
+
+  /* ===== Opção 4: ilha flutuante ===== */
+  .v4wrap { position: absolute; z-index: 2; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; pointer-events: none; }
+  .v4 { pointer-events: auto; display: flex; align-items: center; gap: 2px; padding: 6px; border-radius: 999px; background: var(--text); box-shadow: 0 14px 28px -8px rgba(10,30,60,.45); }
+  .v4 button { appearance: none; border: 0; background: none; cursor: pointer; display: flex; align-items: center; gap: 8px; height: 46px; min-width: 46px; padding: 0 11px; border-radius: 999px; color: var(--bg) !important; font-family: var(--display); font-size: 17px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; justify-content: center; }
+  .v4 button span { display: none; }
+  .v4 button.on { background: var(--warn) !important; color: var(--onwarn) !important; padding: 0 16px 0 13px; }
+  .v4 button.on span { display: inline; }
+  .phone[data-v="4"] .content { padding-bottom: 84px; }
+
+  /* ===== Opção 5: cinco itens, Pátio ao centro ===== */
+  .v5 { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); align-items: end; border-top: 1px solid var(--border); background: var(--bg); padding-bottom: 6px; }
+  .v5 button.tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 60px; color: var(--muted) !important; font-size: 11px; font-weight: 600; position: relative; }
+  .v5 button.tab.on { color: var(--primary) !important; }
+  .v5 button.tab.on::after { content: ""; position: absolute; bottom: 4px; width: 5px; height: 5px; border-radius: 50%; background: var(--primary); }
+  .v5 .center { display: flex; justify-content: center; }
+  .v5 .center .plate { flex-direction: column; justify-content: center; gap: 2px; width: 64px; height: 64px; min-height: 0; margin-top: -22px; padding: 0; border-radius: 14px; font-size: 14px; text-align: center; box-shadow: var(--shadow); }
+  .v5 .center .plate svg.i { width: 24px; height: 24px; }
+
+  /* conteúdo dos menus */
+  .grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding: 3px; }
+  .grid2 .plate { min-height: 52px; padding: 0 10px; font-size: 16px; }
+  .list { list-style: none; padding: 0; display: flex; flex-direction: column; }
+  .list button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 0 8px; border-radius: 10px; color: var(--text) !important; font-size: 15px; font-weight: 600; text-align: left; }
+  .list button.on { background: var(--soft) !important; color: var(--primary) !important; }
+  .list button .chev { margin-left: auto; color: var(--muted); }
+  .list li + li { border-top: 1px solid var(--border); }
+  .tiles { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  .tiles button { display: flex; flex-direction: column; gap: 8px; min-height: 76px; padding: 12px; border: 1px solid var(--border) !important; border-radius: 12px; background: var(--surface) !important; color: var(--text) !important; font-size: 13px; font-weight: 600; text-align: left; }
+  .tiles button svg { color: var(--primary); }
+  .full { position: absolute; z-index: 4; inset: 0; transform: translateY(100%); transition: transform .22s cubic-bezier(.16,1,.3,1); background: var(--bg); padding: 14px 14px 16px; overflow: auto; }
+  .phone.is-open .full { transform: none; }
+  @media (prefers-reduced-motion: reduce) { .full { transition: none; } }
+  .search { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: 14px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 14px; }
+  .group-title { margin: 14px 0 6px; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+  .full .list button { min-height: 46px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-in" viewBox="0 0 24 24"><path d="M3 12h11M10 8l4 4-4 4"/><path d="M14 5h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M21 12H10M17 8l4 4-4 4"/><path d="M10 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-yard" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M10 16V8h3a2.5 2.5 0 0 1 0 5h-3"/></symbol>
+    <symbol id="i-price" viewBox="0 0 24 24"><path d="M12 3v18M16 7.5c-.6-1.2-2-2-4-2-2.4 0-4 1.2-4 3s1.6 2.6 4 3 4 1.2 4 3-1.6 3-4 3c-2 0-3.4-.8-4-2"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></symbol>
+    <symbol id="i-members" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></symbol>
+    <symbol id="i-cash" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></symbol>
+    <symbol id="i-report" viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></symbol>
+    <symbol id="i-company" viewBox="0 0 24 24"><path d="M4 20V6l8-3v17M12 9h8v11M8 9v.01M8 13v.01M8 17v.01M16 13v.01M16 17v.01"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <h1>Menu inferior no celular</h1>
+  <p class="lede">Cinco formas de colocar a navegação na parte de baixo da tela. Em todas, tocar em <strong>Menu</strong> abre o restante do sistema. Clique nas abas dos celulares para testar.</p>
+
+  <div class="toolbar" role="group" aria-label="Aparência dos celulares">
+    <button type="button" data-tone-btn="light" aria-pressed="true">Tema claro</button>
+    <button type="button" data-tone-btn="dark" aria-pressed="false">Tema escuro</button>
+    <button type="button" data-page-toggle aria-pressed="false">Fundo da página escuro</button>
+  </div>
+
+  <p class="note"><strong>Sobre as "5 opções":</strong> o pedido lista quatro itens (Home, Entrada, Saída e Menu). As opções 1 a 4 usam esses quatro. A opção 5 mostra como ficaria com um quinto item, o Pátio. Se o quinto for outro, a ideia vale do mesmo jeito.</p>
+
+  <div id="options"></div>
+</div>
+
+<script>
+  const MENU = [
+    { id: "home", label: "Início", icon: "home", group: "Operação" },
+    { id: "in", label: "Entrada de Veículos", icon: "in", group: "Operação" },
+    { id: "out", label: "Saída de Veículos", icon: "out", group: "Operação" },
+    { id: "yard", label: "Pátio", icon: "yard", group: "Operação" },
+    { id: "cash", label: "Caixa", icon: "cash", group: "Operação" },
+    { id: "members", label: "Mensalistas", icon: "members", group: "Gestão" },
+    { id: "price", label: "Gestão de Preços", icon: "price", group: "Gestão" },
+    { id: "users", label: "Gestão de Usuários", icon: "users", group: "Gestão" },
+    { id: "report", label: "Relatórios", icon: "report", group: "Gestão" },
+    { id: "company", label: "Minha Empresa", icon: "company", group: "Conta" },
+  ];
+  const TITLES = { home: "Início", in: "Entrada", out: "Saída", yard: "Pátio" };
+  const ic = (name) => `<svg class="i" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+
+  const OPTIONS = [
+    {
+      v: 1, tag: "Fiel ao sistema", name: "Placas na viga",
+      desc: "A barra vira uma viga de aço com quatro placas azuis penduradas, igual ao pórtico que já existe no computador. A placa da tela atual fica amarela.",
+      pros: ["<strong>Mesma identidade</strong> do pórtico do desktop.", "Placas grandes, boas para toque com luva ou pressa.", "A tela atual se reconhece pela cor, além do texto."],
+      cons: ["Ocupa um pouco mais de altura que uma barra comum.", "Visual mais marcante: precisa ser aprovado como estilo."],
+      bar: (a) => `<nav class="bar v1" aria-label="Navegação principal"><div class="beam"></div><div class="row">${
+        [["home","Início","home"],["in","Entrada","in"],["out","Saída","out"]].map(([id,l,i]) => `<button class="plate ${a===id?"on":""}" data-tab="${id}" ${a===id?'aria-current="page"':""}>${ic(i)}${l}</button>`).join("")
+      }<button class="plate" data-menu aria-haspopup="dialog">${ic("menu")}Menu</button></div></nav>`,
+      menu: () => `<section class="sheet" role="dialog" aria-label="Menu"><div class="grabber"></div><div class="sheet-head"><h4>Menu</h4><button class="sheet-close" data-close aria-label="Fechar menu">${ic("close")}</button></div><div class="grid2">${
+        MENU.map(m => `<button class="plate" data-go="${m.id}">${ic(m.icon)}${m.label}</button>`).join("")
+      }</div></section>`,
+    },
+    {
+      v: 2, tag: "Mais conhecida", name: "Barra limpa",
+      desc: "O padrão que a maioria dos apps usa: ícone e nome, a aba atual em azul com uma marca no topo. O menu abre como uma folha de baixo para cima, em lista.",
+      pros: ["<strong>Zero curva de aprendizado</strong>.", "Baixa e discreta: sobra mais tela para o conteúdo.", "Lista do menu fácil de percorrer com o polegar."],
+      cons: ["Menos personalidade; parece qualquer outro app.", "Entrada e Saída não se destacam entre os itens."],
+      bar: (a) => `<nav class="bar v2" aria-label="Navegação principal">${
+        [["home","Início","home"],["in","Entrada","in"],["out","Saída","out"]].map(([id,l,i]) => `<button data-tab="${id}" class="${a===id?"on":""}" ${a===id?'aria-current="page"':""}><span class="pill">${ic(i)}</span>${l}</button>`).join("")
+      }<button data-menu aria-haspopup="dialog"><span class="pill">${ic("menu")}</span>Menu</button></nav>`,
+      menu: (a) => `<section class="sheet" role="dialog" aria-label="Menu"><div class="grabber"></div><div class="sheet-head"><h4>Menu</h4><button class="sheet-close" data-close aria-label="Fechar menu">${ic("close")}</button></div><ul class="list">${
+        MENU.map(m => `<li><button data-go="${m.id}" class="${a===m.id?"on":""}">${ic(m.icon)}${m.label}<span class="chev">${ic("chev")}</span></button></li>`).join("")
+      }</ul></section>`,
+    },
+    {
+      v: 3, tag: "Foco na operação", name: "Entrada e Saída em destaque",
+      desc: "Entrada e Saída são o que o operador faz o dia todo, então viram duas placas largas no meio. Início e Menu ficam menores nas pontas. O menu abre em blocos.",
+      pros: ["<strong>Os dois botões mais usados</strong> são os maiores.", "Dá para acertar sem olhar, com a mão ocupada.", "A hierarquia deixa claro o que é rotina e o que é apoio."],
+      cons: ["Início e Menu ficam menos visíveis.", "Se mudar o que é mais usado, a barra precisa ser revista."],
+      bar: (a) => `<nav class="bar v3" aria-label="Navegação principal"><button class="side ${a==="home"?"on":""}" data-tab="home" ${a==="home"?'aria-current="page"':""}>${ic("home")}Início</button>${
+        [["in","Entrada","in"],["out","Saída","out"]].map(([id,l,i]) => `<button class="plate ${a===id?"on":""}" data-tab="${id}" ${a===id?'aria-current="page"':""}>${ic(i)}${l}</button>`).join("")
+      }<button class="side" data-menu aria-haspopup="dialog">${ic("menu")}Menu</button></nav>`,
+      menu: (a) => `<section class="sheet" role="dialog" aria-label="Menu"><div class="grabber"></div><div class="sheet-head"><h4>Menu</h4><button class="sheet-close" data-close aria-label="Fechar menu">${ic("close")}</button></div><div class="tiles">${
+        MENU.map(m => `<button data-go="${m.id}">${ic(m.icon)}${m.label}</button>`).join("")
+      }</div></section>`,
+    },
+    {
+      v: 4, tag: "Mais moderna", name: "Ilha flutuante",
+      desc: "Uma pílula escura solta da borda. Só a aba atual mostra o nome; as outras são só ícone. Libera espaço e dá destaque ao que está aberto.",
+      pros: ["<strong>Visual leve</strong>, parece app atual.", "A aba atual é a única com texto, sem poluição.", "Cobre menos o conteúdo da tela."],
+      cons: ["Ícones sozinhos exigem aprender o que cada um é.", "Flutua sobre o conteúdo: precisa de espaço extra no fim das telas."],
+      bar: (a) => `<div class="v4wrap"><nav class="v4" aria-label="Navegação principal">${
+        [["home","Início","home"],["in","Entrada","in"],["out","Saída","out"]].map(([id,l,i]) => `<button data-tab="${id}" class="${a===id?"on":""}" aria-label="${l}" ${a===id?'aria-current="page"':""}>${ic(i)}<span>${l}</span></button>`).join("")
+      }<button data-menu aria-label="Menu" aria-haspopup="dialog">${ic("menu")}</button></nav></div>`,
+      menu: (a) => `<section class="sheet" role="dialog" aria-label="Menu"><div class="grabber"></div><div class="sheet-head"><h4>Menu</h4><button class="sheet-close" data-close aria-label="Fechar menu">${ic("close")}</button></div><ul class="list">${
+        MENU.map(m => `<li><button data-go="${m.id}" class="${a===m.id?"on":""}">${ic(m.icon)}${m.label}<span class="chev">${ic("chev")}</span></button></li>`).join("")
+      }</ul></section>`,
+    },
+    {
+      v: 5, tag: "Com um quinto item", name: "Cinco itens, Pátio no centro",
+      desc: "Cinco posições: Início, Entrada, Pátio, Saída e Menu. O Pátio ganha uma placa elevada no centro. O menu ocupa a tela toda, com busca e grupos.",
+      pros: ["<strong>Pátio a um toque</strong>, que é a visão geral da operação.", "Menu em tela cheia, organizado por grupos e com busca.", "A placa elevada dá um ponto de apoio ao polegar."],
+      cons: ["Cinco itens deixam cada um mais estreito.", "Pátio no centro pesa mais que Entrada e Saída, que são rotina."],
+      bar: (a) => `<nav class="bar v5" aria-label="Navegação principal">${
+        [["home","Início","home"],["in","Entrada","in"]].map(([id,l,i]) => `<button class="tab ${a===id?"on":""}" data-tab="${id}" ${a===id?'aria-current="page"':""}>${ic(i)}${l}</button>`).join("")
+      }<div class="center"><button class="plate ${a==="yard"?"on":""}" data-tab="yard" ${a==="yard"?'aria-current="page"':""}>${ic("yard")}Pátio</button></div><button class="tab ${a==="out"?"on":""}" data-tab="out" ${a==="out"?'aria-current="page"':""}>${ic("out")}Saída</button><button class="tab" data-menu aria-haspopup="dialog">${ic("menu")}Menu</button></nav>`,
+      menu: (a) => {
+        const groups = ["Operação", "Gestão", "Conta"];
+        return `<section class="full" role="dialog" aria-label="Menu"><div class="sheet-head"><h4>Menu</h4><button class="sheet-close" data-close aria-label="Fechar menu">${ic("close")}</button></div><div class="search">${ic("search")}Buscar no menu</div>${
+          groups.map(g => `<p class="group-title">${g}</p><ul class="list">${MENU.filter(m => m.group === g).map(m => `<li><button data-go="${m.id}" class="${a===m.id?"on":""}">${ic(m.icon)}${m.label}<span class="chev">${ic("chev")}</span></button></li>`).join("")}</ul>`).join("")
+        }</section>`;
+      },
+    },
+  ];
+
+  function phone(opt, { active = "home", open = false, tone = "light" } = {}) {
+    const title = TITLES[active] || "Início";
+    return `<div class="phone ${open ? "is-open" : ""}" data-v="${opt.v}" data-tone="${tone}" data-active="${active}">
+      <div class="screen">
+        <header class="appbar"><span class="brand">GIPE</span><span class="avatar" aria-hidden="true"></span></header>
+        <main class="content"><h3 data-title>${title}</h3><div class="sk w80"></div><div class="sk w60"></div><div class="sk block"></div><div class="sk"></div><div class="sk w80"></div></main>
+        ${opt.bar(active)}
+        <div class="scrim" data-close></div>
+        ${opt.menu(active)}
+      </div>
+    </div>`;
+  }
+
+  const root = document.getElementById("options");
+  let tone = "light";
+
+  function render() {
+    root.innerHTML = OPTIONS.map((o) => `
+      <section class="opt" aria-labelledby="t${o.v}">
+        <div>
+          <span class="tag">Opção ${o.v} · ${o.tag}</span>
+          <h2 id="t${o.v}">${o.name}</h2>
+          <p>${o.desc}</p>
+          <ul>${o.pros.map(p => `<li>${p}</li>`).join("")}</ul>
+          <ul>${o.cons.map(c => `<li>${c}</li>`).join("")}</ul>
+        </div>
+        <div class="phones">
+          <figure>${phone(o, { tone })}<figcaption>Interativo: toque nas abas e em Menu.</figcaption></figure>
+          <figure>${phone(o, { open: true, active: "out", tone })}<figcaption>Menu aberto (a tela atual é Saída).</figcaption></figure>
+        </div>
+      </section>`).join("");
+  }
+
+  function wire(ph, opt) {
+    const set = (active) => {
+      const open = ph.classList.contains("is-open");
+      const tmp = document.createElement("div");
+      tmp.innerHTML = phone(opt, { active, open, tone: ph.dataset.tone });
+      ph.replaceWith(tmp.firstElementChild);
+      wire(tmp.firstElementChild, opt);
+    };
+    ph.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-tab],[data-menu],[data-close],[data-go]");
+      if (!t) return;
+      if (t.hasAttribute("data-menu")) ph.classList.add("is-open");
+      else if (t.hasAttribute("data-close")) ph.classList.remove("is-open");
+      else if (t.dataset.tab) set(t.dataset.tab);
+      else if (t.dataset.go) { ph.classList.remove("is-open"); set(["home","in","out","yard"].includes(t.dataset.go) ? t.dataset.go : "home"); }
+    });
+    ph.addEventListener("keydown", (e) => { if (e.key === "Escape") ph.classList.remove("is-open"); });
+  }
+
+  function mount() {
+    render();
+    document.querySelectorAll(".opt").forEach((sec, i) => {
+      sec.querySelectorAll(".phone").forEach((ph) => wire(ph, OPTIONS[i]));
+    });
+  }
+
+  document.querySelectorAll("[data-tone-btn]").forEach((b) => b.addEventListener("click", () => {
+    tone = b.dataset.toneBtn;
+    document.querySelectorAll("[data-tone-btn]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    mount();
+  }));
+  document.querySelector("[data-page-toggle]").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.page !== "dark";
+    document.documentElement.dataset.page = dark ? "dark" : "light";
+    e.currentTarget.setAttribute("aria-pressed", String(dark));
+  });
+  mount();
+</script>
+</body>
+</html>
