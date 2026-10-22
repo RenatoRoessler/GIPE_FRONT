@@ -18,6 +18,10 @@ const shared = {
     lg: "16px",
     full: "9999px",
   },
+  layout: {
+    // Altura da barra de navegação inferior (celular), sem a área segura do aparelho.
+    bottomNavHeight: "64px",
+  },
   breakpoints: {
     sm: "480px",
     md: "768px",

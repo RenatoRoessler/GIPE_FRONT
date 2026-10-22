@@ -7,6 +7,8 @@ import type { PatioVeiculo } from "@/types/patio";
 
 vi.mock("@/lib/api/services/patio", () => ({ listPatio: vi.fn() }));
 vi.mock("../useVagasPatio", () => ({ useVagasPatio: () => ({ moto: 12, carro: 23 }) }));
+const modais = vi.hoisted(() => ({ abrirEntrada: vi.fn(), abrirSaida: vi.fn() }));
+vi.mock("@/components/veiculos/VeiculoModais", () => ({ useVeiculoModais: () => modais }));
 
 import { listPatio } from "@/lib/api/services/patio";
 import { PatioView } from "./PatioView";
@@ -60,6 +62,7 @@ const campoBusca = () => screen.getByLabelText("Buscar por placa, modelo ou tick
 beforeEach(() => {
   proximoId = 1;
   vi.mocked(listPatio).mockReset();
+  modais.abrirEntrada.mockReset();
 });
 
 describe("PatioView: lista e resumo", () => {
@@ -90,11 +93,13 @@ describe("PatioView: lista e resumo", () => {
     expect(screen.getByRole("status", { name: "Carregando o pátio" })).toBeInTheDocument();
   });
 
-  it("sem veículos diz isso e leva ao registro de entrada", async () => {
+  it("sem veículos diz isso e abre o modal de entrada, sem navegar", async () => {
     abrir([]);
 
     expect(await screen.findByText("Nenhum veículo no pátio.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Registrar entrada" })).toHaveAttribute("href", "/veiculos/entrada");
+    expect(screen.queryByRole("link", { name: "Registrar entrada" })).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Registrar entrada" }));
+    expect(modais.abrirEntrada).toHaveBeenCalledTimes(1);
   });
 
   it("erro mostra a mensagem do back e deixa tentar de novo", async () => {

@@ -1,27 +1,29 @@
 "use client";
 
 import NextLink from "next/link";
-import type { NavItem } from "@/lib/nav";
+import { isNavAction, type NavAction, type NavItem } from "@/lib/nav";
 import { NavIcon } from "./NavIcons";
 import { Sign } from "./NavSign.styles";
 
 export interface NavSignProps {
   item: NavItem;
   active: boolean;
-  variant: "gantry" | "panel";
-  onNavigate?: () => void;
+  // Chamado ao acionar um item de ação (abre um modal em vez de navegar).
+  onAction: (acao: NavAction) => void;
 }
 
-export function NavSign({ item, active, variant, onNavigate }: NavSignProps) {
+export function NavSign({ item, active, onAction }: NavSignProps) {
+  if (isNavAction(item)) {
+    return (
+      <Sign as="button" type="button" $active={false} aria-haspopup="dialog" onClick={() => onAction(item.acao)}>
+        <NavIcon id={item.icon} aria-hidden="true" />
+        {item.label}
+      </Sign>
+    );
+  }
+
   return (
-    <Sign
-      as={NextLink}
-      href={item.href}
-      $active={active}
-      $variant={variant}
-      aria-current={active ? "page" : undefined}
-      onClick={onNavigate}
-    >
+    <Sign as={NextLink} href={item.href} $active={active} aria-current={active ? "page" : undefined}>
       <NavIcon id={item.icon} aria-hidden="true" />
       {item.label}
     </Sign>

@@ -24,6 +24,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#2C5CE0",
+  // Necessário para env(safe-area-inset-*) valer no iOS: a barra inferior usa o recuo da barra de gestos.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -8,6 +8,11 @@ export const Layout = styled.div`
   flex: 1;
   min-height: 100vh;
   background-color: ${({ theme }) => theme.colors.surface};
+
+  /* No celular, a barra de navegação inferior é fixa: o fim da página (rodapé) ganha a folga dela. */
+  @media (max-width: calc(${({ theme }) => theme.breakpoints.lg} - 1px)) {
+    padding-bottom: calc(${({ theme }) => theme.layout.bottomNavHeight} + env(safe-area-inset-bottom, 0px));
+  }
 `;
 
 export const Main = styled.main`

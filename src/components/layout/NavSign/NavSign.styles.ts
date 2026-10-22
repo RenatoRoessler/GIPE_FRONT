@@ -7,7 +7,7 @@ const STEEL_POST_HEIGHT = "26px";
 // Anel escuro externo do foco (como no modelo), para o contorno amarelo ler bem em qualquer fundo.
 const FOCUS_RING = "#14202E";
 
-export const Sign = styled.a<{ $active: boolean; $variant: "gantry" | "panel" }>`
+export const Sign = styled.a<{ $active: boolean }>`
   position: relative;
   display: flex;
   flex-direction: column;
@@ -27,6 +27,7 @@ export const Sign = styled.a<{ $active: boolean; $variant: "gantry" | "panel" }>
   letter-spacing: ${({ theme }) => theme.typography.displayTracking};
   text-transform: ${({ theme }) => theme.typography.displayTransform};
   text-decoration: none;
+  text-align: left;
   cursor: pointer;
 
   svg {
@@ -50,38 +51,27 @@ export const Sign = styled.a<{ $active: boolean; $variant: "gantry" | "panel" }>
     transition: background-color 0.15s ease, border-color 0.15s ease;
   }
 
-  ${({ $variant, theme }) =>
-    $variant === "gantry"
-      ? css`
-          flex: 1 0 150px;
-          min-height: 92px;
+  flex: 1 0 150px;
+  min-height: 92px;
 
-          &::before,
-          &::after {
-            content: "";
-            position: absolute;
-            top: -${STEEL_POST_HEIGHT};
-            width: 5px;
-            height: ${STEEL_POST_HEIGHT};
-            background-color: ${theme.colors.steel};
-          }
+  /* Postes de aço que prendem a placa à viga do pórtico. */
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: -${STEEL_POST_HEIGHT};
+    width: 5px;
+    height: ${STEEL_POST_HEIGHT};
+    background-color: ${({ theme }) => theme.colors.steel};
+  }
 
-          &::before {
-            left: 22%;
-          }
+  &::before {
+    left: 22%;
+  }
 
-          &::after {
-            right: 22%;
-          }
-        `
-      : css`
-          flex-direction: row;
-          align-items: center;
-          justify-content: flex-start;
-          gap: ${theme.space[3]}px;
-          min-height: 56px;
-          width: 100%;
-        `}
+  &::after {
+    right: 22%;
+  }
 
   ${({ $active, theme }) =>
     $active &&

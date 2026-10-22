@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { SaidaVeiculoModal } from "@/components/veiculos/SaidaVeiculoModal";
+import { useVeiculoModais } from "@/components/veiculos/VeiculoModais";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useFocoAposRemocao, vizinhosDe } from "@/hooks/useFocoAposRemocao";
 import { useToast } from "@/hooks/useToast";
@@ -24,7 +25,6 @@ import {
   AtualizarBotao,
   Cabecalho,
   Conteudo,
-  EntradaLink,
   EsqueletoLinha,
   GraficosDetalhes,
   GraficosGrade,
@@ -42,6 +42,7 @@ export function PatioView() {
   const { data, isPending, isError, error, refetch, isFetching, dataUpdatedAt } = usePatio({ pausado: saida !== null });
   const vagas = useVagasPatio();
   const { toast, showToast, dismissToast } = useToast();
+  const { abrirEntrada } = useVeiculoModais();
   const conteudo = useRef<HTMLDivElement>(null);
   const [busca, setBusca] = useState("");
   const [tipo, setTipo] = useState<PatioFiltroTipo>("todos");
@@ -138,7 +139,9 @@ export function PatioView() {
       <Conteudo ref={conteudo}>
         <EmptyState>
           <Text variant="muted">Nenhum veículo no pátio.</Text>
-          <EntradaLink href="/veiculos/entrada">Registrar entrada</EntradaLink>
+          <Button type="button" onClick={abrirEntrada}>
+            Registrar entrada
+          </Button>
         </EmptyState>
         {extras}
       </Conteudo>

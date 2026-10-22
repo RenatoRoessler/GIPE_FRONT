@@ -1,6 +1,5 @@
 "use client";
 
-import NextLink from "next/link";
 import styled from "styled-components";
 import { Button } from "@/components/ui/Button";
 import { TableRow } from "@/components/ui/Table";
@@ -459,30 +458,6 @@ export const EsqueletoLinha = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
-`;
-
-// Navegação para a entrada de veículos, com a aparência do botão primário.
-export const EntradaLink = styled(NextLink)`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[4]}px;
-  border-radius: ${({ theme }) => theme.radii.md};
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.onPrimary};
-  font-size: ${({ theme }) => theme.fontSizes.md};
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
-  text-decoration: none;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primaryHover};
-  }
-
-  &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
-    outline-offset: 2px;
-  }
 `;
 
 // Anúncio para leitor de tela; não aparece na tela.

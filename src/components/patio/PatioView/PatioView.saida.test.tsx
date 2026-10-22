@@ -21,6 +21,8 @@ vi.mock("@/lib/api/services/patio", () => ({
 }));
 vi.mock("@/lib/api/services/empresa", () => ({ getEmpresa: api.getEmpresa }));
 vi.mock("../useVagasPatio", () => ({ useVagasPatio: () => ({ moto: 12, carro: 23 }) }));
+// O host dos modais do menu não participa da saída pela lista: o PatioView abre o próprio modal com o veículo escolhido.
+vi.mock("@/components/veiculos/VeiculoModais", () => ({ useVeiculoModais: () => ({ abrirEntrada: vi.fn(), abrirSaida: vi.fn() }) }));
 
 import { PATIO_ATUALIZACAO_MS } from "../usePatio";
 import { PatioView } from "./PatioView";

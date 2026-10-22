@@ -40,7 +40,8 @@ export const Signs = styled.ul`
     flex: 1 0 150px;
   }
 
-  li > a {
+  li > a,
+  li > button {
     flex: 1;
   }
 `;

@@ -1,7 +1,6 @@
 "use client";
 
 import { InstallPwaButton } from "@/components/layout/InstallPwaButton";
-import { MobileNav } from "@/components/layout/MobileNav";
 import { Logo } from "@/components/ui/Logo";
 import { Text } from "@/components/ui/Text";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
@@ -23,7 +22,6 @@ export function Header() {
 
   return (
     <Bar>
-      <MobileNav />
       <BrandLink href="/dashboard" aria-label="GIPE — ir para o início">
         <Logo align="start" />
       </BrandLink>
