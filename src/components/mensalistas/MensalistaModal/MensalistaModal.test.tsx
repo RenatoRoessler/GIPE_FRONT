@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
-import type { Mensalista, MensalistaTipo } from "@/types/mensalista";
+import { TODOS_OS_DIAS, type Mensalista, type MensalistaTipo } from "@/types/mensalista";
 
 vi.mock("@/lib/api/services/mensalista", () => ({
   createMensalista: vi.fn(),
@@ -33,6 +33,7 @@ const diurno: MensalistaTipo = {
   valorMensalidade: 280,
   horarioEntrada: null,
   horarioSaida: null,
+  ...TODOS_OS_DIAS,
   ativo: true,
 };
 const antigo: MensalistaTipo = { ...diurno, mensalistaTipoId: 5, tipoMensal: "Antigo", ativo: false };

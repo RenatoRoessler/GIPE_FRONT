@@ -12,9 +12,10 @@ import { ApiError } from "@/lib/api/errors";
 import { createTipoMensalidade, updateTipoMensalidade } from "@/lib/api/services/mensalista";
 import { fromTipo } from "@/lib/api/services/mensalista.mapper";
 import { tipoSchema } from "@/lib/schemas/mensalista";
-import type { MensalistaTipo, TipoFormValues } from "@/types/mensalista";
+import { TODOS_OS_DIAS, type MensalistaTipo, type TipoFormValues } from "@/types/mensalista";
 import { TIPO_CATEGORIA, TIPO_CATEGORIA_OPTIONS } from "@/types/preco";
 import { MENSALISTAS_QUERY_KEY, TIPOS_QUERY_KEY } from "../useTiposMensalidade";
+import { DiasAtendimento } from "../DiasAtendimento";
 import { FieldRow, Form } from "./TipoModal.styles";
 
 export interface TipoModalProps {
@@ -30,6 +31,7 @@ const EMPTY_VALUES: TipoFormValues = {
   valorMensalidade: "",
   horarioEntrada: "",
   horarioSaida: "",
+  dias: TODOS_OS_DIAS,
   ativo: true,
 };
 
@@ -52,7 +54,7 @@ export function TipoModal({ tipo, onClose, onSuccess }: TipoModalProps) {
   const mutation = useMutation({
     mutationFn: async (values: TipoFormValues) => {
       if (tipo) {
-        await updateTipoMensalidade(tipo.mensalistaTipoId, values);
+        await updateTipoMensalidade(tipo.mensalistaTipoId, values, tipo);
       } else {
         await createTipoMensalidade(values);
       }
@@ -185,6 +187,16 @@ export function TipoModal({ tipo, onClose, onSuccess }: TipoModalProps) {
             )}
           </form.AppField>
         </FieldRow>
+        <form.AppField name="dias">
+          {(field) => (
+            <DiasAtendimento
+              value={field.state.value}
+              onChange={field.handleChange}
+              error={field.state.meta.isDirty ? (field.state.meta.errors[0] as string | undefined) : undefined}
+              disabled={isSending}
+            />
+          )}
+        </form.AppField>
         {isEdit && (
           <form.AppField name="ativo">
             {(field) => (

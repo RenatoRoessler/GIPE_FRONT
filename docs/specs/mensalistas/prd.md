@@ -89,6 +89,7 @@ Mesma regra de acesso das telas administrativas já existentes (Preços e Usuár
 - Dado o formulário de novo tipo, quando informa nome (até 100 caracteres), categoria e valor maior que zero, então o tipo é criado ativo.
 - Dado a categoria, então pode escolher uma categoria de veículo ou "Todas as categorias".
 - Dado horário de entrada e saída, então são opcionais, mas devem ser informados juntos; saída menor que a entrada é aceita (ex.: 19:00 às 07:00).
+- Dado o formulário, então o tipo informa os dias da semana em que atende (domingo a sábado); novos tipos começam com todos os dias marcados e é preciso manter ao menos um. A lista de tipos mostra os dias ("Todos os dias", "Seg a Sex" ou a lista).
 - Dado um tipo ativo com o mesmo nome e categoria, quando tenta criar outro igual, então vê a mensagem de que o tipo já existe e nada é salvo.
 
 ### RF-08: Editar e ativar/desativar tipo de mensalidade

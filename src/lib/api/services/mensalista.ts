@@ -58,8 +58,12 @@ export async function createTipoMensalidade(values: TipoFormValues): Promise<{ m
   return data;
 }
 
-export async function updateTipoMensalidade(id: number, values: TipoFormValues): Promise<void> {
-  await api.put(`/Mensalista/tipo/${id}`, toTipoPayload(values));
+export async function updateTipoMensalidade(
+  id: number,
+  values: TipoFormValues,
+  atual?: Pick<MensalistaTipo, "toleranciaDiasAtraso" | "quantidadeVagas">,
+): Promise<void> {
+  await api.put(`/Mensalista/tipo/${id}`, toTipoPayload(values, atual));
 }
 
 function toContratoStatus(value: unknown): ContratoStatus {

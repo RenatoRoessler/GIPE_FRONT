@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { TODOS_OS_DIAS } from "@/types/mensalista";
 import {
   formatCategoria,
+  formatDias,
   formatDocumentoMensalista,
   formatHorario,
   formatValor,
@@ -62,5 +64,26 @@ describe("maskCpfParcial", () => {
   it("não vaza um CPF incompleto", () => {
     expect(maskCpfParcial("529")).toBe("***.***.***-**");
     expect(maskCpfParcial("")).toBe("***.***.***-**");
+  });
+});
+
+describe("formatDias", () => {
+  it("todos os dias", () => {
+    expect(formatDias(TODOS_OS_DIAS)).toBe("Todos os dias");
+  });
+
+  it("três ou mais dias seguidos viram um intervalo; dois seguidos ficam na lista", () => {
+    expect(formatDias({ ...TODOS_OS_DIAS, domingo: false, sabado: false })).toBe("Seg a Sex");
+    expect(formatDias({ ...TODOS_OS_DIAS, domingo: false, segunda: false, terca: false, sexta: false, sabado: false })).toBe("Qua, Qui");
+  });
+
+  it("dias soltos viram lista", () => {
+    expect(formatDias({ ...TODOS_OS_DIAS, domingo: false, terca: false, quinta: false, sexta: false })).toBe("Seg, Qua, Sáb");
+  });
+
+  it("sem nenhum dia, traço", () => {
+    expect(
+      formatDias({ domingo: false, segunda: false, terca: false, quarta: false, quinta: false, sexta: false, sabado: false }),
+    ).toBe("—");
   });
 });

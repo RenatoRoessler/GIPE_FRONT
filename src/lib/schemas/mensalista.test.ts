@@ -58,10 +58,23 @@ const tipoValido = {
   valorMensalidade: "280,00",
   horarioEntrada: "",
   horarioSaida: "",
+  dias: { domingo: true, segunda: true, terca: true, quarta: true, quinta: true, sexta: true, sabado: true },
   ativo: true,
 };
 
 describe("tipoSchema", () => {
+  it("aceita só alguns dias, mas exige ao menos um", () => {
+    const util = { domingo: false, segunda: true, terca: true, quarta: true, quinta: true, sexta: true, sabado: false };
+    expect(tipoSchema.safeParse({ ...tipoValido, dias: util }).success).toBe(true);
+
+    const nenhum = tipoSchema.safeParse({
+      ...tipoValido,
+      dias: { domingo: false, segunda: false, terca: false, quarta: false, quinta: false, sexta: false, sabado: false },
+    });
+    expect(!nenhum.success && nenhum.error.issues[0].path[0]).toBe("dias");
+    expect(!nenhum.success && nenhum.error.issues[0].message).toBe("Selecione ao menos um dia de atendimento");
+  });
+
   it("aceita um tipo válido, com e sem horário", () => {
     expect(tipoSchema.safeParse(tipoValido).success).toBe(true);
     expect(tipoSchema.safeParse({ ...tipoValido, horarioEntrada: "07:00", horarioSaida: "19:00" }).success).toBe(true);

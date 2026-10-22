@@ -90,6 +90,16 @@ export function fromTipoResponse(dto: Partial<MensalistaTipo>): MensalistaTipo {
     valorMensalidade: dto.valorMensalidade ?? 0,
     horarioEntrada: dto.horarioEntrada || null,
     horarioSaida: dto.horarioSaida || null,
+    // Resposta sem os dias (back antigo) vale como atendimento todos os dias.
+    domingo: dto.domingo ?? true,
+    segunda: dto.segunda ?? true,
+    terca: dto.terca ?? true,
+    quarta: dto.quarta ?? true,
+    quinta: dto.quinta ?? true,
+    sexta: dto.sexta ?? true,
+    sabado: dto.sabado ?? true,
+    toleranciaDiasAtraso: dto.toleranciaDiasAtraso ?? null,
+    quantidadeVagas: dto.quantidadeVagas ?? null,
     ativo: dto.ativo ?? true,
     criadoPor: dto.criadoPor ?? null,
     alteradoPor: dto.alteradoPor ?? null,
@@ -158,13 +168,20 @@ export function fromMensalista(mensalista: Mensalista): MensalistaFormValues {
   };
 }
 
-export function toTipoPayload(values: TipoFormValues): MensalistaTipoPayload {
+// `atual`: o tipo que está sendo editado; tolerância e vagas não têm campo na tela e são reenviadas como vieram.
+export function toTipoPayload(
+  values: TipoFormValues,
+  atual?: Pick<MensalistaTipo, "toleranciaDiasAtraso" | "quantidadeVagas">,
+): MensalistaTipoPayload {
   return {
     tipoMensal: values.tipoMensal.trim(),
     categoria: Number(values.categoria) as TipoCategoria,
     valorMensalidade: Math.round(parseMoney(values.valorMensalidade) * 100) / 100,
     horarioEntrada: toHorario(values.horarioEntrada),
     horarioSaida: toHorario(values.horarioSaida),
+    ...values.dias,
+    ...(atual?.toleranciaDiasAtraso != null && { toleranciaDiasAtraso: atual.toleranciaDiasAtraso }),
+    ...(atual?.quantidadeVagas != null && { quantidadeVagas: atual.quantidadeVagas }),
     ativo: values.ativo,
   };
 }
@@ -176,6 +193,15 @@ export function fromTipo(tipo: MensalistaTipo): TipoFormValues {
     valorMensalidade: formatValorInput(tipo.valorMensalidade),
     horarioEntrada: fromHorario(tipo.horarioEntrada),
     horarioSaida: fromHorario(tipo.horarioSaida),
+    dias: {
+      domingo: tipo.domingo,
+      segunda: tipo.segunda,
+      terca: tipo.terca,
+      quarta: tipo.quarta,
+      quinta: tipo.quinta,
+      sexta: tipo.sexta,
+      sabado: tipo.sabado,
+    },
     ativo: tipo.ativo,
   };
 }

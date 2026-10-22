@@ -163,6 +163,17 @@ export const tipoSchema = z
       .refine((value) => Number.isNaN(parseMoney(value)) || parseMoney(value) > 0, "O valor deve ser maior que zero"),
     horarioEntrada: z.string().trim().refine((value) => value === "" || HORARIO.test(value), "Horário inválido"),
     horarioSaida: z.string().trim().refine((value) => value === "" || HORARIO.test(value), "Horário inválido"),
+    dias: z
+      .object({
+        domingo: z.boolean(),
+        segunda: z.boolean(),
+        terca: z.boolean(),
+        quarta: z.boolean(),
+        quinta: z.boolean(),
+        sexta: z.boolean(),
+        sabado: z.boolean(),
+      })
+      .refine((dias) => Object.values(dias).some(Boolean), "Selecione ao menos um dia de atendimento"),
     ativo: z.boolean(),
   })
   .superRefine((values, ctx) => {

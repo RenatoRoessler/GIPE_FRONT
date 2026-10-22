@@ -2,7 +2,7 @@ import { getCategoriaLabel } from "@/components/precos/format";
 import { formatDocumento } from "@/lib/documento";
 import { formatBRL } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
-import type { Mensalista, MensalistaTipo } from "@/types/mensalista";
+import { DIAS_TIPO, type DiasTipo, type Mensalista, type MensalistaTipo } from "@/types/mensalista";
 
 export function formatCategoria(categoria: MensalistaTipo["categoria"]): string {
   return getCategoriaLabel(categoria);
@@ -22,6 +22,24 @@ export function formatHorario(entrada: string | null, saida: string | null): str
     return "—";
   }
   return `${hhmm(entrada)} – ${hhmm(saida)}`;
+}
+
+// "Todos os dias", "Seg a Sex" (3 ou mais dias seguidos) ou a lista ("Seg, Qua, Sáb").
+export function formatDias(dias: DiasTipo): string {
+  const marcados = DIAS_TIPO.filter((dia) => dias[dia.key]);
+  if (marcados.length === DIAS_TIPO.length) {
+    return "Todos os dias";
+  }
+  if (marcados.length === 0) {
+    return "—";
+  }
+  const seguidos = marcados.every(
+    (dia, index) => index === 0 || DIAS_TIPO.indexOf(dia) === DIAS_TIPO.indexOf(marcados[index - 1]) + 1,
+  );
+  if (seguidos && marcados.length >= 3) {
+    return `${marcados[0].curto} a ${marcados[marcados.length - 1].curto}`;
+  }
+  return marcados.map((dia) => dia.curto).join(", ");
 }
 
 export function formatVencimento(dia: number): string {

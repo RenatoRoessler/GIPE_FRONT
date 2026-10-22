@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
-import type { MensalistaTipo } from "@/types/mensalista";
+import { TODOS_OS_DIAS, type MensalistaTipo } from "@/types/mensalista";
 
 vi.mock("@/lib/api/services/mensalista", () => ({ listTiposMensalidade: vi.fn() }));
 
@@ -17,6 +17,7 @@ const diurno: MensalistaTipo = {
   valorMensalidade: 280,
   horarioEntrada: "07:00:00",
   horarioSaida: "19:00:00",
+  ...TODOS_OS_DIAS,
   ativo: true,
 };
 const noturno: MensalistaTipo = {
@@ -26,6 +27,7 @@ const noturno: MensalistaTipo = {
   valorMensalidade: 199.9,
   horarioEntrada: "19:00",
   horarioSaida: "07:00",
+  ...TODOS_OS_DIAS,
   ativo: false,
 };
 
@@ -54,6 +56,17 @@ describe("TiposList", () => {
     expect(screen.getByText("19:00 – 07:00")).toBeInTheDocument();
     expect(screen.getByText("Ativo")).toBeInTheDocument();
     expect(screen.getByText("Inativo")).toBeInTheDocument();
+  });
+
+  it("mostra os dias de atendimento de cada tipo", async () => {
+    vi.mocked(listTiposMensalidade).mockResolvedValue([
+      diurno,
+      { ...noturno, domingo: false, sabado: false },
+    ]);
+    renderWithProviders(<TiposList {...handlers} />);
+
+    expect(await screen.findByText("Todos os dias")).toBeInTheDocument();
+    expect(screen.getByText("Seg a Sex")).toBeInTheDocument();
   });
 
   it("abre o cadastro e a edição", async () => {

@@ -103,8 +103,32 @@ export type MensalistaPayload = {
   veiculos: MensalistaVeiculoPayload[];
 };
 
+// Dias da semana em que o tipo de mensalidade atende (campos soltos no corpo da API).
+export const DIAS_TIPO = [
+  { key: "domingo", label: "Domingo", curto: "Dom" },
+  { key: "segunda", label: "Segunda", curto: "Seg" },
+  { key: "terca", label: "Terça", curto: "Ter" },
+  { key: "quarta", label: "Quarta", curto: "Qua" },
+  { key: "quinta", label: "Quinta", curto: "Qui" },
+  { key: "sexta", label: "Sexta", curto: "Sex" },
+  { key: "sabado", label: "Sábado", curto: "Sáb" },
+] as const;
+
+export type DiaTipo = (typeof DIAS_TIPO)[number]["key"];
+export type DiasTipo = Record<DiaTipo, boolean>;
+
+export const TODOS_OS_DIAS: DiasTipo = {
+  domingo: true,
+  segunda: true,
+  terca: true,
+  quarta: true,
+  quinta: true,
+  sexta: true,
+  sabado: true,
+};
+
 // GET /Mensalista/tipo
-export type MensalistaTipo = {
+export type MensalistaTipo = DiasTipo & {
   mensalistaTipoId: number;
   tipoMensal: string;
   categoria: CategoriaMensalidade;
@@ -112,18 +136,23 @@ export type MensalistaTipo = {
   // [A CONFIRMAR] "HH:mm" ou "HH:mm:ss".
   horarioEntrada: string | null;
   horarioSaida: string | null;
+  // Sem tela própria: lidos para não serem zerados quando o tipo é salvo.
+  toleranciaDiasAtraso?: number | null;
+  quantidadeVagas?: number | null;
   ativo: boolean;
   criadoPor?: string | null;
   alteradoPor?: string | null;
 };
 
 // Corpo do POST e do PUT /Mensalista/tipo
-export type MensalistaTipoPayload = {
+export type MensalistaTipoPayload = DiasTipo & {
   tipoMensal: string;
   categoria: CategoriaMensalidade;
   valorMensalidade: number;
   horarioEntrada: string | null;
   horarioSaida: string | null;
+  toleranciaDiasAtraso?: number;
+  quantidadeVagas?: number;
   ativo: boolean;
 };
 
@@ -170,6 +199,7 @@ export type TipoFormValues = {
   // "" ou "HH:mm".
   horarioEntrada: string;
   horarioSaida: string;
+  dias: DiasTipo;
   ativo: boolean;
 };
 

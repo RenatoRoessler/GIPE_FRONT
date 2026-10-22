@@ -2,7 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
-import type { MensalistaTipo } from "@/types/mensalista";
+import { TODOS_OS_DIAS, type MensalistaTipo } from "@/types/mensalista";
 
 vi.mock("@/lib/api/services/mensalista", () => ({
   createMensalista: vi.fn(),
@@ -42,6 +42,7 @@ const todas: MensalistaTipo = {
   valorMensalidade: 280,
   horarioEntrada: null,
   horarioSaida: null,
+  ...TODOS_OS_DIAS,
   ativo: true,
 };
 const pequeno: MensalistaTipo = { ...todas, mensalistaTipoId: 4, tipoMensal: "Pequeno", categoria: 2, valorMensalidade: 200 };

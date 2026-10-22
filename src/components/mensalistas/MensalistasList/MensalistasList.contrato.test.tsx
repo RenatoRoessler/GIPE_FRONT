@@ -3,13 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
-import {
-  CONTRATO_STATUS,
+import { TODOS_OS_DIAS, CONTRATO_STATUS,
   SITUACAO_AGUARDANDO_PRIMEIRO_PAGAMENTO,
   type ContratoMensalista,
   type Mensalista,
-  type MensalistaTipo,
-} from "@/types/mensalista";
+  type MensalistaTipo, } from "@/types/mensalista";
 
 const replace = vi.fn();
 
@@ -60,6 +58,7 @@ const tipoAtivo: MensalistaTipo = {
   valorMensalidade: 280,
   horarioEntrada: null,
   horarioSaida: null,
+  ...TODOS_OS_DIAS,
   ativo: true,
 };
 

@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
-import type { Mensalista, MensalistaTipo } from "@/types/mensalista";
+import { TODOS_OS_DIAS, type Mensalista, type MensalistaTipo } from "@/types/mensalista";
 
 const replace = vi.fn();
 let pagina: string | null = null;
@@ -55,6 +55,7 @@ const tipoAtivo: MensalistaTipo = {
   valorMensalidade: 280,
   horarioEntrada: null,
   horarioSaida: null,
+  ...TODOS_OS_DIAS,
   ativo: true,
 };
 

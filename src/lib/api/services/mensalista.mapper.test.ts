@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Mensalista, MensalistaFormValues, MensalistaTipo, TipoFormValues } from "@/types/mensalista";
+import { TODOS_OS_DIAS, type Mensalista, type MensalistaFormValues, type MensalistaTipo, type TipoFormValues } from "@/types/mensalista";
 
 vi.mock("../client", () => ({ api: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }));
 
@@ -96,6 +96,7 @@ const tipoForm: TipoFormValues = {
   valorMensalidade: "280,00",
   horarioEntrada: "",
   horarioSaida: "",
+  dias: TODOS_OS_DIAS,
   ativo: true,
 };
 
@@ -107,8 +108,35 @@ describe("toTipoPayload", () => {
       valorMensalidade: 280,
       horarioEntrada: null,
       horarioSaida: null,
+      ...TODOS_OS_DIAS,
       ativo: true,
     });
+  });
+
+  it("envia os dias de atendimento como campos soltos", () => {
+    const payload = toTipoPayload({
+      ...tipoForm,
+      dias: { ...TODOS_OS_DIAS, domingo: false, sabado: false },
+    });
+    expect(payload).toMatchObject({
+      domingo: false,
+      segunda: true,
+      terca: true,
+      quarta: true,
+      quinta: true,
+      sexta: true,
+      sabado: false,
+    });
+  });
+
+  it("reenvia tolerância e vagas do tipo editado, que não têm campo na tela", () => {
+    const payload = toTipoPayload(tipoForm, { toleranciaDiasAtraso: 5, quantidadeVagas: 12 });
+    expect(payload).toMatchObject({ toleranciaDiasAtraso: 5, quantidadeVagas: 12 });
+  });
+
+  it("não envia tolerância nem vagas quando o tipo não as tem", () => {
+    expect(toTipoPayload(tipoForm)).not.toHaveProperty("toleranciaDiasAtraso");
+    expect(toTipoPayload(tipoForm, { toleranciaDiasAtraso: null, quantidadeVagas: null })).not.toHaveProperty("quantidadeVagas");
   });
 
   it("envia os horários em HH:mm", () => {
@@ -126,6 +154,8 @@ describe("fromTipo", () => {
     valorMensalidade: 199.9,
     horarioEntrada: "19:00:00",
     horarioSaida: null,
+    ...TODOS_OS_DIAS,
+    domingo: false,
     ativo: true,
   };
 
@@ -136,6 +166,7 @@ describe("fromTipo", () => {
       valorMensalidade: "199,90",
       horarioEntrada: "19:00",
       horarioSaida: "",
+      dias: { ...TODOS_OS_DIAS, domingo: false },
       ativo: true,
     });
   });
@@ -144,6 +175,23 @@ describe("fromTipo", () => {
     const parsed = fromTipoResponse({ mensalistaTipoId: 2, tipoMensal: "X" });
     expect(parsed.horarioEntrada).toBeNull();
     expect(parsed.ativo).toBe(true);
+  });
+
+  it("resposta sem os dias vale como atendimento todos os dias", () => {
+    const parsed = fromTipoResponse({ mensalistaTipoId: 2, tipoMensal: "X" });
+    expect(parsed).toMatchObject(TODOS_OS_DIAS);
+  });
+
+  it("lê os dias e os campos que não têm tela", () => {
+    const parsed = fromTipoResponse({
+      mensalistaTipoId: 2,
+      tipoMensal: "X",
+      domingo: false,
+      sabado: false,
+      toleranciaDiasAtraso: 3,
+      quantidadeVagas: 10,
+    });
+    expect(parsed).toMatchObject({ domingo: false, sabado: false, segunda: true, toleranciaDiasAtraso: 3, quantidadeVagas: 10 });
   });
 });
 

@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
-import type { MensalistaTipo } from "@/types/mensalista";
+import { TODOS_OS_DIAS, type MensalistaTipo } from "@/types/mensalista";
 
 vi.mock("@/lib/api/services/mensalista", () => ({
   createTipoMensalidade: vi.fn(),
@@ -32,6 +32,7 @@ const noturno: MensalistaTipo = {
   valorMensalidade: 199.9,
   horarioEntrada: "19:00:00",
   horarioSaida: "07:00:00",
+  ...TODOS_OS_DIAS,
   ativo: true,
 };
 
@@ -102,7 +103,51 @@ describe("TipoModal", () => {
     await user.click(screen.getByRole("button", { name: "Salvar" }));
 
     await waitFor(() => expect(handlers.onSuccess).toHaveBeenCalledWith("Tipo atualizado."));
-    expect(updateTipoMensalidade).toHaveBeenCalledWith(4, expect.objectContaining({ ativo: false }));
+    expect(updateTipoMensalidade).toHaveBeenCalledWith(4, expect.objectContaining({ ativo: false }), noturno);
+  });
+
+  it("começa com todos os dias marcados e envia só os escolhidos", async () => {
+    vi.mocked(createTipoMensalidade).mockResolvedValue({ mensalistaTipoId: 9 });
+    const user = userEvent.setup();
+    renderWithProviders(<TipoModal {...handlers} />);
+
+    for (const dia of ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]) {
+      expect(screen.getByRole("checkbox", { name: dia })).toBeChecked();
+    }
+    await user.click(screen.getByRole("checkbox", { name: "Domingo" }));
+    await user.click(screen.getByRole("checkbox", { name: "Sábado" }));
+    await preencherCadastro(user);
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() => expect(createTipoMensalidade).toHaveBeenCalled());
+    expect(vi.mocked(createTipoMensalidade).mock.calls[0][0].dias).toEqual({
+      domingo: false,
+      segunda: true,
+      terca: true,
+      quarta: true,
+      quinta: true,
+      sexta: true,
+      sabado: false,
+    });
+  });
+
+  it("na edição mostra os dias do tipo", () => {
+    renderWithProviders(<TipoModal tipo={{ ...noturno, segunda: false }} {...handlers} />);
+    expect(screen.getByRole("checkbox", { name: "Segunda" })).not.toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Terça" })).toBeChecked();
+  });
+
+  it("não deixa salvar sem nenhum dia e explica o motivo", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<TipoModal {...handlers} />);
+    await preencherCadastro(user);
+    for (const dia of ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]) {
+      await user.click(screen.getByRole("checkbox", { name: dia }));
+    }
+    expect(await screen.findByText("Selecione ao menos um dia de atendimento")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+    expect(createTipoMensalidade).not.toHaveBeenCalled();
   });
 
   it("mostra o erro do servidor no banner", async () => {

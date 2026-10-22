@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/u
 import { Text } from "@/components/ui/Text";
 import type { MensalistaTipo } from "@/types/mensalista";
 import { EditIcon } from "../EditIcon";
-import { formatCategoria, formatHorario, formatValor } from "../format";
+import { formatCategoria, formatDias, formatHorario, formatValor } from "../format";
 import { ListError } from "../ListError";
 import { EmptyState, IconButton, Primary, RowActions, SkeletonRows, TableArea, Toolbar } from "../Mensalistas.styles";
 import { useTiposMensalidade } from "../useTiposMensalidade";
@@ -67,6 +67,7 @@ export function TiposList({ onNovo, onEditar }: TiposListProps) {
               <TableCell head align="right">
                 Mensalidade
               </TableCell>
+              <TableCell head>Dias</TableCell>
               <TableCell head>Horário</TableCell>
               <TableCell head>Situação</TableCell>
               <TableCell head align="right">
@@ -84,6 +85,7 @@ export function TiposList({ onNovo, onEditar }: TiposListProps) {
                 <TableCell data-label="Mensalidade" align="right" numeric>
                   {formatValor(tipo.valorMensalidade)}
                 </TableCell>
+                <TableCell data-label="Dias">{formatDias(tipo)}</TableCell>
                 <TableCell data-label="Horário" numeric>
                   {formatHorario(tipo.horarioEntrada, tipo.horarioSaida)}
                 </TableCell>
