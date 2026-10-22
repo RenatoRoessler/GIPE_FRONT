@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.185",
+      "type": "feat",
+      "scope": "recibo",
+      "title": "cria a página pública do recibo da saída e o QR no recibo",
+      "description": "Depois de registrar uma saída, o recibo da tela passa a trazer um QR code que\nabre uma página pública, sem login, com o recibo daquela saída: empresa, placa,\nveículo, entrada, saída, permanência, total pago e forma de pagamento, em formato\nde via de recibo. O cliente pode baixar o PDF ou imprimir. Saída de mensalista\nmostra \"Sem cobrança\". Recibo inexistente ou falha de rede mostram mensagens\nclaras, e a página fica fora dos buscadores.",
+      "date": "2026-10-22T12:19:46-03:00"
+    },
+    {
       "version": "1.0.182",
       "type": "feat",
       "scope": "layout",
