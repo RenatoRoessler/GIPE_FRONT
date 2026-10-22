@@ -48,6 +48,7 @@ export function ReciboEntradaStep({ entrada, onConcluir }: ReciboEntradaStepProp
     tabela: entrada.rotatividadeDescricao,
     operador: entrada.usuarioEntrada || null,
     dataHoraEntrada: entrada.dataHoraEntrada,
+    mensalista: entrada.mensalista,
     link: entrada.token ? `${window.location.origin}/comprovante/${encodeURIComponent(entrada.token)}` : null,
   };
 

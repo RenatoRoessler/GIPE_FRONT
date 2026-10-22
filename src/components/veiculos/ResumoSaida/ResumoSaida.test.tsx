@@ -51,9 +51,19 @@ describe("ResumoSaida", () => {
     expect(screen.queryByText(/null/)).not.toBeInTheDocument();
   });
 
-  it("identifica mensalista", () => {
-    renderWithTheme(<ResumoSaida consulta={{ ...consulta, mensalista: true }} />);
+  it("identifica mensalista com o card, o nome e nada a cobrar, mesmo com valor calculado", () => {
+    renderWithTheme(<ResumoSaida consulta={{ ...consulta, mensalista: true, mensalistaNome: "Maria" }} />);
     expect(screen.getByText("Mensalista")).toBeInTheDocument();
+    expect(screen.getByText("Maria")).toBeInTheDocument();
+    expect(screen.getByText("Saída sem cobrança.")).toBeInTheDocument();
+    expect(screen.getByText("Nada a cobrar")).toBeInTheDocument();
+    expect(screen.queryByText(/R\$\s20,00/)).not.toBeInTheDocument();
+  });
+
+  it("avulso não mostra o card de mensalista", () => {
+    renderWithTheme(<ResumoSaida consulta={consulta} />);
+    expect(screen.queryByText("Mensalista")).not.toBeInTheDocument();
+    expect(screen.queryByText("Saída sem cobrança.")).not.toBeInTheDocument();
   });
 
   it("mostra 'Nada a cobrar' quando o valor é zero", () => {

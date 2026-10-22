@@ -4,10 +4,10 @@ import { formatDateTime } from "@/components/caixa/format";
 import { formatMinutos } from "@/components/precos/format";
 import { PlateDisplay } from "@/components/ui/PlateDisplay";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatBRL } from "@/lib/money";
 import type { SaidaConsulta } from "@/types/saida";
-import { getCategoriaVeiculoLabel } from "../saida";
+import { CardMensalista } from "../CardMensalista";
+import { getCategoriaVeiculoLabel, valorACobrar } from "../saida";
 import { Notice, OldValue, ValueAmount, ValueLabel, ValuePanel, VisuallyHidden } from "../Saida.styles";
 import { Card, Rows, VehicleLine, VehicleMeta, VehicleName, VehicleText } from "./ResumoSaida.styles";
 
@@ -43,8 +43,9 @@ export function ResumoSaida({ consulta, carregando = false, valorAnterior = null
           <VehicleName>{veiculo || SEM_DADO}</VehicleName>
           <VehicleMeta>{consulta ? getCategoriaVeiculoLabel(consulta.categoria) : SEM_DADO}</VehicleMeta>
         </VehicleText>
-        {consulta?.mensalista && <StatusBadge tone="info">Mensalista</StatusBadge>}
       </VehicleLine>
+
+      {consulta?.mensalista && <CardMensalista contexto="saida" nome={consulta.mensalistaNome} />}
 
       <Rows>
         <div>
@@ -59,7 +60,7 @@ export function ResumoSaida({ consulta, carregando = false, valorAnterior = null
 
       {consulta && valorAnterior !== null && (
         <Notice role="alert">
-          O valor mudou de {formatBRL(valorAnterior)} para {formatBRL(consulta.valor)} (permanência de{" "}
+          O valor mudou de {formatBRL(valorAnterior)} para {formatBRL(valorACobrar(consulta))} (permanência de{" "}
           {formatMinutos(consulta.minutosPermanencia)}). Confira e confirme novamente.
         </Notice>
       )}
@@ -73,7 +74,7 @@ export function ResumoSaida({ consulta, carregando = false, valorAnterior = null
               <VisuallyHidden>era {formatBRL(valorAnterior)}, agora </VisuallyHidden>
             </>
           )}
-          {!consulta ? SEM_DADO : consulta.valor === 0 ? "Nada a cobrar" : formatBRL(consulta.valor)}
+          {!consulta ? SEM_DADO : valorACobrar(consulta) === 0 ? "Nada a cobrar" : formatBRL(valorACobrar(consulta))}
         </ValueAmount>
       </ValuePanel>
     </Card>

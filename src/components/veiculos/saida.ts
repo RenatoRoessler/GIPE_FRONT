@@ -2,6 +2,7 @@ import { formaPagamentoLabel } from "@/components/caixa/format";
 import { formatBRL, parseMoney } from "@/lib/money";
 import type { PaymentsData } from "@/types/adesao";
 import { FORMA_PAGAMENTO } from "@/types/caixa";
+import type { SaidaConsulta } from "@/types/saida";
 import { CATEGORIA_VEICULO_OPTIONS } from "@/types/veiculo";
 
 // Formas oferecidas na tela de saída; o caixa segue usando todas as de FORMA_PAGAMENTO_OPTIONS.
@@ -35,6 +36,11 @@ const toCents = (value: number) => Math.round(value * 100);
 // Compara em centavos para não depender de ponto flutuante.
 export function valoresIguais(a: number, b: number): boolean {
   return toCents(a) === toCents(b);
+}
+
+// Mensalista não paga a saída: este é o valor exibido, comparado e enviado.
+export function valorACobrar(consulta: Pick<SaidaConsulta, "mensalista" | "valor">): number {
+  return consulta.mensalista ? 0 : consulta.valor;
 }
 
 export function calcularTroco(recebido: number, valor: number): number {

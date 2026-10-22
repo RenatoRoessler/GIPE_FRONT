@@ -28,6 +28,17 @@ describe("ReciboEntradaConteudo", () => {
     expect(screen.getByText("gipe.exemplo.com/comprovante/227SUSYV")).toBeInTheDocument();
   });
 
+  it("identifica a entrada de mensalista, em texto que também sai na impressão", () => {
+    renderWithTheme(<ReciboEntradaConteudo data={{ ...data, mensalista: true }} />);
+    expect(screen.getByText("Mensalista")).toBeInTheDocument();
+  });
+
+  it("não mostra o tipo quando a entrada é de avulso", () => {
+    renderWithTheme(<ReciboEntradaConteudo data={{ ...data, mensalista: false }} />);
+    expect(screen.queryByText("Mensalista")).not.toBeInTheDocument();
+    expect(screen.queryByText("Tipo")).not.toBeInTheDocument();
+  });
+
   it("sai sem QR quando a entrada não tem token", () => {
     renderWithTheme(<ReciboEntradaConteudo data={{ ...data, link: null }} />);
     expect(screen.queryByRole("img", { name: "QR code do comprovante de entrada" })).not.toBeInTheDocument();

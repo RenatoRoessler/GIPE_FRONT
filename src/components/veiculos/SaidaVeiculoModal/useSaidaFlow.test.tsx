@@ -476,6 +476,70 @@ describe("useSaidaFlow: confirmar", () => {
   });
 });
 
+describe("useSaidaFlow: mensalista", () => {
+  const mensalista = (valor = 20) => ({ ...consulta(valor), mensalista: true });
+
+  it("confirma sem forma de pagamento nem valor recebido e envia valor 0", async () => {
+    api.consultarSaida.mockResolvedValue(mensalista());
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    expect(flow.result.current.semCobranca).toBe(true);
+    expect(flow.result.current.pagamento).toEqual({ canConfirm: true, motivo: undefined });
+
+    act(() => flow.result.current.confirmar());
+    await waitFor(() => expect(flow.result.current.fase).toBe("recibo"));
+    expect(api.registrarSaida).toHaveBeenCalledWith(7, { valor: 0, formaPagamento: Number(FORMA_DINHEIRO) });
+    expect(flow.result.current.resultado).toMatchObject({ recebido: null, troco: null });
+  });
+
+  it.each([
+    ["carregando", () => api.getEmpresa.mockReturnValue(new Promise(() => {}))],
+    ["com erro", () => api.getEmpresa.mockRejectedValue(new ApiError("network"))],
+    ["vazios", () => api.getEmpresa.mockResolvedValue(empresa({ dinheiro: false, pix: false, cartaoCredito: false, cartaoDebito: false }))],
+  ])("confirma mesmo com os meios de pagamento %s", async (_nome, configurar) => {
+    configurar();
+    api.consultarSaida.mockResolvedValue(mensalista());
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    expect(flow.result.current.pagamento?.canConfirm).toBe(true);
+
+    act(() => flow.result.current.confirmar());
+    await waitFor(() => expect(flow.result.current.fase).toBe("recibo"));
+    expect(api.registrarSaida).toHaveBeenCalledWith(7, { valor: 0, formaPagamento: Number(FORMA_DINHEIRO) });
+  });
+
+  it("o valor calculado mudar na reconsulta não gera aviso, pois nada é cobrado", async () => {
+    api.consultarSaida.mockResolvedValue(mensalista(20));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    api.consultarSaida.mockResolvedValue(mensalista(35));
+    await avancar(INTERVALO_SAIDA_MS);
+    await waitFor(() => expect(api.consultarSaida).toHaveBeenCalledTimes(2));
+    expect(flow.result.current.valorAnterior).toBeNull();
+  });
+
+  it("deixou de ser mensalista na reconsulta: não registra e pede nova confirmação", async () => {
+    api.consultarSaida.mockResolvedValue(mensalista());
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    api.consultarSaida.mockResolvedValue(consulta(20));
+    act(() => flow.result.current.confirmar());
+    await waitFor(() => expect(flow.result.current.valorAnterior).toBe(0));
+
+    expect(api.registrarSaida).not.toHaveBeenCalled();
+    expect(flow.result.current.semCobranca).toBe(false);
+    expect(flow.result.current.consulta?.valor).toBe(20);
+    expect(flow.result.current.pagamento?.canConfirm).toBe(false);
+  });
+
+  it("avulso continua sem semCobranca e exigindo pagamento", async () => {
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    expect(flow.result.current.semCobranca).toBe(false);
+    expect(flow.result.current.pagamento?.canConfirm).toBe(false);
+  });
+});
+
 describe("useSaidaFlow: reinício", () => {
   it("volta ao estado inicial e libera nova leitura", async () => {
     const flow = renderFlow();

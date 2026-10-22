@@ -51,6 +51,19 @@ export function matchCor(texto: string | null | undefined): CorVeiculo | null {
   return CORES_VEICULO.find((cor) => cor.value === normalizado)?.value ?? null;
 }
 
+// Plano do mensalista dono da placa (GET /Veiculo/{placa}); só vem quando a placa pertence a um mensalista.
+export type DadosMensalistaPlaca = {
+  nome: string;
+  descricaoTipoMensal?: string | null;
+  dataProximoVencimento?: string | null;
+  diasParaVencimento?: number | null;
+  toleranciaDiasAtraso?: number | null;
+  situacao?: string | null;
+  // Horário contratado ("HH:mm").
+  intervaloPermitido?: { de: string; ate: string } | null;
+  diasSemana?: Record<"domingo" | "segunda" | "terca" | "quarta" | "quinta" | "sexta" | "sabado", boolean> | null;
+};
+
 export type PlacaConsulta = {
   placa: string;
   encontrado: boolean;
@@ -58,6 +71,10 @@ export type PlacaConsulta = {
   modelo: string | null;
   cor: string | null;
   categoria: number | null;
+  // `true` só quando a entrada vale como mensalista agora; a placa de mensalista fora do plano (ex.: fora do horário
+  // contratado) vem com `false` e `dadosMensalista` preenchido, e entra como rotativo.
+  mensalista?: boolean;
+  dadosMensalista?: DadosMensalistaPlaca | null;
 };
 
 export type ModeloVeiculo = {

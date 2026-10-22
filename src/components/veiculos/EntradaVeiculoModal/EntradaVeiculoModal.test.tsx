@@ -171,6 +171,94 @@ describe("EntradaVeiculoModal", () => {
   });
 });
 
+describe("EntradaVeiculoModal: mensalista", () => {
+  const dadosMensalista = { nome: "Maria", intervaloPermitido: { de: "07:00", ate: "19:00" } };
+  const cadastroBase = { placa: "ABC1D23", encontrado: true, origem: "mensalista", modelo: "ONIX", cor: "Vermelho", categoria: 2 };
+
+  beforeEach(() => {
+    vi.mocked(registrarEntrada).mockReset();
+    vi.mocked(consultarPlaca).mockReset();
+  });
+
+  it("não oferece mais a marcação manual de mensalista", () => {
+    renderModal();
+    expect(screen.queryByText(/Mensalista/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  });
+
+  it("mostra o card e envia mensalista quando a placa é de um mensalista no plano", async () => {
+    vi.mocked(consultarPlaca).mockResolvedValue({ ...cadastroBase, mensalista: true, dadosMensalista });
+    vi.mocked(registrarEntrada).mockResolvedValue(registrada);
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.tab();
+
+    expect(await screen.findByText("Maria")).toBeInTheDocument();
+    expect(screen.getByText("A entrada será registrada como mensalista.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+    await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
+    expect(vi.mocked(registrarEntrada).mock.calls[0][0]).toMatchObject({ mensalista: true });
+  });
+
+  it("avisa que entra como rotativo quando o mensalista está fora do horário contratado", async () => {
+    vi.mocked(consultarPlaca).mockResolvedValue({ ...cadastroBase, mensalista: false, dadosMensalista });
+    vi.mocked(registrarEntrada).mockResolvedValue(registrada);
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.tab();
+
+    expect(await screen.findByText("Mensalista fora do horário")).toBeInTheDocument();
+    expect(screen.getByText("Horário contratado: 07:00 às 19:00.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+    await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
+    expect(vi.mocked(registrarEntrada).mock.calls[0][0]).toMatchObject({ mensalista: false });
+  });
+
+  it("não mostra card para placa de avulso", async () => {
+    vi.mocked(consultarPlaca).mockResolvedValue({ ...cadastroBase, origem: "base", mensalista: false });
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.tab();
+    await screen.findByText("Dados do cadastro preenchidos.");
+    expect(screen.queryByRole("status", { name: /Mensalista/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Mensalista/)).not.toBeInTheDocument();
+  });
+
+  it("segue como avulso, sem card, quando a consulta da placa falha", async () => {
+    vi.mocked(consultarPlaca).mockRejectedValue(new Error("rede"));
+    vi.mocked(registrarEntrada).mockResolvedValue(registrada);
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.tab();
+    await screen.findByText(/Não foi possível consultar a placa/);
+    expect(screen.queryByText(/Mensalista/)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+    await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
+    expect(vi.mocked(registrarEntrada).mock.calls[0][0]).toMatchObject({ mensalista: false });
+  });
+
+  it("remove o card ao alterar a placa", async () => {
+    vi.mocked(consultarPlaca).mockResolvedValue({ ...cadastroBase, mensalista: true, dadosMensalista });
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.tab();
+    await screen.findByText("Maria");
+
+    // A placa já tem 7 caracteres: apagar um altera o valor.
+    await user.type(screen.getByLabelText("Placa"), "{backspace}");
+    await waitFor(() => expect(screen.queryByText("Maria")).not.toBeInTheDocument());
+  });
+});
+
 describe("EntradaVeiculoModal: lista do pátio", () => {
   it("registrar a entrada invalida a lista do pátio", async () => {
     vi.mocked(registrarEntrada).mockResolvedValue(registrada);

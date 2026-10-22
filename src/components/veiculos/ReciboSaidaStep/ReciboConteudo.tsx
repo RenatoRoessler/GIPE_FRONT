@@ -25,6 +25,8 @@ export type ReciboData = {
   // Só em dinheiro.
   recebido: number | null;
   troco: number | null;
+  // Saída sem cobrança: não há forma de pagamento, valor recebido nem troco. O nome do cliente não vai no recibo.
+  mensalista?: boolean;
 };
 
 export function ReciboConteudo({ data }: { data: ReciboData }) {
@@ -49,6 +51,12 @@ export function ReciboConteudo({ data }: { data: ReciboData }) {
         )}
         <dt>Categoria</dt>
         <dd>{getCategoriaVeiculoLabel(data.categoria)}</dd>
+        {data.mensalista && (
+          <>
+            <dt>Tipo</dt>
+            <dd>Mensalista</dd>
+          </>
+        )}
         <dt>Ticket</dt>
         <dd>{data.codigoTicket}</dd>
         <dt>Entrada</dt>
@@ -65,22 +73,26 @@ export function ReciboConteudo({ data }: { data: ReciboData }) {
         )}
       </Rows>
       <Divider />
-      <Rows>
-        <dt>Pagamento</dt>
-        <dd>{getFormaPagamentoLabel(data.formaPagamento)}</dd>
-        {data.recebido !== null && (
-          <>
-            <dt>Valor recebido</dt>
-            <dd>{formatBRL(data.recebido)}</dd>
-            <dt>Troco</dt>
-            <dd>{formatBRL(data.troco ?? 0)}</dd>
-          </>
-        )}
-      </Rows>
-      <Divider />
+      {!data.mensalista && (
+        <>
+          <Rows>
+            <dt>Pagamento</dt>
+            <dd>{getFormaPagamentoLabel(data.formaPagamento)}</dd>
+            {data.recebido !== null && (
+              <>
+                <dt>Valor recebido</dt>
+                <dd>{formatBRL(data.recebido)}</dd>
+                <dt>Troco</dt>
+                <dd>{formatBRL(data.troco ?? 0)}</dd>
+              </>
+            )}
+          </Rows>
+          <Divider />
+        </>
+      )}
       <Total>
-        Total pago
-        <strong>{formatBRL(data.valor)}</strong>
+        {data.mensalista ? "Valor" : "Total pago"}
+        <strong>{data.mensalista ? "Sem cobrança" : formatBRL(data.valor)}</strong>
       </Total>
     </Receipt>
   );

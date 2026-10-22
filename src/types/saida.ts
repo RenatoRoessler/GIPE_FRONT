@@ -18,6 +18,8 @@ export type SaidaConsulta = {
   codigoTicket: number | string;
   sequencial: number;
   mensalista: boolean;
+  // [A CONFIRMAR com o back] Sem o nome, o aviso de mensalista mostra só o título.
+  mensalistaNome?: string | null;
   dataHoraEntrada: string;
   dataHoraSaida: string;
   minutosPermanencia: number;

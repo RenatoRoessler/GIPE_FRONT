@@ -14,6 +14,7 @@ import { registrarEntrada } from "@/lib/api/services/patio";
 import { isValidPlaca, normalizePlaca } from "@/lib/placa";
 import { entradaVeiculoSchema, type EntradaVeiculoValues } from "@/lib/schemas/veiculo";
 import { CATEGORIA_VEICULO_OPTIONS, COR_PADRAO, CORES_VEICULO, matchCor, type EntradaRegistrada } from "@/types/veiculo";
+import { CardMensalista } from "../CardMensalista";
 import { CategoriaIcon } from "../categoriaIcons";
 import { LeitorPlacaModal } from "../LeitorPlacaModal";
 import { ReciboEntradaStep } from "../ReciboEntradaStep";
@@ -50,7 +51,7 @@ function placaHint(status: PlacaLookupStatus): { hint?: string; tone?: "muted" |
 export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalProps) {
   const formId = useId();
   const datalistId = useId();
-  const { status, lookup, reset: resetLookup } = usePlacaLookup();
+  const { status, cadastro, lookup, reset: resetLookup } = usePlacaLookup();
   // Com a entrada registrada, o modal passa do formulário para o comprovante.
   const [entrada, setEntrada] = useState<EntradaRegistrada | null>(null);
 
@@ -61,7 +62,8 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
       registrarEntrada({
         placa: normalizePlaca(values.placa),
         categoria: Number(values.categoria),
-        mensalista: values.mensalista,
+        // Quem decide é o cadastro da placa: fora do plano contratado o back devolve false e a entrada é rotativa.
+        mensalista: cadastro?.mensalista === true,
         // [A CONFIRMAR] modelo opcional: assume que o backend aceita texto vazio.
         modelo: values.modelo.trim(),
         cor: values.cor,
@@ -74,7 +76,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   });
 
   const form = useAppForm({
-    defaultValues: { placa: "", categoria: "", modelo: "", cor: COR_PADRAO, mensalista: false } as EntradaVeiculoValues,
+    defaultValues: { placa: "", categoria: "", modelo: "", cor: COR_PADRAO } as EntradaVeiculoValues,
     validators: {
       onChange: ({ value }) => {
         const result = entradaVeiculoSchema.safeParse(value);
@@ -85,10 +87,9 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   });
 
   const modeloTexto = useStore(form.store, (state) => state.values.modelo);
-  const mensalista = useStore(form.store, (state) => state.values.mensalista);
   const hasChanges = useStore(
     form.store,
-    ({ values }) => values.placa !== "" || values.categoria !== "" || values.modelo !== "" || values.cor !== COR_PADRAO || values.mensalista,
+    ({ values }) => values.placa !== "" || values.categoria !== "" || values.modelo !== "" || values.cor !== COR_PADRAO,
   );
   // O registro só é liberado com placa válida e categoria escolhida.
   const canSubmit = useStore(
@@ -226,6 +227,14 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
             />
           )}
         </form.AppField>
+        {cadastro?.dadosMensalista && (
+          <CardMensalista
+            contexto="entrada"
+            variante={cadastro.mensalista ? "mensalista" : "rotativo"}
+            nome={cadastro.dadosMensalista.nome}
+            horario={cadastro.dadosMensalista.intervaloPermitido}
+          />
+        )}
         <form.AppField name="modelo" listeners={{ onChange: ({ value }) => handleModeloChange(value) }}>
           {(field) => (
             <field.TextField label="Modelo" list={datalistId} autoComplete="off" maxLength={60} disabled={isSending} />
@@ -248,11 +257,6 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
             <option key={modelo.modeloId} value={modelo.nome} />
           ))}
         </datalist>
-        <form.AppField name="mensalista">
-          {(field) => (
-            <field.SwitchField label={`Mensalista: ${mensalista ? "Sim" : "Não"}`} disabled={isSending} />
-          )}
-        </form.AppField>
       </Form>
         </>
       )}

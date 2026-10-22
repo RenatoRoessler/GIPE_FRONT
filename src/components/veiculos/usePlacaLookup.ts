@@ -14,6 +14,8 @@ export type PlacaLookupStatus =
 // Consulta cancelável: uma nova consulta (ou o desmonte) aborta a anterior.
 export function usePlacaLookup() {
   const [status, setStatus] = useState<PlacaLookupStatus>({ state: "idle" });
+  // Último cadastro encontrado; some com nova consulta ou reset, para nunca valer para outra placa.
+  const [cadastro, setCadastro] = useState<PlacaConsulta | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
 
   const abortPending = useCallback(() => {
@@ -28,11 +30,13 @@ export function usePlacaLookup() {
       const controller = new AbortController();
       controllerRef.current = controller;
       setStatus({ state: "loading" });
+      setCadastro(null);
 
       try {
         const result = await consultarPlaca(placa, controller.signal);
         if (controller.signal.aborted) return null;
         setStatus({ state: result.encontrado ? "found" : "not_found" });
+        setCadastro(result.encontrado ? result : null);
         return result.encontrado ? result : null;
       } catch {
         if (controller.signal.aborted) return null;
@@ -46,9 +50,10 @@ export function usePlacaLookup() {
   const reset = useCallback(() => {
     abortPending();
     setStatus({ state: "idle" });
+    setCadastro(null);
   }, [abortPending]);
 
   useEffect(() => abortPending, [abortPending]);
 
-  return { status, lookup, reset };
+  return { status, cadastro, lookup, reset };
 }

@@ -120,6 +120,16 @@ describe("SaidaVeiculoModal: aberta a partir da lista do pátio", () => {
     expect(screen.getByRole("dialog", { name: "Confirmar saída" })).toBeInTheDocument();
   });
 
+  it("mensalista escolhido na lista abre com o card e sem pagamento", async () => {
+    api.consultarSaida.mockResolvedValue({ ...consulta, mensalista: true, mensalistaNome: "Maria" });
+    abrirDireto();
+
+    expect(await screen.findByText("Saída sem cobrança.")).toBeInTheDocument();
+    expect(screen.getByText("Sem pagamento nesta saída.")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Valor recebido")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Confirmar Saída$/ })).toBeEnabled();
+  });
+
   it("dá para desistir enquanto o veículo ainda carrega, sem pedir confirmação (a placa veio da lista)", async () => {
     api.consultarSaida.mockReturnValue(new Promise(() => {}));
     abrirDireto();

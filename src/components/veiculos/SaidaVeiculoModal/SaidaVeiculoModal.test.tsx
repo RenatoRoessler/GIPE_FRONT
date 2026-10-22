@@ -351,6 +351,54 @@ describe("SaidaVeiculoModal: fase de pagamento", () => {
   });
 });
 
+describe("SaidaVeiculoModal: mensalista", () => {
+  beforeEach(() => {
+    api.consultarSaida.mockResolvedValue({ ...consulta(), mensalista: true, mensalistaNome: "Maria" });
+  });
+
+  it("mostra o card, nada a cobrar e esconde o pagamento", async () => {
+    renderModal();
+    await lerTicket();
+
+    expect(screen.getByText("Mensalista")).toBeInTheDocument();
+    expect(screen.getByText("Saída sem cobrança.")).toBeInTheDocument();
+    expect(screen.getByText("Maria")).toBeInTheDocument();
+    expect(screen.getByText("Nada a cobrar")).toBeInTheDocument();
+    expect(screen.getByText("Sem pagamento nesta saída.")).toBeInTheDocument();
+    expect(screen.queryByRole("radiogroup", { name: "Forma de pagamento" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Valor recebido")).not.toBeInTheDocument();
+    // O botão não repete valor.
+    expect(confirmar()).toBeEnabled();
+  });
+
+  it("confirma sem pagamento e registra a saída com valor 0", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+    await user.click(confirmar());
+
+    expect(await screen.findByRole("heading", { level: 2, name: "Saída registrada" })).toBeInTheDocument();
+    expect(api.registrarSaida).toHaveBeenCalledWith(7, { valor: 0, formaPagamento: 1 });
+  });
+
+  it("não depende dos meios de pagamento da empresa", async () => {
+    api.getEmpresa.mockRejectedValue(new ApiError("network"));
+    renderModal();
+    await lerTicket();
+    expect(confirmar()).toBeEnabled();
+    expect(screen.queryByText(/Carregando meios de pagamento/)).not.toBeInTheDocument();
+  });
+
+  it("avulso não mostra o card e continua exigindo pagamento", async () => {
+    api.consultarSaida.mockResolvedValue(consulta());
+    renderModal();
+    await lerTicket();
+    expect(screen.queryByText("Saída sem cobrança.")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Valor recebido")).toBeInTheDocument();
+    expect(confirmar("20,00")).toBeDisabled();
+  });
+});
+
 describe("SaidaVeiculoModal: voltar para a pesquisa", () => {
   it("volta com a busca vazia, a câmera ativa e o pagamento descartado", async () => {
     const user = userEvent.setup();

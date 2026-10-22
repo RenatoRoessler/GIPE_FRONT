@@ -12,6 +12,8 @@ import { LeitorQrSaida } from "../LeitorQrSaida";
 import { PagamentoSaida } from "../PagamentoSaida";
 import { ReciboSaidaStep } from "../ReciboSaidaStep";
 import { ResumoSaida } from "../ResumoSaida";
+import { valorACobrar } from "../saida";
+import { Hint } from "../Saida.styles";
 import { Column, FaseConteudo, FaseTitulo, Layout, NotaRodape } from "./SaidaVeiculoModal.styles";
 import { useSaidaFlow, type SaidaFase } from "./useSaidaFlow";
 
@@ -41,7 +43,7 @@ export function SaidaVeiculoModal({ onClose, onSuccess, buscaInicial }: SaidaVei
   const tituloRef = useRef<HTMLHeadingElement>(null);
   const faseAnterior = useRef(flow.fase);
 
-  const { consulta, fase, pagamento, valorAnterior } = flow;
+  const { consulta, fase, pagamento, semCobranca, valorAnterior } = flow;
   const podeConfirmar = consulta !== null && pagamento?.canConfirm === true && !flow.enviando;
 
   // Na troca de fase o foco vai ao título da nova fase; na abertura vale o foco padrão do diálogo.
@@ -79,14 +81,14 @@ export function SaidaVeiculoModal({ onClose, onSuccess, buscaInicial }: SaidaVei
 
   const rotulo = flow.enviando
     ? "Registrando…"
-    : consulta
-      ? `${valorAnterior !== null ? "Confirmar novo valor" : "Confirmar Saída"} · ${formatBRL(consulta.valor)}`
+    : consulta && !semCobranca
+      ? `${valorAnterior !== null ? "Confirmar novo valor" : "Confirmar Saída"} · ${formatBRL(valorACobrar(consulta))}`
       : "Confirmar Saída";
 
   const footer =
     fase === "pagamento" ? (
       <>
-        {flow.meios.status === "carregando" && <NotaRodape role="status">Carregando meios de pagamento…</NotaRodape>}
+        {!semCobranca && flow.meios.status === "carregando" && <NotaRodape role="status">Carregando meios de pagamento…</NotaRodape>}
         <Button type="button" variant="secondary" onClick={flow.voltar} disabled={flow.enviando}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -136,16 +138,20 @@ export function SaidaVeiculoModal({ onClose, onSuccess, buscaInicial }: SaidaVei
             </Column>
             <Column>
               {flow.erroRegistro && <ErrorBanner role="alert">{flow.erroRegistro}</ErrorBanner>}
-              <PagamentoSaida
-                consulta={consulta}
-                meios={flow.meios}
-                forma={flow.forma}
-                recebido={flow.recebido}
-                onFormaChange={flow.setForma}
-                onRecebidoChange={flow.setRecebido}
-                onEnter={flow.confirmar}
-                disabled={flow.enviando}
-              />
+              {semCobranca ? (
+                <Hint>Sem pagamento nesta saída.</Hint>
+              ) : (
+                <PagamentoSaida
+                  consulta={consulta}
+                  meios={flow.meios}
+                  forma={flow.forma}
+                  recebido={flow.recebido}
+                  onFormaChange={flow.setForma}
+                  onRecebidoChange={flow.setRecebido}
+                  onEnter={flow.confirmar}
+                  disabled={flow.enviando}
+                />
+              )}
             </Column>
           </Layout>
         )}

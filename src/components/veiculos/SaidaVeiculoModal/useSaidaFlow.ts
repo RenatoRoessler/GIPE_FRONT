@@ -10,7 +10,7 @@ import type { SaidaBusca, SaidaConsulta } from "@/types/saida";
 import type { SaidaBuscaField } from "../BuscaManualSaida";
 import { QR_INVALIDO_MESSAGE } from "../LeitorQrSaida";
 import type { SaidaResultado } from "../ReciboSaidaStep";
-import { calcularTroco, FORMA_DINHEIRO, getPagamentoStatus, valoresIguais } from "../saida";
+import { calcularTroco, FORMA_DINHEIRO, getPagamentoStatus, valoresIguais, valorACobrar } from "../saida";
 import { useMeiosPagamento } from "../useMeiosPagamento";
 
 // O valor e a permanência dependem do instante da consulta: o servidor recalcula a cada ciclo.
@@ -82,15 +82,18 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
   const confirmMutation = useMutation({
     mutationFn: async (input: ConfirmInput): Promise<ConfirmResult> => {
       const nova = await consultarSaida(input.busca);
-      if (!valoresIguais(nova.valor, input.consulta.valor)) {
+      // Compara o que seria cobrado: a mudança de mensalista para avulso (ou o inverso) muda o valor e pede nova confirmação.
+      if (!valoresIguais(valorACobrar(nova), valorACobrar(input.consulta))) {
         return { tipo: "mudou", nova };
       }
+      const mensalista = input.consulta.mensalista;
       // [A CONFIRMAR] O backend pode recusar valor divergente do calculado; a mensagem aparece junto ao pagamento.
+      // [A CONFIRMAR] Mensalista: o back aceita valor 0 com a forma padrão (Dinheiro), sem lançar nada no caixa.
       const saida = await registrarSaida(input.consulta.patioId, {
-        valor: input.consulta.valor,
-        formaPagamento: Number(input.forma),
+        valor: valorACobrar(input.consulta),
+        formaPagamento: Number(mensalista ? FORMA_DINHEIRO : input.forma),
       });
-      const emDinheiro = input.forma === FORMA_DINHEIRO;
+      const emDinheiro = !mensalista && input.forma === FORMA_DINHEIRO;
       const valorRecebido = emDinheiro ? parseMoney(input.recebido) : null;
       return {
         tipo: "registrada",
@@ -107,8 +110,8 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
     },
     onSuccess: (data, variables) => {
       if (data.tipo === "mudou") {
-        ultimoValorRef.current = data.nova.valor;
-        setValorAnterior(variables.consulta.valor);
+        ultimoValorRef.current = valorACobrar(data.nova);
+        setValorAnterior(valorACobrar(variables.consulta));
         queryClient.setQueryData([SAIDA_CONSULTA_KEY, variables.busca], data.nova);
         return;
       }
@@ -130,10 +133,10 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
         throw error;
       }
       const anterior = ultimoValorRef.current;
-      if (anterior !== null && !valoresIguais(anterior, nova.valor)) {
+      if (anterior !== null && !valoresIguais(anterior, valorACobrar(nova))) {
         setValorAnterior(anterior);
       }
-      ultimoValorRef.current = nova.valor;
+      ultimoValorRef.current = valorACobrar(nova);
       return nova;
     },
     enabled: busca !== null && resultado === null,
@@ -280,10 +283,14 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
     limpar();
   }, [confirmMutation.isPending, limpar]);
 
+  // Mensalista não paga: a confirmação não depende da forma de pagamento nem dos meios da empresa.
+  const semCobranca = consulta?.mensalista === true;
   const pagamento = consulta
-    ? meios.status === "pronto"
-      ? getPagamentoStatus(forma, recebido, consulta.valor)
-      : { canConfirm: false, motivo: MOTIVO_SEM_MEIOS[meios.status] }
+    ? semCobranca
+      ? { canConfirm: true, motivo: undefined }
+      : meios.status === "pronto"
+        ? getPagamentoStatus(forma, recebido, consulta.valor)
+        : { canConfirm: false, motivo: MOTIVO_SEM_MEIOS[meios.status] }
     : null;
   const buscando = qrMutation.isPending || (busca !== null && consultaQuery.isPending);
   const enviando = confirmMutation.isPending;
@@ -321,6 +328,7 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
     recebido,
     resultado,
     pagamento,
+    semCobranca,
     buscando,
     enviando,
     erroRegistro: confirmMutation.isError ? confirmMutation.error.message : undefined,

@@ -51,6 +51,7 @@ export function ReciboSaidaStep({ consulta, resultado, onConcluir }: ReciboSaida
     valor: saida.valor,
     recebido: resultado.recebido,
     troco: resultado.troco,
+    mensalista: consulta.mensalista,
   };
 
   return (

@@ -29,6 +29,8 @@ export type ReciboEntradaData = {
   tabela: string | null;
   operador: string | null;
   dataHoraEntrada: string;
+  // Entrada registrada como mensalista; o nome do cliente não vai no comprovante.
+  mensalista?: boolean;
   // Link da página pública do comprovante; sem token não há QR.
   link: string | null;
 };
@@ -71,6 +73,12 @@ export function ReciboEntradaConteudo({ data }: { data: ReciboEntradaData }) {
           <dt>Categoria</dt>
           <dd>{getCategoriaVeiculoLabel(data.categoria)}</dd>
         </div>
+        {data.mensalista && (
+          <div>
+            <dt>Tipo</dt>
+            <dd>Mensalista</dd>
+          </div>
+        )}
       </Facts>
       {data.link && (
         <>

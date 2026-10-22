@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { COR_PADRAO, matchCor } from "@/types/veiculo";
 import { entradaVeiculoSchema } from "./veiculo";
 
-const entradaValida = { placa: "ABC1D23", categoria: "2", modelo: "ONIX", cor: COR_PADRAO, mensalista: false };
+const entradaValida = { placa: "ABC1D23", categoria: "2", modelo: "ONIX", cor: COR_PADRAO };
 
 describe("entradaVeiculoSchema", () => {
   it("aceita uma entrada válida", () => {

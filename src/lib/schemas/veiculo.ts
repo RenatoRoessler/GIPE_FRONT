@@ -10,7 +10,6 @@ export const entradaVeiculoSchema = z.object({
   categoria: z.string().refine((value) => CATEGORIAS.includes(value), "Selecione a categoria"),
   modelo: z.string().trim().max(60, "Use no máximo 60 caracteres"),
   cor: z.enum(CORES, { message: "Selecione a cor" }),
-  mensalista: z.boolean(),
 });
 
 export type EntradaVeiculoValues = z.infer<typeof entradaVeiculoSchema>;

@@ -8,6 +8,7 @@ import {
   FORMAS_SAIDA,
   getPagamentoStatus,
   valoresIguais,
+  valorACobrar,
 } from "./saida";
 
 describe("FORMAS_SAIDA", () => {
@@ -41,6 +42,17 @@ describe("getPagamentoStatus", () => {
   it("em Dinheiro, aceita valor igual ou maior", () => {
     expect(getPagamentoStatus(FORMA_DINHEIRO, "10,00", 10).canConfirm).toBe(true);
     expect(getPagamentoStatus(FORMA_DINHEIRO, "20", 10).canConfirm).toBe(true);
+  });
+});
+
+describe("valorACobrar", () => {
+  it("é zero para mensalista, mesmo com valor calculado", () => {
+    expect(valorACobrar({ mensalista: true, valor: 12.5 })).toBe(0);
+  });
+
+  it("mantém o valor da consulta para avulso, inclusive zero", () => {
+    expect(valorACobrar({ mensalista: false, valor: 12.5 })).toBe(12.5);
+    expect(valorACobrar({ mensalista: false, valor: 0 })).toBe(0);
   });
 });
 
