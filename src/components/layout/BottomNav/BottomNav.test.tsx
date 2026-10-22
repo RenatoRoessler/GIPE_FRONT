@@ -77,6 +77,7 @@ describe("BottomNav: painel do Menu", () => {
       "Saída de Veículos",
       "Pátio",
       "Caixa",
+      "Notas Fiscais",
       "Relatórios",
       "Minha Empresa",
     ]);

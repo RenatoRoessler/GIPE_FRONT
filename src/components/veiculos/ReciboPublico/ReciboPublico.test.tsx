@@ -9,6 +9,24 @@ import type { ReciboCliente } from "@/types/veiculo";
 vi.mock("@/lib/api/services/patio", () => ({ consultarRecibo: vi.fn() }));
 vi.mock("./reciboSaidaPdf", () => ({ baixarReciboSaidaPdf: vi.fn() }));
 
+// O modal em si é testado à parte: aqui só interessa quando a página oferece a nota e o que faz com a resposta.
+const nota = vi.hoisted(() => ({ props: null as null | { token: string; valor: number; placa?: string | null; onClose: () => void; onSolicitada: (n: unknown) => void } }));
+vi.mock("@/components/notas/NotaFiscalModal", () => ({
+  NotaFiscalModal: (props: NonNullable<typeof nota.props>) => {
+    nota.props = props;
+    return (
+      <div role="dialog" aria-label="Modal da nota">
+        <button type="button" onClick={() => props.onSolicitada({ notaFiscalId: 1, valor: props.valor, dataSolicitacao: "2026-10-23T10:00:00" })}>
+          solicitar
+        </button>
+        <button type="button" onClick={props.onClose}>
+          fechar modal
+        </button>
+      </div>
+    );
+  },
+}));
+
 import { consultarRecibo } from "@/lib/api/services/patio";
 import { ReciboPublico } from "./ReciboPublico";
 import { baixarReciboSaidaPdf } from "./reciboSaidaPdf";
@@ -180,5 +198,72 @@ describe("ReciboPublico", () => {
     vi.mocked(baixarReciboSaidaPdf).mockResolvedValue(undefined);
     await user.click(screen.getByRole("button", { name: "Baixar PDF" }));
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+  });
+});
+
+describe("ReciboPublico: nota fiscal", () => {
+  beforeEach(() => {
+    vi.mocked(consultarRecibo).mockReset();
+  });
+
+  it("recibo com cobrança e sem nota solicitada oferece \"Solicitar nota\"", async () => {
+    abrir();
+    expect(await screen.findByRole("button", { name: "Solicitar nota" })).toHaveAttribute("aria-haspopup", "dialog");
+    expect(screen.queryByText("Nota fiscal solicitada.")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["nota já solicitada", { notaFiscalSolicitada: true }],
+    ["mensalista", { mensalista: true, valor: 0 }],
+    ["valor zero", { valor: 0 }],
+  ])("não oferece a nota com %s", async (_nome, extra) => {
+    abrir(extra as Partial<ReciboCliente>);
+    await screen.findByText("Recibo de saída");
+    expect(screen.queryByRole("button", { name: "Solicitar nota" })).not.toBeInTheDocument();
+  });
+
+  it("nota já solicitada mostra o aviso no rodapé", async () => {
+    abrir({ notaFiscalSolicitada: true });
+    expect(await screen.findByText("Nota fiscal solicitada.")).toBeInTheDocument();
+  });
+
+  it("abre o modal com o código, o valor em reais e a placa do recibo", async () => {
+    abrir();
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Solicitar nota" }));
+
+    expect(screen.getByRole("dialog", { name: "Modal da nota" })).toBeInTheDocument();
+    expect(nota.props).toMatchObject({ token: "ABCD1234EF", valor: 15100, placa: "HZB5188" });
+  });
+
+  it("fechar o modal sem solicitar mantém o botão", async () => {
+    abrir();
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Solicitar nota" }));
+    await user.click(screen.getByRole("button", { name: "fechar modal" }));
+
+    expect(screen.queryByRole("dialog", { name: "Modal da nota" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Solicitar nota" })).toBeInTheDocument();
+  });
+
+  it("depois de solicitada o botão some e o rodapé passa a dizer que a nota foi solicitada, sem nova consulta", async () => {
+    abrir();
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Solicitar nota" }));
+    await user.click(screen.getByRole("button", { name: "solicitar" }));
+    await user.click(screen.getByRole("button", { name: "fechar modal" }));
+
+    expect(screen.queryByRole("button", { name: "Solicitar nota" })).not.toBeInTheDocument();
+    expect(screen.getByText("Nota fiscal solicitada.")).toBeInTheDocument();
+    expect(consultarRecibo).toHaveBeenCalledTimes(1);
+  });
+
+  it("as outras ações continuam: Baixar PDF e Imprimir", async () => {
+    abrir();
+    expect(await screen.findByRole("button", { name: "Baixar PDF" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Imprimir" })).toBeInTheDocument();
   });
 });

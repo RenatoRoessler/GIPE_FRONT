@@ -24,3 +24,9 @@ export function getPlacaTipo(value: string): PlacaTipo | null {
   }
   return /[0-9]/.test(placa[4]) ? "antiga" : "mercosul";
 }
+
+// Placa para texto corrido: a do padrão antigo ganha o hífen ("ABC-1234"); Mercosul e o resto ficam como estão.
+export function formatPlacaExibicao(value: string): string {
+  const placa = normalizePlaca(value);
+  return /^[A-Z]{3}\d{4}$/.test(placa) ? `${placa.slice(0, 3)}-${placa.slice(3)}` : placa;
+}

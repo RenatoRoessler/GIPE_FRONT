@@ -1,0 +1,1 @@
+export { NotasFiscaisPage } from "./NotasFiscaisPage";

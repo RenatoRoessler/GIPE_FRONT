@@ -1,4 +1,4 @@
-export type NavIconId = "home" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "reports" | "company";
+export type NavIconId = "home" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "reports" | "company" | "invoice";
 
 // Ações do menu que abrem um modal por cima da tela atual, em vez de levar a uma página.
 export type NavAction = "entrada" | "saida";
@@ -35,6 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Saída de Veículos", acao: "saida", icon: "vehicleOut" },
   { label: "Pátio", href: "/patio", icon: "yard" },
   { label: "Caixa", href: "/caixa", icon: "cashier" },
+  { label: "Notas Fiscais", href: "/notas-fiscais", icon: "invoice" },
   { label: "Relatórios", href: "/relatorios", icon: "reports" },
   { label: "Minha Empresa", href: "/minha-empresa", icon: "company" },
 ];

@@ -11,7 +11,7 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS.find((item) => item.label === "Pátio")).toEqual({ label: "Pátio", href: "/patio", icon: "yard" });
   });
 
-  it("mantém os dez itens, na mesma ordem", () => {
+  it("mantém os onze itens, na mesma ordem, com Notas Fiscais depois do Caixa", () => {
     expect(NAV_ITEMS.map((item) => item.label)).toEqual([
       "Início",
       "Gestão de Preços",
@@ -21,18 +21,19 @@ describe("NAV_ITEMS", () => {
       "Saída de Veículos",
       "Pátio",
       "Caixa",
+      "Notas Fiscais",
       "Relatórios",
       "Minha Empresa",
     ]);
   });
 
-  it("Entrada e Saída são ações (abrem modal); os outros oito são links", () => {
+  it("Entrada e Saída são ações (abrem modal); os outros nove são links", () => {
     const acoes = NAV_ITEMS.filter(isNavAction);
     expect(acoes.map((item) => [item.label, item.acao, item.icon])).toEqual([
       ["Entrada de Veículos", "entrada", "vehicleIn"],
       ["Saída de Veículos", "saida", "vehicleOut"],
     ]);
-    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(8);
+    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(9);
   });
 
   it("não repete chave nem ícone", () => {
@@ -94,7 +95,7 @@ describe("isMenuTabActive", () => {
     expect(isMenuTabActive(rota)).toBe(false);
   });
 
-  it.each(["/caixa", "/patio", "/mensalistas", "/precos/novo", "/minha-empresa"])("é verdadeiro em %s, só alcançada pelo painel", (rota) => {
+  it.each(["/caixa", "/patio", "/mensalistas", "/precos/novo", "/minha-empresa", "/notas-fiscais"])("é verdadeiro em %s, só alcançada pelo painel", (rota) => {
     expect(isMenuTabActive(rota)).toBe(true);
   });
 });
@@ -107,5 +108,24 @@ describe("tema: layout", () => {
     ["sinalização escura", signageDarkTheme],
   ])("o tema %s tem a altura da barra inferior", (_nome, tema) => {
     expect(tema.layout.bottomNavHeight).toBe("64px");
+  });
+});
+
+describe("Notas Fiscais no menu", () => {
+  const item = NAV_ITEMS.find((navItem) => navItem.label === "Notas Fiscais")!;
+
+  it("é um link para /notas-fiscais, com ícone próprio", () => {
+    expect(item).toEqual({ label: "Notas Fiscais", href: "/notas-fiscais", icon: "invoice" });
+  });
+
+  it("fica ativo em /notas-fiscais e nas rotas filhas, não em rotas parecidas", () => {
+    expect(isNavActive("/notas-fiscais", item)).toBe(true);
+    expect(isNavActive("/notas-fiscais?aba=lancadas", item)).toBe(false);
+    expect(isNavActive("/notas-fiscais/x", item)).toBe(true);
+    expect(isNavActive("/notas", item)).toBe(false);
+  });
+
+  it("não entra na barra inferior, que continua com os três atalhos", () => {
+    expect(BOTTOM_NAV_ITEMS.map((atalho) => atalho.label)).toEqual(["Início", "Entrada", "Saída"]);
   });
 });

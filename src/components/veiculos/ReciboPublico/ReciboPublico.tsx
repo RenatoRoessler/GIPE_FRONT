@@ -1,8 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { formatDateTime } from "@/components/caixa/format";
+import { NotaFiscalModal } from "@/components/notas/NotaFiscalModal";
 import { Button } from "@/components/ui/Button";
 import { PlateDisplay } from "@/components/ui/PlateDisplay";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -99,13 +100,17 @@ function Carregando() {
   );
 }
 
-function Recibo({ recibo }: { recibo: ReciboCliente }) {
+function Recibo({ recibo, token }: { recibo: ReciboCliente; token: string }) {
   const veiculo = [recibo.modelo, recibo.cor].filter(Boolean).join(" · ");
   const telefoneDigits = recibo.telefone?.replace(/\D/g, "") ?? "";
   const valor = valorDoRecibo(recibo.valor);
   const mensalista = recibo.mensalista === true;
   // Mensalista (ou valor zero) não paga: nada de total nem de forma de pagamento.
   const semCobranca = mensalista || valor === 0;
+  const queryClient = useQueryClient();
+  const [notaAberta, setNotaAberta] = useState(false);
+  // Uma nota por recibo: depois de solicitada (ou se já havia), o botão some.
+  const podeSolicitarNota = !recibo.notaFiscalSolicitada && !semCobranca;
   const [baixando, setBaixando] = useState(false);
   const [erroPdf, setErroPdf] = useState(false);
 
@@ -184,9 +189,27 @@ function Recibo({ recibo }: { recibo: ReciboCliente }) {
           </ActionIcon>
           Imprimir
         </ActionButton>
+        {podeSolicitarNota && (
+          <ActionButton type="button" aria-haspopup="dialog" onClick={() => setNotaAberta(true)}>
+            <ActionIcon>
+              <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6" />
+            </ActionIcon>
+            Solicitar nota
+          </ActionButton>
+        )}
         {erroPdf && <ActionError role="alert">Não foi possível gerar o PDF. Tente novamente.</ActionError>}
       </ReciboActions>
       {recibo.notaFiscalSolicitada && <Footnote>Nota fiscal solicitada.</Footnote>}
+      {notaAberta && (
+        <NotaFiscalModal
+          token={recibo.token}
+          valor={valor}
+          placa={recibo.placa}
+          onClose={() => setNotaAberta(false)}
+          // Atualiza o recibo em memória: o botão some e o rodapé passa a dizer que a nota foi solicitada.
+          onSolicitada={() => queryClient.setQueryData<ReciboCliente>(["recibo", token], { ...recibo, notaFiscalSolicitada: true })}
+        />
+      )}
     </Page>
   );
 }
@@ -220,5 +243,5 @@ export function ReciboPublico({ token }: ReciboPublicoProps) {
     );
   }
 
-  return <Recibo recibo={data} />;
+  return <Recibo recibo={data} token={token} />;
 }

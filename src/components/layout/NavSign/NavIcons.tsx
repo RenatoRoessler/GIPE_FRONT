@@ -93,6 +93,15 @@ function CashierIcon(props: IconProps) {
   );
 }
 
+// Nota fiscal: folha com a dobra no canto e duas linhas de texto.
+function InvoiceIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6" />
+    </IconBase>
+  );
+}
+
 function ReportsIcon(props: IconProps) {
   return (
     <IconBase {...props}>
@@ -118,6 +127,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   vehicleOut: VehicleOutIcon,
   yard: YardIcon,
   cashier: CashierIcon,
+  invoice: InvoiceIcon,
   reports: ReportsIcon,
   company: CompanyIcon,
 };

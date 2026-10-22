@@ -10,6 +10,17 @@ export const Success = styled.div`
   font-weight: ${({ theme }) => theme.fontWeights.bold};
 `;
 
+// Substitui o botão de gerar nota depois que a nota foi solicitada.
+export const NotaSolicitada = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[1]}px;
+  min-height: 40px;
+  color: ${({ theme }) => theme.colors.success};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+`;
+
 export const Receipt = styled.article`
   width: 100%;
   max-width: 360px;
