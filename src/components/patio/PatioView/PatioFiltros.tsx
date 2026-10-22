@@ -1,10 +1,9 @@
 "use client";
 
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import type { PatioFiltroTipo } from "@/types/patio";
-import { CATEGORIA_VEICULO_OPTIONS } from "@/types/veiculo";
-import { BarraFiltros, BuscaCampo, FiltrosGrade, LimparFiltros } from "./PatioView.styles";
+import type { PatioEstatisticas, PatioFiltroTipo } from "@/types/patio";
+import { rotuloCategoria } from "../patio";
+import { BarraFiltros, BuscaCampo, Chip, Chips, LimparFiltros, ProporcaoBarra, Segmento } from "./PatioView.styles";
 
 export const BUSCA_ID = "patio-busca";
 
@@ -16,6 +15,8 @@ export interface PatioFiltrosProps {
   categoria: number | "todas";
   onCategoriaChange: (valor: number | "todas") => void;
   onLimparFiltros: () => void;
+  // Contagens do pátio inteiro: a barra e os chips mostram a proporção e servem de filtro.
+  estatisticas: PatioEstatisticas;
 }
 
 export function PatioFiltros({
@@ -26,8 +27,18 @@ export function PatioFiltros({
   categoria,
   onCategoriaChange,
   onLimparFiltros,
+  estatisticas,
 }: PatioFiltrosProps) {
   const filtrando = tipo !== "todos" || categoria !== "todas";
+  const { mensalistas, avulsos, percentualMensalistas } = estatisticas;
+  // Um filtro ativo cujo grupo esvaziou (o último saiu) continua na tela para poder ser desfeito.
+  const categorias =
+    categoria === "todas" || estatisticas.porCategoria.some((item) => item.categoria === categoria)
+      ? estatisticas.porCategoria
+      : [...estatisticas.porCategoria, { categoria, rotulo: rotuloCategoria(categoria), valor: 0 }];
+
+  // Tocar no filtro que já está ativo o desfaz.
+  const alternarTipo = (valor: Exclude<PatioFiltroTipo, "todos">) => onTipoChange(tipo === valor ? "todos" : valor);
 
   return (
     <BarraFiltros>
@@ -41,25 +52,40 @@ export function PatioFiltros({
           placeholder="Placa, modelo ou ticket"
         />
       </BuscaCampo>
-      <FiltrosGrade>
-        <Select label="Tipo" value={tipo} onChange={(event) => onTipoChange(event.target.value as PatioFiltroTipo)}>
-          <option value="todos">Todos</option>
-          <option value="mensalistas">Mensalistas</option>
-          <option value="avulsos">Avulsos</option>
-        </Select>
-        <Select
-          label="Categoria"
-          value={String(categoria)}
-          onChange={(event) => onCategoriaChange(event.target.value === "todas" ? "todas" : Number(event.target.value))}
-        >
-          <option value="todas">Todas</option>
-          {CATEGORIA_VEICULO_OPTIONS.map((opcao) => (
-            <option key={opcao.value} value={opcao.value}>
-              {opcao.label}
-            </option>
-          ))}
-        </Select>
-      </FiltrosGrade>
+
+      <ProporcaoBarra role="group" aria-label="Mensalistas e avulsos">
+        {(mensalistas > 0 || tipo === "mensalistas") && (
+          <Segmento
+            type="button"
+            $tipo="mensalistas"
+            $valor={mensalistas}
+            aria-pressed={tipo === "mensalistas"}
+            onClick={() => alternarTipo("mensalistas")}
+          >
+            {`Mensalistas ${percentualMensalistas}% · ${mensalistas}`}
+          </Segmento>
+        )}
+        {(avulsos > 0 || tipo === "avulsos") && (
+          <Segmento type="button" $tipo="avulsos" $valor={avulsos} aria-pressed={tipo === "avulsos"} onClick={() => alternarTipo("avulsos")}>
+            {`Avulsos ${estatisticas.total === 0 ? 0 : 100 - percentualMensalistas}% · ${avulsos}`}
+          </Segmento>
+        )}
+      </ProporcaoBarra>
+
+      <Chips role="group" aria-label="Categoria">
+        {categorias.map((item) => (
+          <Chip
+            key={item.categoria}
+            type="button"
+            aria-pressed={categoria === item.categoria}
+            onClick={() => onCategoriaChange(categoria === item.categoria ? "todas" : item.categoria)}
+          >
+            {item.rotulo}
+            <strong>{item.valor}</strong>
+          </Chip>
+        ))}
+      </Chips>
+
       {filtrando && (
         <LimparFiltros type="button" variant="secondary" size="sm" onClick={onLimparFiltros}>
           Limpar filtros

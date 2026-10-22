@@ -20,6 +20,7 @@ vi.mock("@/lib/api/services/patio", () => ({
   resolverBuscaPorToken: api.resolverBuscaPorToken,
 }));
 vi.mock("@/lib/api/services/empresa", () => ({ getEmpresa: api.getEmpresa }));
+vi.mock("../useVagasPatio", () => ({ useVagasPatio: () => ({ moto: 12, carro: 23 }) }));
 
 import { PATIO_ATUALIZACAO_MS } from "../usePatio";
 import { PatioView } from "./PatioView";
@@ -160,14 +161,14 @@ describe("PatioView: registrar a saída", () => {
   it("a busca e os filtros continuam como estavam depois da saída", async () => {
     abrir();
     await screen.findByRole("button", { name: "Registrar saída de BRA2E19" });
-    await userEvent.selectOptions(screen.getByLabelText("Tipo"), "avulsos");
+    await userEvent.click(screen.getByRole("button", { name: /^Avulsos/ }));
     await userEvent.type(screen.getByLabelText("Buscar por placa, modelo ou ticket"), "gol");
     await waitFor(() => expect(screen.queryByRole("button", { name: "Registrar saída de KVN1F76" })).not.toBeInTheDocument());
 
     await pagarSaida("BRA2E19", 300, [SEGUNDO, TERCEIRO]);
 
     await waitFor(() => expect(screen.queryByRole("button", { name: "Registrar saída de BRA2E19" })).not.toBeInTheDocument());
-    expect(screen.getByLabelText("Tipo")).toHaveValue("avulsos");
+    expect(screen.getByRole("button", { name: /^Avulsos/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByLabelText("Buscar por placa, modelo ou ticket")).toHaveValue("gol");
     expect(botaoSaida("MNB7880")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Registrar saída de KVN1F76" })).not.toBeInTheDocument();

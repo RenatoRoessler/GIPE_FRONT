@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 
 vi.mock("@/lib/api/services/patio", () => ({ listPatio: vi.fn().mockReturnValue(new Promise(() => {})) }));
+vi.mock("@/components/patio/useVagasPatio", () => ({ useVagasPatio: () => null }));
 
 import PatioPage from "./page";
 

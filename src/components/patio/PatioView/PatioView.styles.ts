@@ -321,11 +321,6 @@ export const BarraFiltros = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    flex-direction: row;
-    align-items: flex-end;
-  }
 `;
 
 export const BuscaCampo = styled.div`
@@ -336,14 +331,74 @@ export const BuscaCampo = styled.div`
   }
 `;
 
-// No celular os dois filtros dividem uma linha; no computador ficam ao lado da busca.
-export const FiltrosGrade = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: ${({ theme }) => theme.space[3]}px;
+// Mensalistas e avulsos numa barra só: o tamanho de cada trecho é a proporção, e tocar nele filtra.
+export const ProporcaoBarra = styled.div`
+  display: flex;
+  height: 44px;
+  overflow: hidden;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+`;
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    grid-template-columns: repeat(2, minmax(160px, 200px));
+export const Segmento = styled.button<{ $valor: number; $tipo: "mensalistas" | "avulsos" }>`
+  flex: ${({ $valor }) => $valor} 1 auto;
+  min-width: 0;
+  padding: 0 ${({ theme }) => theme.space[3]}px;
+  border: 0;
+  background-color: ${({ theme, $tipo }) => ($tipo === "mensalistas" ? theme.colors.primary : theme.colors.textMuted)};
+  color: ${({ theme, $tipo }) => ($tipo === "mensalistas" ? theme.colors.onPrimary : theme.colors.background)};
+  font: inherit;
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+
+  &[aria-pressed="true"] {
+    box-shadow: inset 0 0 0 3px ${({ theme }) => theme.colors.warn};
+  }
+
+  &:focus-visible {
+    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline-offset: -3px;
+  }
+`;
+
+export const Chips = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.space[2]}px;
+`;
+
+export const Chip = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[2]}px;
+  min-height: 44px;
+  padding: 0 ${({ theme }) => theme.space[3]}px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.full};
+  background-color: transparent;
+  color: ${({ theme }) => theme.colors.text};
+  font: inherit;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+
+  strong {
+    color: ${({ theme }) => theme.colors.link};
+    font-variant-numeric: tabular-nums;
+  }
+
+  &[aria-pressed="true"] {
+    background-color: ${({ theme }) => theme.colors.primarySoft};
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:focus-visible {
+    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
   }
 `;
 
@@ -354,9 +409,40 @@ export const LimparFiltros = styled(Button)`
   ${mobile} {
     min-height: 44px;
   }
+`;
 
+export const GraficosDetalhes = styled.details`
+  summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 ${({ theme }) => theme.space[4]}px;
+    border-radius: ${({ theme }) => theme.radii.md};
+    box-shadow: inset 0 0 0 1px ${({ theme }) => theme.colors.border};
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    font-weight: ${({ theme }) => theme.fontWeights.medium};
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 3px solid ${({ theme }) => theme.colors.primary};
+      outline-offset: 2px;
+    }
+  }
+`;
+
+export const GraficosGrade = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: ${({ theme }) => theme.space[3]}px;
+  margin-top: ${({ theme }) => theme.space[3]}px;
+
+  /* O gráfico de chegadas é o último e ocupa a linha toda. */
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    align-self: flex-end;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    > :last-child {
+      grid-column: 1 / -1;
+    }
   }
 `;
 

@@ -6,6 +6,7 @@ import { renderWithProviders } from "@/test/render";
 import type { PatioVeiculo } from "@/types/patio";
 
 vi.mock("@/lib/api/services/patio", () => ({ listPatio: vi.fn() }));
+vi.mock("../useVagasPatio", () => ({ useVagasPatio: () => ({ moto: 12, carro: 23 }) }));
 
 import { listPatio } from "@/lib/api/services/patio";
 import { PatioView } from "./PatioView";
@@ -187,7 +188,7 @@ describe("PatioView: filtros", () => {
     await esperarResumo("3 veículos no pátio");
     expect(screen.queryByRole("button", { name: "Limpar filtros" })).not.toBeInTheDocument();
 
-    await userEvent.selectOptions(screen.getByLabelText("Tipo"), "mensalistas");
+    await userEvent.click(screen.getByRole("button", { name: /^Mensalistas/ }));
 
     expect(placasNaTela()).toEqual(["ZNF7Z70"]);
     expect(resumo()).toMatch(/ de 3 veículos$/);
@@ -201,26 +202,70 @@ describe("PatioView: filtros", () => {
     abrir();
     await esperarResumo("3 veículos no pátio");
 
-    await userEvent.selectOptions(screen.getByLabelText("Tipo"), "avulsos");
+    await userEvent.click(screen.getByRole("button", { name: /^Avulsos/ }));
     expect(placasNaTela()).toEqual(["BRA2E19", "MNB7880"]);
 
-    await userEvent.selectOptions(screen.getByLabelText("Categoria"), "Moto");
+    await userEvent.click(screen.getByRole("button", { name: /^Moto/ }));
     expect(placasNaTela()).toEqual(["MNB7880"]);
   });
 
-  it("as sete categorias estão no seletor", async () => {
+  it("a barra e os chips mostram a proporção e só as categorias que estão no pátio", async () => {
     abrir();
     await esperarResumo("3 veículos no pátio");
 
-    const opcoes = within(screen.getByLabelText("Categoria")).getAllByRole("option").map((o) => o.textContent);
-    expect(opcoes).toEqual(["Todas", "Moto", "Carro pequeno", "Carro médio", "SUV/Pick-up", "Caminhonete", "Caminhão", "Carro grande"]);
+    expect(screen.getByRole("button", { name: "Mensalistas 33% · 1" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Avulsos 67% · 2" })).toBeInTheDocument();
+    const chips = within(screen.getByRole("group", { name: "Categoria" })).getAllByRole("button").map((chip) => chip.textContent);
+    expect(chips).toEqual(["Carro grande1", "Carro médio1", "Moto1"]);
+  });
+
+  it("tocar de novo no filtro ativo o desfaz", async () => {
+    abrir();
+    await esperarResumo("3 veículos no pátio");
+
+    await userEvent.click(screen.getByRole("button", { name: /^Mensalistas/ }));
+    expect(screen.getByRole("button", { name: /^Mensalistas/ })).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(screen.getByRole("button", { name: /^Mensalistas/ }));
+
+    expect(placasNaTela()).toHaveLength(3);
+    await userEvent.click(screen.getByRole("button", { name: /^Moto/ }));
+    expect(placasNaTela()).toEqual(["MNB7880"]);
+    await userEvent.click(screen.getByRole("button", { name: /^Moto/ }));
+    expect(placasNaTela()).toHaveLength(3);
+  });
+
+  it("mostra a permanência média e quantos estão há 3 dias ou mais", async () => {
+    abrir([veiculo({ minutosPermanencia: 120 }), veiculo({ minutosPermanencia: 5000 })]);
+    await esperarResumo("2 veículos no pátio");
+
+    expect(screen.getByText("Permanência média 1d 18h")).toBeInTheDocument();
+    expect(screen.getByText("1 há 3 dias ou mais")).toBeInTheDocument();
+  });
+
+  it("mostra a ocupação das vagas, com carros e motos separados", async () => {
+    abrir();
+    await esperarResumo("3 veículos no pátio");
+
+    // 3 veículos (1 moto, 2 carros) para 35 vagas (12 de moto e 23 de carro).
+    expect(screen.getByText("Ocupação 9%")).toHaveAttribute("title", "Carros 2 de 23 · Motos 1 de 12");
+  });
+
+  it("os gráficos do pátio ficam recolhidos até o operador abrir", async () => {
+    abrir();
+    await esperarResumo("3 veículos no pátio");
+
+    const detalhes = screen.getByText("Ver gráficos do pátio").closest("details");
+    expect(detalhes).not.toHaveAttribute("open");
+    await userEvent.click(screen.getByText("Ver gráficos do pátio"));
+    expect(detalhes).toHaveAttribute("open");
+    expect(screen.getByRole("region", { name: "Tempo no pátio" })).toBeInTheDocument();
   });
 
   it("busca e filtros valem juntos; sem resultado, a busca se limpa ali e os filtros na barra", async () => {
     abrir();
     await esperarResumo("3 veículos no pátio");
 
-    await userEvent.selectOptions(screen.getByLabelText("Tipo"), "mensalistas");
+    await userEvent.click(screen.getByRole("button", { name: /^Mensalistas/ }));
     await userEvent.type(campoBusca(), "mnb");
 
     expect(await screen.findByText("Nada encontrado para “mnb”.")).toBeInTheDocument();
@@ -230,10 +275,11 @@ describe("PatioView: filtros", () => {
   });
 
   it("filtro sem resultado diz que nenhum veículo tem esses filtros", async () => {
-    abrir([UM_DIA]);
-    await esperarResumo("1 veículo no pátio");
+    abrir([UM_DIA, MENSALISTA]);
+    await esperarResumo("2 veículos no pátio");
 
-    await userEvent.selectOptions(screen.getByLabelText("Tipo"), "mensalistas");
+    await userEvent.click(screen.getByRole("button", { name: /^Mensalistas/ }));
+    await userEvent.click(screen.getByRole("button", { name: /^Moto/ }));
 
     expect(await screen.findByText("Nenhum veículo com esses filtros.")).toBeInTheDocument();
     // A barra de busca e os filtros continuam à vista.

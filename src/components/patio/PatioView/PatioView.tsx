@@ -13,11 +13,24 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useFocoAposRemocao, vizinhosDe } from "@/hooks/useFocoAposRemocao";
 import { useToast } from "@/hooks/useToast";
 import type { PatioFiltroTipo, PatioVeiculo } from "@/types/patio";
-import { filtrarPatio, ordenarPatio, resumirPatio } from "../patio";
+import { BarrasHorizontais, ChegadasPorHora } from "../graficos";
+import { chegadasPorHora, estatisticasPatio, filtrarPatio, formatarMinutos, ocupacaoPatio, ordenarPatio, resumirPatio } from "../patio";
 import { usePatio } from "../usePatio";
+import { useVagasPatio } from "../useVagasPatio";
 import { BUSCA_ID, PatioFiltros } from "./PatioFiltros";
 import { PatioTabela } from "./PatioTabela";
-import { Anuncio, AtualizarBotao, Cabecalho, Conteudo, EntradaLink, EsqueletoLinha, MaisBotao, Resumo } from "./PatioView.styles";
+import {
+  Anuncio,
+  AtualizarBotao,
+  Cabecalho,
+  Conteudo,
+  EntradaLink,
+  EsqueletoLinha,
+  GraficosDetalhes,
+  GraficosGrade,
+  MaisBotao,
+  Resumo,
+} from "./PatioView.styles";
 
 const DEBOUNCE_MS = 250;
 const LIMITE_INICIAL = 100;
@@ -27,6 +40,7 @@ export function PatioView() {
   // Com o modal de saída aberto a lista não se atualiza sozinha: ela não pode mudar enquanto o operador recebe o pagamento.
   const [saida, setSaida] = useState<PatioVeiculo | null>(null);
   const { data, isPending, isError, error, refetch, isFetching, dataUpdatedAt } = usePatio({ pausado: saida !== null });
+  const vagas = useVagasPatio();
   const { toast, showToast, dismissToast } = useToast();
   const conteudo = useRef<HTMLDivElement>(null);
   const [busca, setBusca] = useState("");
@@ -40,6 +54,8 @@ export function PatioView() {
   const ordenados = ordenarPatio(todos);
   const visiveis = filtrarPatio(ordenados, { busca: termo, tipo, categoria });
   const resumo = resumirPatio(todos, visiveis);
+  const estatisticas = estatisticasPatio(todos);
+  const ocupacao = vagas ? ocupacaoPatio(todos, vagas) : null;
   const filtrando = termo !== "" || tipo !== "todos" || categoria !== "todas";
   const chave = `${termo}|${tipo}|${categoria}`;
   const limite = LIMITE_INICIAL + (expandido.chave === chave ? expandido.extra : 0);
@@ -144,6 +160,13 @@ export function PatioView() {
               </>
             )}
           </span>
+          {ocupacao && (
+            <span title={`Carros ${ocupacao.carros.ocupadas} de ${ocupacao.carros.vagas} · Motos ${ocupacao.motos.ocupadas} de ${ocupacao.motos.vagas}`}>
+              {`Ocupação ${ocupacao.percentual}%`}
+            </span>
+          )}
+          <span>{`Permanência média ${formatarMinutos(estatisticas.mediaMinutos)}`}</span>
+          {estatisticas.permanenciaLonga > 0 && <span>{`${estatisticas.permanenciaLonga} há 3 dias ou mais`}</span>}
           <span>{`Atualizado às ${formatTime(new Date(dataUpdatedAt).toISOString())}`}</span>
         </Resumo>
         <AtualizarBotao type="button" variant="secondary" size="sm" disabled={isFetching} onClick={() => void refetch()}>
@@ -159,6 +182,7 @@ export function PatioView() {
         categoria={categoria}
         onCategoriaChange={setCategoria}
         onLimparFiltros={limparFiltros}
+        estatisticas={estatisticas}
       />
 
       {visiveis.length === 0 ? (
@@ -189,6 +213,15 @@ export function PatioView() {
           )}
         </>
       )}
+
+      <GraficosDetalhes>
+        <summary>Ver gráficos do pátio</summary>
+        <GraficosGrade>
+          <BarrasHorizontais titulo="Tempo no pátio" itens={estatisticas.porPermanencia} />
+          <BarrasHorizontais titulo="Por operador de entrada" itens={estatisticas.porOperador} />
+          <ChegadasPorHora chegadas={chegadasPorHora(todos)} />
+        </GraficosGrade>
+      </GraficosDetalhes>
       {extras}
     </Conteudo>
   );
