@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.178",
+      "type": "feat",
+      "scope": "veiculos",
+      "title": "identifica o mensalista na entrada e libera a saída sem cobrança",
+      "description": "Na entrada, a opção manual \"Mensalista\" foi removida. O sistema consulta a\nplaca e mostra um aviso quando o veículo é de um mensalista. Se o cliente é\nmensalista mas está fora do horário contratado, o aviso informa que a entrada\nserá registrada como rotativo e cobrada normalmente.\n\nNa saída, o veículo de mensalista mostra o aviso, \"Nada a cobrar\" e deixa\nconcluir sem escolher forma de pagamento. Os recibos de entrada e de saída\nidentificam o mensalista, e o de saída mostra \"Sem cobrança\".",
+      "date": "2026-10-22T10:29:09-03:00"
+    },
+    {
+      "version": "1.0.177",
+      "type": "feat",
+      "scope": "mensalistas",
+      "title": "permite escolher os dias de atendimento de cada tipo",
+      "description": "O cadastro e a edição de tipo de mensalidade ganham o campo \"Dias de\natendimento\", de domingo a sábado. Um tipo novo começa com todos os dias\nmarcados e é preciso manter pelo menos um. A lista de tipos passa a mostrar\nos dias de cada um (\"Todos os dias\", \"Seg a Sex\" ou a lista de dias).\n\nAo editar um tipo, a tolerância de atraso e a quantidade de vagas que já\nexistem no cadastro são mantidas, para não serem zeradas ao salvar.",
+      "date": "2026-10-22T10:29:00-03:00"
+    },
+    {
       "version": "1.0.175",
       "type": "feat",
       "scope": "patio",
