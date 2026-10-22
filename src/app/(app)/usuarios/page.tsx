@@ -1,10 +1,10 @@
-import { Text } from "@/components/ui/Text";
+import type { Metadata } from "next";
+import { UsuariosPage } from "@/components/usuarios/UsuariosPage";
 
-export default function UsuariosPage() {
-  return (
-    <>
-      <Text variant="heading">Gestão de Usuários</Text>
-      <Text variant="muted">Esta tela será implementada em uma spec futura.</Text>
-    </>
-  );
+export const metadata: Metadata = {
+  title: "Gestão de Usuários — GIPE",
+};
+
+export default function Page() {
+  return <UsuariosPage />;
 }

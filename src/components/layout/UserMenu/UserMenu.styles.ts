@@ -106,6 +106,8 @@ export const InstallButton = styled.button`
   }
 `;
 
+export const DropdownItemButton = styled(InstallButton)``;
+
 export const InstallHint = styled.p`
   margin: 0;
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;

@@ -1,15 +1,10 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { createContext, ReactNode, useContext, useMemo, useSyncExternalStore } from "react";
+import { getToken } from "@/lib/auth";
+import { parseSession } from "@/lib/session";
 import type { CurrentUser } from "@/types/user";
-
-// Mock temporário: não existe sessão/autenticação real ainda (ver src/lib/auth.ts).
-// Quando o usuário logado vier de dado real, só esta implementação muda — os
-// componentes que consomem useCurrentUser() não são afetados.
-const MOCK_USER: CurrentUser = {
-  id: "mock-user-1",
-  name: "Renato Roessler",
-};
 
 type CurrentUserContextValue = {
   user: CurrentUser | null;
@@ -18,24 +13,29 @@ type CurrentUserContextValue = {
 
 const CurrentUserContext = createContext<CurrentUserContextValue | null>(null);
 
+// O cookie não avisa quando muda: o token é relido a cada renderização, e o provider renderiza a cada troca de rota
+// (usePathname), o que cobre login e logout feitos sem recarregar a página.
+const subscribeNada = () => () => {};
+
 export function CurrentUserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<CurrentUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setUser(MOCK_USER);
-      setIsLoading(false);
-    }, 400);
-
-    return () => clearTimeout(timeout);
-  }, []);
-
-  return (
-    <CurrentUserContext.Provider value={{ user, isLoading }}>
-      {children}
-    </CurrentUserContext.Provider>
+  usePathname();
+  // No servidor e na hidratação não há token: o usuário só aparece depois, no navegador.
+  const token = useSyncExternalStore(subscribeNada, getToken, () => null);
+  const hydrated = useSyncExternalStore(
+    subscribeNada,
+    () => true,
+    () => false,
   );
+
+  const value = useMemo<CurrentUserContextValue>(() => {
+    const session = parseSession(token);
+    const user: CurrentUser | null = session
+      ? { id: session.email || session.name, name: session.name, email: session.email, perfil: session.perfil }
+      : null;
+    return { user, isLoading: !hydrated };
+  }, [token, hydrated]);
+
+  return <CurrentUserContext.Provider value={value}>{children}</CurrentUserContext.Provider>;
 }
 
 export function useCurrentUser() {

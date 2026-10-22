@@ -1,17 +1,19 @@
 "use client";
 
-import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { Toast } from "@/components/ui/Toast";
+import { AlterarSenhaModal } from "@/components/usuarios/AlterarSenhaModal";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { clearToken } from "@/lib/auth";
+import { useToast } from "@/hooks/useToast";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { clearRememberedLogin } from "@/lib/rememberedLogin";
 import {
   Avatar,
   Divider,
   Dropdown,
-  DropdownItemLink,
+  DropdownItemButton,
   InstallButton,
   InstallHint,
   LogoutButton,
@@ -26,6 +28,8 @@ function getInitials(name: string) {
 export function UserMenu() {
   const { user } = useCurrentUser();
   const [isOpen, setIsOpen] = useState(false);
+  const [alterandoSenha, setAlterandoSenha] = useState(false);
+  const { toast, showToast, dismissToast } = useToast();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { canInstall, showIosHint, install } = usePwaInstall();
@@ -73,14 +77,16 @@ export function UserMenu() {
       </Avatar>
       {isOpen && (
         <Dropdown role="menu">
-          <DropdownItemLink
-            as={NextLink}
-            href="/usuario/editar"
+          <DropdownItemButton
+            type="button"
             role="menuitem"
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              setIsOpen(false);
+              setAlterandoSenha(true);
+            }}
           >
-            Editar Usuário
-          </DropdownItemLink>
+            Alterar senha
+          </DropdownItemButton>
           {canInstall && (
             <InstallButton
               type="button"
@@ -102,6 +108,8 @@ export function UserMenu() {
           </LogoutButton>
         </Dropdown>
       )}
+      {alterandoSenha && <AlterarSenhaModal onClose={() => setAlterandoSenha(false)} onSuccess={showToast} />}
+      {toast && <Toast message={toast.message} variant={toast.variant} onDismiss={dismissToast} />}
     </Wrapper>
   );
 }

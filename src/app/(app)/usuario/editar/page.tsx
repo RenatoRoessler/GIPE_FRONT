@@ -1,10 +1,6 @@
-import { Text } from "@/components/ui/Text";
+import { redirect } from "next/navigation";
 
+// A troca da própria senha agora é um modal no menu do usuário; a gestão de outros usuários fica em /usuarios.
 export default function EditarUsuarioPage() {
-  return (
-    <>
-      <Text variant="heading">Editar Usuário</Text>
-      <Text variant="muted">Esta tela será implementada em uma spec futura.</Text>
-    </>
-  );
+  redirect("/usuarios");
 }
