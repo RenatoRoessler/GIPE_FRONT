@@ -52,6 +52,7 @@ export function ReciboSaidaStep({ consulta, resultado, onConcluir }: ReciboSaida
     recebido: resultado.recebido,
     troco: resultado.troco,
     mensalista: consulta.mensalista,
+    link: saida.tokenRecibo ? `${window.location.origin}/recibo/${encodeURIComponent(saida.tokenRecibo)}` : null,
   };
 
   return (

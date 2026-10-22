@@ -109,6 +109,33 @@ export type EntradaRegistrada = {
   token: string;
 };
 
+// GET /Patio/recibo/cliente?token=... (público): o recibo de uma saída já registrada.
+export type ReciboCliente = {
+  cnpj: string;
+  razaoSocial: string;
+  endereco: string | null;
+  telefone: string | null;
+  placa: string;
+  modelo: string | null;
+  // Texto livre: entradas antigas não seguem o enum de cores.
+  cor: string | null;
+  categoriaId: number;
+  categoriaNome: string;
+  // ISO sem fuso, com 6 casas decimais.
+  dataEntrada: string;
+  dataSaida: string;
+  minutosPermanencia: number;
+  permanencia: string;
+  // Em reais (15100.00 = R$ 15.100,00), confirmado com o back.
+  valor: number;
+  formaPagamento: number;
+  descricaoFormaPagamento: string | null;
+  token: string;
+  notaFiscalSolicitada: boolean;
+  // [A CONFIRMAR com o back] O exemplo não traz o campo; sem ele, valor zero é tratado como sem cobrança.
+  mensalista?: boolean;
+};
+
 // GET /Patio/comprovante/cliente?token=...
 export type ComprovanteCliente = {
   cnpj: string;

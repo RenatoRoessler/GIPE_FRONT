@@ -44,4 +44,6 @@ export type SaidaRegistrada = {
   minutosPermanencia: number;
   valor: number;
   formaPagamento: number;
+  // [A CONFIRMAR com o back] Código do recibo público; sem ele o recibo da tela sai sem QR.
+  tokenRecibo?: string | null;
 };

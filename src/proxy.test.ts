@@ -14,6 +14,7 @@ describe("proxy: rotas públicas", () => {
     "/contrato?t=ABCDE12345",
     "/contrato",
     "/comprovante/ABC123",
+    "/recibo/ABC123",
     "/login",
     "/adesao",
     "/recuperar-senha",
@@ -23,7 +24,7 @@ describe("proxy: rotas públicas", () => {
     expect(resposta.headers.get("location")).toBeNull();
   });
 
-  it.each(["/mensalistas", "/", "/contrato-secreto", "/contratos"])("%s sem sessão vai para o login", (caminho) => {
+  it.each(["/mensalistas", "/", "/contrato-secreto", "/contratos", "/recibos", "/recibo-secreto"])("%s sem sessão vai para o login", (caminho) => {
     const resposta = chamar(caminho);
     expect(resposta.status).toBe(307);
     expect(resposta.headers.get("location")).toBe("http://localhost/login");

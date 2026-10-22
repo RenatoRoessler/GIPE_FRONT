@@ -1,6 +1,6 @@
 import { normalizePlaca } from "@/lib/placa";
 import type { PatioVeiculo } from "@/types/patio";
-import type { ComprovanteCliente, EntradaPayload, EntradaRegistrada } from "@/types/veiculo";
+import type { ComprovanteCliente, EntradaPayload, EntradaRegistrada, ReciboCliente } from "@/types/veiculo";
 import type { SaidaBusca, SaidaBuscaTipo, SaidaConsulta, SaidaPayload, SaidaRegistrada } from "@/types/saida";
 import { api } from "../client";
 import { ApiError } from "../errors";
@@ -19,6 +19,20 @@ export async function consultarComprovante(token: string): Promise<ComprovanteCl
   } catch (error) {
     if (error instanceof ApiError && (error.kind === "not_found" || error.kind === "validation")) {
       throw new ApiError("not_found", "Comprovante não encontrado.", 404);
+    }
+    throw error;
+  }
+}
+
+// Público (sem login): recibo de uma saída, aberto pelo QR do recibo.
+// [A CONFIRMAR] código devolvido para token inexistente: 404 e 400 são tratados como "não encontrado".
+export async function consultarRecibo(token: string): Promise<ReciboCliente> {
+  try {
+    const { data } = await api.get<ReciboCliente>("/Patio/recibo/cliente", { params: { token } });
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError && (error.kind === "not_found" || error.kind === "validation")) {
+      throw new ApiError("not_found", "Recibo não encontrado.", 404);
     }
     throw error;
   }

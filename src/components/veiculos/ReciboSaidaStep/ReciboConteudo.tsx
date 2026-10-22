@@ -4,6 +4,7 @@ import { formatDateTime } from "@/components/caixa/format";
 import { formatMinutos } from "@/components/precos/format";
 import { formatBRL } from "@/lib/money";
 import { getCategoriaVeiculoLabel, getFormaPagamentoLabel } from "../saida";
+import { QrRecibo } from "../QrRecibo";
 import { Divider, Receipt, ReceiptHeader, ReceiptPlaca, Rows } from "../Recibo.styles";
 import { Total } from "./ReciboSaidaStep.styles";
 
@@ -27,6 +28,8 @@ export type ReciboData = {
   troco: number | null;
   // Saída sem cobrança: não há forma de pagamento, valor recebido nem troco. O nome do cliente não vai no recibo.
   mensalista?: boolean;
+  // Página pública do recibo; sem o código do recibo vem vazio e o QR não aparece.
+  link?: string | null;
 };
 
 export function ReciboConteudo({ data }: { data: ReciboData }) {
@@ -94,6 +97,7 @@ export function ReciboConteudo({ data }: { data: ReciboData }) {
         {data.mensalista ? "Valor" : "Total pago"}
         <strong>{data.mensalista ? "Sem cobrança" : formatBRL(data.valor)}</strong>
       </Total>
+      <QrRecibo link={data.link} />
     </Receipt>
   );
 }

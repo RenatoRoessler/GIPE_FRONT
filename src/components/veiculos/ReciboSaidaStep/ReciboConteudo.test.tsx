@@ -21,6 +21,36 @@ const data: ReciboData = {
   troco: 30,
 };
 
+const LINK = "https://gipe.exemplo.com/recibo/ABCD1234EF";
+
+describe("ReciboConteudo: QR do recibo", () => {
+  it("com link mostra o QR e o endereço curto depois do total", () => {
+    renderWithTheme(<ReciboConteudo data={{ ...data, link: LINK }} />);
+
+    expect(screen.getByRole("img", { name: "QR code do recibo de saída" })).toBeInTheDocument();
+    expect(screen.getByText("Leve o recibo no celular")).toBeInTheDocument();
+    expect(screen.getByText("gipe.exemplo.com/recibo/ABCD1234EF")).toBeInTheDocument();
+
+    const total = screen.getByText("Total pago");
+    const qr = screen.getByText("Leve o recibo no celular");
+    // O QR vem depois do total na ordem do documento.
+    expect(total.compareDocumentPosition(qr) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("recibo de mensalista também mostra o QR", () => {
+    renderWithTheme(<ReciboConteudo data={{ ...data, mensalista: true, valor: 0, recebido: null, troco: null, link: LINK }} />);
+    expect(screen.getByText("Sem cobrança")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "QR code do recibo de saída" })).toBeInTheDocument();
+  });
+
+  it.each([null, undefined])("sem link (%s) não mostra QR nem sobra espaço", (link) => {
+    renderWithTheme(<ReciboConteudo data={{ ...data, link }} />);
+    expect(screen.queryByRole("img", { name: "QR code do recibo de saída" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Leve o recibo no celular")).not.toBeInTheDocument();
+    expect(screen.queryByText(/erro/i)).not.toBeInTheDocument();
+  });
+});
+
 describe("ReciboConteudo", () => {
   it("avulso mostra pagamento, valor recebido, troco e total pago", () => {
     renderWithTheme(<ReciboConteudo data={data} />);

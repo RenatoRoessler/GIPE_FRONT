@@ -71,6 +71,30 @@ export const ReceiptPlaca = styled.p`
   letter-spacing: 0.08em;
 `;
 
+// QR do recibo público: abaixo do total, centralizado.
+export const QrBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[1]}px;
+  padding-top: ${({ theme }) => theme.space[1]}px;
+  text-align: center;
+
+  strong {
+    font-size: ${({ theme }) => theme.fontSizes.md};
+  }
+
+  p {
+    color: ${({ theme }) => theme.colors.textMuted};
+  }
+`;
+
+export const QrLink = styled.span`
+  color: ${({ theme }) => theme.colors.link};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  overflow-wrap: anywhere;
+`;
+
 export const Actions = styled.div`
   display: flex;
   flex-direction: column-reverse;
