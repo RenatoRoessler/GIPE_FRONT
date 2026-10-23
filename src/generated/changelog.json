@@ -2,6 +2,30 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.199",
+      "type": "fix",
+      "scope": "permissoes",
+      "title": "padroniza o aviso quando a API nega o acesso",
+      "description": "Quando uma tela não carrega por falta de permissão, o sistema mostra\nsempre o mesmo aviso, com link para o início e sem o botão \"Tentar\nnovamente\", que não resolveria. A mensagem de permissão negada também\npassa a ser a mesma em todo o sistema.\n\nVale para usuários, empresa, caixa, preços e mensalistas.",
+      "date": "2026-10-23T17:27:07-03:00"
+    },
+    {
+      "version": "1.0.198",
+      "type": "feat",
+      "scope": "menu",
+      "title": "mostra só o que o perfil do usuário pode usar",
+      "description": "O menu do computador, o menu do celular e a barra inferior listam apenas\nas telas permitidas ao perfil; enquanto o perfil carrega aparecem\nindicadores de carregamento em vez de itens que somem depois.\n\nDentro das telas, a retirada e o histórico de turnos do caixa ficam\nocultos para quem não pode usá-los, e o painel do pátio no início não é\nmais consultado por quem não tem acesso ao pátio.",
+      "date": "2026-10-23T17:27:07-03:00"
+    },
+    {
+      "version": "1.0.197",
+      "type": "feat",
+      "scope": "permissoes",
+      "title": "bloqueia as áreas que o perfil do usuário não pode abrir",
+      "description": "Quem tenta abrir pelo endereço uma tela que o seu perfil não permite\npassa a ver a página \"Você não tem acesso a esta área\", com o botão\npara voltar ao início, em vez de a tela carregar e a API recusar.\n\nO perfil agora é reconhecido também quando o token traz a função em\nnúmero, e os perfis de conveniada passam a ser identificados. Sem perfil\nconhecido, só o Início fica liberado.",
+      "date": "2026-10-23T17:27:07-03:00"
+    },
+    {
       "version": "1.0.192",
       "type": "feat",
       "scope": "auth",
