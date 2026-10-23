@@ -1,7 +1,9 @@
 "use client";
 
+import { useStore } from "@tanstack/react-form";
 import { withForm } from "@/components/form";
 import { Input } from "@/components/ui/Input";
+import { PasswordRequirements } from "@/components/ui/PasswordRequirements";
 import { formatCPF } from "@/lib/cpf";
 import { formatPhone } from "@/lib/phone";
 import { EMPTY_ADMIN_USER_DATA } from "@/types/adesao";
@@ -11,6 +13,8 @@ export const AdminUserStepFields = withForm({
   defaultValues: EMPTY_ADMIN_USER_DATA,
   props: {} as { disabled?: boolean },
   render: function Render({ form, disabled }) {
+    const senha = useStore(form.store, (state) => state.values.senha);
+
     return (
       <Grid>
         <GridItem $span>
@@ -86,6 +90,9 @@ export const AdminUserStepFields = withForm({
             />
           )}
         </form.AppField>
+        <GridItem $span>
+          <PasswordRequirements value={senha} />
+        </GridItem>
       </Grid>
     );
   },

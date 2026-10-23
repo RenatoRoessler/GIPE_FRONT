@@ -144,6 +144,47 @@ describe("OnboardingWizard: pagamentos na etapa 1", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/login?cadastro=sucesso"));
   });
 
+  it("na etapa do titular mostra o checklist de senha e marca o que já foi cumprido", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await preencherEmpresa(user);
+    await user.click(proximo());
+    await screen.findByText("Quando a empresa funciona?");
+    await user.click(proximo());
+    await screen.findByText("Agora crie o usuário titular da conta.");
+
+    expect(screen.getByText("A senha precisa ter:")).toBeInTheDocument();
+    expect(screen.getByText("Pelo menos 8 caracteres")).toBeInTheDocument();
+    expect(screen.getByText("Um símbolo (ex.: @, #, !)")).toBeInTheDocument();
+
+    expect(screen.getAllByText("(pendente)")).toHaveLength(5);
+
+    await user.type(screen.getByLabelText(/^Senha/), "Senha@123");
+
+    expect(screen.getAllByText("(cumprida)")).toHaveLength(5);
+    expect(screen.queryByText("(pendente)")).not.toBeInTheDocument();
+  });
+
+  it("não conclui com uma senha fraca e diz o que falta", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await preencherEmpresa(user);
+    await user.click(proximo());
+    await screen.findByText("Quando a empresa funciona?");
+    await user.click(proximo());
+    await screen.findByText("Agora crie o usuário titular da conta.");
+    await user.type(screen.getByLabelText(/^Nome completo/), "Ana Souza");
+    await user.type(screen.getByLabelText(/^CPF/), "52998224725");
+    await user.type(screen.getByLabelText(/^Celular/), "11912345678");
+    await user.type(screen.getByLabelText(/^E-mail/), "ana@central.com");
+    await user.type(screen.getByLabelText(/^Senha/), "123456");
+    await user.type(screen.getByLabelText(/^Repetir senha/), "123456");
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(await screen.findByText(/Falta: .*uma letra maiúscula/)).toBeInTheDocument();
+    expect(saveAdesao).not.toHaveBeenCalled();
+  });
+
   it("sem mexer no bloco, a adesão envia o padrão: só dinheiro", async () => {
     const user = userEvent.setup();
     renderWizard();

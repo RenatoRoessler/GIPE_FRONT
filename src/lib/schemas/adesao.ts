@@ -5,6 +5,7 @@ import { isValidCPF } from "@/lib/cpf";
 import { isValidEmail } from "@/lib/email";
 import { SIGLAS_ESTADOS } from "@/lib/estados";
 import { isValidCelular, isValidPhone } from "@/lib/phone";
+import { getMissingPasswordRules } from "@/lib/password";
 import { TipoEmpresa } from "@/types/adesao";
 
 function vagasSchema(requiredMessage: string) {
@@ -139,13 +140,20 @@ export const adminUserSchema = z
       .trim()
       .min(1, "Informe o celular")
       .refine(isValidCelular, "Celular inválido"),
-    senha: z
-      .string()
-      .min(1, "Informe a senha")
-      .min(6, "A senha precisa ter ao menos 6 caracteres"),
+    senha: z.string().min(1, "Informe a senha"),
     repetirSenha: z.string().min(1, "Confirme a senha"),
   })
   .superRefine((data, ctx) => {
+    // Mesma regra da redefinição de senha.
+    const missing = data.senha ? getMissingPasswordRules(data.senha) : [];
+    if (missing.length > 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["senha"],
+        message: `Falta: ${missing.join(", ")}`,
+      });
+    }
+
     if (data.repetirSenha && data.repetirSenha !== data.senha) {
       ctx.addIssue({
         code: "custom",
