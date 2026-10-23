@@ -51,10 +51,15 @@ describe("login", () => {
 });
 
 describe("trocarSenhaPrimeiroAcesso", () => {
-  it("envia o passwordChangeToken e a nova senha", async () => {
+  it("envia o passwordChangeToken no header Authorization e só a nova senha no corpo", async () => {
     post.mockResolvedValue({ data: undefined });
     await trocarSenhaPrimeiroAcesso({ passwordChangeToken: "troca", novaSenha: "Nova@1234" });
-    expect(post).toHaveBeenCalledWith("/autenticacao/trocar-senha", { passwordChangeToken: "troca", novaSenha: "Nova@1234" });
+    expect(post).toHaveBeenCalledWith(
+      "/autenticacao/trocar-senha",
+      { novaSenha: "Nova@1234" },
+      { headers: { Authorization: "Bearer troca" } },
+    );
+    expect(post.mock.calls[0][1]).not.toHaveProperty("passwordChangeToken");
   });
 
   it("propaga o ApiError", async () => {

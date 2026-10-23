@@ -72,7 +72,8 @@ export async function resetPassword({
   await api.post("/autenticacao/redefinir-senha", { token, novaSenha: senha });
 }
 
-// Troca a senha temporária do primeiro acesso. O passwordChangeToken vem do login e substitui a sessão.
+// Troca a senha temporária do primeiro acesso (POST /autenticacao/trocar-senha). O passwordChangeToken vem do login
+// e vai no header Authorization (Bearer), no lugar da sessão; o corpo leva só a nova senha.
 // Rejeita com ApiError sem normalizar: o formulário decide pelo kind (401/403/404 = token vencido ou recusado).
 // O token e a senha nunca são logados.
 export async function trocarSenhaPrimeiroAcesso({
@@ -82,5 +83,9 @@ export async function trocarSenhaPrimeiroAcesso({
   passwordChangeToken: string;
   novaSenha: string;
 }): Promise<void> {
-  await api.post("/autenticacao/trocar-senha", { passwordChangeToken, novaSenha });
+  await api.post(
+    "/autenticacao/trocar-senha",
+    { novaSenha },
+    { headers: { Authorization: `Bearer ${passwordChangeToken}` } },
+  );
 }
