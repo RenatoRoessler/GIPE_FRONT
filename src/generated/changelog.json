@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.210",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "aplica à senha do titular as mesmas regras da redefinição",
+      "description": "Na etapa do usuário titular, a senha agora precisa ter 8 caracteres, uma\nletra maiúscula, uma minúscula, um número e um símbolo, como na\nredefinição de senha. Antes bastavam 6 caracteres. A tela mostra a lista\ndo que a senha precisa ter, marcando o que já foi cumprido, e a mensagem\nde erro diz o que falta.",
+      "date": "2026-10-23T18:55:42-03:00"
+    },
+    {
       "version": "1.0.208",
       "type": "fix",
       "scope": "auth",
