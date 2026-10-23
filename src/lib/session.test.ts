@@ -20,6 +20,29 @@ describe("parseSession", () => {
     expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: "Auditor" }))?.perfil).toBeNull();
   });
 
+  it("reconhece a role numérica, em texto ou número", () => {
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: "1" }))?.perfil).toBe(1);
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: 4 }))?.perfil).toBe(4);
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: "8" }))?.perfil).toBe(8);
+  });
+
+  it("reconhece os perfis de conveniada, por número e por nome", () => {
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: "5" }))?.perfil).toBe(5);
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: "GerenteConveniada" }))?.perfil).toBe(6);
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: "UsuarioConveniada" }))?.perfil).toBe(7);
+  });
+
+  it("com várias roles usa a primeira reconhecida", () => {
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: ["Auditor", "3", "1"] }))?.perfil).toBe(3);
+  });
+
+  it("role numérica fora do enum, vazia ou ausente resulta em perfil nulo", () => {
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: "99" }))?.perfil).toBeNull();
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: "" }))?.perfil).toBeNull();
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co", [ROLE]: [] }))?.perfil).toBeNull();
+    expect(parseSession(tokenWith({ [EMAIL]: "a@b.co" }))?.perfil).toBeNull();
+  });
+
   it("sem claim de nome usa o e-mail", () => {
     expect(parseSession(tokenWith({ [EMAIL]: "a@b.co" }))?.name).toBe("a@b.co");
   });

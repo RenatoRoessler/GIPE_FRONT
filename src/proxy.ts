@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/auth";
+import { areaDaRota, podeAcessar } from "@/lib/permissoes";
+import { parseSession } from "@/lib/session";
 
 // Únicas rotas acessíveis sem login: a adesão, o fluxo de acesso (login, recuperação de senha e primeiro acesso), o comprovante e o
 // recibo do cliente (abertos pelo QR) e o contrato do mensalista (aceite pelo link do e-mail).
@@ -10,10 +12,18 @@ function isPublicPath(pathname: string) {
 }
 
 export function proxy(request: NextRequest) {
-  const hasToken = request.cookies.has(AUTH_COOKIE_NAME);
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
 
-  if (!hasToken && !isPublicPath(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (!token) {
+    return isPublicPath(pathname) ? NextResponse.next() : NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Só barra a área que o perfil não pode abrir; a assinatura do token é validada pelo back em cada chamada.
+  // Token ilegível ou sem role conhecida vale como perfil nulo, que só acessa o início.
+  const area = areaDaRota(pathname);
+  if (area && !podeAcessar(parseSession(token)?.perfil, area)) {
+    return NextResponse.redirect(new URL("/acesso-negado", request.url));
   }
 
   return NextResponse.next();

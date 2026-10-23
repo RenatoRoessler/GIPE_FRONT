@@ -12,6 +12,10 @@ export const PERFIL_USUARIO = {
 } as const;
 export type PerfilUsuario = (typeof PERFIL_USUARIO)[keyof typeof PERFIL_USUARIO];
 
+export function isPerfilUsuario(valor: unknown): valor is PerfilUsuario {
+  return (Object.values(PERFIL_USUARIO) as unknown[]).includes(valor);
+}
+
 export const PERFIS_ESTACIONAMENTO = [
   PERFIL_USUARIO.Administrador,
   PERFIL_USUARIO.Gerente,
