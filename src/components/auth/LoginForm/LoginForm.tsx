@@ -3,6 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { EscolherEmpresa } from "@/components/auth/EscolherEmpresa";
 import { AuthCard, Footer, Form } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -12,7 +13,8 @@ import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { useToast } from "@/hooks/useToast";
-import { login } from "@/lib/api/services/auth";
+import { ApiError } from "@/lib/api/errors";
+import { login, selecionarEmpresa } from "@/lib/api/services/auth";
 import { clearToken, saveToken } from "@/lib/auth";
 import { formatCPF } from "@/lib/cpf";
 import { setPasswordChange } from "@/lib/passwordChangeSession";
@@ -22,6 +24,7 @@ import {
   saveRememberedLogin,
 } from "@/lib/rememberedLogin";
 import { loginSchema, LoginValues } from "@/lib/schemas/login";
+import type { EmpresaOpcao } from "@/types/auth";
 
 // Avisos exibidos ao chegar no login por outro fluxo (parâmetro de URL -> mensagem).
 const NOTICES: Record<string, Record<string, string>> = {
@@ -32,11 +35,54 @@ const NOTICES: Record<string, Record<string, string>> = {
   senha: { alterada: "Senha alterada! Faça login com a nova senha." },
 };
 
+// Etapa da tela: o formulário de login ou, para quem tem mais de uma empresa, a escolha da empresa. O token de
+// pré-autenticação e a senha digitada ficam só aqui, em memória: nunca em URL, cookie ou storage.
+type Etapa =
+  | { tipo: "login" }
+  | { tipo: "empresa"; preAuthToken: string; empresas: EmpresaOpcao[]; values: LoginValues };
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast, showToast, dismissToast } = useToast();
   const [remember, setRemember] = useState(false);
+  const [etapa, setEtapa] = useState<Etapa>({ tipo: "login" });
+  const [empresaPendente, setEmpresaPendente] = useState<string | null>(null);
+
+  // Abre a sessão (login direto ou depois de escolher a empresa) e aplica "Lembrar senha".
+  async function abrirSessao(token: string, values: LoginValues) {
+    saveToken(token);
+    if (remember) {
+      await saveRememberedLogin(values);
+    } else {
+      await clearRememberedLogin();
+    }
+    router.push("/dashboard");
+  }
+
+  const escolha = useMutation({
+    mutationFn: ({ empresaId }: { empresaId: string }) => {
+      if (etapa.tipo !== "empresa") throw new Error("Sem etapa de escolha de empresa.");
+      return selecionarEmpresa({ preAuthToken: etapa.preAuthToken, empresaGuid: empresaId });
+    },
+    onSuccess: async (token) => {
+      if (etapa.tipo !== "empresa") return;
+      await abrirSessao(token, etapa.values);
+    },
+    // Em caso de sucesso a empresa segue como "Entrando…" até a navegação; no erro, a lista volta a ficar clicável.
+    onError: () => setEmpresaPendente(null),
+  });
+
+  function escolherEmpresa(empresaId: string) {
+    setEmpresaPendente(empresaId);
+    escolha.mutate({ empresaId });
+  }
+
+  function voltarAoLogin() {
+    escolha.reset();
+    setEmpresaPendente(null);
+    setEtapa({ tipo: "login" });
+  }
 
   const mutation = useMutation({
     mutationFn: (values: LoginValues) => {
@@ -53,14 +99,12 @@ export function LoginForm() {
           await clearRememberedLogin();
           router.push("/primeiro-acesso");
           return;
+        case "escolher-empresa":
+          // Mais de uma empresa: ainda não há sessão. O "Lembrar senha" só vale depois que a empresa é escolhida.
+          setEtapa({ tipo: "empresa", preAuthToken: result.preAuthToken, empresas: result.empresas, values });
+          return;
         case "sessao":
-          saveToken(result.token);
-          if (remember) {
-            await saveRememberedLogin(values);
-          } else {
-            await clearRememberedLogin();
-          }
-          router.push("/dashboard");
+          await abrirSessao(result.token, values);
           return;
       }
     },
@@ -105,6 +149,19 @@ export function LoginForm() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (etapa.tipo === "empresa") {
+    return (
+      <EscolherEmpresa
+        empresas={etapa.empresas}
+        onEscolher={escolherEmpresa}
+        onVoltar={voltarAoLogin}
+        pendenteId={empresaPendente}
+        error={escolha.isError ? escolha.error.message : null}
+        expirada={escolha.isError && escolha.error instanceof ApiError && escolha.error.kind === "unauthorized"}
+      />
+    );
+  }
 
   return (
     <AuthCard title="Entrar" subtitle="Acesse com seu CPF e senha.">
