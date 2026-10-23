@@ -1,0 +1,1 @@
+export { ErroSemPermissao } from "./ErroSemPermissao";

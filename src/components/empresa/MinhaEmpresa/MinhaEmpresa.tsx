@@ -1,9 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Text } from "@/components/ui/Text";
+import { isForbiddenError } from "@/lib/api/errors";
 import { getEmpresa } from "@/lib/api/services/empresa";
 import { EMPRESA_QUERY_KEY, EmpresaForm } from "./EmpresaForm";
 import { Page, StatusRow } from "./MinhaEmpresa.styles";
@@ -27,6 +29,8 @@ export function MinhaEmpresa() {
       </Text>
       {isPending ? (
         <MinhaEmpresaSkeleton />
+      ) : isError && isForbiddenError(error) ? (
+        <ErroSemPermissao />
       ) : isError ? (
         <StatusRow>
           <ErrorBanner role="alert">{error.message}</ErrorBanner>

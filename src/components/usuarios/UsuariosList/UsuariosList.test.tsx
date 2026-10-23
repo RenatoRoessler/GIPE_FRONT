@@ -38,6 +38,15 @@ beforeEach(() => {
 });
 
 describe("UsuariosList", () => {
+  it("no 403 avisa da permissão, leva ao início e não oferece nova tentativa", async () => {
+    listar.mockRejectedValue(new ApiError("forbidden"));
+    renderWithProviders(<UsuariosList {...handlers} />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Você não tem permissão para acessar esta página.");
+    expect(screen.getByRole("link", { name: "Ir para o início" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.queryByRole("button", { name: "Tentar novamente" })).not.toBeInTheDocument();
+  });
+
   it("mostra o carregamento", () => {
     listar.mockReturnValue(new Promise(() => {}));
     renderWithProviders(<UsuariosList {...handlers} />);

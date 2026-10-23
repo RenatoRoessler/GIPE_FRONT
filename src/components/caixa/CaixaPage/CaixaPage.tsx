@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
+import { isForbiddenError } from "@/lib/api/errors";
 import { AbrirCaixaModal } from "../AbrirCaixaModal";
 import { CaixaFechado } from "../CaixaFechado";
 import { CaixaHeader } from "../CaixaHeader";
@@ -44,6 +46,8 @@ export function CaixaPage() {
           <VisuallyHidden>Carregando caixa…</VisuallyHidden>
           <Skeleton height="84px" radius="16px" />
         </div>
+      ) : caixaQuery.isError && isForbiddenError(caixaQuery.error) ? (
+        <ErroSemPermissao />
       ) : caixaQuery.isError ? (
         <StatusRow>
           <ErrorBanner role="alert">{caixaQuery.error.message}</ErrorBanner>
@@ -69,7 +73,9 @@ export function CaixaPage() {
             onFechar={() => setModal("fechar")}
           />
           <SaldoCards caixa={caixa} />
-          {turnoQuery.isError ? (
+          {turnoQuery.isError && isForbiddenError(turnoQuery.error) ? (
+            <ErroSemPermissao />
+          ) : turnoQuery.isError ? (
             <StatusRow>
               <ErrorBanner role="alert">{turnoQuery.error.message}</ErrorBanner>
               <Button type="button" variant="secondary" onClick={() => void turnoQuery.refetch()}>

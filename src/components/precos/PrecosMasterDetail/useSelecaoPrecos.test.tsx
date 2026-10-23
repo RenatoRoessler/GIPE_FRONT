@@ -83,7 +83,7 @@ describe("useSelecaoPrecos: seleção efetiva", () => {
   });
 
   it("na falha, não há seleção", () => {
-    const { result } = renderHook(() => useSelecaoPrecos(estado(), { status: "erro", erro: "x", refetch: vi.fn() }));
+    const { result } = renderHook(() => useSelecaoPrecos(estado(), { status: "erro", erro: "x", semPermissao: false, refetch: vi.fn() }));
     expect(result.current.selecionada).toBeNull();
   });
 

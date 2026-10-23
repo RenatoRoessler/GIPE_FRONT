@@ -1,6 +1,6 @@
 import { AxiosError, type AxiosResponse } from "axios";
 import { describe, expect, it } from "vitest";
-import { ApiError, normalizeError } from "./errors";
+import { ApiError, isForbiddenError, normalizeError } from "./errors";
 
 function axiosError(status: number, data: unknown): AxiosError {
   const response = { status, data } as AxiosResponse;
@@ -51,6 +51,18 @@ describe("normalizeError", () => {
     const error = normalizeError(axiosError(429, ""));
     expect(error.kind).toBe("rate_limited");
     expect(error.message).toBe("Muitas tentativas. Aguarde um pouco e tente de novo.");
+  });
+
+  it("403 sempre usa o texto padrão de permissão, mesmo com mensagem do back", () => {
+    const error = normalizeError(axiosError(403, { message: "Forbidden: policy Caixa.Sangria" }));
+    expect(error.kind).toBe("forbidden");
+    expect(error.message).toBe("Você não tem permissão para realizar esta ação.");
+  });
+
+  it("isForbiddenError só vale para ApiError de permissão", () => {
+    expect(isForbiddenError(new ApiError("forbidden"))).toBe(true);
+    expect(isForbiddenError(new ApiError("server"))).toBe(false);
+    expect(isForbiddenError(new Error("x"))).toBe(false);
   });
 
   it("usa a mensagem padrão do kind sem corpo útil", () => {

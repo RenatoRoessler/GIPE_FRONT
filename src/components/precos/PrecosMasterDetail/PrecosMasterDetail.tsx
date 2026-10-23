@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { useTheme } from "styled-components";
+import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Pagination } from "@/components/ui/Pagination";
@@ -91,6 +92,10 @@ export function PrecosMasterDetail() {
           ))}
         </SkeletonItens>
       );
+    }
+
+    if (precos.status === "erro" && precos.semPermissao) {
+      return <ErroSemPermissao />;
     }
 
     if (precos.status === "erro") {

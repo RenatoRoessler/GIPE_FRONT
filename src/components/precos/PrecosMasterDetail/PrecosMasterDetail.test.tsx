@@ -360,6 +360,15 @@ describe("PrecosMasterDetail: estados", () => {
     expect(listAllPrecos).toHaveBeenCalledTimes(2);
   });
 
+  it("no 403 avisa da permissão, leva ao início e não oferece nova tentativa", async () => {
+    vi.mocked(listAllPrecos).mockRejectedValueOnce(new ApiError("forbidden"));
+    renderTela();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Você não tem permissão para acessar esta página.");
+    expect(screen.getByRole("link", { name: "Ir para o início" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.queryByRole("button", { name: "Tentar novamente" })).not.toBeInTheDocument();
+  });
+
   it("vazio mostra a mensagem e Novo preço", async () => {
     const user = userEvent.setup();
     vi.mocked(listAllPrecos).mockResolvedValue([]);

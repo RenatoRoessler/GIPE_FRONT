@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { isForbiddenError } from "@/lib/api/errors";
 import { listAllPrecos } from "@/lib/api/services/preco";
 import type { PrecoView } from "@/types/preco";
 import { contarPrecos, filtrarPrecos, type FiltroSituacao } from "../filtros";
@@ -16,7 +17,7 @@ export interface UsePrecosEstado {
 
 export type UsePrecos =
   | { status: "carregando" }
-  | { status: "erro"; erro: string; refetch: () => void }
+  | { status: "erro"; erro: string; semPermissao: boolean; refetch: () => void }
   | {
       status: "pronto";
       todas: PrecoView[];
@@ -41,7 +42,7 @@ export function usePrecos({ q, situacao, pagina }: UsePrecosEstado): UsePrecos {
 
   if (query.data === undefined) {
     return query.isError
-      ? { status: "erro", erro: query.error.message, refetch: () => void query.refetch() }
+      ? { status: "erro", erro: query.error.message, semPermissao: isForbiddenError(query.error), refetch: () => void query.refetch() }
       : { status: "carregando" };
   }
 

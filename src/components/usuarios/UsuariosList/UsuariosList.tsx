@@ -1,5 +1,6 @@
 "use client";
 
+import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -7,6 +8,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/Table";
 import { Text } from "@/components/ui/Text";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
+import { isForbiddenError } from "@/lib/api/errors";
 import { formatCPF } from "@/lib/cpf";
 import { parseApiDate } from "@/lib/date";
 import { formatPhone } from "@/lib/phone";
@@ -33,6 +35,10 @@ function ehOProprio(usuario: Usuario, email: string | undefined): boolean {
 export function UsuariosList({ onNovo, onEditar }: UsuariosListProps) {
   const { user } = useCurrentUser();
   const { data, isPending, isError, error, refetch, isFetching } = useUsuarios();
+
+  if (isError && isForbiddenError(error)) {
+    return <ErroSemPermissao />;
+  }
 
   if (isError) {
     return (

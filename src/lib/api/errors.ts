@@ -38,6 +38,10 @@ export class ApiError extends Error {
   }
 }
 
+export function isForbiddenError(error: unknown): boolean {
+  return error instanceof ApiError && error.kind === "forbidden";
+}
+
 function kindFromStatus(status: number): ApiErrorKind {
   if (status === 401) return "unauthorized";
   if (status === 403) return "forbidden";
@@ -78,7 +82,9 @@ export function normalizeError(error: unknown): ApiError {
 
     const { status, data } = error.response;
     const body = typeof data === "object" && data !== null ? data : undefined;
-    return new ApiError(kindFromStatus(status), messageFromBody(body), status, body?.errors);
+    const kind = kindFromStatus(status);
+    // Permissão negada tem sempre o mesmo texto no sistema, seja qual for a mensagem do back.
+    return new ApiError(kind, kind === "forbidden" ? undefined : messageFromBody(body), status, body?.errors);
   }
 
   return new ApiError("unknown");
