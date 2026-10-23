@@ -93,6 +93,28 @@ describe("proxy: permissão por perfil", () => {
     expect(chamar(caminho, tokenDoPerfil(String(perfil))).headers.get("location")).toBeNull();
   });
 
+  it.each([
+    [MANOBRISTA, "/caixa/historico"],
+    [MANOBRISTA, "/caixa/historico/12"],
+    [CAIXA, "/caixa/historico"],
+    [CAIXA, "/caixa/historico/12"],
+    [FINANCEIRO, "/caixa/historico"],
+  ])("perfil %i em %s não chega ao histórico de caixas", (perfil, caminho) => {
+    const resposta = chamar(caminho, tokenDoPerfil(String(perfil)));
+    expect(resposta.headers.get("location")).toBe("http://localhost/acesso-negado");
+  });
+
+  it.each([
+    [ADMINISTRADOR, "/caixa/historico"],
+    [ADMINISTRADOR, "/caixa/historico/12"],
+    [GERENTE, "/caixa/historico"],
+    [GERENTE, "/caixa/historico/12"],
+    [CAIXA, "/caixa"],
+    [MANOBRISTA, "/caixa"],
+  ])("perfil %i em %s passa", (perfil, caminho) => {
+    expect(chamar(caminho, tokenDoPerfil(String(perfil))).headers.get("location")).toBeNull();
+  });
+
   it("a role pelo nome também vale", () => {
     expect(chamar("/precos", tokenDoPerfil("Gerente")).headers.get("location")).toBeNull();
     expect(chamar("/precos", tokenDoPerfil("Caixa")).headers.get("location")).toBe("http://localhost/acesso-negado");

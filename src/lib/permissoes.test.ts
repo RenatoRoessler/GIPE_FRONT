@@ -58,6 +58,13 @@ describe("areaDaRota", () => {
     expect(areaDaRota("/notas-fiscais")).toBe(AREA.NotasFiscais);
   });
 
+  it("o histórico de caixas é uma área própria, o resto do caixa não", () => {
+    expect(areaDaRota("/caixa")).toBe(AREA.Caixa);
+    expect(areaDaRota("/caixa/historico")).toBe(AREA.CaixaHistorico);
+    expect(areaDaRota("/caixa/historico/12")).toBe(AREA.CaixaHistorico);
+    expect(areaDaRota("/caixa/historicos")).toBe(AREA.Caixa);
+  });
+
   it("rotas abertas não têm área", () => {
     expect(areaDaRota("/usuario/editar")).toBeNull();
     expect(areaDaRota("/atualizacoes")).toBeNull();

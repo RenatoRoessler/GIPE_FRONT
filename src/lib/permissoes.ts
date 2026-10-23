@@ -54,6 +54,8 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/dashboard", AREA.Inicio],
   ["/patio", AREA.Patio],
   ["/caixa", AREA.Caixa],
+  // Histórico de caixas fechados e extrato: só Administrador e Gerente, ao contrário do restante do caixa.
+  ["/caixa/historico", AREA.CaixaHistorico],
   ["/precos", AREA.Precos],
   ["/mensalistas", AREA.Mensalistas],
   ["/notas-fiscais", AREA.NotasFiscais],
@@ -65,7 +67,10 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
 // Rotas da área logada abertas a qualquer usuário autenticado.
 export const ROTAS_SEM_AREA = ["/acesso-negado", "/atualizacoes", "/usuario"] as const;
 
+// O prefixo mais longo vence: /caixa/historico é do histórico, não do caixa.
+const ROTAS_POR_ESPECIFICIDADE = [...AREA_POR_ROTA].sort((a, b) => b[0].length - a[0].length);
+
 export function areaDaRota(pathname: string): Area | null {
-  const encontrada = AREA_POR_ROTA.find(([prefixo]) => pathname === prefixo || pathname.startsWith(`${prefixo}/`));
+  const encontrada = ROTAS_POR_ESPECIFICIDADE.find(([prefixo]) => pathname === prefixo || pathname.startsWith(`${prefixo}/`));
   return encontrada ? encontrada[1] : null;
 }
