@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.214",
+      "type": "feat",
+      "scope": "empresa",
+      "title": "permite adicionar uma nova empresa à conta do Administrador",
+      "description": "Em \"Minha empresa\" surge o botão \"Adicionar empresa\", que abre um\nformulário igual ao da própria empresa, em branco: dados da empresa,\nfuncionamento e pagamentos, com busca do endereço pelo CEP. Ao criar, o\nsistema confirma e explica que o acesso à nova empresa é saindo e\nescolhendo-a no login. Cancelar com dados digitados pede confirmação, e\nerros como CNPJ já cadastrado mostram a mensagem da API sem perder o que\nfoi digitado. Só o Administrador vê o botão e acessa a tela.\n\nPor baixo, o formulário de \"Minha empresa\" foi dividido em partes\nreaproveitadas pelas duas telas, e a saída da conta passou a ser uma\nrotina única usada pelo menu do usuário e pela tela de confirmação.",
+      "date": "2026-10-23T20:01:10-03:00"
+    },
+    {
+      "version": "1.0.213",
+      "type": "feat",
+      "scope": "auth",
+      "title": "permite escolher a empresa ao entrar quando a conta tem mais de uma",
+      "description": "Quem tem acesso a mais de uma empresa passa a ver, depois de digitar o\nCPF e a senha, a lista das suas empresas com o CNPJ e o perfil em cada\numa, e entra na que tocar. Antes, a tela de login não entendia essa\nsituação e a pessoa não conseguia entrar. Usuários com uma só empresa\ncontinuam entrando direto.\n\nA senha lembrada só é guardada depois de escolher a empresa, e a escolha\nque vence mostra uma mensagem e leva de volta ao login.",
+      "date": "2026-10-23T20:01:10-03:00"
+    },
+    {
       "version": "1.0.210",
       "type": "feat",
       "scope": "adesao",
