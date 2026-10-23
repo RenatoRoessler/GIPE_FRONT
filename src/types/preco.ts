@@ -11,9 +11,9 @@ export const TIPO_CATEGORIA = {
   Moto: 1,
   CarroPequeno: 2,
   CarroMedio: 3,
-  SuvPickUp: 4,
-  Caminhonete: 5,
-  Caminhao: 6,
+  Caminhonete: 4,
+  Caminhao: 5,
+  CarroGrande: 6,
   Todas: 99,
 } as const;
 
@@ -31,9 +31,9 @@ export const TIPO_CATEGORIA_OPTIONS: { value: TipoCategoria; label: string }[] =
   { value: TIPO_CATEGORIA.Moto, label: "Moto" },
   { value: TIPO_CATEGORIA.CarroPequeno, label: "Carro pequeno" },
   { value: TIPO_CATEGORIA.CarroMedio, label: "Carro médio" },
-  { value: TIPO_CATEGORIA.SuvPickUp, label: "SUV / Pick-up" },
   { value: TIPO_CATEGORIA.Caminhonete, label: "Caminhonete" },
   { value: TIPO_CATEGORIA.Caminhao, label: "Caminhão" },
+  { value: TIPO_CATEGORIA.CarroGrande, label: "Carro grande" },
   { value: TIPO_CATEGORIA.Todas, label: "Todas" },
 ];
 

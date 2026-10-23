@@ -26,14 +26,6 @@ const PATHS: Record<CategoriaVeiculo, ReactNode> = {
       <path d="M15 23h18" />
     </>
   ),
-  [CATEGORIA_VEICULO.SuvPickUp]: (
-    <>
-      <path d="M7 23h-3v-9l4-1 4-6h22l6 6h5v10h-3" />
-      <circle cx="12" cy="23" r="3" />
-      <circle cx="37" cy="23" r="3" />
-      <path d="M15 23h19M20 7v6" />
-    </>
-  ),
   [CATEGORIA_VEICULO.Caminhonete]: (
     <>
       <path d="M7 23h-4v-7l5-1 4-7h12v8h21v7h-4" />

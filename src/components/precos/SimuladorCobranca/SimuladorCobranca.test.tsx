@@ -59,7 +59,7 @@ describe("SimuladorCobranca", () => {
   it("oferece as seis categorias de veículo, sem 'Todas'", () => {
     renderWithTheme(<SimuladorCobranca preco={preco()} />);
     const opcoes = screen.getAllByRole("option").map((option) => option.textContent);
-    expect(opcoes).toEqual(["Moto", "Carro pequeno", "Carro médio", "SUV / Pick-up", "Caminhonete", "Caminhão"]);
+    expect(opcoes).toEqual(["Moto", "Carro pequeno", "Carro médio", "Caminhonete", "Caminhão", "Carro grande"]);
   });
 
   it("o aviso de estimativa está sempre visível", () => {

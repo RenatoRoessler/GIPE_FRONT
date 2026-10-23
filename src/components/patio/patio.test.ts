@@ -140,7 +140,7 @@ describe("filtrarPatio: tipo e categoria", () => {
 
   it("categoria por igualdade numérica", () => {
     expect(placas(filtrarPatio(itens, { ...sem, categoria: 3 }))).toEqual(["AVU2B22"]);
-    expect(filtrarPatio(itens, { ...sem, categoria: 5 })).toEqual([]);
+    expect(filtrarPatio(itens, { ...sem, categoria: 4 })).toEqual([]);
   });
 
   it("busca, tipo e categoria valem juntos", () => {
@@ -162,8 +162,8 @@ describe("rotuloCategoria e categoriaConhecida", () => {
   it("devolve o rótulo da categoria conhecida", () => {
     expect(rotuloCategoria(1)).toBe("Moto");
     expect(rotuloCategoria(2)).toBe("Carro pequeno");
-    expect(rotuloCategoria(7)).toBe("Carro grande");
-    expect(categoriaConhecida(7)).toBe(true);
+    expect(rotuloCategoria(6)).toBe("Carro grande");
+    expect(categoriaConhecida(6)).toBe(true);
   });
 
   it("categoria desconhecida vira Categoria N, sem quebrar", () => {
@@ -253,7 +253,7 @@ describe("ocupacaoPatio", () => {
   const vagas = { moto: 12, carro: 23 };
 
   it("moto ocupa vaga de moto e as demais categorias ocupam vaga de carro", () => {
-    const itens = [veiculo({ categoria: 1 }), veiculo({ categoria: 1 }), veiculo({ categoria: 2 }), veiculo({ categoria: 6 })];
+    const itens = [veiculo({ categoria: 1 }), veiculo({ categoria: 1 }), veiculo({ categoria: 2 }), veiculo({ categoria: 5 })];
 
     expect(ocupacaoPatio(itens, vagas)).toEqual({
       percentual: 11,

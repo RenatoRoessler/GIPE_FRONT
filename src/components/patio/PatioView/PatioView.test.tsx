@@ -37,7 +37,7 @@ function veiculo(extra: Partial<PatioVeiculo> = {}): PatioVeiculo {
 
 const DOIS_DIAS = veiculo({ placa: "BRA2E19", modelo: "Corsa Classic", minutosPermanencia: 2880, permanencia: "2d 0h 0min", categoria: 3, sequencial: 2464, codigoTicket: 24024 });
 const UM_DIA = veiculo({ placa: "MNB7880", modelo: "Gol", minutosPermanencia: 1440, permanencia: "1d 0h 0min", categoria: 1 });
-const MENSALISTA = veiculo({ placa: "ZNF7Z70", modelo: "Corolla Cross", minutosPermanencia: 90, permanencia: "1h 30min", categoria: 7, mensalista: true });
+const MENSALISTA = veiculo({ placa: "ZNF7Z70", modelo: "Corolla Cross", minutosPermanencia: 90, permanencia: "1h 30min", categoria: 6, mensalista: true });
 
 function abrir(lista: PatioVeiculo[] = [UM_DIA, DOIS_DIAS, MENSALISTA]) {
   vi.mocked(listPatio).mockResolvedValue(lista);
