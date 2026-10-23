@@ -7,6 +7,10 @@ import type { EmpresaFormValues } from "@/types/empresa";
 import { renderWithProviders } from "@/test/render";
 
 vi.mock("@/lib/api/services/empresa", () => ({ updateEmpresa: vi.fn(), getEmpresa: vi.fn() }));
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+const sessao = vi.hoisted(() => ({ atual: { user: { name: "Maria", perfil: 1 } as { name: string; perfil: number | null } | null, isLoading: false } }));
+vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => sessao.atual }));
 
 import { getEmpresa, updateEmpresa } from "@/lib/api/services/empresa";
 import { MinhaEmpresa } from "./MinhaEmpresa";
@@ -52,6 +56,37 @@ const descartar = () => screen.getByRole("button", { name: "Descartar alteraçõ
 beforeEach(() => {
   vi.mocked(updateEmpresa).mockReset().mockResolvedValue(undefined);
   vi.mocked(getEmpresa).mockReset();
+  push.mockReset();
+  sessao.atual = { user: { name: "Maria", perfil: 1 }, isLoading: false };
+});
+
+describe("EmpresaForm: acesso a Adicionar empresa", () => {
+  it("o Administrador vê o botão e ele leva à tela de nova empresa", async () => {
+    await renderForm();
+
+    await userEvent.click(screen.getByRole("button", { name: "Adicionar empresa" }));
+
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(push).toHaveBeenCalledWith("/minha-empresa/nova");
+  });
+
+  it.each([
+    ["Gerente", 2],
+    ["Caixa", 4],
+    ["perfil desconhecido", null],
+  ])("%s não vê o botão", async (_nome, perfil) => {
+    sessao.atual = { user: { name: "X", perfil }, isLoading: false };
+    await renderForm();
+
+    expect(screen.queryByRole("button", { name: "Adicionar empresa" })).not.toBeInTheDocument();
+  });
+
+  it("enquanto o perfil carrega o botão não aparece", async () => {
+    sessao.atual = { user: null, isLoading: true };
+    await renderForm();
+
+    expect(screen.queryByRole("button", { name: "Adicionar empresa" })).not.toBeInTheDocument();
+  });
 });
 
 describe("EmpresaForm: seção Pagamentos", () => {

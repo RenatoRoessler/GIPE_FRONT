@@ -54,6 +54,7 @@ describe("areaDaRota", () => {
     expect(areaDaRota("/precos/novo")).toBe(AREA.Precos);
     expect(areaDaRota("/precos/123/editar")).toBe(AREA.Precos);
     expect(areaDaRota("/minha-empresa")).toBe(AREA.Empresa);
+    expect(areaDaRota("/minha-empresa/nova")).toBe(AREA.Empresa);
     expect(areaDaRota("/usuarios")).toBe(AREA.Usuarios);
     expect(areaDaRota("/notas-fiscais")).toBe(AREA.NotasFiscais);
   });

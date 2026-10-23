@@ -9,6 +9,24 @@ export const Page = styled.div`
   max-width: 880px;
 `;
 
+export const HeaderRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[3]}px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    & > button {
+      width: 100%;
+    }
+  }
+`;
+
 export const TitleGroup = styled.div`
   display: flex;
   flex-direction: column;

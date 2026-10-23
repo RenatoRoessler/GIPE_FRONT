@@ -1,14 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "@/components/ui/Toast";
 import { AlterarSenhaModal } from "@/components/usuarios/AlterarSenhaModal";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
-import { clearToken } from "@/lib/auth";
 import { useToast } from "@/hooks/useToast";
+import { useLogout } from "@/hooks/useLogout";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
-import { clearRememberedLogin } from "@/lib/rememberedLogin";
 import {
   Avatar,
   Divider,
@@ -31,7 +29,7 @@ export function UserMenu() {
   const [alterandoSenha, setAlterandoSenha] = useState(false);
   const { toast, showToast, dismissToast } = useToast();
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+  const logout = useLogout();
   const { canInstall, showIosHint, install } = usePwaInstall();
 
   useEffect(() => {
@@ -59,9 +57,7 @@ export function UserMenu() {
 
   function handleLogout() {
     setIsOpen(false);
-    clearToken();
-    void clearRememberedLogin();
-    router.push("/login");
+    logout();
   }
 
   return (
