@@ -40,13 +40,6 @@ export async function updateAtivo(id: number, ativo: boolean): Promise<void> {
 }
 
 // Rejeita com ApiError. A senha nunca é logada.
-// `bearerToken` é o passwordChangeToken do primeiro acesso: o usuário ainda não tem sessão e o token de troca faz o
-// papel dela nesta chamada. Sem ele vale a sessão do cookie. Com o token, quem chama limpa antes o cookie de sessão,
-// que o interceptor do `api` usaria no lugar dele.
-export async function alterarSenha(payload: AlterarSenhaPayload, options: { bearerToken?: string } = {}): Promise<void> {
-  await api.put(
-    "/Usuario/senha",
-    { senhaAtual: payload.senhaAtual, novaSenha: payload.novaSenha },
-    options.bearerToken ? { headers: { Authorization: `Bearer ${options.bearerToken}` } } : undefined,
-  );
+export async function alterarSenha(payload: AlterarSenhaPayload): Promise<void> {
+  await api.put("/Usuario/senha", { senhaAtual: payload.senhaAtual, novaSenha: payload.novaSenha });
 }

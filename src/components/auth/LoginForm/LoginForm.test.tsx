@@ -12,8 +12,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => searchParams,
 }));
 vi.mock("@/contexts/ThemeModeContext", () => ({ useThemeMode: () => ({ mode: "light", toggleThemeMode: vi.fn() }) }));
-vi.mock("@/lib/api/services/auth", () => ({ login: vi.fn() }));
-vi.mock("@/lib/api/services/usuario", () => ({ alterarSenha: vi.fn() }));
+vi.mock("@/lib/api/services/auth", () => ({ login: vi.fn(), trocarSenhaPrimeiroAcesso: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ clearToken: vi.fn(), saveToken: vi.fn(), getToken: vi.fn() }));
 vi.mock("@/lib/rememberedLogin", () => ({
   clearRememberedLogin: vi.fn(),
@@ -21,8 +20,7 @@ vi.mock("@/lib/rememberedLogin", () => ({
   saveRememberedLogin: vi.fn(),
 }));
 
-import { login } from "@/lib/api/services/auth";
-import { alterarSenha } from "@/lib/api/services/usuario";
+import { login, trocarSenhaPrimeiroAcesso } from "@/lib/api/services/auth";
 import { clearToken, saveToken } from "@/lib/auth";
 import { clearPasswordChange, getPasswordChange } from "@/lib/passwordChangeSession";
 import { clearRememberedLogin, loadRememberedLogin, saveRememberedLogin } from "@/lib/rememberedLogin";
@@ -131,7 +129,7 @@ describe("fluxo completo do primeiro acesso (serviços mockados)", () => {
   it("login com troca -> tela de primeiro acesso -> troca -> login com aviso", async () => {
     const user = userEvent.setup();
     entrar.mockResolvedValue({ kind: "trocar-senha", passwordChangeToken: "troca" });
-    vi.mocked(alterarSenha).mockResolvedValue();
+    vi.mocked(trocarSenhaPrimeiroAcesso).mockResolvedValue();
 
     const login1 = renderWithProviders(<LoginForm />);
     await preencherEEnviar(user);
@@ -144,10 +142,7 @@ describe("fluxo completo do primeiro acesso (serviços mockados)", () => {
     await user.type(screen.getByLabelText("Repetir senha"), "Nova@1234");
     await user.click(screen.getByRole("button", { name: "Salvar nova senha" }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/login?senha=alterada"));
-    expect(alterarSenha).toHaveBeenCalledWith(
-      { senhaAtual: "Temp@1234", novaSenha: "Nova@1234" },
-      { bearerToken: "troca" },
-    );
+    expect(trocarSenhaPrimeiroAcesso).toHaveBeenCalledWith({ passwordChangeToken: "troca", novaSenha: "Nova@1234" });
     expect(getPasswordChange()).toBeNull();
     expect(replace).not.toHaveBeenCalled();
   });

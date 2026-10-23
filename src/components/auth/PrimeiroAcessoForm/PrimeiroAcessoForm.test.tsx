@@ -8,17 +8,15 @@ const push = vi.fn();
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace }) }));
 vi.mock("@/contexts/ThemeModeContext", () => ({ useThemeMode: () => ({ mode: "light", toggleThemeMode: vi.fn() }) }));
-vi.mock("@/lib/api/services/usuario", () => ({ alterarSenha: vi.fn() }));
-vi.mock("@/lib/auth", () => ({ clearToken: vi.fn(), getToken: vi.fn() }));
+vi.mock("@/lib/api/services/auth", () => ({ trocarSenhaPrimeiroAcesso: vi.fn() }));
 vi.mock("@/lib/rememberedLogin", () => ({ clearRememberedLogin: vi.fn().mockResolvedValue(undefined) }));
 
-import { alterarSenha } from "@/lib/api/services/usuario";
-import { clearToken } from "@/lib/auth";
+import { trocarSenhaPrimeiroAcesso } from "@/lib/api/services/auth";
 import { clearPasswordChange, getPasswordChange, setPasswordChange } from "@/lib/passwordChangeSession";
 import { clearRememberedLogin } from "@/lib/rememberedLogin";
 import { PrimeiroAcessoForm } from "./PrimeiroAcessoForm";
 
-const trocar = vi.mocked(alterarSenha);
+const trocar = vi.mocked(trocarSenhaPrimeiroAcesso);
 const SENHA = "Nova@1234";
 const TEMPORARIA = "Temp@1234";
 
@@ -79,11 +77,7 @@ describe("PrimeiroAcessoForm: com token", () => {
     await user.click(screen.getByRole("button", { name: "Salvar nova senha" }));
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/login?senha=alterada"));
-    expect(trocar).toHaveBeenCalledWith(
-      { senhaAtual: TEMPORARIA, novaSenha: SENHA },
-      { bearerToken: "token-de-troca" },
-    );
-    expect(clearToken).toHaveBeenCalled();
+    expect(trocar).toHaveBeenCalledWith({ passwordChangeToken: "token-de-troca", novaSenha: SENHA });
     expect(clearRememberedLogin).toHaveBeenCalled();
     expect(getPasswordChange()).toBeNull();
     // Concluir não pode mandar ao login por outro caminho.

@@ -60,17 +60,7 @@ describe("usuario service", () => {
   it("altera a senha enviando só os dois campos", async () => {
     put.mockResolvedValue({ data: undefined });
     await alterarSenha({ senhaAtual: "antiga1", novaSenha: "nova123" });
-    expect(put).toHaveBeenCalledWith("/Usuario/senha", { senhaAtual: "antiga1", novaSenha: "nova123" }, undefined);
-  });
-
-  it("no primeiro acesso usa o token de troca como Bearer", async () => {
-    put.mockResolvedValue({ data: undefined });
-    await alterarSenha({ senhaAtual: "Temp@1234", novaSenha: "Nova@1234" }, { bearerToken: "troca" });
-    expect(put).toHaveBeenCalledWith(
-      "/Usuario/senha",
-      { senhaAtual: "Temp@1234", novaSenha: "Nova@1234" },
-      { headers: { Authorization: "Bearer troca" } },
-    );
+    expect(put).toHaveBeenCalledWith("/Usuario/senha", { senhaAtual: "antiga1", novaSenha: "nova123" });
   });
 
   it("propaga o ApiError", async () => {

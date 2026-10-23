@@ -15,7 +15,7 @@ const trocaSenhaSchema = z.object({
 export type LoginResult =
   | { kind: "sessao"; token: string }
   // Primeiro acesso: o back não abre sessão; devolve só um token para trocar a senha temporária.
-  // O passwordChangeToken autoriza `alterarSenha` (PUT /Usuario/senha) no lugar da sessão.
+  // O passwordChangeToken é enviado a `trocarSenhaPrimeiroAcesso` (POST /autenticacao/trocar-senha).
   | { kind: "trocar-senha"; passwordChangeToken: string };
 
 function toLoginResult(body: unknown): LoginResult {
@@ -70,4 +70,17 @@ export async function resetPassword({
   senha: string;
 }): Promise<void> {
   await api.post("/autenticacao/redefinir-senha", { token, novaSenha: senha });
+}
+
+// Troca a senha temporária do primeiro acesso. O passwordChangeToken vem do login e substitui a sessão.
+// Rejeita com ApiError sem normalizar: o formulário decide pelo kind (401/403/404 = token vencido ou recusado).
+// O token e a senha nunca são logados.
+export async function trocarSenhaPrimeiroAcesso({
+  passwordChangeToken,
+  novaSenha,
+}: {
+  passwordChangeToken: string;
+  novaSenha: string;
+}): Promise<void> {
+  await api.post("/autenticacao/trocar-senha", { passwordChangeToken, novaSenha });
 }

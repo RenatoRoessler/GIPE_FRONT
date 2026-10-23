@@ -10,8 +10,7 @@ import { Link } from "@/components/ui/Link";
 import { PasswordRequirements } from "@/components/ui/PasswordRequirements";
 import { Text } from "@/components/ui/Text";
 import { useAppForm, zodFieldErrors } from "@/components/form";
-import { alterarSenha } from "@/lib/api/services/usuario";
-import { clearToken } from "@/lib/auth";
+import { trocarSenhaPrimeiroAcesso } from "@/lib/api/services/auth";
 import { clearPasswordChange, getPasswordChange, subscribePasswordChange } from "@/lib/passwordChangeSession";
 import { clearRememberedLogin } from "@/lib/rememberedLogin";
 import { resetPasswordSchema, ResetPasswordValues } from "@/lib/schemas/resetPassword";
@@ -27,16 +26,9 @@ export function PrimeiroAcessoForm() {
   const concluidoRef = useRef(false);
 
   const mutation = useMutation({
-    // Mesma chamada de "Alterar senha" (PUT /Usuario/senha): o passwordChangeToken do login faz o papel da sessão e a
-    // senha temporária é a senha atual.
-    mutationFn: (values: ResetPasswordValues) => {
-      // Sem sessão ativa: o cookie de um login anterior sobrescreveria o token de troca no cabeçalho.
-      clearToken();
-      return alterarSenha(
-        { senhaAtual: dados?.senhaAtual ?? "", novaSenha: values.senha },
-        { bearerToken: token ?? "" },
-      );
-    },
+    // POST /autenticacao/trocar-senha: o passwordChangeToken do login faz o papel da sessão.
+    mutationFn: (values: ResetPasswordValues) =>
+      trocarSenhaPrimeiroAcesso({ passwordChangeToken: token ?? "", novaSenha: values.senha }),
     onSuccess: () => {
       // Antes de limpar o token: sem ele a tela voltaria ao login sozinha, em vez de ir ao aviso de sucesso.
       concluidoRef.current = true;

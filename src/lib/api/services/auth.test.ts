@@ -4,7 +4,7 @@ vi.mock("../client", () => ({ api: { post: vi.fn() } }));
 
 import { api } from "../client";
 import { ApiError } from "../errors";
-import { login } from "./auth";
+import { login, trocarSenhaPrimeiroAcesso } from "./auth";
 
 const post = vi.mocked(api.post);
 
@@ -47,5 +47,18 @@ describe("login", () => {
       kind: "unauthorized",
       message: "CPF ou senha inválidos.",
     });
+  });
+});
+
+describe("trocarSenhaPrimeiroAcesso", () => {
+  it("envia o passwordChangeToken e a nova senha", async () => {
+    post.mockResolvedValue({ data: undefined });
+    await trocarSenhaPrimeiroAcesso({ passwordChangeToken: "troca", novaSenha: "Nova@1234" });
+    expect(post).toHaveBeenCalledWith("/autenticacao/trocar-senha", { passwordChangeToken: "troca", novaSenha: "Nova@1234" });
+  });
+
+  it("propaga o ApiError", async () => {
+    post.mockRejectedValue(new ApiError("unauthorized", undefined, 401));
+    await expect(trocarSenhaPrimeiroAcesso({ passwordChangeToken: "x", novaSenha: "y" })).rejects.toMatchObject({ kind: "unauthorized" });
   });
 });
