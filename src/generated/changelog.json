@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.203",
+      "type": "feat",
+      "scope": "caixa",
+      "title": "nova tela do caixa com gaveta, movimentos, histórico e comprovantes",
+      "description": "A tela do caixa abre mostrando quanto há na gaveta, quanto fica de fundo\ne quanto pode ser retirado, com entradas, saídas e saldo logo abaixo. O\nturno atual mostra cada forma de pagamento e, em abas, aparecem os\nmovimentos (com filtros por tipo e por turno), a linha do tempo e\ngráficos por forma de pagamento e por hora.\n\nAo fechar o caixa ou passar o turno, um resumo mostra o esperado, o\ninformado e a diferença de cada forma de pagamento, com comprovante em\nPDF. Administradores e gerentes ganham a lista de caixas anteriores,\ncom filtro por período, e o extrato de cada caixa, com exportação em\nCSV e PDF.\n\nTambém corrige o que estava fora do contrato da API: o fechamento\naceita o fundo contado na gaveta, a passagem de turno envia o fundo do\nnovo turno, a retirada deixa de falar em troco padrão, e o histórico de\nturnos volta a abrir para todos os perfis. Valores ausentes aparecem\ncomo traço, nunca como \"R$ NaN\".",
+      "date": "2026-10-23T18:36:27-03:00"
+    },
+    {
+      "version": "1.0.202",
+      "type": "fix",
+      "scope": "permissoes",
+      "title": "separa o histórico de caixas do restante do caixa",
+      "description": "Os caixas já fechados e seus extratos passam a ser uma área própria,\nsó para Administrador e Gerente, também quando a pessoa digita o\nendereço. O restante do caixa continua liberado a Caixa e Manobrista.",
+      "date": "2026-10-23T18:36:27-03:00"
+    },
+    {
       "version": "1.0.199",
       "type": "fix",
       "scope": "permissoes",
