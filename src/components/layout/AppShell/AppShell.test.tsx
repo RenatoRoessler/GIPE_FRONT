@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithTheme } from "@/test/render";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/dashboard" }));
-vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => ({ user: { name: "Maria" }, isLoading: false }) }));
+vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => ({ user: { name: "Maria", perfil: 1 }, isLoading: false }) }));
 vi.mock("@/contexts/ThemeModeContext", () => ({ useThemeMode: () => ({ mode: "light", toggleThemeMode: vi.fn() }) }));
 vi.mock("@/components/layout/UserMenu", () => ({ UserMenu: () => <div data-testid="user-menu" /> }));
 vi.mock("@/components/layout/InstallPwaButton", () => ({ InstallPwaButton: () => null }));

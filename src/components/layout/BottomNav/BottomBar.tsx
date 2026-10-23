@@ -3,7 +3,9 @@
 import NextLink from "next/link";
 import type { Ref } from "react";
 import { usePathname } from "next/navigation";
-import { BOTTOM_NAV_ITEMS, isMenuTabActive, isNavAction, isNavItemActive, navItemKey, type NavAction } from "@/lib/nav";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { useCurrentUser } from "@/contexts/CurrentUserContext";
+import { bottomNavItemsPermitidos, isMenuTabActive, isNavAction, isNavItemActive, navItemKey, type NavAction } from "@/lib/nav";
 import { Bar, IconPill, TabButton, TabLink } from "./BottomNav.styles";
 import { MenuTabIcon, TAB_ICONS } from "./BottomBarIcons";
 
@@ -20,11 +22,13 @@ export interface BottomBarProps {
 
 export const BottomBar = ({ menuOpen, onMenuClick, menuId, onAction, menuButtonRef }: BottomBarProps) => {
   const pathname = usePathname();
+  const { user, isLoading } = useCurrentUser();
   const menuActive = menuOpen || isMenuTabActive(pathname);
 
   return (
     <Bar aria-label="Navegação principal">
-      {BOTTOM_NAV_ITEMS.map((item) => {
+      {isLoading && <Skeleton width="56px" height="40px" radius="8px" />}
+      {(isLoading ? [] : bottomNavItemsPermitidos(user?.perfil)).map((item) => {
         if (isNavAction(item)) {
           return (
             <TabButton key={navItemKey(item)} type="button" $active={false} aria-haspopup="dialog" onClick={() => onAction(item.acao)}>

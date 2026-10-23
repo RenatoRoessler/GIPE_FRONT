@@ -7,6 +7,8 @@ import type { PatioVeiculo } from "@/types/patio";
 vi.mock("@/lib/api/services/patio", () => ({ listPatio: vi.fn() }));
 const vagas = vi.hoisted(() => ({ atual: { moto: 12, carro: 23 } as { moto: number; carro: number } | null }));
 vi.mock("@/components/patio/useVagasPatio", () => ({ useVagasPatio: () => vagas.atual }));
+const sessao = vi.hoisted(() => ({ atual: { user: { name: "Maria", perfil: 1 } as { name: string; perfil: number | null } | null, isLoading: false } }));
+vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => sessao.atual }));
 
 import { listPatio } from "@/lib/api/services/patio";
 import { IndicadoresPatio } from "./IndicadoresPatio";
@@ -36,6 +38,7 @@ function veiculo(extra: Partial<PatioVeiculo> = {}): PatioVeiculo {
 beforeEach(() => {
   proximoId = 1;
   vagas.atual = { moto: 12, carro: 23 };
+  sessao.atual = { user: { name: "Maria", perfil: 1 }, isLoading: false };
   vi.mocked(listPatio).mockReset();
 });
 
@@ -126,5 +129,36 @@ describe("IndicadoresPatio: chegadas por hora", () => {
 
     const grafico = await screen.findByRole("region", { name: "Chegada de quem está no pátio" });
     expect(within(grafico).getAllByText("Hoje: 2 chegadas ainda no pátio, pico às 9h com 2.").length).toBeGreaterThan(0);
+  });
+});
+
+describe("IndicadoresPatio: permissão por perfil", () => {
+  it.each([
+    ["Financeiro", 8],
+    ["perfil desconhecido", null],
+  ])("%s não vê a seção e não consulta o pátio", async (_nome, perfil) => {
+    sessao.atual = { user: { name: "Ana", perfil }, isLoading: false };
+    const { container } = renderWithProviders(<IndicadoresPatio />);
+
+    expect(container).toBeEmptyDOMElement();
+    await Promise.resolve();
+    expect(listPatio).not.toHaveBeenCalled();
+  });
+
+  it("não consulta o pátio enquanto o perfil carrega", () => {
+    sessao.atual = { user: null, isLoading: true };
+    const { container } = renderWithProviders(<IndicadoresPatio />);
+
+    expect(container).toBeEmptyDOMElement();
+    expect(listPatio).not.toHaveBeenCalled();
+  });
+
+  it("o Manobrista consulta o pátio", async () => {
+    sessao.atual = { user: { name: "Joao", perfil: 3 }, isLoading: false };
+    vi.mocked(listPatio).mockResolvedValue([veiculo()]);
+    renderWithProviders(<IndicadoresPatio />);
+
+    expect(await screen.findByText("veículo no pátio")).toBeInTheDocument();
+    expect(listPatio).toHaveBeenCalled();
   });
 });

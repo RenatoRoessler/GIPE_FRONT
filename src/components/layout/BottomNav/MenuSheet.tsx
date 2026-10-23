@@ -3,7 +3,9 @@
 import NextLink from "next/link";
 import type { Ref } from "react";
 import { NavIcon } from "@/components/layout/NavSign/NavIcons";
-import { NAV_ITEMS, isNavAction, isNavActive, navItemKey, type NavAction } from "@/lib/nav";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { useCurrentUser } from "@/contexts/CurrentUserContext";
+import { isNavAction, isNavActive, navItemKey, navItemsPermitidos, type NavAction } from "@/lib/nav";
 import { CloseButton, Grabber, Sheet, SheetHeader, SheetList, SheetRow, SheetTitle } from "./BottomNav.styles";
 
 export interface MenuSheetProps {
@@ -26,7 +28,11 @@ function ChevronIcon() {
   );
 }
 
+const SKELETON_KEYS = ["a", "b", "c"];
+
 export function MenuSheet({ id, dialogRef, pathname, onRequestClose, onAction, onClosed }: MenuSheetProps) {
+  const { user, isLoading } = useCurrentUser();
+
   return (
     <Sheet
       ref={dialogRef}
@@ -48,8 +54,14 @@ export function MenuSheet({ id, dialogRef, pathname, onRequestClose, onAction, o
         </CloseButton>
       </SheetHeader>
       <nav aria-label="Todas as telas">
-        <SheetList>
-          {NAV_ITEMS.map((item) => {
+        <SheetList aria-busy={isLoading}>
+          {isLoading &&
+            SKELETON_KEYS.map((key) => (
+              <li key={key}>
+                <Skeleton height="48px" radius="8px" />
+              </li>
+            ))}
+          {(isLoading ? [] : navItemsPermitidos(user?.perfil)).map((item) => {
             if (isNavAction(item)) {
               return (
                 <li key={navItemKey(item)}>

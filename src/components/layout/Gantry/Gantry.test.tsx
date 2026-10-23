@@ -6,6 +6,8 @@ import { renderWithTheme } from "@/test/render";
 let pathname = "/dashboard";
 
 vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
+const sessao = vi.hoisted(() => ({ atual: { user: { name: "Maria", perfil: 1 } as { name: string; perfil: number | null } | null, isLoading: false } }));
+vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => sessao.atual }));
 const modais = vi.hoisted(() => ({ abrirEntrada: vi.fn(), abrirSaida: vi.fn() }));
 vi.mock("@/components/veiculos/VeiculoModais", () => ({ useVeiculoModais: () => modais }));
 
@@ -17,6 +19,7 @@ const opcoes = { hidden: true } as const;
 
 describe("Gantry (menu do computador)", () => {
   beforeEach(() => {
+    sessao.atual = { user: { name: "Maria", perfil: 1 }, isLoading: false };
     modais.abrirEntrada.mockReset();
     modais.abrirSaida.mockReset();
   });
@@ -82,5 +85,44 @@ describe("Gantry (menu do computador)", () => {
     const icone = screen.getByRole("link", { name: "Pátio", ...opcoes }).querySelector("svg");
     expect(icone).not.toBeNull();
     expect(icone).toHaveAttribute("aria-hidden", "true");
+  });
+
+  describe("permissão por perfil", () => {
+    function itensDoMenu() {
+      pathname = "/dashboard";
+      const { container } = renderWithTheme(<Gantry />);
+      return Array.from((container.querySelector("nav") as HTMLElement).querySelectorAll("li > a, li > button")).map((item) => item.textContent);
+    }
+
+    it("o Manobrista não vê preços, usuários, mensalistas, notas fiscais, relatórios nem a empresa", () => {
+      sessao.atual = { user: { name: "Joao", perfil: 3 }, isLoading: false };
+
+      expect(itensDoMenu()).toEqual(["Início", "Entrada de Veículos", "Saída de Veículos", "Pátio", "Caixa"]);
+    });
+
+    it("o Financeiro vê o início e as notas fiscais, sem pátio nem caixa", () => {
+      sessao.atual = { user: { name: "Ana", perfil: 8 }, isLoading: false };
+
+      expect(itensDoMenu()).toEqual(["Início", "Notas Fiscais"]);
+    });
+
+    it("só o Administrador vê a Minha Empresa", () => {
+      expect(itensDoMenu()).toContain("Minha Empresa");
+    });
+
+    it("perfil desconhecido vê só o Início", () => {
+      sessao.atual = { user: { name: "Zé", perfil: null }, isLoading: false };
+
+      expect(itensDoMenu()).toEqual(["Início"]);
+    });
+
+    it("enquanto o perfil não é conhecido, mostra esqueletos e nenhum item do menu", () => {
+      sessao.atual = { user: null, isLoading: true };
+      const { container } = renderWithTheme(<Gantry />);
+
+      expect(container.querySelectorAll("li > a, li > button")).toHaveLength(0);
+      expect(container.querySelectorAll("li")).not.toHaveLength(0);
+      expect(container.querySelector("ul")).toHaveAttribute("aria-busy", "true");
+    });
   });
 });

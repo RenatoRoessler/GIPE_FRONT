@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lightTheme, darkTheme, signageLightTheme, signageDarkTheme } from "@/styles/theme";
-import { BOTTOM_NAV_ITEMS, isMenuTabActive, isNavAction, isNavActive, isNavItemActive, NAV_ITEMS, navItemKey } from "./nav";
+import { BOTTOM_NAV_ITEMS, bottomNavItemsPermitidos, isMenuTabActive, isNavAction, isNavActive, isNavItemActive, NAV_ITEMS, navItemKey, navItemsPermitidos } from "./nav";
 
 describe("NAV_ITEMS", () => {
   it("o Pátio fica entre a saída de veículos e o caixa", () => {
@@ -8,7 +8,7 @@ describe("NAV_ITEMS", () => {
 
     expect(rotulos.indexOf("Pátio")).toBe(rotulos.indexOf("Saída de Veículos") + 1);
     expect(rotulos.indexOf("Caixa")).toBe(rotulos.indexOf("Pátio") + 1);
-    expect(NAV_ITEMS.find((item) => item.label === "Pátio")).toEqual({ label: "Pátio", href: "/patio", icon: "yard" });
+    expect(NAV_ITEMS.find((item) => item.label === "Pátio")).toEqual({ label: "Pátio", href: "/patio", icon: "yard", area: "patio" });
   });
 
   it("mantém os onze itens, na mesma ordem, com Notas Fiscais depois do Caixa", () => {
@@ -115,7 +115,7 @@ describe("Notas Fiscais no menu", () => {
   const item = NAV_ITEMS.find((navItem) => navItem.label === "Notas Fiscais")!;
 
   it("é um link para /notas-fiscais, com ícone próprio", () => {
-    expect(item).toEqual({ label: "Notas Fiscais", href: "/notas-fiscais", icon: "invoice" });
+    expect(item).toEqual({ label: "Notas Fiscais", href: "/notas-fiscais", icon: "invoice", area: "notas-fiscais" });
   });
 
   it("fica ativo em /notas-fiscais e nas rotas filhas, não em rotas parecidas", () => {
@@ -127,5 +127,63 @@ describe("Notas Fiscais no menu", () => {
 
   it("não entra na barra inferior, que continua com os três atalhos", () => {
     expect(BOTTOM_NAV_ITEMS.map((atalho) => atalho.label)).toEqual(["Início", "Entrada", "Saída"]);
+  });
+});
+
+describe("navItemsPermitidos", () => {
+  const rotulos = (perfil: Parameters<typeof navItemsPermitidos>[0]) => navItemsPermitidos(perfil).map((item) => item.label);
+
+  it("o Administrador vê tudo", () => {
+    expect(navItemsPermitidos(1)).toEqual(NAV_ITEMS);
+    expect(rotulos(1)).toHaveLength(NAV_ITEMS.length);
+  });
+
+  it("o Gerente não vê usuários nem a empresa", () => {
+    expect(rotulos(2)).toEqual([
+      "Início",
+      "Gestão de Preços",
+      "Mensalistas",
+      "Entrada de Veículos",
+      "Saída de Veículos",
+      "Pátio",
+      "Caixa",
+      "Notas Fiscais",
+      "Relatórios",
+    ]);
+  });
+
+  it("o Caixa e o Manobrista só veem o dia a dia do pátio e do caixa", () => {
+    const esperado = ["Início", "Entrada de Veículos", "Saída de Veículos", "Pátio", "Caixa"];
+    expect(rotulos(4)).toEqual(esperado);
+    expect(rotulos(3)).toEqual(esperado);
+  });
+
+  it("o Financeiro vê o início e as notas fiscais", () => {
+    expect(rotulos(8)).toEqual(["Início", "Notas Fiscais"]);
+  });
+
+  it("o Administrador da conveniada vê o início e a gestão de usuários", () => {
+    expect(rotulos(5)).toEqual(["Início", "Gestão de Usuários"]);
+  });
+
+  it("sem perfil conhecido só o Início", () => {
+    expect(rotulos(null)).toEqual(["Início"]);
+    expect(rotulos(undefined)).toEqual(["Início"]);
+  });
+});
+
+describe("bottomNavItemsPermitidos", () => {
+  const rotulos = (perfil: Parameters<typeof bottomNavItemsPermitidos>[0]) => bottomNavItemsPermitidos(perfil).map((item) => item.label);
+
+  it("quem opera o pátio mantém os três atalhos", () => {
+    for (const perfil of [1, 2, 3, 4] as const) {
+      expect(rotulos(perfil)).toEqual(["Início", "Entrada", "Saída"]);
+    }
+  });
+
+  it("quem não opera o pátio fica só com o Início", () => {
+    for (const perfil of [8, 5, 6, 7, null] as const) {
+      expect(rotulos(perfil)).toEqual(["Início"]);
+    }
   });
 });

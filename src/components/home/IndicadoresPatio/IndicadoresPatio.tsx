@@ -7,11 +7,19 @@ import { BarrasHorizontais, ChegadasPorHora, RoscaMensalistas } from "@/componen
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
+import { useCan } from "@/hooks/useCan";
 import { ApiError } from "@/lib/api/errors";
+import { AREA } from "@/lib/permissoes";
 import { Detalhe, Graficos, Indicador, Indicadores, Mensagem, PatioLink, Secao, SecaoCabecalho } from "./IndicadoresPatio.styles";
 
-// Quem não tem acesso ao pátio não vê a seção em vez de ver um erro numa tela que não é a dele.
+// Quem não tem acesso ao pátio não vê a seção e nem consulta a API: o conteúdo (e seus hooks) só monta com a permissão.
 export function IndicadoresPatio() {
+  const podeVerPatio = useCan(AREA.Patio);
+  return podeVerPatio ? <IndicadoresDoPatio /> : null;
+}
+
+// Se a API recusar mesmo assim (permissão por módulo), a seção também some em vez de mostrar erro.
+function IndicadoresDoPatio() {
   const { data, isPending, isError, error, refetch, isFetching } = usePatio();
   const vagas = useVagasPatio();
 

@@ -1,12 +1,14 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { lightTheme } from "@/styles/theme";
 import { renderWithTheme } from "@/test/render";
 
 let pathname = "/dashboard";
 
 vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
+const sessao = vi.hoisted(() => ({ atual: { user: { name: "Maria", perfil: 1 } as { name: string; perfil: number | null } | null, isLoading: false } }));
+vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => sessao.atual }));
 
 import { BottomBar } from "./BottomBar";
 
@@ -21,6 +23,10 @@ function renderBar(props: Partial<React.ComponentProps<typeof BottomBar>> = {}) 
 }
 
 describe("BottomBar", () => {
+  beforeEach(() => {
+    sessao.atual = { user: { name: "Maria", perfil: 1 }, isLoading: false };
+  });
+
   it("mostra Início (link), Entrada e Saída (botões) e Menu", () => {
     pathname = "/dashboard";
     renderBar();
@@ -113,5 +119,32 @@ describe("BottomBar", () => {
     expect(menu).toHaveAttribute("aria-haspopup", "dialog");
     await userEvent.setup().click(menu);
     expect(onMenuClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("quem não opera o pátio (Financeiro) vê só o Início e o Menu", () => {
+    sessao.atual = { user: { name: "Ana", perfil: 8 }, isLoading: false };
+    renderBar();
+
+    expect(screen.getByRole("link", { name: "Início", ...opcoes })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Entrada", ...opcoes })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Saída", ...opcoes })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Menu", ...opcoes })).toBeInTheDocument();
+  });
+
+  it("o Manobrista mantém Entrada e Saída", () => {
+    sessao.atual = { user: { name: "Joao", perfil: 3 }, isLoading: false };
+    renderBar();
+
+    expect(screen.getByRole("button", { name: "Entrada", ...opcoes })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Saída", ...opcoes })).toBeInTheDocument();
+  });
+
+  it("enquanto o perfil não é conhecido, não mostra nenhum atalho, só o Menu", () => {
+    sessao.atual = { user: null, isLoading: true };
+    renderBar();
+
+    expect(screen.queryByRole("link", { name: "Início", ...opcoes })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Entrada", ...opcoes })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Menu", ...opcoes })).toBeInTheDocument();
   });
 });

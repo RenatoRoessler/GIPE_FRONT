@@ -6,6 +6,8 @@ import { renderWithTheme } from "@/test/render";
 let pathname = "/dashboard";
 
 vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
+const sessao = vi.hoisted(() => ({ atual: { user: { name: "Maria", perfil: 1 } as { name: string; perfil: number | null } | null, isLoading: false } }));
+vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => sessao.atual }));
 const modais = vi.hoisted(() => ({ abrirEntrada: vi.fn(), abrirSaida: vi.fn() }));
 vi.mock("@/components/veiculos/VeiculoModais", () => ({ useVeiculoModais: () => modais }));
 
@@ -30,6 +32,7 @@ beforeAll(() => {
 let mediaListeners: Array<(event: MediaQueryListEvent) => void> = [];
 
 beforeEach(() => {
+  sessao.atual = { user: { name: "Maria", perfil: 1 }, isLoading: false };
   pathname = "/dashboard";
   modais.abrirEntrada.mockReset();
   modais.abrirSaida.mockReset();
@@ -81,6 +84,21 @@ describe("BottomNav: painel do Menu", () => {
       "Relatórios",
       "Minha Empresa",
     ]);
+  });
+
+  it("o painel mostra só as telas que o perfil pode abrir", async () => {
+    sessao.atual = { user: { name: "Joao", perfil: 3 }, isLoading: false };
+    await abrir();
+
+    const itens = Array.from(painel().querySelectorAll("li > a, li > button"));
+    expect(itens.map((item) => item.textContent)).toEqual(["Início", "Entrada de Veículos", "Saída de Veículos", "Pátio", "Caixa"]);
+  });
+
+  it("enquanto o perfil não é conhecido, o painel não lista nenhuma tela", async () => {
+    sessao.atual = { user: null, isLoading: true };
+    await abrir();
+
+    expect(painel().querySelectorAll("li > a, li > button")).toHaveLength(0);
   });
 
   it("Entrada e Saída são botões no painel, não links", async () => {

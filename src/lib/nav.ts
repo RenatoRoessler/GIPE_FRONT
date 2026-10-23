@@ -1,3 +1,6 @@
+import { AREA, podeAcessar, type Area } from "@/lib/permissoes";
+import type { PerfilUsuario } from "@/types/usuario";
+
 export type NavIconId = "home" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "reports" | "company" | "invoice";
 
 // Ações do menu que abrem um modal por cima da tela atual, em vez de levar a uma página.
@@ -7,12 +10,14 @@ export type NavLinkItem = {
   label: string;
   href: string;
   icon: NavIconId;
+  area: Area;
 };
 
 export type NavActionItem = {
   label: string;
   acao: NavAction;
   icon: NavIconId;
+  area: Area;
 };
 
 export type NavItem = NavLinkItem | NavActionItem;
@@ -27,17 +32,17 @@ export function navItemKey(item: NavItem): string {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Início", href: "/dashboard", icon: "home" },
-  { label: "Gestão de Preços", href: "/precos", icon: "pricing" },
-  { label: "Gestão de Usuários", href: "/usuarios", icon: "users" },
-  { label: "Mensalistas", href: "/mensalistas", icon: "members" },
-  { label: "Entrada de Veículos", acao: "entrada", icon: "vehicleIn" },
-  { label: "Saída de Veículos", acao: "saida", icon: "vehicleOut" },
-  { label: "Pátio", href: "/patio", icon: "yard" },
-  { label: "Caixa", href: "/caixa", icon: "cashier" },
-  { label: "Notas Fiscais", href: "/notas-fiscais", icon: "invoice" },
-  { label: "Relatórios", href: "/relatorios", icon: "reports" },
-  { label: "Minha Empresa", href: "/minha-empresa", icon: "company" },
+  { label: "Início", href: "/dashboard", icon: "home", area: AREA.Inicio },
+  { label: "Gestão de Preços", href: "/precos", icon: "pricing", area: AREA.Precos },
+  { label: "Gestão de Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios },
+  { label: "Mensalistas", href: "/mensalistas", icon: "members", area: AREA.Mensalistas },
+  { label: "Entrada de Veículos", acao: "entrada", icon: "vehicleIn", area: AREA.Patio },
+  { label: "Saída de Veículos", acao: "saida", icon: "vehicleOut", area: AREA.Patio },
+  { label: "Pátio", href: "/patio", icon: "yard", area: AREA.Patio },
+  { label: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa },
+  { label: "Notas Fiscais", href: "/notas-fiscais", icon: "invoice", area: AREA.NotasFiscais },
+  { label: "Relatórios", href: "/relatorios", icon: "reports", area: AREA.Relatorios },
+  { label: "Minha Empresa", href: "/minha-empresa", icon: "company", area: AREA.Empresa },
 ];
 
 // Atalhos da barra inferior (celular): derivados de NAV_ITEMS para não duplicar endereço, ação nem ícone.
@@ -54,6 +59,15 @@ export const BOTTOM_NAV_ITEMS: NavItem[] = Object.entries(BOTTOM_NAV_LABELS).map
   }
   return { ...item, label };
 });
+
+// Itens do menu que o perfil pode abrir; sem perfil conhecido, só o Início.
+export function navItemsPermitidos(perfil: PerfilUsuario | null | undefined): NavItem[] {
+  return NAV_ITEMS.filter((item) => podeAcessar(perfil, item.area));
+}
+
+export function bottomNavItemsPermitidos(perfil: PerfilUsuario | null | undefined): NavItem[] {
+  return BOTTOM_NAV_ITEMS.filter((item) => podeAcessar(perfil, item.area));
+}
 
 // "Início" só é ativo na rota exata; os demais também nas rotas filhas.
 export function isNavItemActive(pathname: string, href: string) {
