@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.206",
+      "type": "fix",
+      "scope": "veiculos",
+      "title": "alinha as categorias de veículo às da API",
+      "description": "As categorias passam a ser as definidas pela API: moto, carro pequeno,\ncarro médio, caminhonete, caminhão e carro grande, nessa numeração. A\ncategoria \"SUV / Pick-up\" deixa de existir, e os preços, o pátio e os\nícones usam a lista nova.",
+      "date": "2026-10-23T18:37:48-03:00"
+    },
+    {
+      "version": "1.0.205",
+      "type": "fix",
+      "scope": "auth",
+      "title": "troca a senha temporária do primeiro acesso pelo endpoint próprio",
+      "description": "Quem entra pela primeira vez com a senha temporária agora define a nova\nsenha pela chamada de troca de senha do primeiro acesso, usando o token\nrecebido no login. Antes a tela usava a rotina de \"Alterar senha\" de\nquem já está logado, que não vale para quem ainda não tem sessão. A\ntela deixa de pedir a senha temporária de novo na troca.",
+      "date": "2026-10-23T18:37:48-03:00"
+    },
+    {
       "version": "1.0.203",
       "type": "feat",
       "scope": "caixa",
