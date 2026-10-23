@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.208",
+      "type": "fix",
+      "scope": "auth",
+      "title": "envia o token do primeiro acesso no cabeçalho da troca de senha",
+      "description": "A troca da senha temporária mandava o token recebido no login dentro do\ncorpo da chamada, e a API o espera no cabeçalho de autorização. Agora o\ntoken vai no cabeçalho e o corpo leva só a nova senha.\n\nTambém impede que a sessão de um login antigo, ainda guardada no\nnavegador, substitua o token do primeiro acesso: o cabeçalho definido na\nprópria chamada passa a valer mais que o da sessão.",
+      "date": "2026-10-23T18:43:19-03:00"
+    },
+    {
       "version": "1.0.206",
       "type": "fix",
       "scope": "veiculos",
