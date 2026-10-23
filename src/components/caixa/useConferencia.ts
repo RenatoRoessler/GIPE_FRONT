@@ -4,13 +4,13 @@ import { useState } from "react";
 import { conferenciaSchema, type ConferenciaFormValues } from "@/lib/schemas/caixa";
 import type { TurnoFormaPagamento } from "@/types/caixa";
 
-export type ConferenciaErrors = { conferencias: Record<number, string>; valorInicial?: string };
+export type ConferenciaErrors = { conferencias: Record<number, string>; fundoCaixa?: string };
 
 // Estado e validação da conferência por forma de pagamento (passagem de turno e fechamento).
 export function useConferencia(formas: TurnoFormaPagamento[]) {
   const [values, setValues] = useState<ConferenciaFormValues>(() => ({
     conferencias: formas.map(() => ""),
-    valorInicial: "",
+    fundoCaixa: "",
     observacao: "",
   }));
   const [errors, setErrors] = useState<ConferenciaErrors>({ conferencias: {} });
@@ -22,7 +22,7 @@ export function useConferencia(formas: TurnoFormaPagamento[]) {
     }));
   }
 
-  function setField(field: "valorInicial" | "observacao", value: string) {
+  function setField(field: "fundoCaixa" | "observacao", value: string) {
     setValues((current) => ({ ...current, [field]: value }));
   }
 
@@ -38,8 +38,8 @@ export function useConferencia(formas: TurnoFormaPagamento[]) {
       const [field, index] = issue.path;
       if (field === "conferencias" && typeof index === "number") {
         next.conferencias[index] ??= issue.message;
-      } else if (field === "valorInicial") {
-        next.valorInicial ??= issue.message;
+      } else if (field === "fundoCaixa") {
+        next.fundoCaixa ??= issue.message;
       }
     }
     setErrors(next);

@@ -1,0 +1,1 @@
+export { HistoricoCaixasPage } from "./HistoricoCaixasPage";

@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Modal } from "@/components/ui/Modal";
 import { registrarSangria } from "@/lib/api/services/caixa";
-import { formatBRL, parseMoney } from "@/lib/money";
+import { parseMoney } from "@/lib/money";
 import { createSangriaSchema } from "@/lib/schemas/caixa";
 import type { Turno } from "@/types/caixa";
 import { FieldStack, Hint } from "./Caixa.styles";
 import type { CaixaModalProps } from "./AbrirCaixaModal";
 import { CAIXA_KEY } from "./useCaixa";
+import { formatMoeda } from "./format";
 
 export function SangriaModal({ turno, onClose, onSuccess }: CaixaModalProps & { turno: Turno }) {
   const formId = useId();
@@ -57,8 +58,8 @@ export function SangriaModal({ turno, onClose, onSuccess }: CaixaModalProps & { 
       }
     >
       <Hint>
-        Disponível para retirada: <strong>{formatBRL(disponivel ?? 0)}</strong> (dinheiro esperado no turno menos
-        o troco padrão, que sempre fica na gaveta).
+        Pode retirar: <strong>{formatMoeda(disponivel ?? 0)}</strong>. O fundo de caixa ({formatMoeda(turno.valorFundoCaixa)})
+        sempre fica na gaveta.
       </Hint>
       {mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
       <form

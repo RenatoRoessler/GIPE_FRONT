@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { Link } from "@/components/ui/Link";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useCan } from "@/hooks/useCan";
 import { AREA } from "@/lib/permissoes";
@@ -12,7 +13,6 @@ export interface CaixaHeaderProps {
   caixa: Caixa;
   // Retirada, passagem e fechamento dependem dos dados do turno atual.
   turnoPronto: boolean;
-  onSangria: () => void;
   onPassarTurno: () => void;
   onHistorico: () => void;
   onFechar: () => void;
@@ -21,34 +21,26 @@ export interface CaixaHeaderProps {
 export function CaixaHeader({
   caixa,
   turnoPronto,
-  onSangria,
   onPassarTurno,
   onHistorico,
   onFechar,
 }: CaixaHeaderProps) {
-  const podeSangria = useCan(AREA.CaixaSangria);
-  const podeHistorico = useCan(AREA.CaixaHistorico);
+  const podeCaixasAnteriores = useCan(AREA.CaixaHistorico);
 
   return (
     <HeaderRow>
       <StatusLine>
         <StatusBadge tone="success">Caixa aberto</StatusBadge>
         <span>desde {formatDateTime(caixa.dataHoraAbertura)}</span>
+        {podeCaixasAnteriores && <Link href="/caixa/historico">Caixas anteriores</Link>}
       </StatusLine>
       <ActionBar>
-        {podeSangria && (
-          <Button type="button" variant="secondary" onClick={onSangria} disabled={!turnoPronto}>
-            Retirada
-          </Button>
-        )}
         <Button type="button" variant="secondary" onClick={onPassarTurno} disabled={!turnoPronto}>
           Passar turno
         </Button>
-        {podeHistorico && (
-          <Button type="button" variant="secondary" onClick={onHistorico}>
-            Histórico de turnos
-          </Button>
-        )}
+        <Button type="button" variant="secondary" onClick={onHistorico}>
+          Histórico de turnos
+        </Button>
         <Button type="button" variant="danger" onClick={onFechar} disabled={!turnoPronto}>
           Fechar caixa
         </Button>

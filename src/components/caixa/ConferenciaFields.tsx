@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/Input";
-import type { TurnoFormaPagamento } from "@/types/caixa";
+import { FORMA_PAGAMENTO, type TurnoFormaPagamento } from "@/types/caixa";
 import { FieldStack, Hint } from "./Caixa.styles";
 import { formaPagamentoLabel } from "./format";
 
@@ -24,6 +24,7 @@ export function ConferenciaFields({ formas, values, errors, onChange, disabled }
           label={formaPagamentoLabel(forma.formaPagamento)}
           inputMode="decimal"
           placeholder="0,00"
+          hint={forma.formaPagamento === FORMA_PAGAMENTO.Dinheiro ? "Sem o fundo de caixa." : undefined}
           value={values[index] ?? ""}
           onChange={(event) => onChange(index, event.target.value)}
           error={errors?.[index]}

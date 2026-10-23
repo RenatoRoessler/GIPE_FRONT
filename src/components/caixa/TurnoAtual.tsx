@@ -1,12 +1,11 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/Skeleton";
-import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/Table";
 import { Text } from "@/components/ui/Text";
-import { formatBRL } from "@/lib/money";
 import type { Turno } from "@/types/caixa";
 import { InfoList, Panel, PanelTitle, VisuallyHidden } from "./Caixa.styles";
-import { formaPagamentoLabel, formatDateTime } from "./format";
+import { formatDateTime, formatMoeda } from "./format";
+import { FormasPagamentoTabela } from "./FormasPagamentoTabela";
 
 export interface TurnoAtualProps {
   // undefined = carregando; null = não há turno aberto.
@@ -46,51 +45,12 @@ export function TurnoAtual({ turno }: TurnoAtualProps) {
           <dd>{formatDateTime(turno.dataHoraInicio)}</dd>
         </div>
         <div>
-          <dt>Valor inicial</dt>
-          <dd>{formatBRL(turno.valorInicial)}</dd>
-        </div>
-        <div>
-          <dt>Troco padrão</dt>
-          <dd>{formatBRL(turno.trocoPadrao ?? 0)}</dd>
-        </div>
-        <div>
-          <dt>Disponível para retirada</dt>
-          <dd>{formatBRL(turno.disponivelSangria ?? 0)}</dd>
+          <dt>Fundo do turno</dt>
+          <dd>{formatMoeda(turno.valorFundoCaixa)}</dd>
         </div>
       </InfoList>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell head>Forma de pagamento</TableCell>
-            <TableCell head align="right">
-              Entradas
-            </TableCell>
-            <TableCell head align="right">
-              Saídas
-            </TableCell>
-            <TableCell head align="right">
-              Esperado
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {turno.formasPagamento.map((forma) => (
-            <TableRow key={forma.formaPagamento}>
-              <TableCell data-label="Forma de pagamento">{formaPagamentoLabel(forma.formaPagamento)}</TableCell>
-              <TableCell align="right" numeric data-label="Entradas">
-                {formatBRL(forma.entradas)}
-              </TableCell>
-              <TableCell align="right" numeric data-label="Saídas">
-                {formatBRL(forma.saidas)}
-              </TableCell>
-              <TableCell align="right" numeric data-label="Esperado">
-                {formatBRL(forma.valorEsperado)}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <Text variant="muted">No dinheiro, o valor esperado inclui o valor inicial do turno.</Text>
+      <FormasPagamentoTabela formas={turno.formasPagamento} />
+      <Text variant="muted">No dinheiro, o esperado não inclui o fundo de caixa.</Text>
     </Panel>
   );
 }

@@ -39,8 +39,9 @@ export type DiferencaTone = "success" | "neutral" | "warn";
 export type DiferencaInfo = { label: string; tone: DiferencaTone; value: string };
 
 // Diferença = informado − esperado: positiva é sobra, negativa é falta.
-export function describeDiferenca(diferenca: number | null): DiferencaInfo | null {
-  if (diferenca === null) {
+export function describeDiferenca(diferenca: number | null | undefined): DiferencaInfo | null {
+  // Sem número válido (ausente, null ou NaN) não há diferença a dizer: nunca "Falta R$ NaN".
+  if (typeof diferenca !== "number" || !Number.isFinite(diferenca)) {
     return null;
   }
   if (diferenca === 0) {
@@ -49,4 +50,10 @@ export function describeDiferenca(diferenca: number | null): DiferencaInfo | nul
   return diferenca > 0
     ? { label: "Sobra", tone: "success", value: formatBRL(diferenca) }
     : { label: "Falta", tone: "warn", value: formatBRL(Math.abs(diferenca)) };
+}
+
+// Valor em reais do caixa. Dado ausente ou que não é número (undefined, null, NaN, Infinity) nunca vira "R$ NaN":
+// aparece como traço, para a tela dizer "sem informação" em vez de mostrar um valor errado.
+export function formatMoeda(valor: number | null | undefined): string {
+  return typeof valor === "number" && Number.isFinite(valor) ? formatBRL(valor) : "—";
 }

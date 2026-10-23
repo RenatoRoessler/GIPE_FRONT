@@ -1,34 +1,58 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useId } from "react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { passarTurno } from "@/lib/api/services/caixa";
+import { useCurrentUser } from "@/contexts/CurrentUserContext";
+import { listTurnos, passarTurno } from "@/lib/api/services/caixa";
 import { parseMoney } from "@/lib/money";
 import { toConferencias } from "@/lib/schemas/caixa";
+import { FORMA_PAGAMENTO } from "@/types/caixa";
 import type { Turno } from "@/types/caixa";
 import type { CaixaModalProps } from "./AbrirCaixaModal";
 import { FieldStack } from "./Caixa.styles";
 import { ConferenciaFields } from "./ConferenciaFields";
+import { ResumoFechamento } from "./ResumoFechamento";
 import { useConferencia } from "./useConferencia";
 import { CAIXA_KEY } from "./useCaixa";
+import { formatMoeda } from "./format";
 
 export function PassarTurnoModal({ turno, onClose, onSuccess }: CaixaModalProps & { turno: Turno }) {
   const formId = useId();
   const queryClient = useQueryClient();
+  const { user } = useCurrentUser();
   const { values, errors, setConferencia, setField, validate } = useConferencia(turno.formasPagamento);
+
+  // Turno que acabou de ser encerrado, como a API o devolve na lista (com informado e diferença por forma).
+  const [encerrado, setEncerrado] = useState<Turno | null>(null);
 
   const mutation = useMutation({
     mutationFn: passarTurno,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: CAIXA_KEY });
       onSuccess("Turno passado.");
+      // A passagem não devolve o resumo: busca o turno encerrado na lista. Se não achar, fecha como antes.
+      try {
+        const turnos = await listTurnos();
+        const fechado = turnos.find((item) => item.turnoId === turno.turnoId && item.dataHoraFim !== null);
+        if (fechado) {
+          setEncerrado(fechado);
+          return;
+        }
+      } catch {
+        // O resumo é um complemento: a passagem já foi feita.
+      }
       onClose();
     },
   });
+
+  // Sem fundo informado, a API assume o fundo do turno que sai mais o dinheiro conferido (sem o fundo).
+  const indiceDinheiro = turno.formasPagamento.findIndex((forma) => forma.formaPagamento === FORMA_PAGAMENTO.Dinheiro);
+  const dinheiroConferido = indiceDinheiro < 0 ? Number.NaN : parseMoney(values.conferencias[indiceDinheiro] ?? "");
+  const fundoAssumido = turno.valorFundoCaixa + (Number.isNaN(dinheiroConferido) ? 0 : dinheiroConferido);
 
   function handleSubmit() {
     const valid = validate();
@@ -37,9 +61,13 @@ export function PassarTurnoModal({ turno, onClose, onSuccess }: CaixaModalProps 
     }
     mutation.mutate({
       conferencias: toConferencias(turno.formasPagamento, valid.conferencias),
-      valorInicial: valid.valorInicial === "" ? null : parseMoney(valid.valorInicial),
+      valorFundoCaixa: valid.fundoCaixa === "" ? null : parseMoney(valid.fundoCaixa),
       observacao: valid.observacao || undefined,
     });
+  }
+
+  if (encerrado) {
+    return <ResumoFechamento tipo="passagem" turno={encerrado} novoResponsavel={user?.name ?? null} onConcluir={onClose} />;
   }
 
   return (
@@ -76,13 +104,13 @@ export function PassarTurnoModal({ turno, onClose, onSuccess }: CaixaModalProps 
             disabled={mutation.isPending}
           />
           <Input
-            label="Valor inicial do novo turno (opcional)"
+            label="Fundo de caixa do novo turno (opcional)"
             inputMode="decimal"
             placeholder="0,00"
-            hint="Dinheiro que fica na gaveta. Se vazio, assume o dinheiro conferido."
-            value={values.valorInicial}
-            onChange={(event) => setField("valorInicial", event.target.value)}
-            error={errors.valorInicial}
+            hint={`Dinheiro que fica na gaveta. Se vazio, fica o fundo do turno atual mais o dinheiro conferido: ${formatMoeda(fundoAssumido)}.`}
+            value={values.fundoCaixa}
+            onChange={(event) => setField("fundoCaixa", event.target.value)}
+            error={errors.fundoCaixa}
             disabled={mutation.isPending}
           />
           <Input

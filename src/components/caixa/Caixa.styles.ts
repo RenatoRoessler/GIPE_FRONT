@@ -189,3 +189,18 @@ export const VisuallyHidden = styled.span`
   white-space: nowrap;
   border: 0;
 `;
+
+export const ResumoTitulo = styled.h3`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 4px;
+  }
+`;

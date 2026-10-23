@@ -15,8 +15,9 @@ import { CaixaHeader } from "../CaixaHeader";
 import { FecharCaixaModal } from "../FecharCaixaModal";
 import { HistoricoTurnosModal } from "../HistoricoTurnosModal";
 import { PassarTurnoModal } from "../PassarTurnoModal";
-import { SaldoCards } from "../SaldoCards";
 import { SangriaModal } from "../SangriaModal";
+import { AbasCaixa } from "../AbasCaixa";
+import { GavetaResumo } from "../GavetaResumo";
 import { TurnoAtual } from "../TurnoAtual";
 import { Page, StatusRow, TitleGroup, VisuallyHidden } from "../Caixa.styles";
 import { useCaixa } from "../useCaixa";
@@ -24,7 +25,7 @@ import { useCaixa } from "../useCaixa";
 type ModalId = "abrir" | "sangria" | "passagem" | "fechar" | "historico";
 
 export function CaixaPage() {
-  const { caixaQuery, caixa, turnoQuery } = useCaixa();
+  const { caixaQuery, caixa, turnoQuery, movimentosQuery, turnosQuery } = useCaixa();
   const [modal, setModal] = useState<ModalId | null>(null);
   const { toast, showToast, dismissToast } = useToast();
 
@@ -67,12 +68,10 @@ export function CaixaPage() {
           <CaixaHeader
             caixa={caixa}
             turnoPronto={Boolean(turno)}
-            onSangria={() => setModal("sangria")}
             onPassarTurno={() => setModal("passagem")}
             onHistorico={() => setModal("historico")}
             onFechar={() => setModal("fechar")}
           />
-          <SaldoCards caixa={caixa} />
           {turnoQuery.isError && isForbiddenError(turnoQuery.error) ? (
             <ErroSemPermissao />
           ) : turnoQuery.isError ? (
@@ -83,8 +82,12 @@ export function CaixaPage() {
               </Button>
             </StatusRow>
           ) : (
-            <TurnoAtual turno={turno} />
+            <>
+              <GavetaResumo caixa={caixa} turno={turno} onRetirada={() => setModal("sangria")} />
+              <TurnoAtual turno={turno} />
+            </>
           )}
+          <AbasCaixa caixa={caixa} movimentos={movimentosQuery} turnos={turnosQuery} />
         </>
       )}
 

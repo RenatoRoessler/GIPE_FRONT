@@ -9,11 +9,10 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/Table";
 import { Text } from "@/components/ui/Text";
 import { listTurnos } from "@/lib/api/services/caixa";
-import { formatBRL } from "@/lib/money";
 import type { Turno } from "@/types/caixa";
 import { StatusRow, TurnoBlock, TurnoBlockHeader, VisuallyHidden } from "./Caixa.styles";
 import { Diferenca } from "./Diferenca";
-import { formaPagamentoLabel, formatDateTime, isTurnoAberto } from "./format";
+import { formaPagamentoLabel, formatDateTime, isTurnoAberto, formatMoeda } from "./format";
 import { CAIXA_KEY } from "./useCaixa";
 
 function TurnoItem({ turno }: { turno: Turno }) {
@@ -27,7 +26,7 @@ function TurnoItem({ turno }: { turno: Turno }) {
       </TurnoBlockHeader>
       <Text variant="muted">
         {formatDateTime(turno.dataHoraInicio)} — {aberto ? "em andamento" : formatDateTime(turno.dataHoraFim)} ·
-        valor inicial {formatBRL(turno.valorInicial)}
+        fundo do turno {formatMoeda(turno.valorFundoCaixa)}
       </Text>
       <Table>
         <TableHead>
@@ -46,7 +45,7 @@ function TurnoItem({ turno }: { turno: Turno }) {
             <TableRow key={forma.formaPagamento}>
               <TableCell data-label="Forma de pagamento">{formaPagamentoLabel(forma.formaPagamento)}</TableCell>
               <TableCell align="right" numeric data-label="Informado">
-                {forma.valorInformado === null ? "—" : formatBRL(forma.valorInformado)}
+                {forma.valorInformado === null ? "—" : formatMoeda(forma.valorInformado)}
               </TableCell>
               <TableCell align="right" numeric data-label="Diferença">
                 <Diferenca value={forma.diferenca} />
