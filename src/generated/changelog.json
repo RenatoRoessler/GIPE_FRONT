@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.218",
+      "type": "feat",
+      "scope": "marca",
+      "title": "troca GIPE por Murel e unifica a navegação na barra inferior",
+      "description": "O sistema agora se chama Murel e segue a nova identidade visual: logotipo das\ntrês vagas com o carro estacionado, paleta de asfalto, amarelo e giz, e as\nfontes Plus Jakarta Sans e JetBrains Mono (placas, horários e valores).\nOs temas claro e escuro foram mantidos e ficaram com as mesmas cores de marca.\n\n- O nome aparece em todas as telas, títulos de aba, mensagens, no app\n  instalável (nome, cores e ícones novos) e na página sem conexão.\n- O menu de cima foi removido. A barra inferior, que era só do celular, agora\n  vale em qualquer tela: mostra quantos itens couberem na largura e leva o\n  resto para o botão \"Mais\", que abre um painel com as demais telas.\n- Início, Entrada e Saída são os últimos a sair da barra quando falta espaço.\n- Comprovante, recibo e os PDFs trazem a marca. O QR Code continua preto sobre\n  branco, e tickets antigos (GIPE-SAIDA) continuam sendo lidos.\n- Componentes e telas passam a usar o amarelo só como preenchimento e um tom de\n  destaque que mantém contraste nos dois temas.\n- A tela de entrada ganhou a frase \"Seu pátio sob controle.\".\n\nQuem já estava logado continua logado, e a preferência de tema é mantida.",
+      "date": "2026-10-25T17:45:46-03:00"
+    },
+    {
       "version": "1.0.214",
       "type": "feat",
       "scope": "empresa",
