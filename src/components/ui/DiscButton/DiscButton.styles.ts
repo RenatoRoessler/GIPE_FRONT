@@ -11,7 +11,7 @@ export const StyledDiscButton = styled.button`
   min-height: ${TOUCH_TARGET};
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[4]}px ${({ theme }) => theme.space[2]}px
     ${({ theme }) => theme.space[2]}px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: 1px solid ${({ theme }) => theme.colors.borderStrong};
   border-radius: ${({ theme }) => theme.radii.full};
   background-color: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.text};
@@ -23,11 +23,11 @@ export const StyledDiscButton = styled.button`
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 
@@ -47,11 +47,11 @@ export const Badge = styled.span`
   flex-shrink: 0;
   width: 44px;
   height: 44px;
-  border: 3px solid ${({ theme }) => theme.colors.signEdge};
+  border: 3px solid ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.radii.full};
-  outline: 2px solid ${({ theme }) => theme.colors.primary};
+  outline: 2px solid ${({ theme }) => theme.colors.focus};
   background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.onSign};
+  color: ${({ theme }) => theme.colors.onPrimary};
   font-weight: 700;
   font-size: ${({ theme }) => theme.fontSizes.lg};
   line-height: 1;

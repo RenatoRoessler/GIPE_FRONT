@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { formatDateTime } from "@/components/caixa/format";
 import { NotaFiscalModal } from "@/components/notas/NotaFiscalModal";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 import { PlateDisplay } from "@/components/ui/PlateDisplay";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -130,6 +131,7 @@ function Recibo({ recibo, token }: { recibo: ReciboCliente; token: string }) {
   return (
     <Page>
       <ReciboTop>
+        <Logo align="start" size={28} />
         <ReciboEyebrow>Recibo de saída</ReciboEyebrow>
         <Company>{recibo.razaoSocial}</Company>
         {recibo.cnpj && <p>CNPJ {formatCNPJ(recibo.cnpj)}</p>}

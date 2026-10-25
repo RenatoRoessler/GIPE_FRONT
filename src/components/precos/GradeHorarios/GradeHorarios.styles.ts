@@ -45,17 +45,17 @@ export const Atalho = styled.button`
   transition: border-color 0.15s ease, background-color 0.15s ease;
 
   &:hover:not(:disabled) {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
   }
 
   &[aria-pressed="true"] {
-    border: 2px solid ${({ theme }) => theme.colors.primary};
+    border: 2px solid ${({ theme }) => theme.colors.accent};
     background-color: ${({ theme }) => theme.colors.primarySoft};
     padding: calc(${({ theme }) => theme.space[2]}px - 1px) calc(${({ theme }) => theme.space[3]}px - 1px);
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 
@@ -116,7 +116,7 @@ export const BotaoEixo = styled.button`
   cursor: pointer;
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 1px;
   }
 
@@ -143,7 +143,7 @@ export const Celula = styled.button`
   cursor: pointer;
 
   &[aria-pressed="true"] {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
     background-color: ${({ theme }) => theme.colors.primary};
   }
 
@@ -177,7 +177,7 @@ export const Amostra = styled.i<{ $ligada: boolean }>`
   height: 14px;
   margin-right: ${({ theme }) => theme.space[1]}px;
   vertical-align: -2px;
-  border: 1px solid ${({ theme, $ligada }) => ($ligada ? theme.colors.primary : theme.colors.border)};
+  border: 1px solid ${({ theme, $ligada }) => ($ligada ? theme.colors.accent : theme.colors.border)};
   border-radius: ${({ theme }) => theme.radii.sm};
   background-color: ${({ theme, $ligada }) => ($ligada ? theme.colors.primary : theme.colors.surface)};
 `;

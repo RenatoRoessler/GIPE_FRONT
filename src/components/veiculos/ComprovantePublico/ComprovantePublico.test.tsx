@@ -56,6 +56,16 @@ describe("ComprovantePublico", () => {
     expect(screen.queryByText(/66\.?326/)).not.toBeInTheDocument();
   });
 
+  it("mostra a marca Murel no topo, acima do nome da empresa", async () => {
+    vi.mocked(consultarComprovante).mockResolvedValue(comprovante);
+    renderWithProviders(<ComprovantePublico token="227SUSYV" />);
+
+    const empresa = await screen.findByRole("heading", { name: "Estacionamento Central" });
+    const marca = screen.getByRole("img", { name: "Murel" });
+    expect(marca.compareDocumentPosition(empresa) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText("murel")).toBeInTheDocument();
+  });
+
   it("baixa o recibo em PDF com os dados do comprovante", async () => {
     vi.mocked(consultarComprovante).mockResolvedValue(comprovante);
     vi.mocked(baixarReciboPdf).mockResolvedValue();

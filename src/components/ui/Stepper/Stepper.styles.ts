@@ -38,14 +38,14 @@ export const Dot = styled.span<{ $status: "done" | "current" | "pending" }>`
       return css`
         background-color: ${theme.colors.primary};
         color: ${theme.colors.onPrimary};
-        border: 1px solid ${theme.colors.primary};
+        border: 1px solid ${theme.colors.accent};
       `;
     }
     if ($status === "current") {
       return css`
         background-color: ${theme.colors.background};
-        color: ${theme.colors.primary};
-        border: 2px solid ${theme.colors.primary};
+        color: ${theme.colors.accent};
+        border: 2px solid ${theme.colors.accent};
       `;
     }
     return css`
@@ -61,7 +61,7 @@ export const Connector = styled.span<{ $filled: boolean }>`
   height: 2px;
   margin: 0 ${({ theme }) => theme.space[2]}px;
   background-color: ${({ theme, $filled }) =>
-    $filled ? theme.colors.primary : theme.colors.border};
+    $filled ? theme.colors.accent : theme.colors.border};
   transition: background-color 0.2s ease;
 `;
 

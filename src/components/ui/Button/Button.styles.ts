@@ -13,10 +13,16 @@ export const StyledButton = styled.button<{
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: ${({ theme }) => theme.radii.md};
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  font-family: inherit;
+  font-weight: ${({ theme }) => theme.fontWeights.extrabold};
   cursor: pointer;
   transition: background-color 0.15s ease;
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
+    outline-offset: 2px;
+  }
 
   ${({ $size, theme }) =>
     $size === "sm"
@@ -33,17 +39,18 @@ export const StyledButton = styled.button<{
     switch ($variant) {
       case "secondary":
         return css`
-          background-color: ${theme.colors.surface};
+          background-color: transparent;
           color: ${theme.colors.text};
+          box-shadow: inset 0 0 0 1.5px ${theme.colors.borderStrong};
 
           &:hover {
-            background-color: ${theme.colors.border};
+            background-color: ${theme.colors.primarySoft};
           }
         `;
       case "danger":
         return css`
           background-color: ${theme.colors.danger};
-          color: white;
+          color: ${theme.colors.onDanger};
 
           &:hover {
             opacity: 0.9;

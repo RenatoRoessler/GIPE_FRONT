@@ -16,7 +16,7 @@ async function abrir(token: string) {
 
 describe("rota /recibo/[token]", () => {
   it("fica fora dos buscadores e tem o título da aba", () => {
-    expect(metadata.title).toBe("Recibo de saída — GIPE");
+    expect(metadata.title).toBe("Recibo de saída — Murel");
     expect(metadata.robots).toEqual({ index: false, follow: false });
   });
 

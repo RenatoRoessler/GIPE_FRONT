@@ -34,7 +34,7 @@ export const Box = styled.span<{ $checked: boolean; $error?: boolean }>`
   height: 20px;
   border: 1px solid
     ${({ theme, $checked, $error }) =>
-      $error ? theme.colors.danger : $checked ? theme.colors.primary : theme.colors.border};
+      $error ? theme.colors.danger : $checked ? theme.colors.accent : theme.colors.borderStrong};
   border-radius: ${({ theme }) => theme.radii.sm};
   background-color: ${({ theme, $checked }) =>
     $checked ? theme.colors.primary : theme.colors.surface};
@@ -42,7 +42,7 @@ export const Box = styled.span<{ $checked: boolean; $error?: boolean }>`
   transition: background-color 0.15s ease, border-color 0.15s ease;
 
   ${NativeInput}:focus-visible + & {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 

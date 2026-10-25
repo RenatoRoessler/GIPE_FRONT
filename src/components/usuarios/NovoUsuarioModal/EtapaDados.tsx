@@ -11,7 +11,7 @@ import { Form, Note, ReadOnlyBlock } from "../Usuarios.styles";
 export interface EtapaDadosProps {
   formId: string;
   cpf: string;
-  // Presente = pessoa já cadastrada no GIPE: dados em leitura, só o perfil é escolhido.
+  // Presente = pessoa já cadastrada na Murel: dados em leitura, só o perfil é escolhido.
   pessoa?: CpfConsulta;
   disabled: boolean;
   onSubmit: (values: NovoUsuarioValues) => void;

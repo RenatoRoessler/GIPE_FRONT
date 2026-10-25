@@ -65,7 +65,7 @@ export const Preenchimento = styled.span<{ $percentual: number; $risco: boolean 
   display: block;
   width: ${({ $percentual }) => $percentual}%;
   height: 100%;
-  background-color: ${({ theme, $risco }) => ($risco ? theme.colors.danger : theme.colors.primary)};
+  background-color: ${({ theme, $risco }) => ($risco ? theme.colors.danger : theme.colors.accent)};
   border-radius: ${({ theme }) => theme.radii.sm};
 
   @media (prefers-reduced-motion: no-preference) {
@@ -99,9 +99,9 @@ export const RoscaCentro = styled.div`
   display: grid;
   place-content: center;
   text-align: center;
-  font-family: ${({ theme }) => theme.typography.display};
+  font-family: ${({ theme }) => theme.fontFamilies.mono};
   font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
   font-variant-numeric: tabular-nums;
 `;
 
@@ -125,12 +125,12 @@ export const Legenda = styled.ul`
   }
 `;
 
-export const Amostra = styled.span<{ $cor: "primary" | "steel" }>`
+export const Amostra = styled.span<{ $cor: "mensal" | "steel" }>`
   flex: none;
   width: 12px;
   height: 12px;
   border-radius: ${({ theme }) => theme.radii.sm};
-  background-color: ${({ theme, $cor }) => theme.colors[$cor]};
+  background-color: ${({ theme, $cor }) => ($cor === "mensal" ? theme.colors.cliente.mensal : theme.colors.steel)};
 `;
 
 export const Colunas = styled.div`
@@ -146,7 +146,7 @@ export const Coluna = styled.span<{ $percentual: number; $pico: boolean }>`
   min-width: 0;
   height: ${({ $percentual }) => $percentual}%;
   min-height: 2px;
-  background-color: ${({ theme, $pico }) => ($pico ? theme.colors.warn : theme.colors.primary)};
+  background-color: ${({ theme, $pico }) => ($pico ? theme.colors.warn : theme.colors.accent)};
   border-radius: ${({ theme }) => theme.radii.sm} ${({ theme }) => theme.radii.sm} 0 0;
 `;
 

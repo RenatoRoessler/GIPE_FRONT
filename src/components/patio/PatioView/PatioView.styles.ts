@@ -263,7 +263,7 @@ export const ComprovanteLink = styled.a`
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 
@@ -344,8 +344,8 @@ export const Segmento = styled.button<{ $valor: number; $tipo: "mensalistas" | "
   min-width: 0;
   padding: 0 ${({ theme }) => theme.space[3]}px;
   border: 0;
-  background-color: ${({ theme, $tipo }) => ($tipo === "mensalistas" ? theme.colors.primary : theme.colors.textMuted)};
-  color: ${({ theme, $tipo }) => ($tipo === "mensalistas" ? theme.colors.onPrimary : theme.colors.background)};
+  background-color: ${({ theme, $tipo }) => ($tipo === "mensalistas" ? theme.colors.cliente.mensal : theme.colors.cliente.avulso)};
+  color: ${({ theme }) => theme.colors.onPrimary};
   font: inherit;
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   text-align: left;
@@ -359,7 +359,7 @@ export const Segmento = styled.button<{ $valor: number; $tipo: "mensalistas" | "
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: -3px;
   }
 `;
@@ -392,11 +392,11 @@ export const Chip = styled.button`
 
   &[aria-pressed="true"] {
     background-color: ${({ theme }) => theme.colors.primarySoft};
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
@@ -423,7 +423,7 @@ export const GraficosDetalhes = styled.details`
     cursor: pointer;
 
     &:focus-visible {
-      outline: 3px solid ${({ theme }) => theme.colors.primary};
+      outline: 2px solid ${({ theme }) => theme.colors.focus};
       outline-offset: 2px;
     }
   }

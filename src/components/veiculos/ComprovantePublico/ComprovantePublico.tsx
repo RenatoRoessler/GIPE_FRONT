@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { formatDateTime } from "@/components/caixa/format";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 import { PlateDisplay } from "@/components/ui/PlateDisplay";
 import { QrCode } from "@/components/ui/QrCode";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -120,6 +121,7 @@ function Comprovante({ comprovante }: { comprovante: ComprovanteCliente }) {
   return (
     <Page>
       <Top>
+        <Logo align="start" size={28} />
         <Eyebrow>Comprovante de entrada</Eyebrow>
         <Company>{comprovante.razaoSocial}</Company>
         {comprovante.endereco && <p>{comprovante.endereco}</p>}

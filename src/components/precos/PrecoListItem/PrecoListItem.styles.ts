@@ -14,7 +14,7 @@ export const Item = styled.button<{ $selecionado: boolean }>`
   padding: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[3]}px;
   border: 0;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  border-left: 4px solid ${({ theme, $selecionado }) => ($selecionado ? theme.colors.primary : "transparent")};
+  border-left: 4px solid ${({ theme, $selecionado }) => ($selecionado ? theme.colors.accent : "transparent")};
   background-color: ${({ theme, $selecionado }) => ($selecionado ? theme.colors.background : "transparent")};
   color: ${({ theme }) => theme.colors.text};
   font-family: inherit;
@@ -26,7 +26,7 @@ export const Item = styled.button<{ $selecionado: boolean }>`
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: -3px;
   }
 `;

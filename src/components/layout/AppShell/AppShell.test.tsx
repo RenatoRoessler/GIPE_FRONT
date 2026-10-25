@@ -1,5 +1,5 @@
 import { screen } from "@testing-library/react";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { renderWithTheme } from "@/test/render";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/dashboard" }));
@@ -7,11 +7,10 @@ vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => ({ user:
 vi.mock("@/contexts/ThemeModeContext", () => ({ useThemeMode: () => ({ mode: "light", toggleThemeMode: vi.fn() }) }));
 vi.mock("@/components/layout/UserMenu", () => ({ UserMenu: () => <div data-testid="user-menu" /> }));
 vi.mock("@/components/layout/InstallPwaButton", () => ({ InstallPwaButton: () => null }));
+// A largura real não existe no jsdom: a barra cabe 5 espaços.
+vi.mock("@/components/layout/BottomNav/useBarCapacity", () => ({ useBarCapacity: () => ({ ref: vi.fn(), capacidade: 5 }) }));
 
 import { AppShell } from "./AppShell";
-
-// O pórtico e a barra inferior se alternam por CSS (breakpoint `lg`): o jsdom não avalia a media query.
-const opcoes = { hidden: true } as const;
 
 // jsdom não implementa <dialog>.
 beforeAll(() => {
@@ -23,16 +22,8 @@ beforeAll(() => {
   };
 });
 
-beforeEach(() => {
-  window.matchMedia = vi.fn().mockImplementation(() => ({
-    matches: false,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  })) as unknown as typeof window.matchMedia;
-});
-
 describe("AppShell", () => {
-  it("renderiza o conteúdo, o pórtico do computador e a barra inferior do celular", () => {
+  it("renderiza o conteúdo e a barra inferior, sem o pórtico do topo", () => {
     const { container } = renderWithTheme(
       <AppShell>
         <p>Conteúdo da tela</p>
@@ -40,20 +31,31 @@ describe("AppShell", () => {
     );
 
     expect(screen.getByText("Conteúdo da tela")).toBeInTheDocument();
-    // Escondido por CSS, o pórtico não tem o nome acessível calculado no jsdom: confere pelo atributo.
-    expect(container.querySelector('nav[aria-label="Menu principal"]')).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Navegação principal", ...opcoes })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
+    expect(container.querySelector('nav[aria-label="Menu principal"]')).not.toBeInTheDocument();
   });
 
-  it("o cabeçalho não tem mais o botão Menu do celular: só a barra inferior o oferece", () => {
+  it("a única navegação principal é a barra inferior, com o botão Mais", () => {
     renderWithTheme(
       <AppShell>
         <p>Conteúdo da tela</p>
       </AppShell>,
     );
 
-    const botoesMenu = screen.getAllByRole("button", { name: "Menu", ...opcoes });
-    expect(botoesMenu).toHaveLength(1);
-    expect(screen.getByRole("navigation", { name: "Navegação principal", ...opcoes })).toContainElement(botoesMenu[0]);
+    expect(screen.getAllByRole("navigation", { hidden: true }).filter((nav) => nav.getAttribute("aria-label") === "Navegação principal")).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "Menu" })).not.toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Navegação principal" })).toContainElement(screen.getByRole("button", { name: "Mais" }));
+  });
+
+  it("o cabeçalho mantém o logotipo, as boas-vindas e o menu do usuário", () => {
+    renderWithTheme(
+      <AppShell>
+        <p>Conteúdo da tela</p>
+      </AppShell>,
+    );
+
+    expect(screen.getByRole("link", { name: "Murel — ir para o início" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByText("Olá, Maria")).toBeInTheDocument();
+    expect(screen.getByTestId("user-menu")).toBeInTheDocument();
   });
 });

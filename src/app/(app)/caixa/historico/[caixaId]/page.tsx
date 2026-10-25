@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ExtratoCaixaPage } from "@/components/caixa/ExtratoCaixaPage";
 
 export const metadata: Metadata = {
-  title: "Extrato do caixa — GIPE",
+  title: "Extrato do caixa — Murel",
 };
 
 export default async function Page({ params }: { params: Promise<{ caixaId: string }> }) {

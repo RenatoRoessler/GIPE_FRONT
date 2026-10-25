@@ -21,7 +21,7 @@ export const Avatar = styled.button`
   cursor: pointer;
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
@@ -54,7 +54,7 @@ export const DropdownItemLink = styled.a`
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
@@ -81,7 +81,7 @@ export const LogoutButton = styled.button`
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
@@ -101,7 +101,7 @@ export const InstallButton = styled.button`
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

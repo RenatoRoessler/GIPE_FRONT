@@ -2,7 +2,7 @@
 
 import styled, { css } from "styled-components";
 
-export type StatusBadgeTone = "success" | "neutral" | "info" | "warn" | "danger";
+export type StatusBadgeTone = "success" | "neutral" | "info" | "warn" | "danger" | "avulso" | "mensal" | "conveniado";
 
 export const StyledStatusBadge = styled.span<{ $tone: StatusBadgeTone }>`
   display: inline-flex;
@@ -46,6 +46,14 @@ export const StyledStatusBadge = styled.span<{ $tone: StatusBadgeTone }>`
             border-radius: ${theme.radii.full};
             background-color: ${theme.colors.danger};
           }
+        `;
+      // Tipo de cliente: cor própria da marca, com texto sempre em asfalto.
+      case "avulso":
+      case "mensal":
+      case "conveniado":
+        return css`
+          background-color: ${theme.colors.cliente[$tone]};
+          color: ${theme.colors.onPrimary};
         `;
       default:
         return css`

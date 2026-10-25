@@ -2,16 +2,16 @@
 
 import NextLink from "next/link";
 import type { Ref } from "react";
-import { NavIcon } from "@/components/layout/NavSign/NavIcons";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { useCurrentUser } from "@/contexts/CurrentUserContext";
-import { isNavAction, isNavActive, navItemKey, navItemsPermitidos, type NavAction } from "@/lib/nav";
-import { CloseButton, Grabber, Sheet, SheetHeader, SheetList, SheetRow, SheetTitle } from "./BottomNav.styles";
+import { NavIcon } from "@/components/layout/NavIcons";
+import { isNavAction, isNavActive, navItemKey, type NavAction, type NavItem } from "@/lib/nav";
+import { CloseButton, Grabber, IconTile, Sheet, SheetHeader, SheetList, SheetRow, SheetTitle } from "./BottomNav.styles";
 
 export interface MenuSheetProps {
   id: string;
   dialogRef: Ref<HTMLDialogElement>;
   pathname: string;
+  // Só os itens que não couberam na barra inferior, na ordem do menu.
+  itens: NavItem[];
   // Chamado quando o painel pede para fechar (fechar, escolher uma tela ou toque no fundo).
   onRequestClose: () => void;
   // Chamado ao tocar em Entrada ou Saída: o contêiner fecha o painel e só então abre o modal.
@@ -28,11 +28,7 @@ function ChevronIcon() {
   );
 }
 
-const SKELETON_KEYS = ["a", "b", "c"];
-
-export function MenuSheet({ id, dialogRef, pathname, onRequestClose, onAction, onClosed }: MenuSheetProps) {
-  const { user, isLoading } = useCurrentUser();
-
+export function MenuSheet({ id, dialogRef, pathname, itens, onRequestClose, onAction, onClosed }: MenuSheetProps) {
   return (
     <Sheet
       ref={dialogRef}
@@ -46,27 +42,23 @@ export function MenuSheet({ id, dialogRef, pathname, onRequestClose, onAction, o
     >
       <Grabber aria-hidden="true" />
       <SheetHeader>
-        <SheetTitle id={`${id}-title`}>Menu</SheetTitle>
+        <SheetTitle id={`${id}-title`}>Mais</SheetTitle>
         <CloseButton type="button" onClick={onRequestClose} aria-label="Fechar menu">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6 6 18" />
           </svg>
         </CloseButton>
       </SheetHeader>
-      <nav aria-label="Todas as telas">
-        <SheetList aria-busy={isLoading}>
-          {isLoading &&
-            SKELETON_KEYS.map((key) => (
-              <li key={key}>
-                <Skeleton height="48px" radius="8px" />
-              </li>
-            ))}
-          {(isLoading ? [] : navItemsPermitidos(user?.perfil)).map((item) => {
+      <nav aria-label="Outras telas">
+        <SheetList>
+          {itens.map((item) => {
             if (isNavAction(item)) {
               return (
                 <li key={navItemKey(item)}>
                   <SheetRow as="button" type="button" $active={false} aria-haspopup="dialog" onClick={() => onAction(item.acao)}>
-                    <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
+                    <IconTile>
+                      <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
+                    </IconTile>
                     {item.label}
                     <ChevronIcon />
                   </SheetRow>
@@ -77,7 +69,9 @@ export function MenuSheet({ id, dialogRef, pathname, onRequestClose, onAction, o
             return (
               <li key={item.href}>
                 <SheetRow as={NextLink} href={item.href} $active={active} aria-current={active ? "page" : undefined} onClick={onRequestClose}>
-                  <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
+                  <IconTile>
+                    <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
+                  </IconTile>
                   {item.label}
                   <ChevronIcon />
                 </SheetRow>

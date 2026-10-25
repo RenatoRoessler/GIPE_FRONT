@@ -60,8 +60,9 @@ export const Top = styled.header`
   flex-direction: column;
   gap: ${({ theme }) => theme.space[1]}px;
   padding: ${({ theme }) => theme.space[4]}px ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[6]}px;
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.onPrimary};
+  border-bottom: 2px dashed ${({ theme }) => theme.colors.border};
+  background-color: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.text};
 
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
     /* Abre espaço para o entalhe da moldura. */
@@ -73,11 +74,14 @@ export const Top = styled.header`
   }
 `;
 
+// Rótulo de seção do guia de marca: JetBrains Mono em caixa alta, na cor de destaque.
 export const Eyebrow = styled.p`
-  color: ${({ theme }) => theme.colors.warn};
+  margin-top: ${({ theme }) => theme.space[2]}px;
+  color: ${({ theme }) => theme.colors.accent};
+  font-family: ${({ theme }) => theme.fontFamilies.mono};
   font-size: ${({ theme }) => theme.fontSizes.xs};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-  letter-spacing: 0.08em;
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 `;
 
@@ -123,9 +127,9 @@ export const ExitCard = styled.section`
   }
 
   .code {
-    font-family: ${({ theme }) => theme.typography.display};
+    font-family: ${({ theme }) => theme.fontFamilies.mono};
     font-size: ${({ theme }) => theme.fontSizes.lg};
-    font-weight: ${({ theme }) => theme.fontWeights.bold};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
     letter-spacing: 0.12em;
   }
 `;
@@ -174,9 +178,9 @@ export const Elapsed = styled.div`
   }
 
   .time {
-    font-family: ${({ theme }) => theme.typography.display};
+    font-family: ${({ theme }) => theme.fontFamilies.mono};
     font-size: calc(${({ theme }) => theme.fontSizes.xl} * 2);
-    font-weight: ${({ theme }) => theme.fontWeights.bold};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
@@ -242,11 +246,11 @@ const actionTile = css`
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 

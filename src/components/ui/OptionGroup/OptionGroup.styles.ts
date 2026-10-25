@@ -39,7 +39,7 @@ export const Tile = styled.label<{ $checked: boolean; $disabled: boolean; $hasEr
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
   border: 1px solid
     ${({ theme, $checked, $hasError }) =>
-      $checked ? theme.colors.primary : $hasError ? theme.colors.danger : theme.colors.border};
+      $checked ? theme.colors.accent : $hasError ? theme.colors.danger : theme.colors.borderStrong};
   border-radius: ${({ theme }) => theme.radii.md};
   background-color: ${({ theme, $checked }) => ($checked ? theme.colors.primarySoft : theme.colors.background)};
   color: ${({ theme }) => theme.colors.text};
@@ -71,11 +71,11 @@ export const Tile = styled.label<{ $checked: boolean; $disabled: boolean; $hasEr
     `}
 
   &:hover {
-    border-color: ${({ theme, $disabled }) => ($disabled ? undefined : theme.colors.primary)};
+    border-color: ${({ theme, $disabled }) => ($disabled ? undefined : theme.colors.accent)};
   }
 
   &:focus-within {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
@@ -106,7 +106,7 @@ export const Mark = styled.span<{ $checked: boolean; $withIcon?: boolean }>`
   flex-shrink: 0;
   width: 18px;
   height: 18px;
-  border: 2px solid ${({ theme, $checked }) => ($checked ? theme.colors.primary : theme.colors.border)};
+  border: 2px solid ${({ theme, $checked }) => ($checked ? theme.colors.accent : theme.colors.borderStrong)};
   border-radius: ${({ theme }) => theme.radii.full};
 
   &::after {
@@ -114,7 +114,7 @@ export const Mark = styled.span<{ $checked: boolean; $withIcon?: boolean }>`
     width: 8px;
     height: 8px;
     border-radius: ${({ theme }) => theme.radii.full};
-    background-color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => theme.colors.accent};
     transform: scale(${({ $checked }) => ($checked ? 1 : 0)});
     transition: transform 0.12s ease;
   }

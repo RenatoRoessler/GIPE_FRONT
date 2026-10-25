@@ -15,6 +15,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "generate:changelog": "node scripts/generate-changelog.mjs",
+    "generate:icons": "node scripts/gerar-icones.mjs",
     "postinstall": "node scripts/copy-ocr-assets.mjs"
   },
   "dependencies": {

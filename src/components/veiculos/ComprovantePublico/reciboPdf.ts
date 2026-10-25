@@ -4,7 +4,7 @@ import { formatBRL } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 import type { ComprovanteCliente } from "@/types/veiculo";
 import { formatPermanencia } from "./format";
-import { CONTENT, drawQr, formatPlaca, MARGIN, toLatin1, WIDTH } from "./pdfCupom";
+import { CONTENT, drawMarca, drawQr, formatPlaca, MARGIN, toLatin1, WIDTH } from "./pdfCupom";
 
 const QR_SIZE = 44;
 const LINK_QR_SIZE = 28;
@@ -33,7 +33,7 @@ async function render(doc: jsPDF, comprovante: ComprovanteCliente, link: string)
     .filter(Boolean)
     .join(" · ");
 
-  let y = MARGIN + 2;
+  let y = drawMarca(doc, MARGIN) + 3;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.text(header, WIDTH / 2, y, { align: "center" });

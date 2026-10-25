@@ -14,7 +14,7 @@ export const StyledCameraButton = styled.button<{ $size: CameraButtonSize }>`
   width: ${({ $size }) => SIZE[$size]}px;
   height: ${({ $size }) => SIZE[$size]}px;
   padding: 0;
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: 1px solid ${({ theme }) => theme.colors.borderStrong};
   border-radius: ${({ theme }) => theme.radii.full};
   background-color: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.text};
@@ -22,11 +22,11 @@ export const StyledCameraButton = styled.button<{ $size: CameraButtonSize }>`
   transition: border-color 0.15s ease;
 
   &:hover:not(:disabled) {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 

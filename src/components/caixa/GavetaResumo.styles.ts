@@ -69,7 +69,7 @@ export const TrechoFundo = styled.span<{ $percentual: number }>`
 
 export const TrechoRetiravel = styled.span<{ $percentual: number }>`
   flex: 0 0 ${({ $percentual }) => $percentual}%;
-  background-color: ${({ theme }) => theme.colors.primary};
+  background-color: ${({ theme }) => theme.colors.accent};
 `;
 
 export const Legenda = styled.dl`
@@ -108,7 +108,7 @@ export const Amostra = styled.span<{ $tom: "fundo" | "retiravel" }>`
   width: 10px;
   height: 10px;
   border-radius: ${({ theme }) => theme.radii.sm};
-  background-color: ${({ theme, $tom }) => ($tom === "fundo" ? theme.colors.steel : theme.colors.primary)};
+  background-color: ${({ theme, $tom }) => ($tom === "fundo" ? theme.colors.steel : theme.colors.accent)};
 `;
 
 export const Linha = styled.dl`

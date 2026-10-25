@@ -3,19 +3,22 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sem conexão — GIPE</title>
+    <meta name="color-scheme" content="light dark" />
+    <title>Sem conexão — Murel</title>
     <style>
-      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; font-family: system-ui, sans-serif; background: #fff; color: #1a1d29; text-align: center; }
-      @media (prefers-color-scheme: dark) { body { background: #14161f; color: #f2f3f7; } }
-      h1 { font-size: 1.25rem; margin: 0 0 8px; }
-      p { margin: 0 0 20px; opacity: 0.75; }
-      button { padding: 10px 20px; border: 0; border-radius: 8px; background: #2c5ce0; color: #fff; font-size: 1rem; cursor: pointer; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; font-family: system-ui, sans-serif; background: #f4f1e8; color: #0e1729; text-align: center; }
+      @media (prefers-color-scheme: dark) { body { background: #0e1729; color: #f4f1e8; } }
+      h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 8px; }
+      p { margin: 0 0 20px; max-width: 36ch; opacity: 0.8; }
+      button { padding: 12px 20px; border: 0; border-radius: 14px; background: #ffc20e; color: #0e1729; font-size: 1rem; font-weight: 800; cursor: pointer; }
+      button:focus-visible { outline: 2px solid #0e1729; outline-offset: 3px; }
+      @media (prefers-color-scheme: dark) { button:focus-visible { outline-color: #ffc20e; } }
     </style>
   </head>
   <body>
     <main>
       <h1>Você está sem conexão</h1>
-      <p>O GIPE precisa de internet para mostrar dados atualizados. Verifique sua conexão e tente novamente.</p>
+      <p>A Murel precisa de internet para mostrar dados atualizados. Verifique sua conexão e tente novamente.</p>
       <button type="button" onclick="location.reload()">Tentar novamente</button>
     </main>
   </body>

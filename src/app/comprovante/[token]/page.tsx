@@ -3,7 +3,7 @@ import { ComprovanteNaoEncontrado, ComprovantePublico } from "@/components/veicu
 
 // O comprovante tem dados de veículo: fora de buscadores.
 export const metadata: Metadata = {
-  title: "Comprovante de entrada — GIPE",
+  title: "Comprovante de entrada — Murel",
   robots: { index: false, follow: false },
 };
 

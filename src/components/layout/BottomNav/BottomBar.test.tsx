@@ -1,44 +1,69 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { navItemsPorPrioridade } from "@/lib/nav";
 import { lightTheme } from "@/styles/theme";
 import { renderWithTheme } from "@/test/render";
 
 let pathname = "/dashboard";
 
 vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
-const sessao = vi.hoisted(() => ({ atual: { user: { name: "Maria", perfil: 1 } as { name: string; perfil: number | null } | null, isLoading: false } }));
-vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => sessao.atual }));
 
 import { BottomBar } from "./BottomBar";
 
-// A barra só aparece abaixo de `breakpoints.lg` por CSS; o jsdom não avalia a media query.
-const opcoes = { hidden: true } as const;
+// Início, Entrada, Saída e Preços: o que cabe numa tela de 320px a 375px, com o "Mais" no quinto espaço.
+const itensDoAdmin = navItemsPorPrioridade(1);
+const quatro = itensDoAdmin.slice(0, 4);
 
 function renderBar(props: Partial<React.ComponentProps<typeof BottomBar>> = {}) {
   const onMenuClick = vi.fn();
   const onAction = vi.fn();
-  const view = renderWithTheme(<BottomBar menuOpen={false} onMenuClick={onMenuClick} onAction={onAction} menuId="painel" {...props} />);
+  const view = renderWithTheme(
+    <BottomBar
+      itens={quatro}
+      temMais
+      maisAtivo={false}
+      carregando={false}
+      menuOpen={false}
+      onMenuClick={onMenuClick}
+      onAction={onAction}
+      menuId="painel"
+      {...props}
+    />,
+  );
   return { onMenuClick, onAction, ...view };
 }
 
 describe("BottomBar", () => {
-  beforeEach(() => {
-    sessao.atual = { user: { name: "Maria", perfil: 1 }, isLoading: false };
-  });
-
-  it("mostra Início (link), Entrada e Saída (botões) e Menu", () => {
+  it("mostra Início (link), Entrada e Saída (botões), Preços (link) e o botão Mais", () => {
     pathname = "/dashboard";
     renderBar();
 
-    expect(screen.getByRole("navigation", { name: "Navegação principal", ...opcoes })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Início", ...opcoes })).toHaveAttribute("href", "/dashboard");
-    expect(screen.getByRole("button", { name: "Entrada", ...opcoes })).toHaveAttribute("aria-haspopup", "dialog");
-    expect(screen.getByRole("button", { name: "Saída", ...opcoes })).toHaveAttribute("aria-haspopup", "dialog");
-    expect(screen.getByRole("button", { name: "Menu", ...opcoes })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Início" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("button", { name: "Entrada" })).toHaveAttribute("aria-haspopup", "dialog");
+    expect(screen.getByRole("button", { name: "Saída" })).toHaveAttribute("aria-haspopup", "dialog");
+    expect(screen.getByRole("link", { name: "Preços" })).toHaveAttribute("href", "/precos");
+    expect(screen.getByRole("button", { name: "Mais" })).toBeInTheDocument();
     // Entrada e Saída não levam a nenhuma página.
-    expect(screen.queryByRole("link", { name: "Entrada", ...opcoes })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Saída", ...opcoes })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Entrada" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Saída" })).not.toBeInTheDocument();
+  });
+
+  it("usa o rótulo curto de cada item, não o nome completo", () => {
+    renderBar();
+
+    expect(screen.getByRole("link", { name: "Preços" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Gestão de Preços" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Entrada de Veículos" })).not.toBeInTheDocument();
+  });
+
+  it("sem itens fora da barra não mostra o botão Mais", () => {
+    renderBar({ itens: itensDoAdmin, temMais: false });
+
+    expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link")).toHaveLength(9);
+    expect(screen.getByRole("link", { name: "Empresa" })).toHaveAttribute("href", "/minha-empresa");
   });
 
   it("tocar em Entrada ou Saída chama a ação certa", async () => {
@@ -46,8 +71,8 @@ describe("BottomBar", () => {
     const { onAction } = renderBar();
     const user = userEvent.setup();
 
-    await user.click(screen.getByRole("button", { name: "Entrada", ...opcoes }));
-    await user.click(screen.getByRole("button", { name: "Saída", ...opcoes }));
+    await user.click(screen.getByRole("button", { name: "Entrada" }));
+    await user.click(screen.getByRole("button", { name: "Saída" }));
 
     expect(onAction.mock.calls).toEqual([["entrada"], ["saida"]]);
   });
@@ -56,37 +81,33 @@ describe("BottomBar", () => {
     for (const rota of ["/dashboard", "/veiculos/saida", "/patio"]) {
       pathname = rota;
       const { unmount } = renderBar();
-      expect(screen.getByRole("button", { name: "Entrada", ...opcoes })).not.toHaveAttribute("aria-current");
-      expect(screen.getByRole("button", { name: "Saída", ...opcoes })).not.toHaveAttribute("aria-current");
+      expect(screen.getByRole("button", { name: "Entrada" })).not.toHaveAttribute("aria-current");
+      expect(screen.getByRole("button", { name: "Saída" })).not.toHaveAttribute("aria-current");
       unmount();
     }
   });
 
-  it("marca o Início como página atual só no Início", () => {
+  it("marca como página atual só o link da rota atual", () => {
     pathname = "/dashboard";
     const { unmount } = renderBar();
-    expect(screen.getByRole("link", { name: "Início", ...opcoes })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Início" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Preços" })).not.toHaveAttribute("aria-current");
     unmount();
 
-    pathname = "/caixa";
+    pathname = "/precos/novo";
     renderBar();
-    expect(screen.getByRole("link", { name: "Início", ...opcoes })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Início" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Preços" })).toHaveAttribute("aria-current", "page");
   });
 
-  it("destaca o Menu em qualquer tela que não seja o Início", () => {
+  it("destaca o Mais só quando pedido (painel aberto ou tela atual entre os itens que não couberam)", () => {
     pathname = "/caixa";
-    renderBar();
-    expect(screen.getByRole("button", { name: "Menu", ...opcoes })).toHaveStyle({ color: lightTheme.colors.primary });
-  });
-
-  it("não destaca o Menu no Início, a menos que o painel esteja aberto", () => {
-    pathname = "/dashboard";
-    const { unmount } = renderBar();
-    expect(screen.getByRole("button", { name: "Menu", ...opcoes })).toHaveStyle({ color: lightTheme.colors.textMuted });
+    const { unmount } = renderBar({ maisAtivo: true });
+    expect(screen.getByRole("button", { name: "Mais" })).toHaveStyle({ color: lightTheme.colors.text });
     unmount();
 
-    renderBar({ menuOpen: true });
-    expect(screen.getByRole("button", { name: "Menu", ...opcoes })).toHaveStyle({ color: lightTheme.colors.primary });
+    renderBar({ maisAtivo: false });
+    expect(screen.getByRole("button", { name: "Mais" })).toHaveStyle({ color: lightTheme.colors.textMuted });
   });
 
   it("cada aba tem um ícone próprio, decorativo, no traço do protótipo", () => {
@@ -94,10 +115,11 @@ describe("BottomBar", () => {
     renderBar();
 
     const abas = [
-      screen.getByRole("link", { name: "Início", ...opcoes }),
-      screen.getByRole("button", { name: "Entrada", ...opcoes }),
-      screen.getByRole("button", { name: "Saída", ...opcoes }),
-      screen.getByRole("button", { name: "Menu", ...opcoes }),
+      screen.getByRole("link", { name: "Início" }),
+      screen.getByRole("button", { name: "Entrada" }),
+      screen.getByRole("button", { name: "Saída" }),
+      screen.getByRole("link", { name: "Preços" }),
+      screen.getByRole("button", { name: "Mais" }),
     ];
     const desenhos = abas.map((aba) => {
       const icone = aba.querySelector("svg");
@@ -105,46 +127,41 @@ describe("BottomBar", () => {
       expect(icone).toHaveAttribute("stroke-width", "2.4");
       return icone?.innerHTML;
     });
-    // Quatro desenhos diferentes: Entrada e Saída não podem repetir o mesmo ícone.
-    expect(new Set(desenhos).size).toBe(4);
+    // Cinco desenhos diferentes: Entrada e Saída não podem repetir o mesmo ícone.
+    expect(new Set(desenhos).size).toBe(5);
   });
 
-  it("o botão Menu expõe o estado do painel e avisa o clique", async () => {
+  it("o botão Mais expõe o estado do painel e avisa o clique", async () => {
     pathname = "/dashboard";
     const { onMenuClick } = renderBar({ menuOpen: true });
-    const menu = screen.getByRole("button", { name: "Menu", ...opcoes });
+    const mais = screen.getByRole("button", { name: "Mais" });
 
-    expect(menu).toHaveAttribute("aria-expanded", "true");
-    expect(menu).toHaveAttribute("aria-controls", "painel");
-    expect(menu).toHaveAttribute("aria-haspopup", "dialog");
-    await userEvent.setup().click(menu);
+    expect(mais).toHaveAttribute("aria-expanded", "true");
+    expect(mais).toHaveAttribute("aria-controls", "painel");
+    expect(mais).toHaveAttribute("aria-haspopup", "dialog");
+    await userEvent.setup().click(mais);
     expect(onMenuClick).toHaveBeenCalledTimes(1);
   });
 
-  it("quem não opera o pátio (Financeiro) vê só o Início e o Menu", () => {
-    sessao.atual = { user: { name: "Ana", perfil: 8 }, isLoading: false };
-    renderBar();
+  it("enquanto carrega, mostra espaços reservados e nenhum atalho nem o Mais", () => {
+    renderBar({ carregando: true });
 
-    expect(screen.getByRole("link", { name: "Início", ...opcoes })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Entrada", ...opcoes })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Saída", ...opcoes })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Menu", ...opcoes })).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Navegação principal" }).querySelector("[aria-busy='true']")).toBeInTheDocument();
   });
 
-  it("o Manobrista mantém Entrada e Saída", () => {
-    sessao.atual = { user: { name: "Joao", perfil: 3 }, isLoading: false };
-    renderBar();
+  it("entrega o elemento externo da barra para ser medido", () => {
+    const barRef = vi.fn();
+    renderBar({ barRef });
 
-    expect(screen.getByRole("button", { name: "Entrada", ...opcoes })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Saída", ...opcoes })).toBeInTheDocument();
+    expect(barRef).toHaveBeenCalledWith(screen.getByRole("navigation", { name: "Navegação principal" }));
   });
 
-  it("enquanto o perfil não é conhecido, não mostra nenhum atalho, só o Menu", () => {
-    sessao.atual = { user: null, isLoading: true };
+  it("divide a largura em colunas iguais, uma por item e uma para o Mais", () => {
     renderBar();
 
-    expect(screen.queryByRole("link", { name: "Início", ...opcoes })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Entrada", ...opcoes })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Menu", ...opcoes })).toBeInTheDocument();
+    const grade = screen.getByRole("navigation", { name: "Navegação principal" }).firstElementChild;
+    expect(grade).toHaveStyle({ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" });
   });
 });

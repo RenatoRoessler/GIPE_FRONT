@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { HistoricoCaixasPage } from "@/components/caixa/HistoricoCaixasPage";
 
 export const metadata: Metadata = {
-  title: "Caixas anteriores — GIPE",
+  title: "Caixas anteriores — Murel",
 };
 
 export default function Page() {

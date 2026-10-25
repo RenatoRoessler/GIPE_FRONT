@@ -21,7 +21,7 @@ export const Entry = styled.article`
 
   /* Destaque da entrada apontada pelo fragmento da URL (link do rodapé). */
   &:target {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
     background-color: ${({ theme }) => theme.colors.primarySoft};
   }
 `;
@@ -44,7 +44,7 @@ export const Version = styled.span`
 export const TypeBadge = styled.span<{ $type: ChangelogType }>`
   padding: 2px ${({ theme }) => theme.space[2]}px;
   border: 1px solid
-    ${({ theme, $type }) => ($type === "feat" ? theme.colors.success : theme.colors.primary)};
+    ${({ theme, $type }) => ($type === "feat" ? theme.colors.success : theme.colors.accent)};
   border-radius: ${({ theme }) => theme.radii.full};
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.medium};

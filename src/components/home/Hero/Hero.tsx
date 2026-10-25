@@ -6,10 +6,10 @@ import { Subtitle, Title, Wrapper } from "./Hero.styles";
 export function Hero() {
   return (
     <Wrapper>
-      <Title>GIPE</Title>
+      <Title>Murel</Title>
       <Subtitle>
-        A forma mais simples de organizar e acompanhar o que importa, em um
-        só lugar.
+        A Murel controla entrada, saída e caixa de estacionamentos, valets e
+        lava-rápidos. Sem impressora e sem cadastro do cliente.
       </Subtitle>
       <Button variant="primary">Começar agora</Button>
     </Wrapper>

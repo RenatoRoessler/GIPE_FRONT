@@ -22,8 +22,8 @@ export function Header() {
 
   return (
     <Bar>
-      <BrandLink href="/dashboard" aria-label="GIPE — ir para o início">
-        <Logo align="start" />
+      <BrandLink href="/dashboard" aria-label="Murel — ir para o início">
+        <Logo align="start" size={28} compactOnMobile />
       </BrandLink>
       <EndGroup>
         <Welcome>

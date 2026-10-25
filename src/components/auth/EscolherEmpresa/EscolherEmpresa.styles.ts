@@ -27,12 +27,12 @@ export const Opcao = styled.button`
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
     background-color: ${({ theme }) => theme.colors.primarySoft};
   }
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 

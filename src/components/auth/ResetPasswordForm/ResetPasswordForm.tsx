@@ -66,7 +66,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   }
 
   return (
-    <AuthCard title="Definir nova senha" subtitle="Escolha uma nova senha para acessar o GIPE.">
+    <AuthCard title="Definir nova senha" subtitle="Escolha uma nova senha para acessar a Murel.">
       <Form
         onSubmit={(event) => {
           event.preventDefault();

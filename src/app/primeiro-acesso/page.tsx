@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PrimeiroAcessoForm } from "@/components/auth/PrimeiroAcessoForm";
 
 export const metadata: Metadata = {
-  title: "Primeiro acesso — GIPE",
+  title: "Primeiro acesso — Murel",
 };
 
 export default function PrimeiroAcessoPage() {

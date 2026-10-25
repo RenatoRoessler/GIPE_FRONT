@@ -27,7 +27,7 @@ export function RoscaMensalistas({ mensalistas, avulsos, percentual }: RoscaMens
               cy="18"
               r="15.9155"
               fill="none"
-              stroke={colors.primary}
+              stroke={colors.cliente.mensal}
               strokeWidth="5"
               strokeDasharray={`${percentual} ${100 - percentual}`}
             />
@@ -36,7 +36,7 @@ export function RoscaMensalistas({ mensalistas, avulsos, percentual }: RoscaMens
         </RoscaFigura>
         <Legenda>
           <li>
-            <Amostra $cor="primary" aria-hidden="true" />
+            <Amostra $cor="mensal" aria-hidden="true" />
             Mensalistas <strong>{mensalistas}</strong>
           </li>
           <li>

@@ -92,7 +92,7 @@ export const StepTitle = styled.h3`
   color: ${({ theme }) => theme.colors.textMuted};
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

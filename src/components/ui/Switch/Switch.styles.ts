@@ -18,7 +18,7 @@ export const Track = styled.button<{ $checked: boolean }>`
   height: 24px;
   padding: 0;
   border: 1px solid
-    ${({ theme, $checked }) => ($checked ? theme.colors.primary : theme.colors.border)};
+    ${({ theme, $checked }) => ($checked ? theme.colors.accent : theme.colors.borderStrong)};
   border-radius: ${({ theme }) => theme.radii.full};
   background-color: ${({ theme, $checked }) =>
     $checked ? theme.colors.primary : theme.colors.surface};
@@ -26,7 +26,7 @@ export const Track = styled.button<{ $checked: boolean }>`
   transition: background-color 0.15s ease, border-color 0.15s ease;
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

@@ -8,6 +8,8 @@ export type NavAction = "entrada" | "saida";
 
 export type NavLinkItem = {
   label: string;
+  // Rótulo curto, para caber no espaço de um item da barra inferior.
+  shortLabel: string;
   href: string;
   icon: NavIconId;
   area: Area;
@@ -15,6 +17,7 @@ export type NavLinkItem = {
 
 export type NavActionItem = {
   label: string;
+  shortLabel: string;
   acao: NavAction;
   icon: NavIconId;
   area: Area;
@@ -32,41 +35,22 @@ export function navItemKey(item: NavItem): string {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Início", href: "/dashboard", icon: "home", area: AREA.Inicio },
-  { label: "Gestão de Preços", href: "/precos", icon: "pricing", area: AREA.Precos },
-  { label: "Gestão de Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios },
-  { label: "Mensalistas", href: "/mensalistas", icon: "members", area: AREA.Mensalistas },
-  { label: "Entrada de Veículos", acao: "entrada", icon: "vehicleIn", area: AREA.Patio },
-  { label: "Saída de Veículos", acao: "saida", icon: "vehicleOut", area: AREA.Patio },
-  { label: "Pátio", href: "/patio", icon: "yard", area: AREA.Patio },
-  { label: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa },
-  { label: "Notas Fiscais", href: "/notas-fiscais", icon: "invoice", area: AREA.NotasFiscais },
-  { label: "Relatórios", href: "/relatorios", icon: "reports", area: AREA.Relatorios },
-  { label: "Minha Empresa", href: "/minha-empresa", icon: "company", area: AREA.Empresa },
+  { label: "Início", shortLabel: "Início", href: "/dashboard", icon: "home", area: AREA.Inicio },
+  { label: "Gestão de Preços", shortLabel: "Preços", href: "/precos", icon: "pricing", area: AREA.Precos },
+  { label: "Gestão de Usuários", shortLabel: "Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios },
+  { label: "Mensalistas", shortLabel: "Mensalistas", href: "/mensalistas", icon: "members", area: AREA.Mensalistas },
+  { label: "Entrada de Veículos", shortLabel: "Entrada", acao: "entrada", icon: "vehicleIn", area: AREA.Patio },
+  { label: "Saída de Veículos", shortLabel: "Saída", acao: "saida", icon: "vehicleOut", area: AREA.Patio },
+  { label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: AREA.Patio },
+  { label: "Caixa", shortLabel: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa },
+  { label: "Notas Fiscais", shortLabel: "Notas", href: "/notas-fiscais", icon: "invoice", area: AREA.NotasFiscais },
+  { label: "Relatórios", shortLabel: "Relatórios", href: "/relatorios", icon: "reports", area: AREA.Relatorios },
+  { label: "Minha Empresa", shortLabel: "Empresa", href: "/minha-empresa", icon: "company", area: AREA.Empresa },
 ];
-
-// Atalhos da barra inferior (celular): derivados de NAV_ITEMS para não duplicar endereço, ação nem ícone.
-const BOTTOM_NAV_LABELS: Record<string, string> = {
-  "/dashboard": "Início",
-  entrada: "Entrada",
-  saida: "Saída",
-};
-
-export const BOTTOM_NAV_ITEMS: NavItem[] = Object.entries(BOTTOM_NAV_LABELS).map(([key, label]) => {
-  const item = NAV_ITEMS.find((navItem) => navItemKey(navItem) === key);
-  if (!item) {
-    throw new Error(`Atalho da barra inferior sem item de menu: ${key}`);
-  }
-  return { ...item, label };
-});
 
 // Itens do menu que o perfil pode abrir; sem perfil conhecido, só o Início.
 export function navItemsPermitidos(perfil: PerfilUsuario | null | undefined): NavItem[] {
   return NAV_ITEMS.filter((item) => podeAcessar(perfil, item.area));
-}
-
-export function bottomNavItemsPermitidos(perfil: PerfilUsuario | null | undefined): NavItem[] {
-  return BOTTOM_NAV_ITEMS.filter((item) => podeAcessar(perfil, item.area));
 }
 
 // "Início" só é ativo na rota exata; os demais também nas rotas filhas.
@@ -79,7 +63,41 @@ export function isNavActive(pathname: string, item: NavItem) {
   return isNavAction(item) ? false : isNavItemActive(pathname, item.href);
 }
 
-// O item Menu da barra inferior fica ativo em qualquer tela que não seja o Início: Entrada e Saída abrem modais.
-export function isMenuTabActive(pathname: string) {
-  return !isNavItemActive(pathname, "/dashboard");
+// Itens que a barra inferior mostra primeiro quando falta espaço: o dia a dia do pátio.
+const BAR_PRIORITY = ["/dashboard", "entrada", "saida"];
+
+// Itens que o perfil pode abrir, na ordem em que disputam espaço na barra inferior:
+// Início, Entrada e Saída primeiro e depois a ordem do menu.
+export function navItemsPorPrioridade(perfil: PerfilUsuario | null | undefined): NavItem[] {
+  const prioridade = (item: NavItem) => {
+    const posicao = BAR_PRIORITY.indexOf(navItemKey(item));
+    return posicao === -1 ? BAR_PRIORITY.length : posicao;
+  };
+  return navItemsPermitidos(perfil)
+    .map((item, indice) => ({ item, indice }))
+    .sort((a, b) => prioridade(a.item) - prioridade(b.item) || a.indice - b.indice)
+    .map(({ item }) => item);
+}
+
+// A barra tem no mínimo três espaços (três itens, ou dois itens e o "Mais").
+const MIN_SLOTS = 3;
+
+// Separa os itens que cabem na barra dos que vão para o menu estendido. Se nem todos cabem, o último
+// espaço é do botão "Mais", então um a menos é mostrado.
+export function dividirItensDaBarra<T>(itens: T[], capacidade: number): { visiveis: T[]; excedentes: T[] } {
+  const slots = Math.max(capacidade, MIN_SLOTS);
+  if (itens.length <= slots) {
+    return { visiveis: itens, excedentes: [] };
+  }
+  return { visiveis: itens.slice(0, slots - 1), excedentes: itens.slice(slots - 1) };
+}
+
+// O botão "Mais" fica ativo quando a tela atual é um dos itens que não couberam na barra.
+export function isMaisAtivo(pathname: string, excedentes: NavItem[]) {
+  return excedentes.some((item) => isNavActive(pathname, item));
+}
+
+// Reordena itens (por exemplo, os excedentes da barra) na ordem do menu completo.
+export function ordenarPeloMenu(itens: NavItem[]): NavItem[] {
+  return [...itens].sort((a, b) => NAV_ITEMS.indexOf(a) - NAV_ITEMS.indexOf(b));
 }

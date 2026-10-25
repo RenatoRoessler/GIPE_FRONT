@@ -35,6 +35,14 @@ describe("criarReciboSaidaPdf", () => {
     expect(doc.internal.pageSize.getHeight()).toBeLessThan(220);
   });
 
+  it("traz a marca Murel no topo, desenhada em vetor, sem imagem nem fonte extra", async () => {
+    const conteudo = (await criarReciboSaidaPdf(recibo, LINK)).output();
+
+    expect(conteudo).toContain("(murel) Tj");
+    expect(conteudo).not.toContain("/Subtype /Image");
+    expect(conteudo.indexOf("(murel) Tj")).toBeLessThan(conteudo.indexOf(`(${recibo.razaoSocial}) Tj`));
+  });
+
   it("aceita campos vazios sem quebrar", async () => {
     const doc = await criarReciboSaidaPdf(
       { ...recibo, telefone: null, endereco: null, modelo: null, cor: null, descricaoFormaPagamento: null },

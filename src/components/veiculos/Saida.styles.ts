@@ -22,7 +22,7 @@ export const ValuePanel = styled.div`
   flex-direction: column;
   gap: ${({ theme }) => theme.space[1]}px;
   padding: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[4]}px;
-  border: 1px solid ${({ theme }) => theme.colors.primary};
+  border: 1px solid ${({ theme }) => theme.colors.accent};
   border-radius: ${({ theme }) => theme.radii.lg};
   background-color: ${({ theme }) => theme.colors.surface};
 `;

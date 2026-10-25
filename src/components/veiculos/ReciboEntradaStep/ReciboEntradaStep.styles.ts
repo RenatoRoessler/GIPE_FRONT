@@ -63,7 +63,7 @@ export const TicketNumber = styled.div`
   }
 
   strong {
-    font-family: ${({ theme }) => theme.typography.display};
+    font-family: ${({ theme }) => theme.fontFamilies.mono};
     font-size: ${({ theme }) => theme.fontSizes.xl};
     line-height: 1;
     font-variant-numeric: tabular-nums;

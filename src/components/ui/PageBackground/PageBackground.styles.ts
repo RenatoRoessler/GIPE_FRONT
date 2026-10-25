@@ -2,7 +2,7 @@
 
 import styled from "styled-components";
 
-export const Screen = styled.div`
+export const Screen = styled.main`
   position: relative;
   min-height: 100dvh;
   display: flex;
@@ -10,10 +10,5 @@ export const Screen = styled.div`
   justify-content: center;
   padding: ${({ theme }) => theme.space[4]}px;
   overflow: hidden;
-  background: linear-gradient(
-    340deg,
-    ${({ theme }) => theme.colors.background} 0%,
-    ${({ theme }) => theme.colors.primarySoft} 55%,
-    ${({ theme }) => theme.colors.primarySofter} 100%
-  );
+  background-color: ${({ theme }) => theme.colors.background};
 `;

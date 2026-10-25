@@ -42,7 +42,7 @@ export function InstallPwaButton({ variant }: InstallPwaButtonProps) {
         <Button type="button" onClick={() => void install()}>
           Instalar aplicativo
         </Button>
-        <Text variant="muted">Acesse o GIPE direto da tela inicial ou da área de trabalho.</Text>
+        <Text variant="muted">Acesse a Murel direto da tela inicial ou da área de trabalho.</Text>
       </InstallBox>
     );
   }
@@ -50,7 +50,7 @@ export function InstallPwaButton({ variant }: InstallPwaButtonProps) {
   if (showIosHint) {
     return (
       <Text variant="muted">
-        Para instalar o GIPE: toque em Compartilhar e depois em &ldquo;Adicionar à Tela de Início&rdquo;.
+        Para instalar a Murel: toque em Compartilhar e depois em &ldquo;Adicionar à Tela de Início&rdquo;.
       </Text>
     );
   }

@@ -12,7 +12,7 @@ const COLUMN_MIN: Record<TrackSize, number> = { sm: 32, md: 88 };
 const CONNECTOR_GAP = 4;
 
 function accent(theme: DefaultTheme, tone: TrackTone) {
-  return tone === "success" ? theme.colors.success : theme.colors.primary;
+  return tone === "success" ? theme.colors.success : theme.colors.accent;
 }
 
 export const List = styled.ol<{ $size: TrackSize }>`

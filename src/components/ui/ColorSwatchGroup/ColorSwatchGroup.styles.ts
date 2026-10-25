@@ -72,7 +72,7 @@ export const Dot = styled.span<{ $color: string; $checked: boolean }>`
   transition: box-shadow 0.12s ease;
 
   ${RadioInput}:focus-visible + & {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 4px;
   }
 `;

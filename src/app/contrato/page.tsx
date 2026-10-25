@@ -4,7 +4,7 @@ import { ContratoMensagem } from "@/components/contrato/ContratoMensagem";
 
 // O contrato tem dados pessoais e o token vai na URL: fora de buscadores e sem repassar o link a sites externos.
 export const metadata: Metadata = {
-  title: "Contrato — GIPE",
+  title: "Contrato — Murel",
   robots: { index: false, follow: false },
   referrer: "no-referrer",
 };

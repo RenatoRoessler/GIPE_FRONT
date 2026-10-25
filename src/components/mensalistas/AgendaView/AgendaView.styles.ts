@@ -60,7 +60,7 @@ export const GrupoTitulo = styled.div`
 
   &:focus-visible,
   h3:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
@@ -134,7 +134,7 @@ export const NomeBotao = styled.button`
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
     border-radius: ${({ theme }) => theme.radii.sm};
   }

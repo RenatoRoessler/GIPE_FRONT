@@ -72,7 +72,7 @@ export const Segmento = styled.span<{ $de: number; $ate: number; $inativo: boole
   left: ${({ $de }) => $de * 100}%;
   width: ${({ $de, $ate }) => Math.max($ate - $de, 0.01) * 100}%;
   border-radius: ${({ theme }) => theme.radii.sm};
-  background-color: ${({ theme }) => theme.colors.primary};
+  background-color: ${({ theme }) => theme.colors.accent};
   opacity: ${({ $inativo }) => ($inativo ? 0.5 : 1)};
 `;
 

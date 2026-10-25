@@ -35,7 +35,7 @@ export const StyledInput = styled.input<{ $hasError: boolean; $hasEndAction?: bo
   color: ${({ theme }) => theme.colors.text};
   background-color: ${({ theme }) => theme.colors.background};
   border: 1px solid
-    ${({ theme, $hasError }) => ($hasError ? theme.colors.danger : theme.colors.border)};
+    ${({ theme, $hasError }) => ($hasError ? theme.colors.danger : theme.colors.borderStrong)};
   border-radius: ${({ theme }) => theme.radii.md};
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -46,10 +46,10 @@ export const StyledInput = styled.input<{ $hasError: boolean; $hasEndAction?: bo
 
   &:focus {
     border-color: ${({ theme, $hasError }) =>
-      $hasError ? theme.colors.danger : theme.colors.primary};
+      $hasError ? theme.colors.danger : theme.colors.accent};
     box-shadow: 0 0 0 3px
       ${({ theme, $hasError }) =>
-        $hasError ? "rgba(229, 72, 77, 0.15)" : theme.colors.primarySoft};
+        $hasError ? theme.colors.dangerSoft : theme.colors.primarySoft};
   }
 
   &:disabled {
@@ -63,7 +63,7 @@ export const StyledInput = styled.input<{ $hasError: boolean; $hasEndAction?: bo
     $hasError &&
     css`
       &:not(:focus) {
-        background-color: rgba(229, 72, 77, 0.04);
+        background-color: ${({ theme }) => theme.colors.dangerSoft};
       }
     `}
 `;
@@ -90,7 +90,7 @@ export const ToggleButton = styled.button`
   }
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 1px;
   }
 

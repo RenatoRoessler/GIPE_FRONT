@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderWithTheme } from "@/test/render";
-import { darkTheme, lightTheme, signageDarkTheme, signageLightTheme } from "@/styles/theme";
+import { darkTheme, lightTheme } from "@/styles/theme";
 import { StatusBadge } from "./StatusBadge";
 
 describe("StatusBadge", () => {
@@ -31,11 +31,18 @@ describe("StatusBadge", () => {
     expect(selo.textContent).toBe("6 dias de atraso");
   });
 
+  it.each(["avulso", "mensal", "conveniado"] as const)("o tipo de cliente %s usa a cor própria da marca com texto em asfalto", (tipo) => {
+    renderWithTheme(<StatusBadge tone={tipo}>{tipo}</StatusBadge>);
+
+    expect(screen.getByText(tipo)).toHaveStyle({
+      backgroundColor: lightTheme.colors.cliente[tipo],
+      color: lightTheme.colors.onPrimary,
+    });
+  });
+
   it.each([
     ["claro", lightTheme],
     ["escuro", darkTheme],
-    ["sinalização claro", signageLightTheme],
-    ["sinalização escuro", signageDarkTheme],
   ])("o tema %s define o fundo suave do danger", (_nome, tema) => {
     expect(tema.colors.dangerSoft).toMatch(/^rgba\(/);
   });

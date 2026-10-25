@@ -38,7 +38,7 @@ export const Linha = styled.div<{ $checked: boolean; $hasError: boolean }>`
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
   border: 1px solid
     ${({ theme, $checked, $hasError }) =>
-      $hasError ? theme.colors.danger : $checked ? theme.colors.primary : theme.colors.border};
+      $hasError ? theme.colors.danger : $checked ? theme.colors.accent : theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
   background-color: ${({ theme, $checked }) => ($checked ? theme.colors.primarySoft : theme.colors.background)};
   transition: border-color 0.15s ease, background-color 0.15s ease;

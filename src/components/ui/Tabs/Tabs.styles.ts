@@ -15,7 +15,7 @@ export const Tab = styled.button<{ $active: boolean }>`
   padding: 0 ${({ theme }) => theme.space[3]}px;
   margin-bottom: -1px;
   border: none;
-  border-bottom: 2px solid ${({ theme, $active }) => ($active ? theme.colors.primary : "transparent")};
+  border-bottom: 2px solid ${({ theme, $active }) => ($active ? theme.colors.accent : "transparent")};
   background-color: transparent;
   color: ${({ theme, $active }) => ($active ? theme.colors.text : theme.colors.textMuted)};
   font-size: ${({ theme }) => theme.fontSizes.md};
@@ -28,7 +28,7 @@ export const Tab = styled.button<{ $active: boolean }>`
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: -3px;
     border-radius: ${({ theme }) => theme.radii.sm};
   }

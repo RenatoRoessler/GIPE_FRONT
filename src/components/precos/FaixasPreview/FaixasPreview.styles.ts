@@ -2,7 +2,7 @@
 
 import styled from "styled-components";
 
-// "Placa tarifária": painel de sinalização com os degraus tempo → valor.
+// "Placa tarifária": painel com os degraus tempo → valor.
 export type PlateSize = "md" | "lg";
 
 export const Plate = styled.section<{ $size: PlateSize }>`
@@ -10,10 +10,10 @@ export const Plate = styled.section<{ $size: PlateSize }>`
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
   padding: ${({ theme, $size }) => ($size === "lg" ? theme.space[5] : theme.space[4])}px;
-  border-radius: ${({ theme }) => theme.radii.lg};
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.onSign};
-  box-shadow: inset 0 0 0 2px ${({ theme }) => theme.colors.signEdge}, ${({ theme }) => theme.shadows.sm};
+  border-radius: ${({ theme }) => theme.radii.xl};
+  background-color: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.text};
+  box-shadow: inset 0 0 0 2px ${({ theme }) => theme.colors.accent}, ${({ theme }) => theme.shadows.sm};
 `;
 
 export const PlateHeader = styled.div`
@@ -59,7 +59,7 @@ export const Step = styled.li<{ $size: PlateSize }>`
   justify-content: space-between;
   gap: ${({ theme }) => theme.space[3]}px;
   padding: ${({ theme }) => theme.space[2]}px 0;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.signEdge};
+  border-bottom: 2px dashed ${({ theme }) => theme.colors.border};
   font-size: ${({ theme, $size }) => ($size === "lg" ? theme.fontSizes.lg : theme.fontSizes.md)};
 
   &:last-child {
@@ -81,7 +81,7 @@ export const StepValue = styled.span<{ $size: PlateSize }>`
 export const DailyRate = styled.p<{ $size: PlateSize }>`
   margin: 0;
   padding-top: ${({ theme }) => theme.space[2]}px;
-  border-top: 2px solid ${({ theme }) => theme.colors.signEdge};
+  border-top: 2px dashed ${({ theme }) => theme.colors.border};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-variant-numeric: tabular-nums;
 

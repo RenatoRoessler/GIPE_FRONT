@@ -14,7 +14,7 @@ import {
 } from "./LeitorQrSaida.styles";
 import { useLeitorQr, type LeitorQrEstado } from "./useLeitorQr";
 
-export const QR_INVALIDO_MESSAGE = "QR Code não é um ticket GIPE";
+export const QR_INVALIDO_MESSAGE = "QR Code não é um ticket Murel";
 export const BUSCANDO_MESSAGE = "Buscando veículo…";
 const INVALIDO_MS = 1200;
 
@@ -27,9 +27,9 @@ const MENSAGENS: Record<LeitorQrEstado, string> = {
 };
 
 export interface LeitorQrSaidaProps {
-  // Token já extraído de um QR de ticket GIPE.
+  // Token já extraído de um QR de ticket Murel.
   onToken: (token: string) => void;
-  // QR lido que não é de um ticket GIPE; a leitura continua.
+  // QR lido que não é de um ticket Murel; a leitura continua.
   onInvalido: () => void;
   // Busca em andamento: a câmera pausa, o visor mostra a mira de sucesso e o estado é anunciado.
   buscando?: boolean;

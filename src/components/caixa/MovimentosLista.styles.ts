@@ -24,7 +24,7 @@ export const GrupoTipo = styled.div`
 export const Opcao = styled.button<{ $ativa: boolean }>`
   min-height: 44px;
   padding: 0 ${({ theme }) => theme.space[3]}px;
-  border: 1px solid ${({ theme, $ativa }) => ($ativa ? theme.colors.primary : theme.colors.border)};
+  border: 1px solid ${({ theme, $ativa }) => ($ativa ? theme.colors.accent : theme.colors.border)};
   border-radius: ${({ theme }) => theme.radii.full};
   background-color: ${({ theme, $ativa }) => ($ativa ? theme.colors.primarySoft : theme.colors.background)};
   color: ${({ theme, $ativa }) => ($ativa ? theme.colors.link : theme.colors.text)};
@@ -33,11 +33,11 @@ export const Opcao = styled.button<{ $ativa: boolean }>`
   cursor: pointer;
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
   }
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

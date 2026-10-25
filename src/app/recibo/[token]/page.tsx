@@ -3,7 +3,7 @@ import { ReciboNaoEncontrado, ReciboPublico } from "@/components/veiculos/Recibo
 
 // O recibo tem dados de veículo: fora de buscadores.
 export const metadata: Metadata = {
-  title: "Recibo de saída — GIPE",
+  title: "Recibo de saída — Murel",
   robots: { index: false, follow: false },
 };
 

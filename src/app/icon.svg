@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0E1729"/>
+  <g transform="translate(6.399999999999999 14.933333333333334) scale(0.21333333333333335)">
+    <defs>
+      <mask id="vidros" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="160">
+        <rect width="240" height="160" fill="#fff"/>
+        <path d="M108 87H132L129.5 76Q120 72.5 110.5 76Z" fill="#000" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M110 112H130L128 119Q120 121 112 119Z" fill="#000" stroke="#000" stroke-width="2" stroke-linejoin="round"/>
+      </mask>
+    </defs>
+    <path d="M20 140V24H220V140M82 24V140M158 24V140" fill="none" stroke="#FFC20E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="102" y="62" width="36" height="66" rx="12" fill="#FFC20E" mask="url(#vidros)"/>
+  </g>
+</svg>

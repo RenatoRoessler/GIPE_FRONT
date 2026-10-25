@@ -164,7 +164,7 @@ export function LoginForm() {
   }
 
   return (
-    <AuthCard title="Entrar" subtitle="Acesse com seu CPF e senha.">
+    <AuthCard tagline title="Entrar" subtitle="Acesse com seu CPF e senha.">
       <Form
         onSubmit={(event) => {
           event.preventDefault();

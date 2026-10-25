@@ -116,7 +116,7 @@ export const SkipLink = styled.a`
   border-radius: ${({ theme }) => theme.radii.sm};
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
@@ -133,7 +133,7 @@ export const ProgressTrack = styled.div`
 
 export const ProgressBar = styled.div`
   height: 100%;
-  background-color: ${({ theme }) => theme.colors.primary};
+  background-color: ${({ theme }) => theme.colors.accent};
   transform-origin: left;
 `;
 
@@ -217,7 +217,7 @@ export const LinkButton = styled.button`
   cursor: pointer;
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
     border-radius: ${({ theme }) => theme.radii.sm};
   }

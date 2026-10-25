@@ -37,12 +37,12 @@ export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boo
             height: fit-content;
             margin: auto;
             border: 1px solid ${theme.colors.border};
-            border-radius: ${theme.radii.lg};
+            border-radius: ${theme.radii.xl};
           }
         `
       : css`
           margin: auto;
-          border-radius: ${theme.radii.lg};
+          border-radius: ${theme.radii.xl};
           width: calc(100% - ${theme.space[3] * 2}px);
 
           @media (min-width: ${theme.breakpoints.sm}) {
@@ -69,7 +69,7 @@ export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boo
   }
 
   &::backdrop {
-    background-color: rgba(20, 32, 46, 0.6);
+    background-color: rgba(14, 23, 41, 0.6);
   }
 `;
 
@@ -103,7 +103,7 @@ export const CloseButton = styled.button`
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

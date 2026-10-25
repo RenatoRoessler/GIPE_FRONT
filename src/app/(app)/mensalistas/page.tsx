@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { MensalistasPage } from "@/components/mensalistas/MensalistasPage";
 
 export const metadata: Metadata = {
-  title: "Mensalistas — GIPE",
+  title: "Mensalistas — Murel",
 };
 
 export default function Page() {

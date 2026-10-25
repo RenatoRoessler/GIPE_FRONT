@@ -39,7 +39,7 @@ export const Visor = styled.button<{ $tom: VisorTom }>`
   cursor: pointer;
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

@@ -87,7 +87,7 @@ export const StatCard = styled.div<{ $highlight?: boolean }>`
   flex-direction: column;
   gap: ${({ theme }) => theme.space[1]}px;
   padding: ${({ theme }) => theme.space[3]}px;
-  border: 1px solid ${({ theme, $highlight }) => ($highlight ? theme.colors.primary : theme.colors.border)};
+  border: 1px solid ${({ theme, $highlight }) => ($highlight ? theme.colors.accent : theme.colors.border)};
   border-radius: ${({ theme }) => theme.radii.lg};
   background-color: ${({ theme, $highlight }) => ($highlight ? theme.colors.primarySoft : theme.colors.surface)};
 `;
@@ -200,7 +200,7 @@ export const ResumoTitulo = styled.h3`
   }
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 4px;
   }
 `;

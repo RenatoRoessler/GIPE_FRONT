@@ -71,6 +71,13 @@ describe("ReciboPublico", () => {
     expect(consultarRecibo).toHaveBeenCalledWith("ABCD1234EF");
   });
 
+  it("mostra a marca Murel no topo do recibo", async () => {
+    abrir();
+
+    await screen.findByRole("heading", { name: recibo.razaoSocial });
+    expect(screen.getByRole("img", { name: "Murel" })).toBeInTheDocument();
+  });
+
   it("mostra a empresa com CNPJ, endereço e telefone formatados", async () => {
     abrir();
 

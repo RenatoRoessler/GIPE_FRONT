@@ -5,7 +5,7 @@ import { formatBRL } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 import type { ReciboCliente } from "@/types/veiculo";
 import { formatPermanencia } from "../ComprovantePublico/format";
-import { CONTENT, drawQr, formatPlaca, MARGIN, toLatin1, WIDTH } from "../ComprovantePublico/pdfCupom";
+import { CONTENT, drawMarca, drawQr, formatPlaca, MARGIN, toLatin1, WIDTH } from "../ComprovantePublico/pdfCupom";
 import { valorDoRecibo } from "./format";
 
 const LINK_QR_SIZE = 32;
@@ -49,7 +49,7 @@ async function render(doc: jsPDF, recibo: ReciboCliente, link: string): Promise<
     .filter(Boolean)
     .join(" · ");
 
-  let y = MARGIN + 2;
+  let y = drawMarca(doc, MARGIN) + 3;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.text(header, WIDTH / 2, y, { align: "center" });

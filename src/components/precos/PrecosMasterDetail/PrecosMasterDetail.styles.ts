@@ -87,7 +87,7 @@ export const Busca = styled.input`
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 1px;
   }
 `;

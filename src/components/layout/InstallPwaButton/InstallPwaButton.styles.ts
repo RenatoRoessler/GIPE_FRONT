@@ -16,11 +16,11 @@ export const IconButton = styled.button`
   transition: border-color 0.15s ease;
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

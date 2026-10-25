@@ -35,6 +35,11 @@ export const ReciboTop = styled(Top)`
     background: none;
     color: #000;
     border-bottom: 1px solid #000;
+
+    [role="img"],
+    [role="img"] span {
+      color: #000;
+    }
   }
 `;
 
@@ -226,9 +231,9 @@ export const Total = styled.div`
   }
 
   .amount {
-    font-family: ${({ theme }) => theme.typography.display};
+    font-family: ${({ theme }) => theme.fontFamilies.mono};
     font-size: calc(${({ theme }) => theme.fontSizes.xl} * 1.5);
-    font-weight: ${({ theme }) => theme.fontWeights.bold};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
     line-height: 1;
     font-variant-numeric: tabular-nums;
     text-align: right;

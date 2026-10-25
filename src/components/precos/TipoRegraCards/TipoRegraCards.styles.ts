@@ -38,7 +38,7 @@ export const Card = styled.label<{ $checked: boolean; $disabled: boolean }>`
   min-height: 72px;
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
   border: ${({ $checked }) => ($checked ? 2 : 1)}px solid
-    ${({ theme, $checked }) => ($checked ? theme.colors.primary : theme.colors.border)};
+    ${({ theme, $checked }) => ($checked ? theme.colors.accent : theme.colors.border)};
   border-radius: ${({ theme }) => theme.radii.md};
   background-color: ${({ theme, $checked }) => ($checked ? theme.colors.primarySoft : theme.colors.background)};
   color: ${({ theme }) => theme.colors.text};
@@ -47,11 +47,11 @@ export const Card = styled.label<{ $checked: boolean; $disabled: boolean }>`
   transition: border-color 0.15s ease, background-color 0.15s ease;
 
   &:hover {
-    border-color: ${({ theme, $disabled }) => ($disabled ? undefined : theme.colors.primary)};
+    border-color: ${({ theme, $disabled }) => ($disabled ? undefined : theme.colors.accent)};
   }
 
   &:focus-within {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

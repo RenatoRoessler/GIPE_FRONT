@@ -128,10 +128,10 @@ describe("SaidaVeiculoModal: fase de pesquisa", () => {
     expect(screen.getByRole("button", { name: "Cancelar" })).toBeEnabled();
   });
 
-  it("QR que não é do GIPE avisa e continua na pesquisa", async () => {
+  it("QR que não é da Murel avisa e continua na pesquisa", async () => {
     renderModal();
     lerQr("https://outro-site.com/promo");
-    expect((await screen.findAllByText("QR Code não é um ticket GIPE")).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("QR Code não é um ticket Murel")).length).toBeGreaterThan(0);
     expect(api.resolverBuscaPorToken).not.toHaveBeenCalled();
     expect(leitor.options?.ativo).toBe(true);
     expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();

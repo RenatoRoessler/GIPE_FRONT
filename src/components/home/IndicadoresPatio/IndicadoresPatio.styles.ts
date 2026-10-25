@@ -27,7 +27,7 @@ export const PatioLink = styled(NextLink)`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
@@ -53,10 +53,10 @@ export const Indicador = styled.div<{ $alerta?: boolean }>`
 
   dd {
     margin: 0;
-    color: ${({ theme, $alerta }) => ($alerta ? theme.colors.danger : theme.colors.primary)};
-    font-family: ${({ theme }) => theme.typography.display};
+    color: ${({ theme, $alerta }) => ($alerta ? theme.colors.danger : theme.colors.accent)};
+    font-family: ${({ theme }) => theme.fontFamilies.mono};
     font-size: 40px;
-    font-weight: ${({ theme }) => theme.fontWeights.bold};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
     font-variant-numeric: tabular-nums;
     line-height: 1;
   }

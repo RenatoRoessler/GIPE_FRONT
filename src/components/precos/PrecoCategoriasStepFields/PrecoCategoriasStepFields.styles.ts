@@ -32,7 +32,7 @@ export const ChipLabel = styled.label<{ $checked: boolean; $disabled: boolean }>
   min-height: 44px;
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
   border-radius: ${({ theme }) => theme.radii.full};
-  border: 2px solid ${({ $checked, theme }) => ($checked ? theme.colors.primary : theme.colors.border)};
+  border: 2px solid ${({ $checked, theme }) => ($checked ? theme.colors.accent : theme.colors.border)};
   background-color: ${({ $checked, theme }) => ($checked ? theme.colors.primary : theme.colors.surface)};
   color: ${({ $checked, theme }) => ($checked ? theme.colors.onPrimary : theme.colors.text)};
   font-size: ${({ theme }) => theme.fontSizes.sm};
@@ -42,7 +42,7 @@ export const ChipLabel = styled.label<{ $checked: boolean; $disabled: boolean }>
   transition: background-color 0.15s ease, border-color 0.15s ease;
 
   &:focus-within {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

@@ -36,7 +36,7 @@ export const novoUsuarioSchema = z.object({
   perfil: z.string().refine((value) => PERFIS.includes(value), "Selecione o perfil"),
 });
 
-// Pessoa já cadastrada no GIPE: só o perfil é escolhido; o resto é da pessoa.
+// Pessoa já cadastrada na Murel: só o perfil é escolhido; o resto é da pessoa.
 export const perfilSchema = z.object({
   perfil: z.string().refine((value) => PERFIS.includes(value), "Selecione o perfil"),
 });

@@ -35,7 +35,7 @@ export const Titulo = styled.h1`
   }
 
   &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 4px;
   }
 `;

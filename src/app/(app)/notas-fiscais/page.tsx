@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { NotasFiscaisPage } from "@/components/notas/NotasFiscaisPage";
 
 export const metadata: Metadata = {
-  title: "Notas Fiscais — GIPE",
+  title: "Notas Fiscais — Murel",
 };
 
 export default function Page() {

@@ -15,6 +15,8 @@ describe("extrairTokenComprovante", () => {
     ["https://gipe.com.br/comprovante/7K3Q9X%20", "7K3Q9X"],
     ["https://gipe.com.br/qualquer?token=7K3Q9X", "7K3Q9X"],
     ["GIPE-SAIDA:7K3Q9X", "7K3Q9X"],
+    ["MUREL-SAIDA:7K3Q9X", "7K3Q9X"],
+    ["murel-saida:7K3Q9X", "7K3Q9X"],
   ])("extrai o token de %s", (texto, esperado) => {
     expect(extrairTokenComprovante(texto)).toBe(esperado);
   });

@@ -5,7 +5,7 @@ import { Text } from "@/components/ui/Text";
 import { getChangelog } from "@/lib/changelog";
 
 export const metadata: Metadata = {
-  title: "Atualizações — GIPE",
+  title: "Atualizações — Murel",
 };
 
 export default function AtualizacoesPage() {

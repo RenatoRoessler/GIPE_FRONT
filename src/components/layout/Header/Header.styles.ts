@@ -11,11 +11,9 @@ export const Bar = styled.header`
   background-color: ${({ theme }) => theme.colors.background};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-  }
+  position: sticky;
+  top: 0;
+  z-index: 20;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
     padding: 14px ${({ theme }) => theme.space[5]}px;
@@ -28,7 +26,7 @@ export const BrandLink = styled(NextLink)`
   border-radius: ${({ theme }) => theme.radii.md};
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
@@ -66,11 +64,11 @@ export const ThemeToggleButton = styled.button`
   transition: border-color 0.15s ease;
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.warn};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/LoginForm";
 
 export const metadata: Metadata = {
-  title: "Entrar — GIPE",
+  title: "Entrar — Murel",
 };
 
 export default function LoginPage() {

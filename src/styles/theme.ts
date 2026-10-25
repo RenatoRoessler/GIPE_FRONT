@@ -1,26 +1,40 @@
+const FONT_SANS = 'var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif';
+const FONT_MONO = 'var(--font-jetbrains), ui-monospace, Menlo, monospace';
+
 const shared = {
   space: [0, 4, 8, 16, 24, 32, 48, 64],
+  fontFamilies: {
+    sans: FONT_SANS,
+    mono: FONT_MONO,
+  },
   fontSizes: {
     xs: "12px",
     sm: "14px",
     md: "16px",
     lg: "20px",
+    subtitle: "22px",
     xl: "28px",
+    xxl: "40px",
   },
   fontWeights: {
     regular: 400,
     medium: 500,
+    semibold: 600,
     bold: 700,
+    extrabold: 800,
   },
   radii: {
-    sm: "4px",
-    md: "8px",
-    lg: "16px",
+    sm: "6px",
+    md: "10px",
+    lg: "14px",
+    xl: "18px",
     full: "9999px",
   },
   layout: {
-    // Altura da barra de navegação inferior (celular), sem a área segura do aparelho.
+    // Altura da barra de navegação inferior, sem a área segura do aparelho.
     bottomNavHeight: "64px",
+    // Largura máxima do conteúdo da barra inferior e do menu estendido em telas grandes.
+    contentMaxWidth: "1120px",
   },
   breakpoints: {
     sm: "480px",
@@ -30,27 +44,39 @@ const shared = {
 } as const;
 
 type ThemeColors = {
+  // Preenchimento de ação principal e destaque. Nunca como cor de texto: para isso, use `accent`.
   primary: string;
   primaryHover: string;
   primarySoft: string;
   primarySofter: string;
   onPrimary: string;
-  onSign: string;
-  signEdge: string;
+  // Texto, ícone e linha de destaque (amarelo no escuro, asfalto no claro).
+  accent: string;
+  // Anel de foco visível.
+  focus: string;
   link: string;
   warn: string;
   onWarn: string;
   steel: string;
   danger: string;
+  // Texto/ícone sobre o preenchimento `danger`.
+  onDanger: string;
   dangerSoft: string;
   success: string;
+  // Texto/ícone sobre o preenchimento `success`.
+  onSuccess: string;
   background: string;
   surface: string;
-  glass: string;
-  glassBorder: string;
   text: string;
   textMuted: string;
+  // Divisórias e bordas decorativas.
   border: string;
+  // Borda de controles (campos, botões secundários): contraste de 3:1 contra o fundo.
+  borderStrong: string;
+  // Tipo de cliente (relatórios e selos). Texto sobre estas cores é sempre asfalto.
+  cliente: { avulso: string; mensal: string; conveniado: string };
+  // Forma de pagamento (caixa).
+  pagamento: { dinheiro: string; pix: string; credito: string; debito: string };
 };
 
 type ThemeTypography = {
@@ -58,12 +84,12 @@ type ThemeTypography = {
   displayTransform: "none" | "uppercase";
   displayTracking: string;
   displaySize: string;
+  displayWeight: number;
 };
 
 type ThemeShadows = {
   sm: string;
   md: string;
-  glow: string;
 };
 
 export type AppTheme = Omit<typeof shared, "radii"> & {
@@ -73,159 +99,89 @@ export type AppTheme = Omit<typeof shared, "radii"> & {
   typography: ThemeTypography;
 };
 
-// Tipografia dos temas atuais: o título segue a fonte do corpo, sem caixa alta.
-const plainTypography: ThemeTypography = {
-  display: "inherit",
+// Cores de apoio da marca: iguais nos dois temas.
+const cliente = { avulso: "#4C8DFF", mensal: "#19C2B5", conveniado: "#F07A3A" };
+const pagamento = { dinheiro: "#7ED38A", pix: "#32BCAD", credito: "#8B7CFF", debito: "#FF8FA3" };
+
+// Títulos em ExtraBold com a fonte principal; caixa alta não faz parte da marca.
+const murelTypography: ThemeTypography = {
+  display: FONT_SANS,
   displayTransform: "none",
-  displayTracking: "normal",
+  displayTracking: "-0.02em",
   displaySize: shared.fontSizes.xl,
+  displayWeight: shared.fontWeights.extrabold,
 };
 
-// Tema claro: "Confiança Azul"
+// Tema claro: giz de fundo, asfalto no texto, amarelo só como preenchimento.
 export const lightTheme: AppTheme = {
   ...shared,
   colors: {
-    primary: "#2C5CE0",
-    primaryHover: "#1E46B8",
-    primarySoft: "#E7EDFC",
-    primarySofter: "#D3DFFA",
-    onPrimary: "#FFFFFF",
-    onSign: "#FFFFFF",
-    signEdge: "#FFFFFF",
-    link: "#2C5CE0",
-    warn: "#F5B800",
-    onWarn: "#131A2B",
-    steel: "#8A95A3",
-    danger: "#E23D4E",
-    dangerSoft: "rgba(226, 61, 78, 0.12)",
-    success: "#1F9D6C",
-    background: "#FFFFFF",
-    surface: "#F3F5FA",
-    glass: "rgba(255, 255, 255, 0.62)",
-    glassBorder: "rgba(255, 255, 255, 0.5)",
-    text: "#131A2B",
-    textMuted: "#64708A",
-    border: "#E1E5EE",
+    primary: "#FFC20E",
+    primaryHover: "#E0A800",
+    primarySoft: "rgba(14, 23, 41, 0.08)",
+    primarySofter: "rgba(14, 23, 41, 0.14)",
+    onPrimary: "#0E1729",
+    accent: "#0E1729",
+    focus: "#0E1729",
+    link: "#0E1729",
+    warn: "#E0A800",
+    onWarn: "#0E1729",
+    steel: "#9AA3B5",
+    danger: "#C8242B",
+    onDanger: "#FFFFFF",
+    dangerSoft: "rgba(200, 36, 43, 0.1)",
+    success: "#17795A",
+    onSuccess: "#FFFFFF",
+    background: "#F4F1E8",
+    surface: "#FFFFFF",
+    text: "#0E1729",
+    textMuted: "#5A6478",
+    border: "#D9D4C5",
+    borderStrong: "#737D91",
+    cliente,
+    pagamento,
   },
   shadows: {
-    sm: "0 1px 2px rgba(17, 19, 24, 0.06)",
-    md: "0 12px 32px -8px rgba(17, 19, 24, 0.16)",
-    glow: "0 20px 48px -12px rgba(44, 92, 224, 0.35)",
+    sm: "0 1px 2px rgba(14, 23, 41, 0.08)",
+    md: "0 12px 32px -8px rgba(14, 23, 41, 0.18)",
   },
-  typography: plainTypography,
+  typography: murelTypography,
 };
 
-// Tema escuro: "Grafite Coral"
+// Tema escuro: asfalto de fundo, giz no texto, amarelo faixa como destaque.
 export const darkTheme: AppTheme = {
   ...shared,
   colors: {
-    primary: "#FF7A5C",
-    primaryHover: "#FF9678",
-    primarySoft: "rgba(255, 122, 92, 0.16)",
-    primarySofter: "rgba(255, 122, 92, 0.28)",
-    onPrimary: "#1A1A1A",
-    onSign: "#1A1A1A",
-    signEdge: "#F2F0EE",
-    link: "#FF7A5C",
-    warn: "#F5B800",
-    onWarn: "#1A1A1A",
-    steel: "#5A6573",
-    danger: "#FF6B6B",
-    dangerSoft: "rgba(255, 107, 107, 0.16)",
-    success: "#4FBE86",
-    background: "#1A1A1A",
-    surface: "#232323",
-    glass: "rgba(35, 35, 35, 0.62)",
-    glassBorder: "rgba(255, 255, 255, 0.08)",
-    text: "#F2F0EE",
-    textMuted: "#A3A19D",
-    border: "#383838",
+    primary: "#FFC20E",
+    primaryHover: "#E0A800",
+    primarySoft: "rgba(255, 194, 14, 0.12)",
+    primarySofter: "rgba(255, 194, 14, 0.22)",
+    onPrimary: "#0E1729",
+    accent: "#FFC20E",
+    focus: "#FFC20E",
+    link: "#FFC20E",
+    warn: "#FFC20E",
+    onWarn: "#0E1729",
+    steel: "#3A4C6B",
+    danger: "#FF5A5F",
+    onDanger: "#0E1729",
+    dangerSoft: "rgba(255, 90, 95, 0.16)",
+    success: "#3CCB7F",
+    onSuccess: "#0E1729",
+    background: "#0E1729",
+    surface: "#16223A",
+    text: "#F4F1E8",
+    textMuted: "#9AA3B5",
+    border: "#3A4C6B",
+    borderStrong: "#6B80A4",
+    cliente,
+    pagamento,
   },
   shadows: {
     sm: "0 1px 2px rgba(0, 0, 0, 0.3)",
     md: "0 12px 32px -8px rgba(0, 0, 0, 0.5)",
-    glow: "0 20px 48px -12px rgba(255, 122, 92, 0.35)",
   },
-  typography: plainTypography,
-};
-
-// Temas de sinalização viária ("Modelo B"): usados apenas na área logada.
-const signageShared = {
-  ...shared,
-  radii: { ...shared.radii, md: "10px", lg: "14px" },
-};
-
-const signageTypography: ThemeTypography = {
-  display: 'var(--font-barlow-condensed), "Arial Narrow", sans-serif',
-  displayTransform: "uppercase",
-  displayTracking: ".02em",
-  displaySize: "38px",
-};
-
-export const signageLightTheme: AppTheme = {
-  ...signageShared,
-  colors: {
-    primary: "#0A4AA0",
-    primaryHover: "#0D5CC4",
-    primarySoft: "#E3ECF8",
-    primarySofter: "#C7D9F1",
-    onPrimary: "#FFFFFF",
-    onSign: "#FFFFFF",
-    signEdge: "#FFFFFF",
-    link: "#0A4AA0",
-    warn: "#FFCC00",
-    onWarn: "#14202E",
-    steel: "#8A95A3",
-    danger: "#C8283A",
-    dangerSoft: "rgba(200, 40, 58, 0.12)",
-    success: "#17803F",
-    background: "#FFFFFF",
-    surface: "#EDF0F4",
-    glass: "rgba(255, 255, 255, 0.62)",
-    glassBorder: "rgba(255, 255, 255, 0.5)",
-    text: "#14202E",
-    textMuted: "#4D5B6C",
-    border: "#D5DBE3",
-  },
-  shadows: {
-    sm: "0 1px 2px rgba(10, 30, 60, 0.08)",
-    md: "0 12px 32px -8px rgba(10, 30, 60, 0.2)",
-    glow: "0 6px 10px -4px rgba(10, 30, 60, 0.35)",
-  },
-  typography: signageTypography,
-};
-
-export const signageDarkTheme: AppTheme = {
-  ...signageShared,
-  colors: {
-    primary: "#1768D1",
-    primaryHover: "#2A7BE6",
-    primarySoft: "rgba(23, 104, 209, 0.2)",
-    primarySofter: "rgba(23, 104, 209, 0.34)",
-    onPrimary: "#FFFFFF",
-    onSign: "#FFFFFF",
-    signEdge: "#E8EDF3",
-    link: "#7DB3FF",
-    warn: "#FFCC00",
-    onWarn: "#14202E",
-    steel: "#5A6573",
-    danger: "#FF6B6B",
-    dangerSoft: "rgba(255, 107, 107, 0.16)",
-    success: "#5FD08E",
-    background: "#151C25",
-    surface: "#0D1218",
-    glass: "rgba(21, 28, 37, 0.62)",
-    glassBorder: "rgba(255, 255, 255, 0.08)",
-    text: "#E8EDF3",
-    textMuted: "#9EABBA",
-    border: "#27313D",
-  },
-  shadows: {
-    sm: "0 1px 2px rgba(0, 0, 0, 0.3)",
-    md: "0 12px 32px -8px rgba(0, 0, 0, 0.5)",
-    glow: "none",
-  },
-  typography: signageTypography,
+  typography: murelTypography,
 };
 
 declare module "styled-components" {

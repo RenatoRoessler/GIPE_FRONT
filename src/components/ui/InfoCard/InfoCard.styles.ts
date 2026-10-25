@@ -7,8 +7,8 @@ export const Container = styled.div`
   align-items: flex-start;
   gap: ${({ theme }) => theme.space[3]}px;
   padding: ${({ theme }) => theme.space[3]}px;
-  border: 1px solid ${({ theme }) => theme.colors.primary};
-  border-radius: ${({ theme }) => theme.radii.md};
+  border: 1px solid ${({ theme }) => theme.colors.borderStrong};
+  border-radius: ${({ theme }) => theme.radii.lg};
   background-color: ${({ theme }) => theme.colors.primarySoft};
   color: ${({ theme }) => theme.colors.text};
 `;

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 
 export const metadata: Metadata = {
-  title: "Alterar senha — GIPE",
+  title: "Alterar senha — Murel",
   // O código do link vem na URL: não deve vazar para terceiros pelo cabeçalho Referer.
   referrer: "no-referrer",
 };

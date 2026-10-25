@@ -67,7 +67,7 @@ export const Minutos = styled.input`
   text-align: right;
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;
@@ -86,9 +86,9 @@ export const Resultado = styled.div`
 `;
 
 export const Valor = styled.strong`
-  font-family: ${({ theme }) => theme.typography.display};
+  font-family: ${({ theme }) => theme.fontFamilies.mono};
   font-size: ${({ theme }) => theme.typography.displaySize};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
   line-height: 1;
   font-variant-numeric: tabular-nums;
 `;

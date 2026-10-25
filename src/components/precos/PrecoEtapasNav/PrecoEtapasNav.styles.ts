@@ -51,7 +51,7 @@ export const Dot = styled.span<{ $estado: EstadoEtapa; $atual: boolean }>`
     $estado !== "completa" &&
     css`
       background-color: ${theme.colors.primary};
-      border-color: ${theme.colors.primary};
+      border-color: ${theme.colors.accent};
       color: ${theme.colors.onPrimary};
     `}
 `;
@@ -64,7 +64,7 @@ export const Botao = styled.button<{ $atual: boolean }>`
   min-height: 52px;
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
   border: ${({ $atual }) => ($atual ? 2 : 1)}px solid
-    ${({ theme, $atual }) => ($atual ? theme.colors.primary : theme.colors.border)};
+    ${({ theme, $atual }) => ($atual ? theme.colors.accent : theme.colors.border)};
   border-radius: ${({ theme }) => theme.radii.md};
   background-color: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.text};
@@ -74,11 +74,11 @@ export const Botao = styled.button<{ $atual: boolean }>`
   transition: border-color 0.15s ease;
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.accent};
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

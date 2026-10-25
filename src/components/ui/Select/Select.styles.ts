@@ -30,7 +30,7 @@ export const StyledSelect = styled.select<{ $hasError: boolean }>`
   color: ${({ theme }) => theme.colors.text};
   background-color: ${({ theme }) => theme.colors.background};
   border: 1px solid
-    ${({ theme, $hasError }) => ($hasError ? theme.colors.danger : theme.colors.border)};
+    ${({ theme, $hasError }) => ($hasError ? theme.colors.danger : theme.colors.borderStrong)};
   border-radius: ${({ theme }) => theme.radii.md};
   outline: none;
   cursor: pointer;
@@ -38,9 +38,9 @@ export const StyledSelect = styled.select<{ $hasError: boolean }>`
 
   &:focus {
     border-color: ${({ theme, $hasError }) =>
-      $hasError ? theme.colors.danger : theme.colors.primary};
+      $hasError ? theme.colors.danger : theme.colors.accent};
     box-shadow: 0 0 0 3px
-      ${({ theme, $hasError }) => ($hasError ? "rgba(229, 72, 77, 0.15)" : theme.colors.primarySoft)};
+      ${({ theme, $hasError }) => ($hasError ? theme.colors.dangerSoft : theme.colors.primarySoft)};
   }
 
   &:disabled {

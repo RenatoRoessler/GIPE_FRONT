@@ -15,8 +15,8 @@ export const PlateInput = styled.input<{ $hasAction?: boolean }>`
   color: inherit;
   text-align: center;
   font: inherit;
-  font-family: ${({ theme }) => theme.typography.display};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  font-family: ${({ theme }) => theme.fontFamilies.mono};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
   line-height: 1.2;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -35,7 +35,7 @@ export const PlateFrame = styled.div`
   border-radius: ${({ theme }) => theme.radii.md};
 
   &:focus-within {
-    outline: 3px solid ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
     outline-offset: 2px;
   }
 `;

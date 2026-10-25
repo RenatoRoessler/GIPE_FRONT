@@ -27,7 +27,6 @@ export const ToastWrapper = styled.div<{ $variant: ToastVariant }>`
   padding: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[4]}px;
   border-radius: ${({ theme }) => theme.radii.md};
   box-shadow: ${({ theme }) => theme.shadows.md};
-  color: white;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   width: calc(100vw - ${({ theme }) => theme.space[4] * 2}px);
@@ -37,9 +36,11 @@ export const ToastWrapper = styled.div<{ $variant: ToastVariant }>`
     $variant === "success"
       ? css`
           background-color: ${theme.colors.success};
+          color: ${theme.colors.onSuccess};
         `
       : css`
           background-color: ${theme.colors.danger};
+          color: ${theme.colors.onDanger};
         `}
 
   @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {

@@ -13,7 +13,7 @@ export const StyledText = styled.p<{ $variant: TextVariant }>`
         return css`
           font-family: ${theme.typography.display};
           font-size: ${theme.typography.displaySize};
-          font-weight: ${theme.fontWeights.bold};
+          font-weight: ${theme.typography.displayWeight};
           color: ${theme.colors.text};
           letter-spacing: ${theme.typography.displayTracking === "normal" ? "-0.01em" : theme.typography.displayTracking};
           text-transform: ${theme.typography.displayTransform};

@@ -28,7 +28,18 @@ describe("criarReciboPdf", () => {
     expect(String.fromCharCode(...bytes.slice(0, 5))).toBe("%PDF-");
     expect(doc.getNumberOfPages()).toBe(1);
     expect(doc.internal.pageSize.getWidth()).toBe(80);
-    expect(doc.internal.pageSize.getHeight()).toBeLessThan(200);
+    // Limite folgado: a marca no topo ocupa cerca de 15 mm.
+    expect(doc.internal.pageSize.getHeight()).toBeLessThan(220);
+  });
+
+  it("traz a marca Murel no topo, desenhada em vetor, sem imagem nem fonte extra", async () => {
+    const doc = await criarReciboPdf(comprovante, "https://gipe.exemplo.com/comprovante/227SUSYV");
+    const conteudo = doc.output();
+
+    expect(conteudo).toContain("(murel) Tj");
+    expect(conteudo).toContain("(Estacionamento Central) Tj");
+    expect(conteudo).not.toContain("/Subtype /Image");
+    expect(conteudo.indexOf("(murel) Tj")).toBeLessThan(conteudo.indexOf("(Estacionamento Central) Tj"));
   });
 
   it("aceita campos vazios sem quebrar", async () => {

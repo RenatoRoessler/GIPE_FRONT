@@ -2,7 +2,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 import { AUTH_COOKIE_NAME } from "@/lib/auth";
-import { proxy } from "./proxy";
+import { config, proxy } from "./proxy";
 
 const EMAIL = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress";
 const ROLE = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
@@ -145,5 +145,21 @@ describe("proxy: permissão por perfil", () => {
       headers: { cookie: `${AUTH_COOKIE_NAME}=${tokenDoPerfil("3")}`, rsc: "1" },
     });
     expect(proxy(request).headers.get("location")).toBe("http://localhost/acesso-negado");
+  });
+});
+
+describe("proxy: arquivos que o navegador busca sem cookie", () => {
+  // O matcher decide por quais caminhos o proxy roda; o que ele exclui nunca é redirecionado ao login.
+  const passaPeloProxy = (caminho: string) => new RegExp(`^${config.matcher[0]}$`).test(caminho);
+
+  it.each(["/manifest.webmanifest", "/sw.js", "/offline.html", "/icon.svg", "/icon.png", "/favicon.ico", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/ocr/modelos/placa.onnx"])(
+    "%s não passa pelo proxy",
+    (caminho) => {
+      expect(passaPeloProxy(caminho)).toBe(false);
+    },
+  );
+
+  it.each(["/", "/login", "/dashboard", "/comprovante/227SUSYV"])("%s passa pelo proxy", (caminho) => {
+    expect(passaPeloProxy(caminho)).toBe(true);
   });
 });

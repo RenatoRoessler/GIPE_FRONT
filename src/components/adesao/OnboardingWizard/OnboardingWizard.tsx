@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Logo } from "@/components/ui/Logo";
+import { Tagline } from "@/components/ui/Tagline";
 import { PageBackground } from "@/components/ui/PageBackground";
 import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
@@ -138,7 +139,8 @@ export function OnboardingWizard() {
       <Card maxWidth="640px">
         <Header>
           <TitleGroup>
-            <Logo />
+            <Logo size={56} animated />
+            <Tagline />
             <Text variant="heading" as="h1">
               Adesão ao sistema
             </Text>

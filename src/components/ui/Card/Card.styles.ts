@@ -21,33 +21,13 @@ export const StyledCard = styled.div<{ $maxWidth: string }>`
   flex-direction: column;
   gap: ${({ theme }) => theme.space[5]}px;
   padding: ${({ theme }) => theme.space[4]}px;
-  background-color: ${({ theme }) => theme.colors.glass};
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid ${({ theme }) => theme.colors.glassBorder};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  box-shadow: ${({ theme }) => theme.shadows.glow};
+  background-color: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.xl};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
 
   @media (prefers-reduced-motion: no-preference) {
     animation: ${riseIn} 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 1.5px;
-    border-radius: inherit;
-    background: linear-gradient(
-      135deg,
-      ${({ theme }) => theme.colors.primary},
-      ${({ theme }) => theme.colors.primarySofter} 45%,
-      transparent 70%
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
   }
 
   @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
