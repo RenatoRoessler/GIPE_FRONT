@@ -23,7 +23,13 @@ export const metadata: Metadata = {
   description: "Controle de entrada, saída e caixa de estacionamentos, valets e lava-rápidos.",
   applicationName: "Murel",
   appleWebApp: { capable: true, title: "Murel", statusBarStyle: "default" },
-  icons: { apple: "/icons/apple-touch-icon.png" },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
