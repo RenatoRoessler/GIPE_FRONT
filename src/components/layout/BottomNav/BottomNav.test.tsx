@@ -57,7 +57,7 @@ describe("BottomNav: itens da barra", () => {
     renderWithTheme(<BottomNav />);
 
     const nomes = Array.from(screen.getByRole("navigation", { name: "Navegação principal" }).querySelectorAll("a, button")).map((item) => item.textContent);
-    expect(nomes).toEqual(["Início", "Entrada", "Saída", "Preços", "Mais"]);
+    expect(nomes).toEqual(["Início", "Entrada", "Saída", "Pátio", "Mais"]);
   });
 
   it("quando todos os itens cabem, mostra todos e não oferece o Mais", () => {
@@ -129,7 +129,7 @@ describe("BottomNav: menu estendido", () => {
     expect(painel()).toHaveAttribute("open");
     expect(maisButton()).toHaveAttribute("aria-expanded", "true");
     expect(within(painel()).getByRole("heading", { name: "Mais", ...opcoes })).toBeInTheDocument();
-    expect(itensDoPainel()).toEqual(["Gestão de Usuários", "Mensalistas", "Pátio", "Caixa", "Notas Fiscais", "Relatórios", "Minha Empresa"]);
+    expect(itensDoPainel()).toEqual(["Caixa", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Notas Fiscais", "Relatórios", "Minha Empresa"]);
   });
 
   it("mostra o nome completo dos itens, não o rótulo curto", async () => {
@@ -250,7 +250,7 @@ describe("BottomNav: menu estendido", () => {
     rerender(<BottomNav />);
 
     expect(painel()).toHaveAttribute("open");
-    expect(itensDoPainel()).toEqual(["Mensalistas", "Pátio", "Caixa", "Notas Fiscais", "Relatórios", "Minha Empresa"]);
+    expect(itensDoPainel()).toEqual(["Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Notas Fiscais", "Relatórios", "Minha Empresa"]);
   });
 
   it("fecha quando a tela cresce e tudo passa a caber na barra, e o foco vai para a barra", async () => {
@@ -267,7 +267,7 @@ describe("BottomNav: menu estendido", () => {
 
 describe("BottomNav: Mais destacado", () => {
   it("fica apagado quando a tela atual é o Início ou outro item que cabe na barra", () => {
-    for (const rota of ["/dashboard", "/precos"]) {
+    for (const rota of ["/dashboard", "/patio"]) {
       pathname = rota;
       const { unmount } = renderWithTheme(<BottomNav />);
       expect(maisButton()).toHaveStyle({ color: lightTheme.colors.textMuted });

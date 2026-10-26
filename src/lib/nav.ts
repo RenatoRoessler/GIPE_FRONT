@@ -36,13 +36,13 @@ export function navItemKey(item: NavItem): string {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Início", shortLabel: "Início", href: "/dashboard", icon: "home", area: AREA.Inicio },
-  { label: "Gestão de Preços", shortLabel: "Preços", href: "/precos", icon: "pricing", area: AREA.Precos },
-  { label: "Gestão de Usuários", shortLabel: "Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios },
-  { label: "Mensalistas", shortLabel: "Mensalistas", href: "/mensalistas", icon: "members", area: AREA.Mensalistas },
   { label: "Entrada de Veículos", shortLabel: "Entrada", acao: "entrada", icon: "vehicleIn", area: AREA.Patio },
   { label: "Saída de Veículos", shortLabel: "Saída", acao: "saida", icon: "vehicleOut", area: AREA.Patio },
   { label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: AREA.Patio },
   { label: "Caixa", shortLabel: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa },
+  { label: "Gestão de Preços", shortLabel: "Preços", href: "/precos", icon: "pricing", area: AREA.Precos },
+  { label: "Gestão de Usuários", shortLabel: "Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios },
+  { label: "Mensalistas", shortLabel: "Mensalistas", href: "/mensalistas", icon: "members", area: AREA.Mensalistas },
   { label: "Notas Fiscais", shortLabel: "Notas", href: "/notas-fiscais", icon: "invoice", area: AREA.NotasFiscais },
   { label: "Relatórios", shortLabel: "Relatórios", href: "/relatorios", icon: "reports", area: AREA.Relatorios },
   { label: "Minha Empresa", shortLabel: "Empresa", href: "/minha-empresa", icon: "company", area: AREA.Empresa },

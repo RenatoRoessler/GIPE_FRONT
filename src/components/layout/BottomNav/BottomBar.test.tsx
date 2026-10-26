@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
 
 import { BottomBar } from "./BottomBar";
 
-// Início, Entrada, Saída e Preços: o que cabe numa tela de 320px a 375px, com o "Mais" no quinto espaço.
+// Início, Entrada, Saída e Pátio: o que cabe numa tela de 320px a 375px, com o "Mais" no quinto espaço.
 const itensDoAdmin = navItemsPorPrioridade(1);
 const quatro = itensDoAdmin.slice(0, 4);
 
@@ -35,7 +35,7 @@ function renderBar(props: Partial<React.ComponentProps<typeof BottomBar>> = {}) 
 }
 
 describe("BottomBar", () => {
-  it("mostra Início (link), Entrada e Saída (botões), Preços (link) e o botão Mais", () => {
+  it("mostra Início (link), Entrada e Saída (botões), Pátio (link) e o botão Mais", () => {
     pathname = "/dashboard";
     renderBar();
 
@@ -43,7 +43,7 @@ describe("BottomBar", () => {
     expect(screen.getByRole("link", { name: "Início" })).toHaveAttribute("href", "/dashboard");
     expect(screen.getByRole("button", { name: "Entrada" })).toHaveAttribute("aria-haspopup", "dialog");
     expect(screen.getByRole("button", { name: "Saída" })).toHaveAttribute("aria-haspopup", "dialog");
-    expect(screen.getByRole("link", { name: "Preços" })).toHaveAttribute("href", "/precos");
+    expect(screen.getByRole("link", { name: "Pátio" })).toHaveAttribute("href", "/patio");
     expect(screen.getByRole("button", { name: "Mais" })).toBeInTheDocument();
     // Entrada e Saída não levam a nenhuma página.
     expect(screen.queryByRole("link", { name: "Entrada" })).not.toBeInTheDocument();
@@ -53,9 +53,9 @@ describe("BottomBar", () => {
   it("usa o rótulo curto de cada item, não o nome completo", () => {
     renderBar();
 
-    expect(screen.getByRole("link", { name: "Preços" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Gestão de Preços" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Entrada" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrada de Veículos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Saída de Veículos" })).not.toBeInTheDocument();
   });
 
   it("sem itens fora da barra não mostra o botão Mais", () => {
@@ -91,13 +91,13 @@ describe("BottomBar", () => {
     pathname = "/dashboard";
     const { unmount } = renderBar();
     expect(screen.getByRole("link", { name: "Início" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Preços" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Pátio" })).not.toHaveAttribute("aria-current");
     unmount();
 
-    pathname = "/precos/novo";
+    pathname = "/patio/detalhe";
     renderBar();
     expect(screen.getByRole("link", { name: "Início" })).not.toHaveAttribute("aria-current");
-    expect(screen.getByRole("link", { name: "Preços" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Pátio" })).toHaveAttribute("aria-current", "page");
   });
 
   it("destaca o Mais só quando pedido (painel aberto ou tela atual entre os itens que não couberam)", () => {
@@ -118,7 +118,7 @@ describe("BottomBar", () => {
       screen.getByRole("link", { name: "Início" }),
       screen.getByRole("button", { name: "Entrada" }),
       screen.getByRole("button", { name: "Saída" }),
-      screen.getByRole("link", { name: "Preços" }),
+      screen.getByRole("link", { name: "Pátio" }),
       screen.getByRole("button", { name: "Mais" }),
     ];
     const desenhos = abas.map((aba) => {
