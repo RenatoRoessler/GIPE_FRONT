@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.229",
+      "type": "fix",
+      "scope": "layout",
+      "title": "volta a exibir o ícone do sistema na aba do navegador",
+      "description": "A configuração de ícones só declarava o ícone da Apple, o que impedia o\nNext de gerar a tag de favicon a partir de icon.svg e icon.png. O navegador\ncaía no /favicon.ico, que era redirecionado para o login, e a aba ficava sem\nícone. Agora os ícones SVG e PNG são declarados explicitamente.",
+      "date": "2026-10-26T20:38:15-03:00"
+    },
+    {
+      "version": "1.0.228",
+      "type": "feat",
+      "scope": "menu",
+      "title": "reordena o menu com Entrada, Saída, Pátio e Caixa logo após o Início",
+      "description": "O menu agora segue a ordem do dia a dia do pátio: Início, Entrada, Saída,\nPátio e Caixa, e depois Preços, Usuários, Mensalistas, Notas Fiscais,\nRelatórios e Minha Empresa. No celular, o Pátio passa a aparecer direto na\nbarra inferior e o Caixa fica como primeiro item do \"Mais\".",
+      "date": "2026-10-26T20:38:15-03:00"
+    },
+    {
       "version": "1.0.218",
       "type": "feat",
       "scope": "marca",
