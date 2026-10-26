@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.232",
+      "type": "fix",
+      "scope": "deploy",
+      "title": "usa o tar do Windows no deploy.bat",
+      "description": "Ao rodar o script pelo Git Bash, o tar do GNU lia \"C:\" do caminho do pacote\ncomo um servidor remoto e o empacotamento falhava. O script agora chama\nsempre o tar.exe do Windows (System32), que aceita caminhos com unidade.",
+      "date": "2026-10-26T20:42:31-03:00"
+    },
+    {
       "version": "1.0.229",
       "type": "fix",
       "scope": "layout",
