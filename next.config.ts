@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Gera .next/standalone (servidor mínimo) para a imagem Docker do deploy no Fly.io.
-  output: "standalone",
   compiler: {
     styledComponents: true,
   },
