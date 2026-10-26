@@ -1,6 +1,7 @@
 @echo off
 rem Deploy do GIPE (Murel) no VPS da Hostinger: empacota o projeto, envia, faz o build de producao e reinicia o app.
-rem Uso: deploy.bat   (rode na raiz do projeto; precisa de tar, ssh e scp, que ja vem no Windows 11)
+rem Uso: deploy.bat   (precisa de tar, ssh e scp, que ja vem no Windows 11; o tar usado e sempre o do Windows,
+rem porque o do Git Bash le "C:" como um servidor remoto)
 
 setlocal
 set "SERVIDOR=root@187.41.96.17"
@@ -17,7 +18,7 @@ if not exist ".env.prod" (
 )
 
 echo [1/4] Empacotando o projeto...
-tar --exclude=node_modules --exclude=.next --exclude=.git --exclude=.env.local --exclude=.env.hml --exclude=.env.azl --exclude=docs -czf "%PACOTE%" .
+"%SystemRoot%\System32\tar.exe" --exclude=node_modules --exclude=.next --exclude=.git --exclude=.env.local --exclude=.env.hml --exclude=.env.azl --exclude=docs -czf "%PACOTE%" .
 if errorlevel 1 goto erro
 
 echo [2/4] Enviando para o servidor...
