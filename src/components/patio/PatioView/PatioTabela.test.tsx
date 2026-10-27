@@ -79,11 +79,41 @@ describe("PatioTabela", () => {
     expect(screen.queryByText(/Ticket/)).not.toBeInTheDocument();
   });
 
-  it("a posição da chave só aparece quando o veículo tem gancho", () => {
-    renderTabela([veiculo({ placa: "COM1A11", posicaoChave: "A2" }), veiculo({ placa: "SEM1A11", posicaoChave: null })]);
+  describe("quadro de chaves", () => {
+    const onGuardarChave = vi.fn();
 
-    expect(within(linhaDe("COM1A11")).getByText("Chave: A2")).toBeInTheDocument();
-    expect(within(linhaDe("SEM1A11")).queryByText(/Chave:/)).not.toBeInTheDocument();
+    function renderComQuadros(veiculos: PatioVeiculo[], comQuadros = true) {
+      onGuardarChave.mockReset();
+      return renderWithTheme(
+        <PatioTabela veiculos={veiculos} onRegistrarSaida={vi.fn()} comQuadros={comQuadros} onGuardarChave={onGuardarChave} />,
+      );
+    }
+
+    it("mostra o botão da chave com a posição, ou convida a guardar quando está fora do quadro", () => {
+      renderComQuadros([veiculo({ placa: "COM1A11", posicaoChave: "A2" }), veiculo({ placa: "SEM1A11", posicaoChave: null })]);
+
+      expect(within(linhaDe("COM1A11")).getByRole("button", { name: /hoje no gancho A2/ })).toHaveTextContent("A2");
+      expect(within(linhaDe("SEM1A11")).getByRole("button", { name: /Guardar a chave de SEM1A11/ })).toBeInTheDocument();
+    });
+
+    it("tocar no botão entrega o veículo da linha", async () => {
+      const v = veiculo({ placa: "SEM1A11", posicaoChave: null });
+      renderComQuadros([v]);
+      await userEvent.click(screen.getByRole("button", { name: /Guardar a chave de SEM1A11/ }));
+      expect(onGuardarChave).toHaveBeenCalledWith(v);
+    });
+
+    it("sem quadros na empresa não há botão nem texto de chave", () => {
+      renderComQuadros([veiculo({ placa: "COM1A11", posicaoChave: "A2" }), veiculo({ placa: "SEM1A11" })], false);
+
+      expect(screen.queryByText(/Chave/)).not.toBeInTheDocument();
+      expect(screen.queryByText("Fora do quadro")).not.toBeInTheDocument();
+    });
+
+    it("o botão de saída continua achável pelo atributo próprio", () => {
+      renderComQuadros([veiculo({ placa: "COM1A11" })]);
+      expect(linhaDe("COM1A11").querySelectorAll("[data-saida-botao]")).toHaveLength(1);
+    });
   });
 
   it("campos ausentes mostram um traço, sem quebrar", () => {

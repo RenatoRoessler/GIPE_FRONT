@@ -132,3 +132,54 @@ describe("EscolherGancho", () => {
     expect(await screen.findByText("Gancho sugerido")).toBeInTheDocument();
   });
 });
+
+describe("EscolherGancho: trocar a chave de um veículo", () => {
+  // O A1 é o gancho de hoje do veículo: para o back ele está ocupado.
+  const atual = { rotulo: "A1", ref: { quadro: null, linha: "A", coluna: 1 } };
+
+  it("não sugere gancho: mostra a chave de hoje e deixa o botão desabilitado", async () => {
+    listar.mockResolvedValue([recepcao]);
+    setup({ atual, onPular: undefined });
+    expect(await screen.findByText("Chave hoje no A1")).toBeInTheDocument();
+    expect(screen.queryByText("Gancho sugerido")).not.toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "A1, ocupado, aqui" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Escolha um gancho" })).toBeDisabled();
+  });
+
+  it("troca para o gancho livre tocado e guarda", async () => {
+    listar.mockResolvedValue([recepcao]);
+    escolher.mockResolvedValue({ ...chave, patioQuadroChaveId: 3, linha: "A", coluna: 3 });
+    const { onGuardado } = setup({ atual });
+    await userEvent.click(await screen.findByRole("button", { name: "A3, livre" }));
+    await userEvent.click(screen.getByRole("button", { name: "Guardar no gancho A3" }));
+    expect(escolher).toHaveBeenCalledWith(9, 3);
+    await waitFor(() => expect(onGuardado).toHaveBeenCalledTimes(1));
+  });
+
+  it("abre no quadro onde a chave está hoje, não no de mais livres", async () => {
+    listar.mockResolvedValue([recepcao, garagem]);
+    setup({ atual: { rotulo: "Recepção · A1", ref: { quadro: "Recepção", linha: "A", coluna: 1 } } });
+    expect(await screen.findByRole("tab", { name: "Recepção", selected: true })).toBeInTheDocument();
+  });
+
+  it("usa o rótulo do botão de adiar e o omite sem onPular", async () => {
+    listar.mockResolvedValue([recepcao]);
+    const { onPular } = setup({ atual, rotuloPular: "Cancelar" });
+    await userEvent.click(await screen.findByRole("button", { name: "Cancelar" }));
+    expect(onPular).toHaveBeenCalledTimes(1);
+  });
+
+  it("sem onPular não há botão de adiar", async () => {
+    listar.mockResolvedValue([recepcao]);
+    setup({ atual, onPular: undefined });
+    await screen.findByText("Chave hoje no A1");
+    expect(screen.queryByRole("button", { name: "Escolher depois" })).not.toBeInTheDocument();
+  });
+
+  it("sem a posição em partes ainda é uma troca, sem sugestão", async () => {
+    listar.mockResolvedValue([recepcao]);
+    setup({ atual: { rotulo: "A-12", ref: null } });
+    expect(await screen.findByText("Chave hoje no A-12")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Escolha um gancho" })).toBeDisabled();
+  });
+});

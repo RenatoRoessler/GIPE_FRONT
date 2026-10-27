@@ -23,6 +23,18 @@ export type PatioVeiculo = {
   token: string | null;
   // Onde a chave está no quadro (ex.: "A2" ou "Recepção · A2"); ausente ou null quando nenhuma posição foi escolhida.
   posicaoChave?: string | null;
+  // A mesma posição em partes, para achar o gancho na grade do quadro; null quando o formato não é reconhecido.
+  chaveRef?: ChaveRef | null;
+};
+
+// Posição da chave no quadro. `quadro` só existe quando o back informa o nome.
+export type ChaveRef = {
+  quadro: string | null;
+  linha: string;
+  coluna: number;
+  // Ids do back, quando ele os informa: dispensam achar o gancho pelo nome do quadro e pela posição.
+  patioQuadroId?: number;
+  patioQuadroChaveId?: number;
 };
 
 export type PatioFiltroTipo = "todos" | "mensalistas" | "avulsos";

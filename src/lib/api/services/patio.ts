@@ -1,5 +1,5 @@
 import { normalizePlaca } from "@/lib/placa";
-import type { PatioVeiculo } from "@/types/patio";
+import type { ChaveRef, PatioVeiculo } from "@/types/patio";
 import type { ComprovanteCliente, EntradaPayload, EntradaRegistrada, ReciboCliente } from "@/types/veiculo";
 import type { SaidaBusca, SaidaBuscaTipo, SaidaConsulta, SaidaPayload, SaidaRegistrada } from "@/types/saida";
 import { api } from "../client";
@@ -99,24 +99,46 @@ function toText(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
 }
 
-// `quadroChaves` pode vir como texto pronto ou como objeto com a posição. [A CONFIRMAR] com o back o formato exato:
-// aceita os dois e devolve o texto do card ("A2" ou "Recepção · A2").
-function toPosicaoChave(value: unknown): string | null {
+// "A2" ou "Recepção · A2": o nome do quadro é opcional e a posição é linha (letras) mais coluna (número).
+const CHAVE_TEXTO = /^(?:(.+?)\s·\s)?([A-Za-z]{1,10})(\d{1,3})$/;
+
+function chaveRefDoTexto(texto: string): ChaveRef | null {
+  const partes = CHAVE_TEXTO.exec(texto);
+  return partes ? { quadro: partes[1]?.trim() || null, linha: partes[2].toUpperCase(), coluna: Number(partes[3]) } : null;
+}
+
+// `quadroChaves` vem como objeto { quadroChaveId, posicao, patioQuadroId, quadro } (ou nulo); o texto pronto também é aceito.
+// Devolve o texto do card ("A2" ou "Recepção · A2") e a posição em partes.
+function lerChave(value: unknown): { posicaoChave: string | null; chaveRef: ChaveRef | null } {
   if (typeof value === "string") {
-    return toText(value)?.trim() ?? null;
+    const texto = toText(value)?.trim() ?? null;
+    return { posicaoChave: texto, chaveRef: texto ? chaveRefDoTexto(texto) : null };
   }
   if (typeof value !== "object" || value === null) {
-    return null;
+    return { posicaoChave: null, chaveRef: null };
   }
   const raw = value as Record<string, unknown>;
-  const linha = toText(raw.linha);
-  const coluna = toNumber(raw.coluna);
-  if (linha === null || coluna === null) {
-    return null;
+  // O back devolve `posicao` pronta ("B2"); `linha` e `coluna` separadas também valem.
+  const daPosicao = typeof raw.posicao === "string" ? chaveRefDoTexto(raw.posicao.trim()) : null;
+  const linha = daPosicao?.linha ?? toText(raw.linha)?.trim().toUpperCase();
+  const coluna = daPosicao?.coluna ?? toNumber(raw.coluna);
+  if (!linha || coluna === null) {
+    return { posicaoChave: null, chaveRef: null };
   }
-  const posicao = `${linha.trim()}${coluna}`;
-  const quadro = toText(raw.quadro) ?? toText(raw.nome);
-  return quadro ? `${quadro.trim()} · ${posicao}` : posicao;
+  const quadro = (toText(raw.quadro) ?? toText(raw.nome))?.trim() ?? null;
+  const patioQuadroId = toNumber(raw.patioQuadroId);
+  const patioQuadroChaveId = toNumber(raw.quadroChaveId) ?? toNumber(raw.patioQuadroChaveId);
+  const posicao = `${linha}${coluna}`;
+  return {
+    posicaoChave: quadro ? `${quadro} · ${posicao}` : posicao,
+    chaveRef: {
+      quadro,
+      linha,
+      coluna,
+      ...(patioQuadroId !== null ? { patioQuadroId } : {}),
+      ...(patioQuadroChaveId !== null ? { patioQuadroChaveId } : {}),
+    },
+  };
 }
 
 // Tolerante: um campo ausente ou fora do formato não derruba a tela.
@@ -136,7 +158,7 @@ export function fromPatioResponse(raw: Record<string, unknown>): PatioVeiculo {
     rotatividadeDescricao: toText(raw.rotatividadeDescricao),
     usuarioEntrada: toText(raw.usuarioEntrada),
     token: toText(raw.token),
-    posicaoChave: toPosicaoChave(raw.quadroChaves),
+    ...lerChave(raw.quadroChaves),
   };
 }
 

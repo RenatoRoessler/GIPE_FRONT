@@ -44,6 +44,11 @@ export function filtrarPatio(itens: PatioVeiculo[], filtros: PatioFiltros): Pati
   });
 }
 
+// Veículos cuja chave não está em nenhum gancho do quadro. Recebe o pátio inteiro: o número não muda com busca e filtros.
+export function contarForaDoQuadro(veiculos: PatioVeiculo[]): number {
+  return veiculos.filter((veiculo) => !veiculo.posicaoChave).length;
+}
+
 export function resumirPatio(todos: PatioVeiculo[], visiveis: PatioVeiculo[]): PatioResumo {
   return { total: todos.length, mostrados: visiveis.length };
 }

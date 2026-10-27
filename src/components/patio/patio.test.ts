@@ -3,6 +3,7 @@ import type { PatioFiltros, PatioVeiculo } from "@/types/patio";
 import {
   categoriaConhecida,
   chegadasPorHora,
+  contarForaDoQuadro,
   corDoVeiculo,
   estatisticasPatio,
   filtrarPatio,
@@ -308,5 +309,20 @@ describe("chegadasPorHora", () => {
 
   it("data inválida é ignorada", () => {
     expect(chegadasPorHora([veiculo({ dataHoraEntrada: "" })], agora).total).toBe(0);
+  });
+});
+
+describe("contarForaDoQuadro", () => {
+  it("pátio vazio não tem ninguém fora do quadro", () => {
+    expect(contarForaDoQuadro([])).toBe(0);
+  });
+
+  it("zero quando todas as chaves estão no quadro", () => {
+    expect(contarForaDoQuadro([veiculo({ posicaoChave: "A1" }), veiculo({ posicaoChave: "Recepção · B2" })])).toBe(0);
+  });
+
+  it("conta quem não tem posição: nula, ausente ou vazia", () => {
+    const lista = [veiculo({ posicaoChave: "A1" }), veiculo({ posicaoChave: null }), veiculo(), veiculo({ posicaoChave: "" })];
+    expect(contarForaDoQuadro(lista)).toBe(3);
   });
 });

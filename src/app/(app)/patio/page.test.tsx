@@ -3,6 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 
 vi.mock("@/lib/api/services/patio", () => ({ listPatio: vi.fn().mockReturnValue(new Promise(() => {})) }));
+vi.mock("@/lib/api/services/quadroChaves", () => ({ listQuadros: vi.fn().mockResolvedValue([]) }));
+vi.mock("@/contexts/CurrentUserContext", () => ({
+  useCurrentUser: () => ({ user: { id: "x", name: "Renato", email: "r@e.com", perfil: 1 }, isLoading: false }),
+}));
 vi.mock("@/components/patio/useVagasPatio", () => ({ useVagasPatio: () => null }));
 // Em produção o host dos modais vem do layout da área logada; aqui só a página é renderizada.
 vi.mock("@/components/veiculos/VeiculoModais", () => ({ useVeiculoModais: () => ({ abrirEntrada: vi.fn(), abrirSaida: vi.fn() }) }));

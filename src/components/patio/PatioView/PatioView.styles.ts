@@ -228,6 +228,14 @@ export const AcoesCelula = styled.div`
   }
 `;
 
+// "Registrar saída" e, logo abaixo, a chave: os dois controles do veículo ficam juntos, na mesma coluna.
+export const AcoesPrincipais = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: ${({ theme }) => theme.space[2]}px;
+`;
+
 // Mantém a coluna das ações alinhada quando um veículo não tem comprovante (computador).
 export const ComprovanteVazio = styled.span`
   flex: none;
@@ -471,4 +479,90 @@ export const Anuncio = styled.span`
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+`;
+
+// Botão da chave no card: um só controle para guardar a chave ou trocar de gancho. Com gancho é uma etiqueta cheia
+// (quadro em cima, posição embaixo); sem gancho ecoa o gancho livre da grade: contorno tracejado e convite a guardar.
+export const ChaveBotaoEstilo = styled.button<{ $semGancho: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[2]}px;
+  width: 100%;
+  min-height: 40px;
+  padding: ${({ theme }) => theme.space[1]}px ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[1]}px ${({ theme }) => theme.space[2]}px;
+  border: 1.5px ${({ $semGancho }) => ($semGancho ? "dashed" : "solid")}
+    ${({ theme, $semGancho }) => ($semGancho ? theme.colors.borderStrong : theme.colors.border)};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background-color: ${({ theme, $semGancho }) => ($semGancho ? "transparent" : theme.colors.surface)};
+  color: ${({ theme }) => theme.colors.text};
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primarySoft};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
+    outline-offset: 2px;
+  }
+
+  ${mobile} {
+    min-height: 44px;
+  }
+`;
+
+export const ChaveIcone = styled.span`
+  display: inline-flex;
+  flex: none;
+  color: ${({ theme }) => theme.colors.accent};
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+`;
+
+export const ChaveTexto = styled.span`
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+`;
+
+// Linha de cima: o nome do quadro (com gancho) ou o convite (sem gancho).
+export const ChaveTopo = styled.span<{ $destaque: boolean }>`
+  overflow: hidden;
+  color: ${({ theme, $destaque }) => ($destaque ? theme.colors.text : theme.colors.textMuted)};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme, $destaque }) => ($destaque ? theme.fontWeights.bold : theme.fontWeights.medium)};
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+// Linha de baixo: a posição em destaque (com gancho) ou o estado em texto (sem gancho).
+export const ChavePosicao = styled.span`
+  font-family: ${({ theme }) => theme.fontFamilies.mono};
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  font-weight: ${({ theme }) => theme.fontWeights.extrabold};
+`;
+
+export const ForaDoQuadro = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[1]}px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+`;
+
+// Ponto de atenção do "Fora do quadro": decorativo, o texto é quem diz o estado.
+export const PontoAtencao = styled.span`
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  background-color: ${({ theme }) => theme.colors.warn};
 `;

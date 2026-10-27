@@ -13,7 +13,7 @@ import type { ChaveEscolhida } from "@/types/quadroChaves";
 import { linhasDaGrade, rotuloGancho } from "../gancho";
 import { useQuadros } from "../useQuadros";
 import { Acoes, EscolhaPage, ErrorArea, Rodape, SugestaoLetra, VeiculoCard, VeiculoInfo } from "../Quadros.styles";
-import { useEscolherGancho } from "./useEscolherGancho";
+import { useEscolherGancho, type ChaveAtual } from "./useEscolherGancho";
 
 export interface EscolherGanchoProps {
   patioId: number;
@@ -22,8 +22,11 @@ export interface EscolherGanchoProps {
   cor?: string | null;
   // O gancho foi guardado.
   onGuardado: (chave: ChaveEscolhida) => void;
-  // Sem quadros, sem escolha possível ou "escolher depois": a entrada segue sem gancho.
-  onPular: () => void;
+  // Sem quadros, sem escolha possível ou "escolher depois": a entrada segue sem gancho. Sem esta função não há botão de adiar.
+  onPular?: () => void;
+  rotuloPular?: string;
+  // A chave que o veículo já tem no quadro: a tela passa a ser de troca, sem sugestão.
+  atual?: ChaveAtual | null;
 }
 
 function descricaoDoVeiculo(modelo?: string | null, cor?: string | null): string {
@@ -32,14 +35,14 @@ function descricaoDoVeiculo(modelo?: string | null, cor?: string | null): string
 }
 
 // Etapa da entrada de veículos: onde a chave será pendurada. A sugestão (primeiro gancho livre) já vem marcada.
-export function EscolherGancho({ patioId, placa, modelo, cor, onGuardado, onPular }: EscolherGanchoProps) {
+export function EscolherGancho({ patioId, placa, modelo, cor, onGuardado, onPular, rotuloPular = "Escolher depois", atual }: EscolherGanchoProps) {
   const { data: quadros, isPending, isError, error, refetch, isFetching } = useQuadros();
   const semQuadros = quadros !== undefined && quadros.length === 0;
 
   // Empresa sem quadros não é bloqueada: a entrada termina como antes.
   useEffect(() => {
     if (semQuadros) {
-      onPular();
+      onPular?.();
     }
   }, [semQuadros, onPular]);
 
@@ -60,24 +63,39 @@ export function EscolherGancho({ patioId, placa, modelo, cor, onGuardado, onPula
           <Button type="button" variant="secondary" onClick={() => void refetch()} disabled={isFetching}>
             Tentar novamente
           </Button>
-          <Button type="button" variant="secondary" onClick={onPular}>
-            Escolher depois
-          </Button>
+          {onPular && (
+            <Button type="button" variant="secondary" onClick={onPular}>
+              {rotuloPular}
+            </Button>
+          )}
         </Acoes>
       </ErrorArea>
     );
   }
 
-  return <Escolha quadros={quadros} patioId={patioId} placa={placa} modelo={modelo} cor={cor} onGuardado={onGuardado} onPular={onPular} />;
+  return (
+    <Escolha
+      quadros={quadros}
+      patioId={patioId}
+      placa={placa}
+      modelo={modelo}
+      cor={cor}
+      onGuardado={onGuardado}
+      onPular={onPular}
+      rotuloPular={rotuloPular}
+      atual={atual}
+    />
+  );
 }
 
 type EscolhaProps = EscolherGanchoProps & { quadros: NonNullable<ReturnType<typeof useQuadros>["data"]> };
 
-function Escolha({ quadros, patioId, placa, modelo, cor, onGuardado, onPular }: EscolhaProps) {
-  const { quadro, selecionado, ehSugestao, erro, guardando, escolherQuadro, escolherGancho, guardar } = useEscolherGancho({
+function Escolha({ quadros, patioId, placa, modelo, cor, onGuardado, onPular, rotuloPular, atual }: EscolhaProps) {
+  const { quadro, selecionado, atualId, ehSugestao, erro, guardando, escolherQuadro, escolherGancho, guardar } = useEscolherGancho({
     patioId,
     quadros,
     onGuardado,
+    atual,
   });
 
   if (!quadro) {
@@ -97,13 +115,15 @@ function Escolha({ quadros, patioId, placa, modelo, cor, onGuardado, onPular }: 
         >
           {ehSugestao ? "Primeiro livre. Toque em outro livre para trocar." : "Toque em outro livre para trocar."}
         </InfoCard>
+      ) : atual ? (
+        <InfoCard title={`Chave hoje no ${atual.rotulo}`}>Toque em um gancho livre para trocar.</InfoCard>
       ) : (
         <InfoCard title="Todos os ganchos deste quadro estão ocupados">
           {quadros.length > 1 ? "Escolha outro quadro ou deixe a chave para depois." : "Libere um gancho ou escolha depois."}
         </InfoCard>
       )}
       <KeyBoardGrid
-        linhas={linhasDaGrade(quadro, selecionado?.patioQuadroChaveId)}
+        linhas={linhasDaGrade(quadro, selecionado?.patioQuadroChaveId, atualId)}
         modo="escolher"
         aria-label={`Quadro ${quadro.nome}`}
         onSelect={(id) => escolherGancho(Number(id))}
@@ -140,11 +160,13 @@ function Escolha({ quadros, patioId, placa, modelo, cor, onGuardado, onPular }: 
           </Text>
         )}
         <Button type="button" onClick={guardar} disabled={!selecionado || guardando}>
-          {guardando ? "Guardando…" : rotulo ? `Guardar no gancho ${rotulo}` : "Guardar no gancho"}
+          {guardando ? "Guardando…" : rotulo ? `Guardar no gancho ${rotulo}` : atual ? "Escolha um gancho" : "Guardar no gancho"}
         </Button>
-        <Button type="button" variant="secondary" onClick={onPular} disabled={guardando}>
-          Escolher depois
-        </Button>
+        {onPular && (
+          <Button type="button" variant="secondary" onClick={onPular} disabled={guardando}>
+            {rotuloPular}
+          </Button>
+        )}
       </Rodape>
     </EscolhaPage>
   );

@@ -45,6 +45,7 @@ describe("fromPatioResponse", () => {
       usuarioEntrada: "operador teste",
       token: "ABCD1234",
       posicaoChave: null,
+      chaveRef: null,
     });
   });
 
@@ -66,9 +67,40 @@ describe("fromPatioResponse", () => {
     );
   });
 
+  it("lê a posição em partes de texto e de objeto, com a linha em maiúsculas", () => {
+    expect(fromPatioResponse({ ...completo, quadroChaves: "A2" }).chaveRef).toEqual({ quadro: null, linha: "A", coluna: 2 });
+    expect(fromPatioResponse({ ...completo, quadroChaves: "Recepção · b10" }).chaveRef).toEqual({
+      quadro: "Recepção",
+      linha: "B",
+      coluna: 10,
+    });
+    expect(fromPatioResponse({ ...completo, quadroChaves: { nome: "Garagem", linha: "c", coluna: 3 } }).chaveRef).toEqual({
+      quadro: "Garagem",
+      linha: "C",
+      coluna: 3,
+    });
+  });
+
+  it("lê o formato real do back: posição, quadro e ids", () => {
+    const veiculo = fromPatioResponse({
+      ...completo,
+      quadroChaves: { quadroChaveId: 49, posicao: "B2", patioQuadroId: 6, quadro: "Quadro 1" },
+    });
+    expect(veiculo.posicaoChave).toBe("Quadro 1 · B2");
+    expect(veiculo.chaveRef).toEqual({ quadro: "Quadro 1", linha: "B", coluna: 2, patioQuadroId: 6, patioQuadroChaveId: 49 });
+  });
+
+  it("texto fora do formato mantém o texto do card mas não tem posição em partes", () => {
+    const veiculo = fromPatioResponse({ ...completo, quadroChaves: "A-12" });
+    expect(veiculo.posicaoChave).toBe("A-12");
+    expect(veiculo.chaveRef).toBeNull();
+  });
+
   it("sem posição, vazia ou em formato desconhecido a posição da chave é null", () => {
     for (const quadroChaves of [undefined, null, "", "  ", 5, { linha: "A" }, {}]) {
-      expect(fromPatioResponse({ ...completo, quadroChaves }).posicaoChave).toBeNull();
+      const veiculo = fromPatioResponse({ ...completo, quadroChaves });
+      expect(veiculo.posicaoChave).toBeNull();
+      expect(veiculo.chaveRef).toBeNull();
     }
   });
 
@@ -117,6 +149,7 @@ describe("fromPatioResponse", () => {
       usuarioEntrada: null,
       token: null,
       posicaoChave: null,
+      chaveRef: null,
     });
   });
 });

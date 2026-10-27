@@ -9,8 +9,10 @@ import type { PatioVeiculo } from "@/types/patio";
 import type { CategoriaVeiculo } from "@/types/veiculo";
 import { CategoriaIcon } from "@/components/veiculos/categoriaIcons";
 import { categoriaConhecida, corDoVeiculo, rotuloCategoria } from "../patio";
+import { ChaveBotao } from "./ChaveBotao";
 import {
   AcoesCelula,
+  AcoesPrincipais,
   Amostra,
   CategoriaLinha,
   ComprovanteLink,
@@ -30,6 +32,9 @@ import {
 export interface PatioLinhaProps {
   veiculo: PatioVeiculo;
   onRegistrarSaida: (veiculo: PatioVeiculo) => void;
+  // A empresa tem quadro de chaves: só então a linha oferece guardar ou trocar a chave.
+  comQuadros?: boolean;
+  onGuardarChave?: (veiculo: PatioVeiculo) => void;
 }
 
 const TRACO = "—";
@@ -43,7 +48,7 @@ function DocumentoIcon() {
   );
 }
 
-export function PatioLinha({ veiculo, onRegistrarSaida }: PatioLinhaProps) {
+export function PatioLinha({ veiculo, onRegistrarSaida, comQuadros = false, onGuardarChave }: PatioLinhaProps) {
   const celular = useIsMobile();
   const cor = corDoVeiculo(veiculo.cor);
   const tabela = veiculo.rotatividadeDescricao ?? TRACO;
@@ -69,7 +74,6 @@ export function PatioLinha({ veiculo, onRegistrarSaida }: PatioLinhaProps) {
             {categoriaConhecida(veiculo.categoria) && <CategoriaIcon categoria={veiculo.categoria as CategoriaVeiculo} />}
             {rotuloCategoria(veiculo.categoria)}
           </CategoriaLinha>
-          {veiculo.posicaoChave && <CategoriaLinha>{`Chave: ${veiculo.posicaoChave}`}</CategoriaLinha>}
         </VeiculoCelula>
       </TableCell>
       <TableCell data-label="Entrada">
@@ -87,14 +91,18 @@ export function PatioLinha({ veiculo, onRegistrarSaida }: PatioLinhaProps) {
       </TableCell>
       <TableCell data-label="Ações" align="right">
         <AcoesCelula>
-          <SaidaBotao
-            type="button"
-            size="sm"
-            aria-label={`Registrar saída de ${veiculo.placa}`}
-            onClick={() => onRegistrarSaida(veiculo)}
-          >
-            Registrar saída
-          </SaidaBotao>
+          <AcoesPrincipais>
+            <SaidaBotao
+              type="button"
+              size="sm"
+              data-saida-botao
+              aria-label={`Registrar saída de ${veiculo.placa}`}
+              onClick={() => onRegistrarSaida(veiculo)}
+            >
+              Registrar saída
+            </SaidaBotao>
+            {comQuadros && onGuardarChave && <ChaveBotao veiculo={veiculo} onGuardar={onGuardarChave} />}
+          </AcoesPrincipais>
           {!veiculo.token && <ComprovanteVazio aria-hidden="true" />}
           {veiculo.token && (
             <ComprovanteLink

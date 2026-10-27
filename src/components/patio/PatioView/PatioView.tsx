@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
+import { GuardarChaveModal } from "@/components/quadros/GuardarChaveModal";
+import { rotuloGancho } from "@/components/quadros/gancho";
+import { useQuadros } from "@/components/quadros/useQuadros";
 import { SaidaVeiculoModal } from "@/components/veiculos/SaidaVeiculoModal";
 import { useVeiculoModais } from "@/components/veiculos/VeiculoModais";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -15,9 +18,10 @@ import { useFocoAposRemocao, vizinhosDe } from "@/hooks/useFocoAposRemocao";
 import { useToast } from "@/hooks/useToast";
 import type { PatioFiltroTipo, PatioVeiculo } from "@/types/patio";
 import { BarrasHorizontais, ChegadasPorHora } from "../graficos";
-import { chegadasPorHora, estatisticasPatio, filtrarPatio, formatarMinutos, ocupacaoPatio, ordenarPatio, resumirPatio } from "../patio";
+import { chegadasPorHora, contarForaDoQuadro, estatisticasPatio, filtrarPatio, formatarMinutos, ocupacaoPatio, ordenarPatio, resumirPatio } from "../patio";
 import { usePatio } from "../usePatio";
 import { useVagasPatio } from "../useVagasPatio";
+import { IndicadorChaves } from "./IndicadorChaves";
 import { BUSCA_ID, PatioFiltros } from "./PatioFiltros";
 import { PatioTabela } from "./PatioTabela";
 import {
@@ -39,7 +43,13 @@ const ESQUELETO_LINHAS = 8;
 export function PatioView() {
   // Com o modal de saída aberto a lista não se atualiza sozinha: ela não pode mudar enquanto o operador recebe o pagamento.
   const [saida, setSaida] = useState<PatioVeiculo | null>(null);
-  const { data, isPending, isError, error, refetch, isFetching, dataUpdatedAt } = usePatio({ pausado: saida !== null });
+  // O mesmo vale para o modal da chave: a linha não pode mudar de lugar enquanto o operador escolhe o gancho.
+  const [chaveDe, setChaveDe] = useState<PatioVeiculo | null>(null);
+  const { data, isPending, isError, error, refetch, isFetching, dataUpdatedAt } = usePatio({ pausado: saida !== null || chaveDe !== null });
+  // Falha ou carregamento dos quadros não derruba o Pátio: sem a lista, o botão e o indicador só não aparecem.
+  const { data: quadros } = useQuadros();
+  const comQuadros = (quadros?.length ?? 0) > 0;
+  const semQuadros = quadros !== undefined && quadros.length === 0;
   const vagas = useVagasPatio();
   const { toast, showToast, dismissToast } = useToast();
   const { abrirEntrada } = useVeiculoModais();
@@ -66,7 +76,8 @@ export function PatioView() {
   const { marcar, anuncio } = useFocoAposRemocao<number>({
     presentes: visiveis.map((item) => item.patioId),
     bloqueado: saida !== null,
-    alvoDe: (id) => conteudo.current?.querySelector<HTMLElement>(`[data-patio-linha="${id}"] button`) ?? null,
+    // O botão da chave vem antes na linha: o foco é do "Registrar saída" do vizinho.
+    alvoDe: (id) => conteudo.current?.querySelector<HTMLElement>(`[data-patio-linha="${id}"] [data-saida-botao]`) ?? null,
     reserva: () => document.getElementById(BUSCA_ID),
   });
 
@@ -102,6 +113,16 @@ export function PatioView() {
           buscaInicial={{ tipo: "placa", valor: saida.placa }}
           onClose={() => setSaida(null)}
           onSuccess={showToast}
+        />
+      )}
+      {chaveDe && (
+        <GuardarChaveModal
+          veiculo={chaveDe}
+          onClose={() => setChaveDe(null)}
+          onGuardado={(guardada) => {
+            setChaveDe(null);
+            showToast(`Chave guardada no ${rotuloGancho(guardada.linha, guardada.coluna)}.`);
+          }}
         />
       )}
       {toast && <Toast message={toast.message} variant={toast.variant} onDismiss={dismissToast} />}
@@ -170,6 +191,7 @@ export function PatioView() {
           )}
           <span>{`Permanência média ${formatarMinutos(estatisticas.mediaMinutos)}`}</span>
           {estatisticas.permanenciaLonga > 0 && <span>{`${estatisticas.permanenciaLonga} há 3 dias ou mais`}</span>}
+          <IndicadorChaves foraDoQuadro={contarForaDoQuadro(todos)} comQuadros={comQuadros} semQuadros={semQuadros} />
           <span>{`Atualizado às ${formatTime(new Date(dataUpdatedAt).toISOString())}`}</span>
         </Resumo>
         <AtualizarBotao type="button" variant="secondary" size="sm" disabled={isFetching} onClick={() => void refetch()}>
@@ -203,7 +225,13 @@ export function PatioView() {
         </EmptyState>
       ) : (
         <>
-          <PatioTabela veiculos={mostradas} onRegistrarSaida={registrarSaida} atualizando={isFetching} />
+          <PatioTabela
+            veiculos={mostradas}
+            onRegistrarSaida={registrarSaida}
+            comQuadros={comQuadros}
+            onGuardarChave={setChaveDe}
+            atualizando={isFetching}
+          />
           {visiveis.length > mostradas.length && (
             <MaisBotao
               type="button"

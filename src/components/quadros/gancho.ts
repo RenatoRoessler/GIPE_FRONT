@@ -1,4 +1,5 @@
 import type { KeyBoardLinha } from "@/components/ui/KeyBoardGrid";
+import type { ChaveRef } from "@/types/patio";
 import type { LinhaQuadroPayload, QuadroChaves, QuadroFormValues } from "@/types/quadroChaves";
 
 export const MAX_LINHAS = 26;
@@ -88,17 +89,52 @@ export function escolherQuadroInicial(quadros: QuadroChaves[]): QuadroChaves | u
   );
 }
 
-// Linhas do quadro no formato da grade. Posição ocupada pela chave de outro veículo vira "ocupado".
-export function linhasDaGrade(quadro: QuadroChaves, selecionadoId?: number | null): KeyBoardLinha[] {
+// Linhas do quadro no formato da grade. Posição ocupada pela chave de outro veículo vira "ocupado"; a do próprio
+// veículo (`atualId`) também é ocupada para o back, mas aparece como "aqui".
+export function linhasDaGrade(quadro: QuadroChaves, selecionadoId?: number | null, atualId?: number | null): KeyBoardLinha[] {
   return quadro.linhas.map((linha) => ({
     rotulo: linha.linha,
-    ganchos: linha.colunas.map((posicao) => ({
-      id: posicao.patioQuadroChaveId,
-      coluna: posicao.coluna,
-      rotulo: rotuloGancho(linha.linha, posicao.coluna),
-      estado: !posicao.disponivel ? "ocupado" : posicao.patioQuadroChaveId === selecionadoId ? "selecionado" : "livre",
-    })),
+    ganchos: linha.colunas.map((posicao) => {
+      const atual = posicao.patioQuadroChaveId === atualId;
+      return {
+        id: posicao.patioQuadroChaveId,
+        coluna: posicao.coluna,
+        rotulo: rotuloGancho(linha.linha, posicao.coluna),
+        estado:
+          atual || !posicao.disponivel
+            ? ("ocupado" as const)
+            : posicao.patioQuadroChaveId === selecionadoId
+              ? ("selecionado" as const)
+              : ("livre" as const),
+        ...(atual ? { legenda: "aqui" } : {}),
+      };
+    }),
   }));
+}
+
+export type PosicaoLocalizada = { patioQuadroId: number; patioQuadroChaveId: number };
+
+// O gancho que a posição `ref` (lida do Pátio) indica. Com o nome do quadro, ele precisa bater; sem ele, vale a primeira
+// posição com essa linha e coluna.
+export function localizarPosicao(quadros: QuadroChaves[], ref: ChaveRef | null | undefined): PosicaoLocalizada | null {
+  if (!ref) return null;
+  // Com os ids do back não há o que adivinhar.
+  if (ref.patioQuadroId !== undefined && ref.patioQuadroChaveId !== undefined) {
+    const quadro = quadros.find((item) => item.patioQuadroId === ref.patioQuadroId);
+    if (quadro?.linhas.some((linha) => linha.colunas.some((p) => p.patioQuadroChaveId === ref.patioQuadroChaveId))) {
+      return { patioQuadroId: ref.patioQuadroId, patioQuadroChaveId: ref.patioQuadroChaveId };
+    }
+  }
+  const nome = ref.quadro?.trim().toLowerCase();
+  for (const quadro of quadros) {
+    if (nome && quadro.nome.trim().toLowerCase() !== nome) continue;
+    for (const linha of quadro.linhas) {
+      if (linha.linha.toUpperCase() !== ref.linha.toUpperCase()) continue;
+      const posicao = linha.colunas.find((item) => item.coluna === ref.coluna);
+      if (posicao) return { patioQuadroId: quadro.patioQuadroId, patioQuadroChaveId: posicao.patioQuadroChaveId };
+    }
+  }
+  return null;
 }
 
 // Rótulo de um gancho pelo id, para as mensagens ("Excluir o gancho A3?").

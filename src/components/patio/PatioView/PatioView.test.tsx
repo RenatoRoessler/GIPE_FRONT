@@ -6,6 +6,10 @@ import { renderWithProviders } from "@/test/render";
 import type { PatioVeiculo } from "@/types/patio";
 
 vi.mock("@/lib/api/services/patio", () => ({ listPatio: vi.fn() }));
+vi.mock("@/lib/api/services/quadroChaves", () => ({ listQuadros: vi.fn().mockResolvedValue([]), escolherQuadroChave: vi.fn() }));
+vi.mock("@/contexts/CurrentUserContext", () => ({
+  useCurrentUser: () => ({ user: { id: "x", name: "Renato", email: "r@e.com", perfil: 1 }, isLoading: false }),
+}));
 vi.mock("../useVagasPatio", () => ({ useVagasPatio: () => ({ moto: 12, carro: 23 }) }));
 const modais = vi.hoisted(() => ({ abrirEntrada: vi.fn(), abrirSaida: vi.fn() }));
 vi.mock("@/components/veiculos/VeiculoModais", () => ({ useVeiculoModais: () => modais }));

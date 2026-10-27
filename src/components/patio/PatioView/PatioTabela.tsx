@@ -8,12 +8,15 @@ import { Area } from "./PatioView.styles";
 export interface PatioTabelaProps {
   veiculos: PatioVeiculo[];
   onRegistrarSaida: (veiculo: PatioVeiculo) => void;
+  // A empresa tem quadro de chaves: cada linha ganha o botão de guardar ou trocar a chave.
+  comQuadros?: boolean;
+  onGuardarChave?: (veiculo: PatioVeiculo) => void;
   // A lista está sendo atualizada: o conteúdo anterior fica esmaecido.
   atualizando?: boolean;
 }
 
 // No computador é uma tabela; abaixo de `breakpoints.md` a mesma árvore vira itens de quatro linhas (ver Linha).
-export function PatioTabela({ veiculos, onRegistrarSaida, atualizando = false }: PatioTabelaProps) {
+export function PatioTabela({ veiculos, onRegistrarSaida, comQuadros = false, onGuardarChave, atualizando = false }: PatioTabelaProps) {
   return (
     <Area $atualizando={atualizando} aria-busy={atualizando}>
       <Table>
@@ -31,7 +34,13 @@ export function PatioTabela({ veiculos, onRegistrarSaida, atualizando = false }:
         </TableHead>
         <TableBody>
           {veiculos.map((veiculo) => (
-            <PatioLinha key={veiculo.patioId} veiculo={veiculo} onRegistrarSaida={onRegistrarSaida} />
+            <PatioLinha
+              key={veiculo.patioId}
+              veiculo={veiculo}
+              onRegistrarSaida={onRegistrarSaida}
+              comQuadros={comQuadros}
+              onGuardarChave={onGuardarChave}
+            />
           ))}
         </TableBody>
       </Table>

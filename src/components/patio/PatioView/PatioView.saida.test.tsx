@@ -20,10 +20,15 @@ vi.mock("@/lib/api/services/patio", () => ({
   resolverBuscaPorToken: api.resolverBuscaPorToken,
 }));
 vi.mock("@/lib/api/services/empresa", () => ({ getEmpresa: api.getEmpresa }));
+vi.mock("@/lib/api/services/quadroChaves", () => ({ listQuadros: vi.fn(), escolherQuadroChave: vi.fn() }));
+vi.mock("@/contexts/CurrentUserContext", () => ({
+  useCurrentUser: () => ({ user: { id: "x", name: "Renato", email: "r@e.com", perfil: 1 }, isLoading: false }),
+}));
 vi.mock("../useVagasPatio", () => ({ useVagasPatio: () => ({ moto: 12, carro: 23 }) }));
 // O host dos modais do menu não participa da saída pela lista: o PatioView abre o próprio modal com o veículo escolhido.
 vi.mock("@/components/veiculos/VeiculoModais", () => ({ useVeiculoModais: () => ({ abrirEntrada: vi.fn(), abrirSaida: vi.fn() }) }));
 
+import { listQuadros } from "@/lib/api/services/quadroChaves";
 import { PATIO_ATUALIZACAO_MS } from "../usePatio";
 import { PatioView } from "./PatioView";
 
@@ -113,6 +118,7 @@ async function pagarSaida(placa: string, patioId: number, listaDepois: PatioVeic
 
 beforeEach(() => {
   Object.values(api).forEach((mock) => mock.mockReset());
+  vi.mocked(listQuadros).mockReset().mockResolvedValue([]);
   api.getEmpresa.mockResolvedValue({ company: {}, hours: {}, payments: { dinheiro: true, pix: true, cartaoCredito: true, cartaoDebito: true } });
 });
 
@@ -158,6 +164,19 @@ describe("PatioView: registrar a saída", () => {
     expect(await screen.findByText("Saída realizada com sucesso.")).toBeInTheDocument();
     await waitFor(() => expect(botaoSaida("MNB7880")).toHaveFocus());
     expect(screen.getByText("BRA2E19 saiu do pátio.")).toBeInTheDocument();
+  });
+
+  it("com quadro de chaves na empresa, o foco da saída vai ao botão de saída do vizinho, não ao da chave", async () => {
+    vi.mocked(listQuadros).mockResolvedValue([
+      { patioQuadroId: 1, nome: "Recepção", linhas: [{ linha: "A", colunas: [{ patioQuadroChaveId: 1, coluna: 1, disponivel: true }] }] },
+    ]);
+    abrir();
+    await screen.findByRole("button", { name: "Registrar saída de BRA2E19" });
+    expect(await screen.findAllByRole("button", { name: /Guardar a chave de/ })).toHaveLength(3);
+
+    await pagarSaida("BRA2E19", 300, [SEGUNDO, TERCEIRO]);
+
+    await waitFor(() => expect(botaoSaida("MNB7880")).toHaveFocus());
   });
 
   it("a busca e os filtros continuam como estavam depois da saída", async () => {

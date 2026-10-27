@@ -5,6 +5,7 @@ import {
   diffAcrescimo,
   escolherQuadroInicial,
   gerarPayload,
+  localizarPosicao,
   linhasDaGrade,
   rotuloGancho,
   rotuloDoGancho,
@@ -86,5 +87,45 @@ describe("gancho", () => {
   it("acha o rótulo de um gancho pelo id", () => {
     expect(rotuloDoGancho(quadro, 3)).toBe("B1");
     expect(rotuloDoGancho(quadro, 99)).toBeNull();
+  });
+
+  it("o gancho atual do veículo aparece como ocupado, com a legenda aqui", () => {
+    const grade = linhasDaGrade(quadro, null, 1);
+    const a1 = grade[0].ganchos[0];
+    expect(a1).toMatchObject({ rotulo: "A1", estado: "ocupado", legenda: "aqui" });
+    expect(grade[0].ganchos[1]).not.toHaveProperty("legenda");
+  });
+});
+
+describe("localizarPosicao", () => {
+  const garagem: QuadroChaves = { patioQuadroId: 2, nome: "Garagem", linhas: [{ linha: "A", colunas: [pos(20, 1), pos(21, 2)] }] };
+
+  it("acha a posição sem diferenciar caixa da linha", () => {
+    expect(localizarPosicao([quadro], { quadro: null, linha: "b", coluna: 1 })).toEqual({ patioQuadroId: 1, patioQuadroChaveId: 3 });
+  });
+
+  it("sem nome vale a primeira posição com essa linha e coluna", () => {
+    expect(localizarPosicao([quadro, garagem], { quadro: null, linha: "A", coluna: 2 })).toEqual({ patioQuadroId: 1, patioQuadroChaveId: 2 });
+  });
+
+  it("com nome exige o mesmo quadro, sem diferenciar caixa", () => {
+    expect(localizarPosicao([quadro, garagem], { quadro: "garagem", linha: "A", coluna: 2 })).toEqual({
+      patioQuadroId: 2,
+      patioQuadroChaveId: 21,
+    });
+    expect(localizarPosicao([quadro], { quadro: "Garagem", linha: "A", coluna: 2 })).toBeNull();
+  });
+
+  it("com os ids do back acha o gancho sem comparar nome nem posição", () => {
+    expect(localizarPosicao([quadro, garagem], { quadro: "Nome diferente", linha: "?", coluna: 0, patioQuadroId: 2, patioQuadroChaveId: 21 })).toEqual({
+      patioQuadroId: 2,
+      patioQuadroChaveId: 21,
+    });
+  });
+
+  it("devolve null quando não existe ou não há posição", () => {
+    expect(localizarPosicao([quadro], { quadro: null, linha: "Z", coluna: 9 })).toBeNull();
+    expect(localizarPosicao([quadro], null)).toBeNull();
+    expect(localizarPosicao([quadro], undefined)).toBeNull();
   });
 });
