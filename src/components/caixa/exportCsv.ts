@@ -11,6 +11,11 @@ export function rotuloTipoMovimento(tipo: TipoMovimento): string {
   return ROTULO_TIPO[tipo];
 }
 
+// Texto livre que começa com = + - @ (ou tab/CR) viraria fórmula no Excel: o apóstrofo força texto.
+function texto(valor: string): string {
+  return ["=", "+", "-", "@", String.fromCharCode(9), String.fromCharCode(13)].includes(valor.charAt(0)) ? `'${valor}` : valor;
+}
+
 // Campo com ; aspas ou quebra de linha vai entre aspas, com as aspas dobradas.
 function campo(valor: string): string {
   return /[;"\r\n]/.test(valor) ? `"${valor.replace(/"/g, '""')}"` : valor;
@@ -40,8 +45,8 @@ export function movimentosParaCsv(movimentos: Movimento[]): string {
       rotuloTipoMovimento(movimento.tipo),
       movimento.formaPagamento === null ? "" : formaPagamentoLabel(movimento.formaPagamento),
       movimento.turnoId === null ? "" : String(movimento.turnoId),
-      movimento.usuario,
-      movimento.motivo ?? "",
+      texto(movimento.usuario),
+      texto(movimento.motivo ?? ""),
       decimal(movimento.tipo === "entrada" ? movimento.valor : -movimento.valor),
     ]
       .map(campo)

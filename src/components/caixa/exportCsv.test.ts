@@ -97,3 +97,14 @@ describe("baixarCsv", () => {
     expect(nome).toBe("extrato.csv");
   });
 });
+
+describe("movimentosParaCsv: injeção de fórmula", () => {
+  it("prefixa com apóstrofo textos livres que começam como fórmula, sem mexer no valor negativo", () => {
+    const csv = movimentosParaCsv([
+      mov({ tipo: "saida", valor: 10, usuario: "=SOMA(A1)", motivo: "@SOMA(A1)" }),
+    ]);
+    expect(csv).toContain("'=SOMA(A1)");
+    expect(csv).toContain("'@SOMA(A1)");
+    expect(csv).toContain(";-10,00");
+  });
+});
