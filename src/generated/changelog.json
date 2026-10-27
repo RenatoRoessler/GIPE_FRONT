@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.258",
+      "type": "feat",
+      "scope": "patio",
+      "title": "filtra o Pátio por chave fora ou dentro do quadro",
+      "description": "Dois novos filtros, \"Chave fora do quadro\" e \"Chave dentro do quadro\",\ncom a contagem do pátio inteiro, ao lado dos filtros de categoria na\nmesma linha quando há espaço. Combinam com a busca e com os demais\nfiltros, e \"Limpar filtros\" também os desliga. Empresas sem quadro de\nchaves não veem os filtros.",
+      "date": "2026-10-27T20:17:15-03:00"
+    },
+    {
       "version": "1.0.255",
       "type": "feat",
       "scope": "patio",
