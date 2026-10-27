@@ -372,6 +372,13 @@ export const Segmento = styled.button<{ $valor: number; $tipo: "mensalistas" | "
   }
 `;
 
+// Categorias e chave no quadro: dois grupos que dividem a mesma linha quando há espaço e quebram para a de baixo quando não há.
+export const LinhaChips = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[4]}px;
+`;
+
 export const Chips = styled.div`
   display: flex;
   flex-wrap: wrap;

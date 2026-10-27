@@ -69,7 +69,7 @@ const COM_CHAVE = () => veiculo("COM1A11", { posicaoChave: "A1", chaveRef: { qua
 const SEM_CHAVE = () => veiculo("SEM2B22");
 const OUTRO_SEM_CHAVE = () => veiculo("OUT3C33");
 
-const indicador = () => screen.getByText(/fora do quadro$|Todas as chaves no quadro/);
+const indicador = () => screen.getByText(/^\d+ fora do quadro$|^Todas as chaves no quadro$/);
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -153,7 +153,7 @@ describe("PatioView: indicador de chaves fora do quadro", () => {
     listarPatio.mockResolvedValue([COM_CHAVE()]);
     renderWithProviders(<PatioView />);
     expect(await screen.findByText("Todas as chaves no quadro")).toBeInTheDocument();
-    expect(screen.queryByText(/fora do quadro$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^\d+ fora do quadro$/)).not.toBeInTheDocument();
   });
 
   it("conta o pátio inteiro, com mais de 100 veículos e ignorando a busca", async () => {
@@ -168,6 +168,63 @@ describe("PatioView: indicador de chaves fora do quadro", () => {
     await userEvent.type(screen.getByLabelText("Buscar por placa, modelo ou ticket"), lista[0].placa);
     await waitFor(() => expect(screen.getAllByRole("button", { name: /Guardar a chave de/ })).toHaveLength(1));
     expect(indicador()).toHaveTextContent("120 fora do quadro");
+  });
+});
+
+describe("PatioView: filtros por chave", () => {
+  it("mostra as contagens e filtra por fora e por dentro do quadro", async () => {
+    listarPatio.mockResolvedValue([COM_CHAVE(), SEM_CHAVE(), OUTRO_SEM_CHAVE()]);
+    renderWithProviders(<PatioView />);
+
+    const fora = await screen.findByRole("button", { name: /Chave fora do quadro/ });
+    const dentro = screen.getByRole("button", { name: /Chave dentro do quadro/ });
+    expect(fora).toHaveTextContent("2");
+    expect(dentro).toHaveTextContent("1");
+
+    await userEvent.click(fora);
+    expect(fora).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByText("COM1A11")).not.toBeInTheDocument();
+    expect(screen.getByText("SEM2B22")).toBeInTheDocument();
+    expect(screen.getByText("OUT3C33")).toBeInTheDocument();
+
+    await userEvent.click(dentro);
+    expect(screen.getByText("COM1A11")).toBeInTheDocument();
+    expect(screen.queryByText("SEM2B22")).not.toBeInTheDocument();
+  });
+
+  it("tocar no filtro ativo o desfaz e Limpar filtros também", async () => {
+    listarPatio.mockResolvedValue([COM_CHAVE(), SEM_CHAVE()]);
+    renderWithProviders(<PatioView />);
+
+    const dentro = await screen.findByRole("button", { name: /Chave dentro do quadro/ });
+    await userEvent.click(dentro);
+    expect(screen.queryByText("SEM2B22")).not.toBeInTheDocument();
+    await userEvent.click(dentro);
+    expect(screen.getByText("SEM2B22")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /Chave fora do quadro/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+    expect(screen.getByText("COM1A11")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Chave fora do quadro/ })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("as contagens e o indicador do resumo seguem o pátio inteiro com o filtro ativo", async () => {
+    listarPatio.mockResolvedValue([COM_CHAVE(), SEM_CHAVE()]);
+    renderWithProviders(<PatioView />);
+
+    await userEvent.click(await screen.findByRole("button", { name: /Chave dentro do quadro/ }));
+    expect(screen.getByRole("button", { name: /Chave fora do quadro/ })).toHaveTextContent("1");
+    expect(indicador()).toHaveTextContent("1 fora do quadro");
+  });
+
+  it("sem quadros na empresa os filtros de chave não aparecem", async () => {
+    listarQuadros.mockResolvedValue([]);
+    listarPatio.mockResolvedValue([COM_CHAVE(), SEM_CHAVE()]);
+    renderWithProviders(<PatioView />);
+
+    await screen.findByText("COM1A11");
+    await waitFor(() => expect(listarQuadros).toHaveBeenCalled());
+    expect(screen.queryByRole("button", { name: /Chave (fora|dentro) do quadro/ })).not.toBeInTheDocument();
   });
 });
 

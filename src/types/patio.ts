@@ -39,10 +39,15 @@ export type ChaveRef = {
 
 export type PatioFiltroTipo = "todos" | "mensalistas" | "avulsos";
 
+// Onde está a chave do veículo: no quadro (tem gancho) ou fora dele.
+export type PatioFiltroChave = "todas" | "fora" | "dentro";
+
 export type PatioFiltros = {
   busca: string;
   tipo: PatioFiltroTipo;
   categoria: number | "todas";
+  // Ausente vale "todas".
+  chave?: PatioFiltroChave;
 };
 
 export type PatioResumo = { total: number; mostrados: number };

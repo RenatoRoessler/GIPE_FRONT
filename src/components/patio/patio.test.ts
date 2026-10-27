@@ -4,6 +4,7 @@ import {
   categoriaConhecida,
   chegadasPorHora,
   contarForaDoQuadro,
+  contarNoQuadro,
   corDoVeiculo,
   estatisticasPatio,
   filtrarPatio,
@@ -324,5 +325,32 @@ describe("contarForaDoQuadro", () => {
   it("conta quem não tem posição: nula, ausente ou vazia", () => {
     const lista = [veiculo({ posicaoChave: "A1" }), veiculo({ posicaoChave: null }), veiculo(), veiculo({ posicaoChave: "" })];
     expect(contarForaDoQuadro(lista)).toBe(3);
+  });
+});
+
+describe("filtro por chave no quadro", () => {
+  const lista = [veiculo({ placa: "DEN1A11", posicaoChave: "A1" }), veiculo({ placa: "FOR2B22", posicaoChave: null }), veiculo({ placa: "FOR3C33" })];
+
+  it("fora do quadro traz só quem não tem gancho", () => {
+    expect(placas(filtrarPatio(lista, { ...sem, chave: "fora" }))).toEqual(["FOR2B22", "FOR3C33"]);
+  });
+
+  it("dentro do quadro traz só quem tem gancho", () => {
+    expect(placas(filtrarPatio(lista, { ...sem, chave: "dentro" }))).toEqual(["DEN1A11"]);
+  });
+
+  it("todas, ou sem o campo, não filtra", () => {
+    expect(filtrarPatio(lista, { ...sem, chave: "todas" })).toHaveLength(3);
+    expect(filtrarPatio(lista, sem)).toHaveLength(3);
+  });
+
+  it("combina com a busca e com os outros filtros", () => {
+    expect(placas(filtrarPatio(lista, { ...sem, chave: "fora", busca: "FOR3" }))).toEqual(["FOR3C33"]);
+    expect(filtrarPatio(lista, { ...sem, chave: "dentro", tipo: "mensalistas" })).toEqual([]);
+  });
+
+  it("conta quem está no quadro", () => {
+    expect(contarNoQuadro(lista)).toBe(1);
+    expect(contarNoQuadro([])).toBe(0);
   });
 });

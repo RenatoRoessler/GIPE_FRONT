@@ -16,9 +16,9 @@ import { useVeiculoModais } from "@/components/veiculos/VeiculoModais";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useFocoAposRemocao, vizinhosDe } from "@/hooks/useFocoAposRemocao";
 import { useToast } from "@/hooks/useToast";
-import type { PatioFiltroTipo, PatioVeiculo } from "@/types/patio";
+import type { PatioFiltroChave, PatioFiltroTipo, PatioVeiculo } from "@/types/patio";
 import { BarrasHorizontais, ChegadasPorHora } from "../graficos";
-import { chegadasPorHora, contarForaDoQuadro, estatisticasPatio, filtrarPatio, formatarMinutos, ocupacaoPatio, ordenarPatio, resumirPatio } from "../patio";
+import { chegadasPorHora, contarForaDoQuadro, contarNoQuadro, estatisticasPatio, filtrarPatio, formatarMinutos, ocupacaoPatio, ordenarPatio, resumirPatio } from "../patio";
 import { usePatio } from "../usePatio";
 import { useVagasPatio } from "../useVagasPatio";
 import { IndicadorChaves } from "./IndicadorChaves";
@@ -57,18 +57,19 @@ export function PatioView() {
   const [busca, setBusca] = useState("");
   const [tipo, setTipo] = useState<PatioFiltroTipo>("todos");
   const [categoria, setCategoria] = useState<number | "todas">("todas");
+  const [chaveFiltro, setChaveFiltro] = useState<PatioFiltroChave>("todas");
   // Quantas linhas a mais o operador pediu para esta combinação de busca e filtros: ao mudar a combinação, volta a 100.
   const [expandido, setExpandido] = useState({ chave: "", extra: 0 });
   const termo = useDebouncedValue(busca.trim(), DEBOUNCE_MS);
 
   const todos = data ?? [];
   const ordenados = ordenarPatio(todos);
-  const visiveis = filtrarPatio(ordenados, { busca: termo, tipo, categoria });
+  const visiveis = filtrarPatio(ordenados, { busca: termo, tipo, categoria, chave: chaveFiltro });
   const resumo = resumirPatio(todos, visiveis);
   const estatisticas = estatisticasPatio(todos);
   const ocupacao = vagas ? ocupacaoPatio(todos, vagas) : null;
-  const filtrando = termo !== "" || tipo !== "todos" || categoria !== "todas";
-  const chave = `${termo}|${tipo}|${categoria}`;
+  const filtrando = termo !== "" || tipo !== "todos" || categoria !== "todas" || chaveFiltro !== "todas";
+  const chave = `${termo}|${tipo}|${categoria}|${chaveFiltro}`;
   const limite = LIMITE_INICIAL + (expandido.chave === chave ? expandido.extra : 0);
   const mostradas = visiveis.slice(0, limite);
 
@@ -100,6 +101,7 @@ export function PatioView() {
   function limparFiltros() {
     setTipo("todos");
     setCategoria("todas");
+    setChaveFiltro("todas");
   }
 
   // O modal de saída, o aviso e o anúncio precisam continuar na tela mesmo que a lista fique vazia (o último veículo saiu).
@@ -205,6 +207,9 @@ export function PatioView() {
         tipo={tipo}
         onTipoChange={setTipo}
         categoria={categoria}
+        chave={chaveFiltro}
+        onChaveChange={setChaveFiltro}
+        chaves={comQuadros ? { fora: contarForaDoQuadro(todos), dentro: contarNoQuadro(todos) } : null}
         onCategoriaChange={setCategoria}
         onLimparFiltros={limparFiltros}
         estatisticas={estatisticas}

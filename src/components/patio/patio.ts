@@ -40,6 +40,8 @@ export function filtrarPatio(itens: PatioVeiculo[], filtros: PatioFiltros): Pati
     if (filtros.tipo === "mensalistas" && !veiculo.mensalista) return false;
     if (filtros.tipo === "avulsos" && veiculo.mensalista) return false;
     if (filtros.categoria !== "todas" && veiculo.categoria !== filtros.categoria) return false;
+    if (filtros.chave === "fora" && veiculo.posicaoChave) return false;
+    if (filtros.chave === "dentro" && !veiculo.posicaoChave) return false;
     return termo === "" || combinaBusca(veiculo, termo);
   });
 }
@@ -47,6 +49,11 @@ export function filtrarPatio(itens: PatioVeiculo[], filtros: PatioFiltros): Pati
 // Veículos cuja chave não está em nenhum gancho do quadro. Recebe o pátio inteiro: o número não muda com busca e filtros.
 export function contarForaDoQuadro(veiculos: PatioVeiculo[]): number {
   return veiculos.filter((veiculo) => !veiculo.posicaoChave).length;
+}
+
+// Veículos com a chave em algum gancho do quadro.
+export function contarNoQuadro(veiculos: PatioVeiculo[]): number {
+  return veiculos.length - contarForaDoQuadro(veiculos);
 }
 
 export function resumirPatio(todos: PatioVeiculo[], visiveis: PatioVeiculo[]): PatioResumo {
