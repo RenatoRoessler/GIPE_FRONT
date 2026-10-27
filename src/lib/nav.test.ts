@@ -11,7 +11,7 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS.find((item) => item.label === "Pátio")).toEqual({ label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: "patio" });
   });
 
-  it("mantém os onze itens, com Entrada, Saída, Pátio e Caixa logo depois do Início", () => {
+  it("mantém os onze itens (um por tela), com Entrada, Saída, Pátio e Caixa logo depois do Início", () => {
     expect(NAV_ITEMS.map((item) => item.label)).toEqual([
       "Início",
       "Entrada de Veículos",
@@ -23,16 +23,17 @@ describe("NAV_ITEMS", () => {
       "Mensalistas",
       "Notas Fiscais",
       "Minha Empresa",
+      "Quadros de Chaves",
     ]);
   });
 
-  it("Entrada e Saída são ações (abrem modal); os outros oito são links", () => {
+  it("Entrada e Saída são ações (abrem modal); os outros nove são links", () => {
     const acoes = NAV_ITEMS.filter(isNavAction);
     expect(acoes.map((item) => [item.label, item.acao, item.icon])).toEqual([
       ["Entrada de Veículos", "entrada", "vehicleIn"],
       ["Saída de Veículos", "saida", "vehicleOut"],
     ]);
-    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(8);
+    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(9);
   });
 
   it("não repete chave nem ícone", () => {
@@ -115,6 +116,7 @@ describe("navItemsPermitidos", () => {
       "Gestão de Preços",
       "Mensalistas",
       "Notas Fiscais",
+      "Quadros de Chaves",
     ]);
   });
 
@@ -155,7 +157,7 @@ describe("navItemsPorPrioridade", () => {
   const rotulos = (perfil: Parameters<typeof navItemsPorPrioridade>[0]) => navItemsPorPrioridade(perfil).map((item) => item.shortLabel);
 
   it("Início, Entrada e Saída vêm primeiro e o resto segue a ordem do menu", () => {
-    expect(rotulos(1)).toEqual(["Início", "Entrada", "Saída", "Pátio", "Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa"]);
+    expect(rotulos(1)).toEqual(["Início", "Entrada", "Saída", "Pátio", "Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
   });
 
   it("só traz o que o perfil pode abrir", () => {
@@ -179,7 +181,7 @@ describe("dividirItensDaBarra", () => {
   const rotulos = (lista: typeof itens) => lista.map((item) => item.shortLabel);
 
   it("mostra tudo, sem Mais, quando todos cabem", () => {
-    for (const capacidade of [10, 11, 20]) {
+    for (const capacidade of [11, 12, 20]) {
       const { visiveis, excedentes } = dividirItensDaBarra(itens, capacidade);
       expect(visiveis).toEqual(itens);
       expect(excedentes).toEqual([]);
@@ -189,14 +191,14 @@ describe("dividirItensDaBarra", () => {
   it("reserva o último espaço para o Mais quando falta lugar", () => {
     const { visiveis, excedentes } = dividirItensDaBarra(itens, 5);
     expect(rotulos(visiveis)).toEqual(["Início", "Entrada", "Saída", "Pátio"]);
-    expect(rotulos(excedentes)).toEqual(["Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa"]);
+    expect(rotulos(excedentes)).toEqual(["Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
     expect(visiveis.length + 1).toBe(5);
   });
 
-  it("com capacidade 9 esconde dois itens: oito visíveis mais o Mais", () => {
+  it("com capacidade 9 esconde três itens: oito visíveis mais o Mais", () => {
     const { visiveis, excedentes } = dividirItensDaBarra(itens, 9);
     expect(visiveis).toHaveLength(8);
-    expect(excedentes).toHaveLength(2);
+    expect(excedentes).toHaveLength(3);
   });
 
   it("nunca usa menos de três espaços", () => {
@@ -262,6 +264,6 @@ describe("ordenarPeloMenu", () => {
 
   it("recoloca os excedentes da barra na ordem natural do menu", () => {
     const { excedentes } = dividirItensDaBarra(navItemsPorPrioridade(1), 5);
-    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa"]);
+    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
   });
 });

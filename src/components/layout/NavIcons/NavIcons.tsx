@@ -111,6 +111,16 @@ function CompanyIcon(props: IconProps) {
   );
 }
 
+// Quadro de chaves: argola com a haste e os dentes da chave.
+function KeysIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <circle cx="8" cy="15" r="4" />
+      <path d="M11 12l9-9M16 7l3 3M14 9l2 2" />
+    </IconBase>
+  );
+}
+
 const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   home: HomeIcon,
   pricing: PricingIcon,
@@ -122,6 +132,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   cashier: CashierIcon,
   invoice: InvoiceIcon,
   company: CompanyIcon,
+  keys: KeysIcon,
 };
 
 export function NavIcon({ id, ...props }: { id: NavIconId } & IconProps) {

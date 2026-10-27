@@ -62,7 +62,7 @@ describe("BottomBar", () => {
     renderBar({ itens: itensDoAdmin, temMais: false });
 
     expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("link")).toHaveLength(8);
+    expect(screen.getAllByRole("link")).toHaveLength(9);
     expect(screen.getByRole("link", { name: "Empresa" })).toHaveAttribute("href", "/minha-empresa");
   });
 

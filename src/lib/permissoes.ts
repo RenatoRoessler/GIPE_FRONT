@@ -13,6 +13,8 @@ export const AREA = {
   NotasFiscais: "notas-fiscais",
   Empresa: "empresa",
   Usuarios: "usuarios",
+  // Cadastro dos quadros de chaves do pátio; escolher o gancho na entrada de veículos faz parte do pátio.
+  QuadroChaves: "quadros-chaves",
 } as const;
 export type Area = (typeof AREA)[keyof typeof AREA];
 
@@ -36,6 +38,7 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.NotasFiscais]: [Administrador, Gerente, Financeiro],
   [AREA.Empresa]: [Administrador],
   [AREA.Usuarios]: [Administrador, AdministradorConveniada],
+  [AREA.QuadroChaves]: [Administrador, Gerente],
 };
 
 // Sem perfil conhecido, só o acesso mínimo: o Início (e, fora das áreas, a troca da própria senha e o sair).
@@ -59,6 +62,7 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/notas-fiscais", AREA.NotasFiscais],
   ["/minha-empresa", AREA.Empresa],
   ["/usuarios", AREA.Usuarios],
+  ["/quadros-chaves", AREA.QuadroChaves],
 ];
 
 // Rotas da área logada abertas a qualquer usuário autenticado.
