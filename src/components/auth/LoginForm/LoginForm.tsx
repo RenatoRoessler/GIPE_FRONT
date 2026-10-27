@@ -49,11 +49,11 @@ export function LoginForm() {
   const [etapa, setEtapa] = useState<Etapa>({ tipo: "login" });
   const [empresaPendente, setEmpresaPendente] = useState<string | null>(null);
 
-  // Abre a sessão (login direto ou depois de escolher a empresa) e aplica "Lembrar senha".
+  // Abre a sessão (login direto ou depois de escolher a empresa) e aplica "Lembrar CPF".
   async function abrirSessao(token: string, values: LoginValues) {
     saveToken(token);
     if (remember) {
-      await saveRememberedLogin(values);
+      await saveRememberedLogin({ cpf: values.cpf });
     } else {
       await clearRememberedLogin();
     }
@@ -94,13 +94,13 @@ export function LoginForm() {
       switch (result.kind) {
         case "trocar-senha":
           // Primeiro acesso: não há sessão. O token de troca e a senha digitada (a temporária, que a API pede como
-          // senha atual) ficam só em memória, nunca na URL. Ela não pode ser lembrada, mesmo com "Lembrar senha" marcado.
+          // senha atual) ficam só em memória, nunca na URL. Ela nunca é guardada.
           setPasswordChange({ token: result.passwordChangeToken, senhaAtual: values.senha });
           await clearRememberedLogin();
           router.push("/primeiro-acesso");
           return;
         case "escolher-empresa":
-          // Mais de uma empresa: ainda não há sessão. O "Lembrar senha" só vale depois que a empresa é escolhida.
+          // Mais de uma empresa: ainda não há sessão. O "Lembrar CPF" só vale depois que a empresa é escolhida.
           setEtapa({ tipo: "empresa", preAuthToken: result.preAuthToken, empresas: result.empresas, values });
           return;
         case "sessao":
@@ -128,9 +128,8 @@ export function LoginForm() {
     void loadRememberedLogin().then((saved) => {
       if (!active || !saved) return;
       // Não sobrescreve o que o usuário já começou a digitar.
-      if (form.state.values.cpf || form.state.values.senha) return;
+      if (form.state.values.cpf) return;
       form.setFieldValue("cpf", saved.cpf);
-      form.setFieldValue("senha", saved.senha);
       setRemember(true);
     });
     return () => {
@@ -200,7 +199,7 @@ export function LoginForm() {
           )}
         </form.AppField>
         <Checkbox
-          label="Lembrar senha"
+          label="Lembrar CPF"
           hint="Não recomendado em computadores compartilhados."
           checked={remember}
           onCheckedChange={setRemember}

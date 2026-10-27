@@ -36,7 +36,7 @@ async function preencherEEnviar(user: User, { lembrar = false } = {}) {
   await user.type(screen.getByLabelText("CPF"), CPF);
   await user.type(screen.getByLabelText("Senha"), "Temp@1234");
   if (lembrar) {
-    await user.click(screen.getByRole("checkbox", { name: /Lembrar senha/ }));
+    await user.click(screen.getByRole("checkbox", { name: /Lembrar CPF/ }));
   }
   await user.click(screen.getByRole("button", { name: "Entrar" }));
 }
@@ -72,7 +72,7 @@ describe("LoginForm: primeiro acesso", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("não lembra a senha temporária, mesmo com Lembrar senha marcado, e limpa a lembrada", async () => {
+  it("não lembra a senha temporária, mesmo com Lembrar CPF marcado, e limpa a lembrada", async () => {
     const user = userEvent.setup();
     entrar.mockResolvedValue({ kind: "trocar-senha", passwordChangeToken: "troca" });
     renderWithProviders(<LoginForm />);
@@ -95,14 +95,14 @@ describe("LoginForm: primeiro acesso", () => {
     expect(getPasswordChange()).toBeNull();
   });
 
-  it("sessão com Lembrar senha marcado: salva a credencial", async () => {
+  it("sessão com Lembrar CPF marcado: salva só o CPF", async () => {
     const user = userEvent.setup();
     entrar.mockResolvedValue({ kind: "sessao", token: "sessao-token" });
     renderWithProviders(<LoginForm />);
     await preencherEEnviar(user, { lembrar: true });
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/dashboard"));
-    expect(saveRememberedLogin).toHaveBeenCalledWith({ cpf: CPF, senha: "Temp@1234" });
+    expect(saveRememberedLogin).toHaveBeenCalledWith({ cpf: CPF });
   });
 
   it("credencial inválida mostra o erro e não navega", async () => {
@@ -196,7 +196,7 @@ describe("LoginForm: usuário com mais de uma empresa", () => {
     expect(clearRememberedLogin).toHaveBeenCalled();
   });
 
-  it("com Lembrar senha marcado, a credencial só é salva depois de escolher a empresa", async () => {
+  it("com Lembrar CPF marcado, a credencial só é salva depois de escolher a empresa", async () => {
     const user = userEvent.setup();
     selecionar.mockResolvedValue("token-da-empresa");
     await ateAEscolha(user, { lembrar: true });
@@ -205,7 +205,7 @@ describe("LoginForm: usuário com mais de uma empresa", () => {
     await user.click(screen.getByRole("button", { name: /Entrar em Central/ }));
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/dashboard"));
-    expect(saveRememberedLogin).toHaveBeenCalledWith({ cpf: CPF, senha: "Temp@1234" });
+    expect(saveRememberedLogin).toHaveBeenCalledWith({ cpf: CPF });
   });
 
   it("enquanto entra, a empresa mostra 'Entrando…' e a lista fica desabilitada", async () => {
