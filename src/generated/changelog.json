@@ -2,6 +2,30 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.237",
+      "type": "fix",
+      "scope": "caixa",
+      "title": "impede fórmulas na exportação CSV dos movimentos",
+      "description": "Textos livres (usuário e motivo) que começam com =, +, -, @, tab ou CR\nagora recebem um apóstrofo na frente, para que o Excel não os execute\ncomo fórmula. Os valores numéricos negativos não são alterados.",
+      "date": "2026-10-27T08:51:06-03:00"
+    },
+    {
+      "version": "1.0.236",
+      "type": "fix",
+      "scope": "login",
+      "title": "não guarda mais a senha no navegador e protege o cookie da sessão",
+      "description": "A opção \"Lembrar senha\" virou \"Lembrar CPF\": a senha deixa de ser salva\nno navegador (a senha cifrada e a chave de versões antigas são apagadas no\npróximo acesso). O cookie da sessão passa a usar SameSite=Lax e, em HTTPS,\nSecure, reduzindo o risco de roubo da sessão.",
+      "date": "2026-10-27T08:51:06-03:00"
+    },
+    {
+      "version": "1.0.235",
+      "type": "fix",
+      "scope": "seguranca",
+      "title": "adiciona headers de segurança HTTP",
+      "description": "Passa a enviar Content-Security-Policy, X-Frame-Options, nosniff,\nReferrer-Policy, HSTS e Permissions-Policy, e remove o X-Powered-By.\nProtege o sistema contra injeção de scripts e uso dentro de iframes de\noutros sites, mantendo a câmera liberada para o leitor de placa e de QR.",
+      "date": "2026-10-27T08:51:06-03:00"
+    },
+    {
       "version": "1.0.232",
       "type": "fix",
       "scope": "deploy",
