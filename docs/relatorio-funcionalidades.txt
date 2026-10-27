@@ -1,0 +1,207 @@
+RELATÓRIO DE FUNCIONALIDADES DO GIPE
+====================================
+
+Posição em 23/10/2026 - versão 1.0.216 (92 entradas no histórico de atualizações).
+
+Fontes: rotas do app, histórico de atualizações (changelog.json), specs em
+docs/specs/ e testes feitos nesta rodada. Parte do que está aqui foi conferida
+no navegador contra a API real (caixa, troca de senha por login, cadastro de
+empresa e escolha de empresa, com a conta de teste); o restante é o que o código
+e os commits dizem estar implementado, sem teste manual. Cada seção indica o
+que foi conferido.
+
+
+RESUMO
+------
+- Funcionando: 14 áreas de produto, de acesso e adesão a caixa, permissões por
+  perfil e várias empresas por conta.
+- Ainda em branco: Relatórios (tem rota e item de menu, mas só mostra "Esta
+  tela será implementada em uma spec futura").
+- Permissões por perfil: a regra padrão por perfil está no front (menu, endereço
+  digitado, ações e aviso de acesso negado). A tela para configurar permissões
+  por módulo, que a API já oferece, ainda não existe.
+- Pendente de validação: acesso com os perfis Gerente, Caixa, Manobrista e
+  Financeiro (só o Administrador foi testado com login real), e os PDFs no
+  tablet do balcão.
+
+
+1. ACESSO E CONTA
+-----------------
+- Login com CPF e senha (/login). Integrado ao back. Opção de lembrar o login
+  neste computador, com a senha cifrada (a senha só é guardada depois da
+  escolha da empresa, quando há mais de uma).
+- Escolha da empresa ao entrar. Quem tem acesso a mais de uma empresa vê a lista
+  (nome, CNPJ e perfil em cada uma) e entra na que tocar; quem tem uma só entra
+  direto. Conferido na API real, com duas empresas.
+- Proteção de rotas. Sem login, toda rota fora da lista pública vai para /login.
+- Recuperação de senha por e-mail (/recuperar-senha e /alterar-senha). Exige
+  senha forte, com checklist de requisitos.
+- Primeiro acesso (/primeiro-acesso). Troca obrigatória da senha temporária,
+  pelo endpoint próprio, com o token do login no cabeçalho. Ajustado ao contrato
+  do swagger; o fluxo completo com um usuário de senha temporária ainda não foi
+  testado na API real.
+- Alterar a própria senha, pelo menu do usuário. Qualquer perfil.
+- Sair da conta, por uma rotina única usada pelo menu do usuário e pela tela de
+  empresa criada.
+- Instalar como aplicativo (PWA), no header e no dashboard, no celular ou no
+  computador.
+
+
+2. ADESÃO DE EMPRESAS
+---------------------
+- Fluxo de adesão em 3 etapas (/adesao). Integrado ao back, público.
+- Endereço preenchido automaticamente pelo CEP (conferido no navegador).
+- Meios de pagamento da empresa, na adesão e em Minha Empresa. A saída só
+  oferece os meios que a empresa aceita.
+- Senha do titular com as mesmas regras da redefinição: 8 caracteres, maiúscula,
+  minúscula, número e símbolo, com checklist na tela (antes bastavam 6
+  caracteres). A API pode ter regra própria; não foi conferida.
+
+
+3. ÁREA LOGADA
+--------------
+- Dashboard com os indicadores do pátio (/dashboard). O bloco do pátio não
+  aparece, e a API não é consultada, para quem não tem acesso ao pátio.
+- Menu lateral e menu inferior no celular. Entrada e saída abrem em modal.
+  Tema claro e escuro. O menu mostra só o que o perfil pode usar.
+- Minha Empresa (/minha-empresa): dados da empresa, funcionamento e meios de
+  pagamento, com o CNPJ travado.
+- Adicionar empresa (/minha-empresa/nova), só para o Administrador. Formulário
+  igual ao de Minha Empresa, em branco, com busca do endereço pelo CEP, validação
+  completa e confirmação ao cancelar com dados digitados. Ao criar, mostra a
+  confirmação e leva a sair e escolher a empresa no login. Conferido na API
+  real: a empresa foi criada e o criador entra nela como Administrador.
+- Acesso negado (/acesso-negado) para quem abre uma área que o perfil não
+  permite.
+- Página de atualizações e versão no rodapé (/atualizacoes), alimentada pelo
+  histórico de commits.
+
+
+4. ENTRADA E SAÍDA DE VEÍCULOS
+------------------------------
+- Entrada: placa, cor, categoria e leitura da placa pela câmera. Gera
+  comprovante com QR code. As categorias seguem as da API (moto, carro pequeno,
+  carro médio, caminhonete, caminhão e carro grande).
+- Saída: tela única que localiza o veículo (por placa ou leitura do QR) e
+  depois paga.
+    * Aceita o QR do comprovante do cliente.
+    * Oferece só os meios de pagamento da empresa.
+    * Identifica o mensalista na entrada e libera a saída sem cobrança.
+- Comprovante público do cliente (/comprovante/[token]), sem login.
+- Recibo público da saída (/recibo/[token]), sem login, com QR no recibo.
+
+
+5. PÁTIO
+--------
+/patio mostra os veículos presentes, com busca, filtros por barra de proporção
+e chips, e permite dar a saída direto pela lista.
+
+
+6. GESTÃO DE PREÇOS
+-------------------
+Rotas: /precos, /precos/novo e /precos/[id]/editar.
+- Lista e detalhe das tabelas de preço.
+- Cadastro e edição em 3 etapas, com resumo ao vivo.
+- Atalhos e modelos de horário, período da diária e validação de campos
+  obrigatórios para avançar e salvar.
+
+
+7. CAIXA
+--------
+/caixa, refeito nesta rodada e conferido na API real (abrir, retirada, fechar,
+histórico, extrato e PDFs):
+- Gaveta em destaque: dinheiro na gaveta, quanto fica de fundo e quanto pode ser
+  retirado, com entradas, saídas e saldo do caixa.
+- Turno atual por forma de pagamento, com o nome de cada forma.
+- Abas Movimentos (filtros por tipo e por turno, 20 por página), Linha do tempo
+  e Gráficos (por forma de pagamento e por hora). A sangria aparece como
+  "Sangria".
+- Abrir caixa, retirada (sangria), passagem de turno e fechamento, ajustados ao
+  contrato da API: fechamento com o fundo contado na gaveta e passagem com o
+  fundo do novo turno. A retirada não fala mais em troco padrão.
+- Ao fechar o caixa ou passar o turno, resumo com esperado, informado e diferença
+  (sobra, falta, sem diferença) e comprovante em PDF.
+- Histórico de turnos do caixa aberto, para todos os perfis do caixa.
+- Caixas anteriores (/caixa/historico), só Administrador e Gerente: lista com
+  filtro de período, total de entradas, saídas e fechamento, e extrato de cada
+  caixa (/caixa/historico/[id]) com filtros e exportação em CSV e PDF.
+- Valores ausentes aparecem como traço, nunca como "R$ NaN".
+
+
+8. MENSALISTAS
+--------------
+/mensalistas:
+- Cadastro de mensalistas com veículos e condutores, e tipos de mensalidade
+  (com dias de atendimento).
+- Contrato com aceite pelo link do e-mail (/contrato, público) e reenvio do
+  contrato.
+- Registro do pagamento da mensalidade.
+- Agenda de vencimentos e lista adaptada ao celular.
+
+
+9. NOTAS FISCAIS
+----------------
+- Solicitação de nota pelo recibo da saída e pela página pública do recibo, com
+  e-mail, CPF ou CNPJ.
+- /notas-fiscais: lista as solicitações pendentes e as notas lançadas, com
+  filtro de período.
+
+
+10. GESTÃO DE USUÁRIOS
+----------------------
+- Lista dos usuários com perfil, status e data de criação, restrita ao
+  Administrador.
+- Cadastro em duas etapas por CPF: pessoa nova ou pessoa que já existe no GIPE
+  (dados só para conferência).
+- Edição de perfil e acesso, com confirmações e proteção do último
+  Administrador ativo.
+- Perfis atribuíveis: Administrador, Gerente, Caixa, Manobrista e Financeiro.
+
+
+11. PERMISSÕES POR PERFIL
+-------------------------
+Regra padrão da API aplicada no front:
+- O perfil vem da função do token (número ou nome), inclusive os perfis da
+  conveniada.
+- Quem tenta abrir pelo endereço uma área que o perfil não permite é levado ao
+  acesso negado, sem a tela carregar (Administrador: tudo; Gerente: sem usuários
+  e sem Minha Empresa; Caixa e Manobrista: pátio e caixa; Financeiro: início e
+  notas fiscais).
+- O menu, a barra inferior e as ações dentro das telas (por exemplo a retirada do
+  caixa) mostram só o que o perfil pode usar.
+- Quando a API recusa o acesso (403), todas as telas mostram o mesmo aviso, com
+  link para o início e sem "Tentar novamente".
+- Provisório, por falta de definição: Relatórios e Mensalistas ficaram só para
+  Administrador e Gerente, e os perfis Gerente e Usuário da conveniada só têm o
+  início.
+
+
+12. BASE TÉCNICA
+----------------
+Design system com tema claro e escuro e tema de sinalização viária; camada de
+API com tratamento de erros; formulários com Zod e TanStack Form; modais em
+tela cheia no celular; PWA instalável. Um cabeçalho de autorização definido na
+própria chamada passa a valer mais que o da sessão (usado no primeiro acesso e na
+escolha de empresa).
+
+
+PENDÊNCIAS
+----------
+1. Relatórios: só a casca.
+2. Permissão por módulo: a API já tem as chamadas (/Permissao), mas não há tela
+   para o Administrador configurar o que cada perfil acessa, nem o front usa essa
+   configuração. Hoje vale só a regra padrão por perfil.
+3. Reset de senha pelo Administrador (/Usuario/{id}/resetar-senha): listado no
+   input.md, sem tela.
+4. Várias empresas: não há troca de empresa dentro do sistema (só sair e
+   entrar), nem o nome da empresa atual no cabeçalho. A empresa de teste
+   "TESTE VALIDACAO ADICIONAR EMPRESA LTDA" (CNPJ 54.172.891/0001-92) ficou na
+   conta de teste, porque a API não exclui.
+5. Validação com o back: primeiro acesso com um usuário real de senha
+   temporária, a escolha de empresa vencida (401) e a regra de senha da adesão.
+6. Testes com os outros perfis (Gerente, Caixa, Manobrista, Financeiro): só o
+   Administrador foi usado com login real.
+7. Revisão visual em desktop, mobile e nos dois temas da escolha de empresa, do
+   cadastro de empresa e do caixa novo; PDFs no tablet do balcão.
+8. Teste instável: um teste do MensalistaModal estoura o tempo de vez em quando
+   na suíte completa, e passa quando rodado sozinho.
