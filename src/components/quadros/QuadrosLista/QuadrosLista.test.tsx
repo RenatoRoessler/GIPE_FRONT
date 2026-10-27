@@ -126,7 +126,7 @@ describe("QuadrosLista", () => {
     listar.mockResolvedValue([recepcao]);
     excluir.mockResolvedValue(undefined);
     renderWithProviders(<QuadrosLista />);
-    await userEvent.click(await screen.findByRole("button", { name: "Ver ganchos" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Ver quadro" }));
     expect(screen.queryByRole("button", { name: /A1/ })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "A3, livre" }));
     expect(screen.getByText("Excluir o gancho A3?")).toBeInTheDocument();

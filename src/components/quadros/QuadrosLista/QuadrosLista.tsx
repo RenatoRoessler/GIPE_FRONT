@@ -158,7 +158,7 @@ export function QuadrosLista() {
                     aria-expanded={aberto}
                     onClick={() => setExpandido(aberto ? null : quadro.patioQuadroId)}
                   >
-                    {aberto ? "Ocultar ganchos" : "Ver ganchos"}
+                    {aberto ? "Ocultar quadro" : "Ver quadro"}
                   </Button>
                   {podeGerenciar && (
                     <>
@@ -189,7 +189,7 @@ export function QuadrosLista() {
                           : undefined
                       }
                     />
-                    {podeGerenciar && <Text variant="muted">Toque em um gancho livre para excluí-lo.</Text>}
+                    {podeGerenciar && <Text variant="muted">Toque em um item livre para excluí-lo.</Text>}
                   </>
                 )}
               </QuadroCard>
