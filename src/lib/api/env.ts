@@ -10,6 +10,9 @@ const envSchema = z.object({
     .positive("NEXT_PUBLIC_API_TIMEOUT_MS deve ser positiva"),
 });
 
+// Caminho do proxy de desenvolvimento para a API (ver rewrites em next.config.ts).
+export const DEV_API_PROXY_PATH = "/api-proxy";
+
 export type AppEnv = z.infer<typeof envSchema>["APP_ENV"];
 
 function readEnv() {

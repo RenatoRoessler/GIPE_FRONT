@@ -48,6 +48,11 @@ const nextConfig: NextConfig = {
   },
   // Entrada e Saída de veículos abrem um modal pelo menu e não têm mais página própria: os endereços antigos
   // (favoritos, atalhos do app instalado) levam ao Início. Temporário (307) para o destino poder mudar.
+  // Só em desenvolvimento: o front local usa a mesma API de produção, passando por aqui para evitar o CORS.
+  async rewrites() {
+    if (!isDev || !process.env.NEXT_PUBLIC_API_URL) return [];
+    return [{ source: "/api-proxy/:path*", destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*` }];
+  },
   async redirects() {
     return [
       { source: "/veiculos/entrada", destination: "/dashboard", permanent: false },

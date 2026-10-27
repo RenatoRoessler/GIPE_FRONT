@@ -1,10 +1,14 @@
 import axios from "axios";
 import { getToken } from "@/lib/auth";
-import { env } from "./env";
+import { env, DEV_API_PROXY_PATH } from "./env";
 import { normalizeError } from "./errors";
 
+// Em desenvolvimento o navegador fala com o proxy do Next (rewrites do next.config.ts), que repassa à API de produção
+// sem depender do CORS dela liberar localhost.
+const baseURL = env.APP_ENV === "dev" && typeof window !== "undefined" ? DEV_API_PROXY_PATH : env.API_URL;
+
 export const api = axios.create({
-  baseURL: env.API_URL,
+  baseURL,
   timeout: env.TIMEOUT_MS,
   headers: { Accept: "application/json" },
 });
