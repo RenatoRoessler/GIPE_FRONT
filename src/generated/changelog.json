@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.239",
+      "type": "feat",
+      "scope": "menu",
+      "title": "remove o menu de Relatórios",
+      "description": "O item Relatórios sai do menu lateral e da barra inferior. A página, que\nera apenas um título sem conteúdo, e a área de permissão correspondente\ntambém foram removidas, junto com o ícone que não era mais usado.",
+      "date": "2026-10-27T08:54:02-03:00"
+    },
+    {
       "version": "1.0.237",
       "type": "fix",
       "scope": "caixa",
