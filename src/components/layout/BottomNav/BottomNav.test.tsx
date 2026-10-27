@@ -64,7 +64,7 @@ describe("BottomNav: itens da barra", () => {
     barra.capacidade = 11;
     renderWithTheme(<BottomNav />);
 
-    expect(screen.getAllByRole("link")).toHaveLength(9);
+    expect(screen.getAllByRole("link")).toHaveLength(8);
     expect(screen.getByRole("button", { name: "Entrada" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Saída" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
@@ -129,7 +129,7 @@ describe("BottomNav: menu estendido", () => {
     expect(painel()).toHaveAttribute("open");
     expect(maisButton()).toHaveAttribute("aria-expanded", "true");
     expect(within(painel()).getByRole("heading", { name: "Mais", ...opcoes })).toBeInTheDocument();
-    expect(itensDoPainel()).toEqual(["Caixa", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Notas Fiscais", "Relatórios", "Minha Empresa"]);
+    expect(itensDoPainel()).toEqual(["Caixa", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Notas Fiscais", "Minha Empresa"]);
   });
 
   it("mostra o nome completo dos itens, não o rótulo curto", async () => {
@@ -250,7 +250,7 @@ describe("BottomNav: menu estendido", () => {
     rerender(<BottomNav />);
 
     expect(painel()).toHaveAttribute("open");
-    expect(itensDoPainel()).toEqual(["Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Notas Fiscais", "Relatórios", "Minha Empresa"]);
+    expect(itensDoPainel()).toEqual(["Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Notas Fiscais", "Minha Empresa"]);
   });
 
   it("fecha quando a tela cresce e tudo passa a caber na barra, e o foco vai para a barra", async () => {

@@ -18,7 +18,6 @@ const PERMITIDOS: Record<Area, PerfilUsuario[]> = {
   [AREA.Precos]: [Administrador, Gerente],
   [AREA.Mensalistas]: [Administrador, Gerente],
   [AREA.NotasFiscais]: [Administrador, Gerente, Financeiro],
-  [AREA.Relatorios]: [Administrador, Gerente],
   [AREA.Empresa]: [Administrador],
   [AREA.Usuarios]: [Administrador, AdministradorConveniada],
 };

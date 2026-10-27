@@ -102,13 +102,6 @@ function InvoiceIcon(props: IconProps) {
   );
 }
 
-function ReportsIcon(props: IconProps) {
-  return (
-    <IconBase {...props}>
-      <path d="M5 20V10M12 20V4M19 20v-7" />
-    </IconBase>
-  );
-}
 
 function CompanyIcon(props: IconProps) {
   return (
@@ -128,7 +121,6 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   yard: YardIcon,
   cashier: CashierIcon,
   invoice: InvoiceIcon,
-  reports: ReportsIcon,
   company: CompanyIcon,
 };
 

@@ -22,18 +22,17 @@ describe("NAV_ITEMS", () => {
       "Gestão de Usuários",
       "Mensalistas",
       "Notas Fiscais",
-      "Relatórios",
       "Minha Empresa",
     ]);
   });
 
-  it("Entrada e Saída são ações (abrem modal); os outros nove são links", () => {
+  it("Entrada e Saída são ações (abrem modal); os outros oito são links", () => {
     const acoes = NAV_ITEMS.filter(isNavAction);
     expect(acoes.map((item) => [item.label, item.acao, item.icon])).toEqual([
       ["Entrada de Veículos", "entrada", "vehicleIn"],
       ["Saída de Veículos", "saida", "vehicleOut"],
     ]);
-    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(9);
+    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(8);
   });
 
   it("não repete chave nem ícone", () => {
@@ -116,7 +115,6 @@ describe("navItemsPermitidos", () => {
       "Gestão de Preços",
       "Mensalistas",
       "Notas Fiscais",
-      "Relatórios",
     ]);
   });
 
@@ -157,7 +155,7 @@ describe("navItemsPorPrioridade", () => {
   const rotulos = (perfil: Parameters<typeof navItemsPorPrioridade>[0]) => navItemsPorPrioridade(perfil).map((item) => item.shortLabel);
 
   it("Início, Entrada e Saída vêm primeiro e o resto segue a ordem do menu", () => {
-    expect(rotulos(1)).toEqual(["Início", "Entrada", "Saída", "Pátio", "Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Relatórios", "Empresa"]);
+    expect(rotulos(1)).toEqual(["Início", "Entrada", "Saída", "Pátio", "Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa"]);
   });
 
   it("só traz o que o perfil pode abrir", () => {
@@ -181,7 +179,7 @@ describe("dividirItensDaBarra", () => {
   const rotulos = (lista: typeof itens) => lista.map((item) => item.shortLabel);
 
   it("mostra tudo, sem Mais, quando todos cabem", () => {
-    for (const capacidade of [11, 12, 20]) {
+    for (const capacidade of [10, 11, 20]) {
       const { visiveis, excedentes } = dividirItensDaBarra(itens, capacidade);
       expect(visiveis).toEqual(itens);
       expect(excedentes).toEqual([]);
@@ -191,13 +189,13 @@ describe("dividirItensDaBarra", () => {
   it("reserva o último espaço para o Mais quando falta lugar", () => {
     const { visiveis, excedentes } = dividirItensDaBarra(itens, 5);
     expect(rotulos(visiveis)).toEqual(["Início", "Entrada", "Saída", "Pátio"]);
-    expect(rotulos(excedentes)).toEqual(["Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Relatórios", "Empresa"]);
+    expect(rotulos(excedentes)).toEqual(["Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa"]);
     expect(visiveis.length + 1).toBe(5);
   });
 
-  it("com capacidade 10 esconde dois itens: nove visíveis mais o Mais", () => {
-    const { visiveis, excedentes } = dividirItensDaBarra(itens, 10);
-    expect(visiveis).toHaveLength(9);
+  it("com capacidade 9 esconde dois itens: oito visíveis mais o Mais", () => {
+    const { visiveis, excedentes } = dividirItensDaBarra(itens, 9);
+    expect(visiveis).toHaveLength(8);
     expect(excedentes).toHaveLength(2);
   });
 
@@ -210,7 +208,7 @@ describe("dividirItensDaBarra", () => {
   });
 
   it("não perde nem repete item", () => {
-    for (const capacidade of [0, 3, 4, 5, 7, 10, 11, 15]) {
+    for (const capacidade of [0, 3, 4, 5, 7, 9, 10, 15]) {
       const { visiveis, excedentes } = dividirItensDaBarra(itens, capacidade);
       expect([...visiveis, ...excedentes]).toEqual(itens);
     }
@@ -258,12 +256,12 @@ describe("ordenarPeloMenu", () => {
     const embaralhados = [NAV_ITEMS[9], NAV_ITEMS[7], NAV_ITEMS[2]];
     const copia = [...embaralhados];
 
-    expect(ordenarPeloMenu(embaralhados).map((item) => item.shortLabel)).toEqual(["Saída", "Mensalistas", "Relatórios"]);
+    expect(ordenarPeloMenu(embaralhados).map((item) => item.shortLabel)).toEqual(["Saída", "Mensalistas", "Empresa"]);
     expect(embaralhados).toEqual(copia);
   });
 
   it("recoloca os excedentes da barra na ordem natural do menu", () => {
     const { excedentes } = dividirItensDaBarra(navItemsPorPrioridade(1), 5);
-    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Relatórios", "Empresa"]);
+    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa"]);
   });
 });

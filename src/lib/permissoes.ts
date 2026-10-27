@@ -11,7 +11,6 @@ export const AREA = {
   Precos: "precos",
   Mensalistas: "mensalistas",
   NotasFiscais: "notas-fiscais",
-  Relatorios: "relatorios",
   Empresa: "empresa",
   Usuarios: "usuarios",
 } as const;
@@ -25,7 +24,7 @@ const { Administrador, Gerente, Caixa, Manobrista, Financeiro, AdministradorConv
 const TODOS: readonly PerfilUsuario[] = Object.values(PERFIL_USUARIO);
 
 // Regra padrão por perfil, igual à do back-end. Perfis fora da lista não acessam a área.
-// Provisório (não consta no levantamento do back): Relatórios e consulta de Mensalistas seguem Administrador e Gerente.
+// Provisório (não consta no levantamento do back): A consulta de Mensalistas segue Administrador e Gerente.
 export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.Inicio]: TODOS,
   [AREA.Patio]: [Administrador, Gerente, Caixa, Manobrista],
@@ -35,7 +34,6 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.Precos]: [Administrador, Gerente],
   [AREA.Mensalistas]: [Administrador, Gerente],
   [AREA.NotasFiscais]: [Administrador, Gerente, Financeiro],
-  [AREA.Relatorios]: [Administrador, Gerente],
   [AREA.Empresa]: [Administrador],
   [AREA.Usuarios]: [Administrador, AdministradorConveniada],
 };
@@ -59,7 +57,6 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/precos", AREA.Precos],
   ["/mensalistas", AREA.Mensalistas],
   ["/notas-fiscais", AREA.NotasFiscais],
-  ["/relatorios", AREA.Relatorios],
   ["/minha-empresa", AREA.Empresa],
   ["/usuarios", AREA.Usuarios],
 ];
