@@ -2,6 +2,38 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.250",
+      "type": "feat",
+      "scope": "patio",
+      "title": "escolhe o gancho da chave na entrada e mostra no pátio",
+      "description": "Depois de registrar a entrada, o operador escolhe em qual gancho do\nquadro a chave fica; sem quadros cadastrados a etapa é pulada e é\npossível escolher depois. O card do veículo no pátio passa a mostrar a\nposição da chave, e a saída atualiza a disponibilidade dos ganchos.",
+      "date": "2026-10-27T17:34:36-03:00"
+    },
+    {
+      "version": "1.0.249",
+      "type": "feat",
+      "scope": "menu",
+      "title": "adiciona Quadros de Chaves ao menu para Administrador e Gerente",
+      "description": "Nova área de permissão, rota /quadros-chaves e ícone próprio no menu.",
+      "date": "2026-10-27T17:34:36-03:00"
+    },
+    {
+      "version": "1.0.248",
+      "type": "feat",
+      "scope": "quadros",
+      "title": "cadastra e gerencia os quadros de chaves do pátio",
+      "description": "Administrador e Gerente passam a criar quadros (nome, linhas, colunas e\nganchos fora de uso), acrescentar posições, excluir um gancho livre e\ninativar quadros. Quando há chave de veículo no pátio, a ação é\nbloqueada e o motivo é mostrado. Inclui a etapa de escolha do gancho,\ncom sugestão do primeiro livre, troca por toque e tratamento de conflito\nquando outro terminal ocupa o gancho.",
+      "date": "2026-10-27T17:34:36-03:00"
+    },
+    {
+      "version": "1.0.247",
+      "type": "feat",
+      "scope": "ui",
+      "title": "adiciona NumberStepper e KeyBoardGrid ao design system",
+      "description": "NumberStepper é um campo numérico de poucos passos com limites e dica.\nKeyBoardGrid espelha o quadro físico de chaves em linhas e colunas, com\nos estados livre, selecionado, ocupado e fora de uso, navegação por\nsetas e rolagem horizontal com rótulos de linha fixos.",
+      "date": "2026-10-27T17:34:35-03:00"
+    },
+    {
       "version": "1.0.239",
       "type": "feat",
       "scope": "menu",
