@@ -35,7 +35,7 @@ if errorlevel 1 goto erro
 
 del "%PACOTE%" >nul 2>&1
 echo.
-echo Deploy concluido: https://www.murel.com.br
+echo Deploy concluido: https://app.murel.com.br
 exit /b 0
 
 :erro
