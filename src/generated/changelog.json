@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.255",
+      "type": "feat",
+      "scope": "patio",
+      "title": "guarda e troca a chave do veículo pela tela do Pátio",
+      "description": "Cada card do Pátio passa a mostrar o quadro e a posição da chave e\nganha, abaixo de \"Registrar saída\", um botão para guardar a chave no\nquadro ou trocar de gancho. Veículos sem gancho aparecem como \"Fora do\nquadro\", e o resumo do topo informa quantos carros estão com a chave\nfora do quadro. Sem quadros cadastrados, o botão e o indicador não\naparecem, e quem gerencia quadros vê um atalho para configurá-los.\n\nAo trocar, a grade abre no quadro onde a chave está hoje, sem gancho\nsugerido, para um toque acidental não mover a chave. A lista do Pátio\nnão se atualiza sozinha enquanto o modal está aberto. Também corrige o\nfoco depois de registrar uma saída, que passaria a cair no botão da\nchave.",
+      "date": "2026-10-27T20:09:30-03:00"
+    },
+    {
       "version": "1.0.250",
       "type": "feat",
       "scope": "patio",
