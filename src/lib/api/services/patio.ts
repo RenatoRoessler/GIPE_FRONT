@@ -99,7 +99,27 @@ function toText(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
 }
 
-// Tolerante: um campo ausente ou fora do formato não derruba a tela. `quadroChaves` não é lido nesta versão.
+// `quadroChaves` pode vir como texto pronto ou como objeto com a posição. [A CONFIRMAR] com o back o formato exato:
+// aceita os dois e devolve o texto do card ("A2" ou "Recepção · A2").
+function toPosicaoChave(value: unknown): string | null {
+  if (typeof value === "string") {
+    return toText(value)?.trim() ?? null;
+  }
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+  const raw = value as Record<string, unknown>;
+  const linha = toText(raw.linha);
+  const coluna = toNumber(raw.coluna);
+  if (linha === null || coluna === null) {
+    return null;
+  }
+  const posicao = `${linha.trim()}${coluna}`;
+  const quadro = toText(raw.quadro) ?? toText(raw.nome);
+  return quadro ? `${quadro.trim()} · ${posicao}` : posicao;
+}
+
+// Tolerante: um campo ausente ou fora do formato não derruba a tela.
 export function fromPatioResponse(raw: Record<string, unknown>): PatioVeiculo {
   return {
     patioId: toNumber(raw.patioId) ?? 0,
@@ -116,6 +136,7 @@ export function fromPatioResponse(raw: Record<string, unknown>): PatioVeiculo {
     rotatividadeDescricao: toText(raw.rotatividadeDescricao),
     usuarioEntrada: toText(raw.usuarioEntrada),
     token: toText(raw.token),
+    posicaoChave: toPosicaoChave(raw.quadroChaves),
   };
 }
 

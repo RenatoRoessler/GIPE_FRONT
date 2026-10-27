@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
+import { QUADROS_QUERY_KEY } from "@/components/quadros/quadrosKeys";
 import { consultarSaida, registrarSaida, resolverBuscaPorToken } from "@/lib/api/services/patio";
 import { parseMoney } from "@/lib/money";
 import { saidaBuscaSchema, toSaidaBusca, type SaidaBuscaValues } from "@/lib/schemas/saida";
@@ -119,6 +120,8 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
       setResultado(data.resultado);
       // O veículo deixou o pátio: a lista do pátio precisa refletir isso.
       void queryClient.invalidateQueries({ queryKey: PATIO_QUERY_KEY });
+      // O back libera o gancho da chave na saída: a disponibilidade dos quadros mudou.
+      void queryClient.invalidateQueries({ queryKey: QUADROS_QUERY_KEY });
     },
   });
 

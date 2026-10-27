@@ -1,4 +1,4 @@
-// Um veículo no pátio (GET /Patio). `quadroChaves` não é lido nesta versão.
+// Um veículo no pátio (GET /Patio).
 export type PatioVeiculo = {
   patioId: number;
   // Normalizada, sem hífen.
@@ -21,6 +21,8 @@ export type PatioVeiculo = {
   usuarioEntrada: string | null;
   // Abre o comprovante; nunca é exibido.
   token: string | null;
+  // Onde a chave está no quadro (ex.: "A2" ou "Recepção · A2"); ausente ou null quando nenhuma posição foi escolhida.
+  posicaoChave?: string | null;
 };
 
 export type PatioFiltroTipo = "todos" | "mensalistas" | "avulsos";

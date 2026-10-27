@@ -69,6 +69,7 @@ export function PatioLinha({ veiculo, onRegistrarSaida }: PatioLinhaProps) {
             {categoriaConhecida(veiculo.categoria) && <CategoriaIcon categoria={veiculo.categoria as CategoriaVeiculo} />}
             {rotuloCategoria(veiculo.categoria)}
           </CategoriaLinha>
+          {veiculo.posicaoChave && <CategoriaLinha>{`Chave: ${veiculo.posicaoChave}`}</CategoriaLinha>}
         </VeiculoCelula>
       </TableCell>
       <TableCell data-label="Entrada">

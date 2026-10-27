@@ -2,7 +2,7 @@
 
 import { useStore } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { CameraButton } from "@/components/ui/CameraButton";
@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Modal } from "@/components/ui/Modal";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
+import { EscolherGancho } from "@/components/quadros/EscolherGancho";
 import { registrarEntrada } from "@/lib/api/services/patio";
 import { isValidPlaca, normalizePlaca } from "@/lib/placa";
 import { entradaVeiculoSchema, type EntradaVeiculoValues } from "@/lib/schemas/veiculo";
@@ -52,8 +53,10 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   const formId = useId();
   const datalistId = useId();
   const { status, cadastro, lookup, reset: resetLookup } = usePlacaLookup();
-  // Com a entrada registrada, o modal passa do formulário para o comprovante.
+  // Com a entrada registrada, o modal passa do formulário para a escolha do gancho da chave e, depois, para o comprovante.
   const [entrada, setEntrada] = useState<EntradaRegistrada | null>(null);
+  const [etapaGancho, setEtapaGancho] = useState(true);
+  const irParaRecibo = useCallback(() => setEtapaGancho(false), []);
 
   const queryClient = useQueryClient();
   const mutation = useMutation({
@@ -179,8 +182,8 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   return (
     <Modal
       open
-      title="Registrar entrada"
-      size={entrada ? "lg" : "md"}
+      title={entrada && etapaGancho ? "Quadro de chaves" : "Registrar entrada"}
+      size={entrada && !etapaGancho ? "lg" : "md"}
       onClose={handleClose}
       closeOnBackdrop={false}
       footer={
@@ -196,7 +199,16 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
         )
       }
     >
-      {entrada ? (
+      {entrada && etapaGancho ? (
+        <EscolherGancho
+          patioId={entrada.patioId}
+          placa={entrada.placa}
+          modelo={entrada.modelo}
+          cor={entrada.cor}
+          onGuardado={irParaRecibo}
+          onPular={irParaRecibo}
+        />
+      ) : entrada ? (
         <ReciboEntradaStep entrada={entrada} onConcluir={handleConcluir} />
       ) : (
         <>

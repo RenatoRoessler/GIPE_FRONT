@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
+import { QUADROS_QUERY_KEY } from "@/components/quadros/quadrosKeys";
 import { renderWithProviders } from "@/test/render";
 import type { SaidaConsulta, SaidaRegistrada } from "@/types/saida";
 import type { UseLeitorQrOptions } from "../LeitorQrSaida/useLeitorQr";
@@ -160,7 +161,7 @@ describe("SaidaVeiculoModal: aberta a partir da lista do pátio", () => {
     expect(visor()).toBeInTheDocument();
   });
 
-  it("registrar a saída invalida a lista do pátio", async () => {
+  it("registrar a saída invalida a lista do pátio e os quadros de chaves", async () => {
     const tela = abrirDireto();
     const invalidar = vi.spyOn(tela.queryClient, "invalidateQueries");
     await screen.findByText("ONIX · PRATA");
@@ -172,6 +173,7 @@ describe("SaidaVeiculoModal: aberta a partir da lista do pátio", () => {
 
     await waitFor(() => expect(api.registrarSaida).toHaveBeenCalledWith(7, { valor: 20, formaPagamento: 2 }));
     await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: PATIO_QUERY_KEY }));
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: QUADROS_QUERY_KEY });
   });
 });
 

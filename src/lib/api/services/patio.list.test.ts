@@ -44,14 +44,32 @@ describe("fromPatioResponse", () => {
       rotatividadeDescricao: "TABELA MOTOS",
       usuarioEntrada: "operador teste",
       token: "ABCD1234",
+      posicaoChave: null,
     });
   });
 
-  it("não lê o quadro de chaves nem o id do operador", () => {
+  it("não lê o id do operador nem repassa o campo cru do quadro", () => {
     const veiculo = fromPatioResponse({ ...completo, quadroChaves: "A-12" });
 
     expect(veiculo).not.toHaveProperty("quadroChaves");
     expect(veiculo).not.toHaveProperty("usuarioIdEntrada");
+  });
+
+  it("lê a posição da chave quando vem como texto", () => {
+    expect(fromPatioResponse({ ...completo, quadroChaves: " A2 " }).posicaoChave).toBe("A2");
+  });
+
+  it("lê a posição da chave quando vem como objeto, com ou sem o nome do quadro", () => {
+    expect(fromPatioResponse({ ...completo, quadroChaves: { linha: "A", coluna: 2 } }).posicaoChave).toBe("A2");
+    expect(fromPatioResponse({ ...completo, quadroChaves: { quadro: "Recepção", linha: "B", coluna: 1 } }).posicaoChave).toBe(
+      "Recepção · B1",
+    );
+  });
+
+  it("sem posição, vazia ou em formato desconhecido a posição da chave é null", () => {
+    for (const quadroChaves of [undefined, null, "", "  ", 5, { linha: "A" }, {}]) {
+      expect(fromPatioResponse({ ...completo, quadroChaves }).posicaoChave).toBeNull();
+    }
   });
 
   it("modelo e cor nulos, vazios ou só com espaços viram null", () => {
@@ -98,6 +116,7 @@ describe("fromPatioResponse", () => {
       rotatividadeDescricao: null,
       usuarioEntrada: null,
       token: null,
+      posicaoChave: null,
     });
   });
 });

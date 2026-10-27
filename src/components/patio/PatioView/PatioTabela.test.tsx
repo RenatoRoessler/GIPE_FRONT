@@ -79,6 +79,13 @@ describe("PatioTabela", () => {
     expect(screen.queryByText(/Ticket/)).not.toBeInTheDocument();
   });
 
+  it("a posição da chave só aparece quando o veículo tem gancho", () => {
+    renderTabela([veiculo({ placa: "COM1A11", posicaoChave: "A2" }), veiculo({ placa: "SEM1A11", posicaoChave: null })]);
+
+    expect(within(linhaDe("COM1A11")).getByText("Chave: A2")).toBeInTheDocument();
+    expect(within(linhaDe("SEM1A11")).queryByText(/Chave:/)).not.toBeInTheDocument();
+  });
+
   it("campos ausentes mostram um traço, sem quebrar", () => {
     renderTabela([veiculo({ modelo: null, cor: null, rotatividadeDescricao: null, usuarioEntrada: null, permanencia: "" })]);
     const linha = within(linhaDe("BRA2E19"));

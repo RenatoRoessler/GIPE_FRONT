@@ -3,10 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
 import { renderWithProviders } from "@/test/render";
+import type { QuadroChaves } from "@/types/quadroChaves";
 import type { EntradaRegistrada } from "@/types/veiculo";
 
 vi.mock("@/lib/api/services/patio", () => ({ registrarEntrada: vi.fn() }));
 vi.mock("@/lib/api/services/veiculo", () => ({ consultarPlaca: vi.fn(), listModelos: vi.fn().mockResolvedValue([]) }));
+vi.mock("@/lib/api/services/quadroChaves", () => ({ listQuadros: vi.fn().mockResolvedValue([]), escolherQuadroChave: vi.fn() }));
 vi.mock("@/lib/api/services/empresa", () => ({ getEmpresa: vi.fn().mockRejectedValue(new Error("sem empresa")) }));
 
 // O leitor em si é testado à parte: aqui ele só devolve uma placa lida.
@@ -25,6 +27,7 @@ vi.mock("../LeitorPlacaModal", () => ({
 }));
 
 import { registrarEntrada } from "@/lib/api/services/patio";
+import { escolherQuadroChave, listQuadros } from "@/lib/api/services/quadroChaves";
 import { consultarPlaca } from "@/lib/api/services/veiculo";
 import { EntradaVeiculoModal } from "./EntradaVeiculoModal";
 
@@ -67,6 +70,8 @@ describe("EntradaVeiculoModal", () => {
     vi.mocked(consultarPlaca).mockReset();
     handlers.onClose.mockReset();
     handlers.onSuccess.mockReset();
+    vi.mocked(listQuadros).mockReset().mockResolvedValue([]);
+    vi.mocked(escolherQuadroChave).mockReset();
   });
 
   it("começa com a cor Prata e o registro bloqueado", () => {
@@ -286,5 +291,77 @@ describe("EntradaVeiculoModal: lista do pátio", () => {
 
     await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
     expect(invalidar).not.toHaveBeenCalledWith({ queryKey: PATIO_QUERY_KEY });
+  });
+});
+
+describe("EntradaVeiculoModal: gancho da chave", () => {
+  const quadro: QuadroChaves = {
+    patioQuadroId: 1,
+    nome: "Recepção",
+    linhas: [{ linha: "A", colunas: [{ patioQuadroChaveId: 5, coluna: 1, disponivel: true }] }],
+  };
+
+  beforeEach(() => {
+    vi.mocked(registrarEntrada).mockReset().mockResolvedValue(registrada);
+    vi.mocked(listQuadros).mockReset().mockResolvedValue([quadro]);
+    vi.mocked(escolherQuadroChave).mockReset();
+    handlers.onClose.mockReset();
+    handlers.onSuccess.mockReset();
+  });
+
+  async function registrar() {
+    const user = userEvent.setup();
+    const rendered = renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+    return { user, ...rendered };
+  }
+
+  it("com quadro cadastrado passa pela escolha do gancho antes do comprovante", async () => {
+    vi.mocked(escolherQuadroChave).mockResolvedValue({
+      patioId: 10, placa: "ABC1D23", patioQuadroId: 1, quadro: "Recepção", patioQuadroChaveId: 5, linha: "A", coluna: 1,
+    });
+    const { user } = await registrar();
+
+    expect(await screen.findByRole("button", { name: "Guardar no gancho A1" })).toBeInTheDocument();
+    expect(screen.queryByText("Entrada registrada")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Guardar no gancho A1" }));
+
+    expect(escolherQuadroChave).toHaveBeenCalledWith(10, 5);
+    expect(await screen.findByText("Entrada registrada")).toBeInTheDocument();
+  });
+
+  it("Escolher depois segue para o comprovante sem guardar", async () => {
+    const { user } = await registrar();
+    await user.click(await screen.findByRole("button", { name: "Escolher depois" }));
+    expect(await screen.findByText("Entrada registrada")).toBeInTheDocument();
+    expect(escolherQuadroChave).not.toHaveBeenCalled();
+  });
+
+  it("guardar o gancho invalida os quadros e o pátio", async () => {
+    vi.mocked(escolherQuadroChave).mockResolvedValue({
+      patioId: 10, placa: "ABC1D23", patioQuadroId: 1, quadro: "Recepção", patioQuadroChaveId: 5, linha: "A", coluna: 1,
+    });
+    const { user, queryClient } = await registrar();
+    const invalidar = vi.spyOn(queryClient, "invalidateQueries");
+    await user.click(await screen.findByRole("button", { name: "Guardar no gancho A1" }));
+    await screen.findByText("Entrada registrada");
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ["quadros-chaves"] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: PATIO_QUERY_KEY });
+  });
+
+  it("fechar na escolha do gancho conclui a entrada já registrada", async () => {
+    const { user } = await registrar();
+    await screen.findByRole("button", { name: "Guardar no gancho A1" });
+    await user.click(screen.getByRole("button", { name: "Fechar" }));
+    expect(handlers.onSuccess).toHaveBeenCalledWith("Entrada registrada.");
+    expect(handlers.onClose).toHaveBeenCalled();
+  });
+
+  it("sem quadros cadastrados a entrada vai direto ao comprovante", async () => {
+    vi.mocked(listQuadros).mockResolvedValue([]);
+    await registrar();
+    expect(await screen.findByText("Entrada registrada")).toBeInTheDocument();
   });
 });
