@@ -473,24 +473,6 @@ export const Entrada = styled.span`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
 `;
 
-export const ChaveRotulo = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.space[1]}px;
-  color: ${({ theme }) => theme.colors.textMuted};
-  font-size: ${({ theme }) => theme.fontSizes.xs};
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
-`;
-
-// Ponto de atenção do "Fora do quadro": decorativo, o texto é quem diz o estado.
-export const PontoAtencao = styled.span`
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: ${({ theme }) => theme.radii.full};
-  background-color: ${({ theme }) => theme.colors.warn};
-`;
-
 export const Seta = styled.span`
   display: inline-flex;
   flex: none;

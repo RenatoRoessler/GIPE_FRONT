@@ -23,13 +23,12 @@ describe("usePatioFiltros", () => {
   });
 
   it("lê os filtros da URL", () => {
-    query = "q=gol&tipo=avulsos&cat=2&chave=fora";
+    query = "q=gol&tipo=avulsos&cat=2";
     const { result } = renderHook(() => usePatioFiltros());
 
     expect(result.current.busca).toBe("gol");
     expect(result.current.tipo).toBe("avulsos");
     expect(result.current.categoria).toBe(2);
-    expect(result.current.chave).toBe("fora");
     expect(replace).not.toHaveBeenCalled();
   });
 
@@ -59,14 +58,14 @@ describe("usePatioFiltros", () => {
   });
 
   it("limpar filtros mantém a busca; limpar busca mantém os filtros", () => {
-    query = "q=gol&tipo=avulsos&chave=dentro";
+    query = "q=gol&tipo=avulsos";
     const { result } = renderHook(() => usePatioFiltros());
 
     act(() => result.current.limparFiltros());
     expect(replace).toHaveBeenLastCalledWith("/patio?q=gol", { scroll: false });
 
     act(() => result.current.limparBusca());
-    expect(replace).toHaveBeenLastCalledWith("/patio?tipo=avulsos&chave=dentro", { scroll: false });
+    expect(replace).toHaveBeenLastCalledWith("/patio?tipo=avulsos", { scroll: false });
     expect(result.current.busca).toBe("");
   });
 });

@@ -31,29 +31,26 @@ export function usePatioFiltros() {
 
   const tipo = daUrl.tipo;
   const categoria = daUrl.categoria;
-  const chave = daUrl.chave ?? "todas";
 
   // O termo assentado chega à URL; os outros filtros já são lidos dela.
   useEffect(() => {
-    gravar({ busca: termo, tipo, categoria, chave });
-  }, [termo, tipo, categoria, chave, gravar]);
+    gravar({ busca: termo, tipo, categoria });
+  }, [termo, tipo, categoria, gravar]);
 
-  const filtros: PatioFiltros = { busca: termo, tipo, categoria, chave };
+  const filtros: PatioFiltros = { busca: termo, tipo, categoria };
 
   return {
     busca,
     setBusca,
     tipo,
-    setTipo: (valor: PatioFiltros["tipo"]) => gravar({ busca: termo, tipo: valor, categoria, chave }),
+    setTipo: (valor: PatioFiltros["tipo"]) => gravar({ busca: termo, tipo: valor, categoria }),
     categoria,
-    setCategoria: (valor: PatioFiltros["categoria"]) => gravar({ busca: termo, tipo, categoria: valor, chave }),
-    chave,
-    setChave: (valor: NonNullable<PatioFiltros["chave"]>) => gravar({ busca: termo, tipo, categoria, chave: valor }),
-    // Tipo, categoria e chave: a busca tem o próprio "Limpar busca".
-    limparFiltros: () => gravar({ busca: termo, tipo: "todos", categoria: "todas", chave: "todas" }),
+    setCategoria: (valor: PatioFiltros["categoria"]) => gravar({ busca: termo, tipo, categoria: valor }),
+    // Tipo e categoria: a busca tem o próprio "Limpar busca".
+    limparFiltros: () => gravar({ busca: termo, tipo: "todos", categoria: "todas" }),
     limparBusca: () => {
       setBusca("");
-      gravar({ busca: "", tipo, categoria, chave });
+      gravar({ busca: "", tipo, categoria });
     },
     termo,
     filtros,

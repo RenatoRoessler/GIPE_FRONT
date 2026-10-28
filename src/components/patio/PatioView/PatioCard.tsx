@@ -4,14 +4,12 @@ import { formatDateTime } from "@/components/caixa/format";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { PatioVeiculo } from "@/types/patio";
 import { corDoVeiculo, rotuloTipo } from "../patio";
-import { CardCorpo, CardLink, CardLinha, CardRodape, ChaveRotulo, Entrada, Legenda, Permanencia, PontoAtencao, Placa, Seta, Veiculo } from "./PatioView.styles";
+import { CardCorpo, CardLink, CardLinha, CardRodape, Entrada, Legenda, Permanencia, Placa, Seta, Veiculo } from "./PatioView.styles";
 
 export interface PatioCardProps {
   veiculo: PatioVeiculo;
   // Endereço do ticket, já com os filtros da lista.
   href: string;
-  // A empresa tem quadro de chaves: só então "Fora do quadro" é uma informação.
-  comQuadros: boolean;
 }
 
 function SetaIcone() {
@@ -23,7 +21,7 @@ function SetaIcone() {
 }
 
 // O card inteiro é um único link para o ticket: as ações do veículo (saída, chave, QR) ficam no detalhe.
-export function PatioCard({ veiculo, href, comQuadros }: PatioCardProps) {
+export function PatioCard({ veiculo, href }: PatioCardProps) {
   const tipo = rotuloTipo(veiculo);
   const cor = corDoVeiculo(veiculo.cor).texto;
 
@@ -40,16 +38,6 @@ export function PatioCard({ veiculo, href, comQuadros }: PatioCardProps) {
         </CardLinha>
         <CardRodape>
           <StatusBadge tone={veiculo.mensalista ? "mensal" : "avulso"}>{tipo}</StatusBadge>
-          {veiculo.posicaoChave ? (
-            <ChaveRotulo>{`Chave ${veiculo.posicaoChave}`}</ChaveRotulo>
-          ) : (
-            comQuadros && (
-              <ChaveRotulo>
-                <PontoAtencao aria-hidden="true" />
-                Fora do quadro
-              </ChaveRotulo>
-            )
-          )}
           <Entrada>{`Entrada ${formatDateTime(veiculo.dataHoraEntrada)}`}</Entrada>
         </CardRodape>
       </CardCorpo>

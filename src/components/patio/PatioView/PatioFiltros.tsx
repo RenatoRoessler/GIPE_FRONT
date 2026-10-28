@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import type { PatioEstatisticas, PatioFiltroChave, PatioFiltroTipo } from "@/types/patio";
+import type { PatioEstatisticas, PatioFiltroTipo } from "@/types/patio";
 import { rotuloCategoria } from "../patio";
 import { BarraFiltros, BuscaCampo, Chip, Chips, FiltrosBotao, LimparFiltros, LinhaBusca, LinhaChips, PainelFiltros, SomenteLeitor } from "./PatioView.styles";
 
@@ -14,10 +14,6 @@ export interface PatioFiltrosProps {
   tipo: PatioFiltroTipo;
   categoria: number | "todas";
   onCategoriaChange: (valor: number | "todas") => void;
-  chave: PatioFiltroChave;
-  onChaveChange: (valor: PatioFiltroChave) => void;
-  // Contagens das chaves do pátio inteiro, quando a empresa tem quadro de chaves; sem elas o grupo some (salvo filtro ativo).
-  chaves: { fora: number; dentro: number } | null;
   onLimparFiltros: () => void;
   // Contagens do pátio inteiro: os chips mostram a proporção e servem de filtro.
   estatisticas: PatioEstatisticas;
@@ -38,18 +34,13 @@ export function PatioFiltros({
   tipo,
   categoria,
   onCategoriaChange,
-  chave,
-  onChaveChange,
-  chaves,
   onLimparFiltros,
   estatisticas,
 }: PatioFiltrosProps) {
   const painelId = useId();
   // No celular o painel começa recolhido; no computador está sempre aberto (CSS).
   const [aberto, setAberto] = useState(false);
-  const ativos = [tipo !== "todos", categoria !== "todas", chave !== "todas"].filter(Boolean).length;
-  // Um filtro de chave ativo continua na tela, mesmo sem quadros, para poder ser desfeito.
-  const grupoChaves = chaves ?? (chave !== "todas" ? { fora: 0, dentro: 0 } : null);
+  const ativos = [tipo !== "todos", categoria !== "todas"].filter(Boolean).length;
   // Um filtro ativo cujo grupo esvaziou (o último saiu) continua na tela para poder ser desfeito.
   const categorias =
     categoria === "todas" || estatisticas.porCategoria.some((item) => item.categoria === categoria)
@@ -93,19 +84,6 @@ export function PatioFiltros({
               </Chip>
             ))}
           </Chips>
-
-          {grupoChaves && (
-            <Chips role="group" aria-label="Chave no quadro">
-              <Chip type="button" aria-pressed={chave === "fora"} onClick={() => onChaveChange(chave === "fora" ? "todas" : "fora")}>
-                Chave fora do quadro
-                <strong>{grupoChaves.fora}</strong>
-              </Chip>
-              <Chip type="button" aria-pressed={chave === "dentro"} onClick={() => onChaveChange(chave === "dentro" ? "todas" : "dentro")}>
-                Chave dentro do quadro
-                <strong>{grupoChaves.dentro}</strong>
-              </Chip>
-            </Chips>
-          )}
         </LinhaChips>
 
         {ativos > 0 && (

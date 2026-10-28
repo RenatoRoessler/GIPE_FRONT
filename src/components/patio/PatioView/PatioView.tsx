@@ -4,20 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatTime } from "@/components/caixa/format";
 import { ListError } from "@/components/mensalistas/ListError";
-import { useQuadros } from "@/components/quadros/useQuadros";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Toast } from "@/components/ui/Toast";
 import { useVeiculoModais } from "@/components/veiculos/VeiculoModais";
 import type { PatioVeiculo } from "@/types/patio";
 import { BarrasHorizontais, ChegadasPorHora } from "../graficos";
-import { chegadasPorHora, contarForaDoQuadro, contarNoQuadro, estatisticasPatio, filtrarPatio, ocupacaoPatio, ordenarPatio } from "../patio";
+import { chegadasPorHora, estatisticasPatio, filtrarPatio, ocupacaoPatio, ordenarPatio } from "../patio";
 import { PARAM_SAIU } from "../patioUrl";
 import { useEstacionamento } from "../useEstacionamento";
 import { usePatio } from "../usePatio";
 import { usePatioFiltros } from "../usePatioFiltros";
 import { useVagasPatio } from "../useVagasPatio";
-import { IndicadorChaves } from "./IndicadorChaves";
 import { BUSCA_ID, PatioFiltros } from "./PatioFiltros";
 import { PatioLista } from "./PatioLista";
 import { PatioResumo } from "./PatioResumo";
@@ -94,14 +92,10 @@ export function PatioEsqueleto() {
 
 export function PatioView() {
   const { data, isPending, isError, error, refetch, isFetching, dataUpdatedAt } = usePatio();
-  // Falha ou carregamento dos quadros não derruba o Pátio: sem a lista, só somem a chave dos cards e o indicador.
-  const { data: quadros } = useQuadros();
-  const comQuadros = (quadros?.length ?? 0) > 0;
-  const semQuadros = quadros !== undefined && quadros.length === 0;
   const vagas = useVagasPatio();
   const estacionamento = useEstacionamento();
   const { abrirEntrada } = useVeiculoModais();
-  const { busca, setBusca, termo, tipo, setTipo, categoria, setCategoria, chave, setChave, limparFiltros, limparBusca, filtros } = usePatioFiltros();
+  const { busca, setBusca, termo, tipo, setTipo, categoria, setCategoria, limparFiltros, limparBusca, filtros } = usePatioFiltros();
 
   // A saída é concluída no ticket, que volta para cá com `?saiu=PLACA`. O aviso nasce uma vez; o parâmetro some da URL
   // quando `usePatioFiltros` reescreve a query só com os filtros.
@@ -121,10 +115,10 @@ export function PatioView() {
   const visiveis = filtrarPatio(ordenados, filtros);
   const estatisticas = estatisticasPatio(todos);
   const ocupacao = vagas ? ocupacaoPatio(todos, vagas) : null;
-  const combinacao = `${termo}|${tipo}|${categoria}|${chave}`;
+  const combinacao = `${termo}|${tipo}|${categoria}`;
   const limite = LIMITE_INICIAL + (expandido.chave === combinacao ? expandido.extra : 0);
   const mostradas: PatioVeiculo[] = visiveis.slice(0, limite);
-  const filtrando = termo !== "" || tipo !== "todos" || categoria !== "todas" || chave !== "todas";
+  const filtrando = termo !== "" || tipo !== "todos" || categoria !== "todas";
 
   // Depois da saída o veículo some: o foco vai ao primeiro card (ou à busca, se a lista esvaziou) e não se perde.
   const carregado = data !== undefined;
@@ -178,9 +172,6 @@ export function PatioView() {
             tipo={tipo}
             categoria={categoria}
             onCategoriaChange={setCategoria}
-            chave={chave}
-            onChaveChange={setChave}
-            chaves={comQuadros ? { fora: contarForaDoQuadro(todos), dentro: contarNoQuadro(todos) } : null}
             onLimparFiltros={limparFiltros}
             estatisticas={estatisticas}
           />
@@ -193,7 +184,6 @@ export function PatioView() {
             <span role="status">
               {filtrando ? `${visiveis.length} de ${todos.length} veículos` : `${todos.length} ${todos.length === 1 ? "veículo no pátio" : "veículos no pátio"}`}
             </span>
-            <IndicadorChaves foraDoQuadro={contarForaDoQuadro(todos)} comQuadros={comQuadros} semQuadros={semQuadros} />
             <span>{`Atualizado às ${formatTime(new Date(dataUpdatedAt).toISOString())}`}</span>
           </Indicadores>
           <AtualizarBotao type="button" variant="secondary" size="sm" disabled={isFetching} onClick={() => void refetch()}>
@@ -221,7 +211,7 @@ export function PatioView() {
               Limpar busca
             </Button>
           )}
-          {(tipo !== "todos" || categoria !== "todas" || chave !== "todas") && (
+          {(tipo !== "todos" || categoria !== "todas") && (
             <Button type="button" variant="secondary" onClick={limparFiltros}>
               Limpar filtros
             </Button>
@@ -229,7 +219,7 @@ export function PatioView() {
         </Vazio>
       ) : (
         <>
-          <PatioLista veiculos={mostradas} filtros={filtros} comQuadros={comQuadros} atualizando={isFetching} />
+          <PatioLista veiculos={mostradas} filtros={filtros} atualizando={isFetching} />
           {visiveis.length > mostradas.length && (
             <MaisBotao
               type="button"
