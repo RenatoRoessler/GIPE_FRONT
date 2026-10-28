@@ -46,6 +46,19 @@ export function filtrarPatio(itens: PatioVeiculo[], filtros: PatioFiltros): Pati
   });
 }
 
+export type TipoPatio = "avulso" | "mensal";
+
+// O Pátio só distingue mensalista de avulso; convênio não existe nos dados do back.
+export function rotuloTipo(veiculo: Pick<PatioVeiculo, "mensalista">): string {
+  return veiculo.mensalista ? "Mensalista" : "Avulso";
+}
+
+// Contagem do pátio inteiro por tipo, para o bloco "Por tipo".
+export function contagemPorTipo(veiculos: PatioVeiculo[]): Record<TipoPatio, number> {
+  const mensal = veiculos.filter((veiculo) => veiculo.mensalista).length;
+  return { avulso: veiculos.length - mensal, mensal };
+}
+
 // Veículos cuja chave não está em nenhum gancho do quadro. Recebe o pátio inteiro: o número não muda com busca e filtros.
 export function contarForaDoQuadro(veiculos: PatioVeiculo[]): number {
   return veiculos.filter((veiculo) => !veiculo.posicaoChave).length;

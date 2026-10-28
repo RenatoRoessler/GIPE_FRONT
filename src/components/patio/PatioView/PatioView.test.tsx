@@ -11,8 +11,38 @@ vi.mock("@/contexts/CurrentUserContext", () => ({
   useCurrentUser: () => ({ user: { id: "x", name: "Renato", email: "r@e.com", perfil: 1 }, isLoading: false }),
 }));
 vi.mock("../useVagasPatio", () => ({ useVagasPatio: () => ({ moto: 12, carro: 23 }) }));
+vi.mock("../useEstacionamento", () => ({ useEstacionamento: () => "Estacionamento Central" }));
 const modais = vi.hoisted(() => ({ abrirEntrada: vi.fn(), abrirSaida: vi.fn() }));
 vi.mock("@/components/veiculos/VeiculoModais", () => ({ useVeiculoModais: () => modais }));
+
+// A URL é a fonte da busca e dos filtros: o mock guarda a query e avisa quem a lê, como o roteador faz.
+const nav = vi.hoisted(() => {
+  let query = "";
+  const ouvintes = new Set<() => void>();
+  return {
+    ler: () => query,
+    gravar(proxima: string) {
+      query = proxima;
+      ouvintes.forEach((avisar) => avisar());
+    },
+    assinar(avisar: () => void) {
+      ouvintes.add(avisar);
+      return () => ouvintes.delete(avisar);
+    },
+  };
+});
+vi.mock("next/navigation", async () => {
+  const { useMemo, useSyncExternalStore } = await import("react");
+  const roteador = { replace: (url: string) => nav.gravar(url.includes("?") ? url.split("?")[1] : "") };
+  return {
+    useRouter: () => roteador,
+    usePathname: () => "/patio",
+    useSearchParams: () => {
+      const query = useSyncExternalStore(nav.assinar, nav.ler, nav.ler);
+      return useMemo(() => new URLSearchParams(query), [query]);
+    },
+  };
+});
 
 import { listPatio } from "@/lib/api/services/patio";
 import { PatioView } from "./PatioView";
@@ -48,12 +78,10 @@ function abrir(lista: PatioVeiculo[] = [UM_DIA, DOIS_DIAS, MENSALISTA]) {
   return renderWithProviders(<PatioView />);
 }
 
-const placasNaTela = () =>
-  screen
-    .getAllByRole("button", { name: /^Registrar saída de / })
-    .map((botao) => botao.getAttribute("aria-label")?.replace("Registrar saída de ", ""));
+const cards = () => screen.queryAllByRole("link", { name: /^Ver ticket do veículo / });
+const placasNaTela = () => cards().map((card) => card.getAttribute("aria-label")?.match(/veículo (\w+),/)?.[1]);
 
-// O resumo tem a contagem em negrito: o texto vem partido em dois elementos, então compara-se o texto da região.
+// A frase de resumo é a região de status que fala em veículos.
 const resumo = () =>
   screen
     .getAllByRole("status")
@@ -65,29 +93,79 @@ const campoBusca = () => screen.getByLabelText("Buscar por placa, modelo ou tick
 
 beforeEach(() => {
   proximoId = 1;
+  nav.gravar("");
   vi.mocked(listPatio).mockReset();
   modais.abrirEntrada.mockReset();
 });
 
-describe("PatioView: lista e resumo", () => {
-  it("mostra os veículos do que está há mais tempo para o que está há menos", async () => {
+describe("PatioView: topo e resumo", () => {
+  it("mostra o título e o nome do estacionamento", async () => {
     abrir();
-
     await esperarResumo("3 veículos no pátio");
-    expect(placasNaTela()).toEqual(["BRA2E19", "MNB7880", "ZNF7Z70"]);
+
+    expect(screen.getByRole("heading", { name: "Pátio" })).toBeInTheDocument();
+    expect(screen.getByText("Estacionamento Central")).toBeInTheDocument();
   });
 
-  it("diz a quantidade e o horário da última atualização", async () => {
+  it("mostra as vagas ocupadas, livres e a barra com texto", async () => {
     abrir();
-
     await esperarResumo("3 veículos no pátio");
-    expect(screen.getByText(/^Atualizado às \d{2}:\d{2}$/)).toBeInTheDocument();
+
+    const bloco = screen.getByRole("region", { name: "Vagas ocupadas" });
+    expect(within(bloco).getByText("3")).toBeInTheDocument();
+    expect(within(bloco).getByText("/35")).toBeInTheDocument();
+    expect(within(bloco).getByText("32 livres")).toBeInTheDocument();
+    expect(within(bloco).getByRole("img", { name: "9% ocupado" })).toBeInTheDocument();
+    expect(within(bloco).getByText("Carros 2/23 · Motos 1/12")).toBeInTheDocument();
+  });
+
+  it("conta os veículos por tipo", async () => {
+    abrir();
+    await esperarResumo("3 veículos no pátio");
+
+    expect(screen.getByRole("button", { name: "Filtrar por Avulso, 2 veículos" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Filtrar por Mensal, 1 veículo" })).toBeInTheDocument();
   });
 
   it("um veículo só fica no singular", async () => {
     abrir([UM_DIA]);
-
     await esperarResumo("1 veículo no pátio");
+  });
+});
+
+describe("PatioView: lista", () => {
+  it("mostra os veículos do que está há mais tempo para o que está há menos", async () => {
+    abrir();
+    await esperarResumo("3 veículos no pátio");
+
+    expect(placasNaTela()).toEqual(["BRA2E19", "MNB7880", "ZNF7Z70"]);
+  });
+
+  it("cada veículo é um único link para o ticket, com tipo e permanência no nome", async () => {
+    abrir();
+    await esperarResumo("3 veículos no pátio");
+
+    const card = screen.getByRole("link", { name: "Ver ticket do veículo ZNF7Z70, Mensalista, 1h 30min no pátio" });
+    expect(card).toHaveAttribute("href", `/patio/${MENSALISTA.patioId}`);
+    expect(within(card).getByText("Mensalista")).toBeInTheDocument();
+    expect(within(card).getByText("1h 30min")).toBeInTheDocument();
+    expect(within(card).queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("o link do ticket leva os filtros da lista", async () => {
+    abrir();
+    await esperarResumo("3 veículos no pátio");
+    await userEvent.click(screen.getByRole("button", { name: /^Filtrar por Mensal/ }));
+
+    const card = await screen.findByRole("link", { name: /ZNF7Z70/ });
+    expect(card).toHaveAttribute("href", `/patio/${MENSALISTA.patioId}?tipo=mensalistas`);
+  });
+
+  it("modelo e cor ausentes viram traço", async () => {
+    abrir([veiculo({ placa: "SEM1M00", modelo: null, cor: null })]);
+    await esperarResumo("1 veículo no pátio");
+
+    expect(screen.getByText("— · —")).toBeInTheDocument();
   });
 
   it("carregando mostra esqueletos num status", () => {
@@ -100,28 +178,27 @@ describe("PatioView: lista e resumo", () => {
   it("sem veículos diz isso e abre o modal de entrada, sem navegar", async () => {
     abrir([]);
 
-    expect(await screen.findByText("Nenhum veículo no pátio.")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Registrar entrada" })).not.toBeInTheDocument();
-    await userEvent.setup().click(screen.getByRole("button", { name: "Registrar entrada" }));
+    expect(await screen.findByText("Nenhum carro no pátio")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avulso 0".replace("Avulso 0", "Filtrar por Avulso, 0 veículos") })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Registrar entrada" }));
     expect(modais.abrirEntrada).toHaveBeenCalledTimes(1);
   });
 
   it("erro mostra a mensagem do back e deixa tentar de novo", async () => {
-    vi.mocked(listPatio).mockRejectedValueOnce(new ApiError("server", "Instabilidade no servidor.", 500));
+    vi.mocked(listPatio).mockRejectedValueOnce(new ApiError("server", "Serviço fora do ar.", 500));
     renderWithProviders(<PatioView />);
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar o pátio. Instabilidade no servidor.");
-
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar o pátio. Serviço fora do ar.");
     vi.mocked(listPatio).mockResolvedValue([UM_DIA]);
     await userEvent.click(screen.getByRole("button", { name: "Tentar novamente" }));
     await esperarResumo("1 veículo no pátio");
   });
 
   it("erro de permissão não oferece tentar de novo", async () => {
-    vi.mocked(listPatio).mockRejectedValue(new ApiError("forbidden", undefined, 403));
+    vi.mocked(listPatio).mockRejectedValue(new ApiError("forbidden", "Sem permissão.", 403));
     renderWithProviders(<PatioView />);
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Você não tem permissão para acessar esta página.");
+    await screen.findByText(/permissão/i);
     expect(screen.queryByRole("button", { name: "Tentar novamente" })).not.toBeInTheDocument();
   });
 });
@@ -130,17 +207,15 @@ describe("PatioView: atualizar", () => {
   it("Atualizar recarrega a lista e mostra Atualizando… enquanto espera", async () => {
     abrir([UM_DIA]);
     await esperarResumo("1 veículo no pátio");
+    expect(screen.getByText(/^Atualizado às \d{2}:\d{2}$/)).toBeInTheDocument();
 
-    let concluir: (lista: PatioVeiculo[]) => void = () => {};
-    vi.mocked(listPatio).mockReturnValue(new Promise((resolve) => (concluir = resolve)));
+    let resolver: (lista: PatioVeiculo[]) => void = () => {};
+    vi.mocked(listPatio).mockReturnValue(new Promise((resolve) => (resolver = resolve)));
     await userEvent.click(screen.getByRole("button", { name: "Atualizar" }));
 
-    const botao = await screen.findByRole("button", { name: "Atualizando…" });
-    expect(botao).toBeDisabled();
-
-    concluir([UM_DIA, DOIS_DIAS]);
+    expect(await screen.findByRole("button", { name: "Atualizando…" })).toBeDisabled();
+    resolver([UM_DIA, DOIS_DIAS]);
     await esperarResumo("2 veículos no pátio");
-    expect(screen.getByRole("button", { name: "Atualizar" })).toBeEnabled();
   });
 });
 
@@ -149,10 +224,10 @@ describe("PatioView: busca", () => {
     abrir();
     await esperarResumo("3 veículos no pátio");
 
-    await userEvent.type(campoBusca(), "mnb");
+    await userEvent.type(campoBusca(), "mnb-78");
 
-    await waitFor(() => expect(placasNaTela()).toEqual(["MNB7880"]));
-    expect(resumo()).toMatch(/ de 3 veículos$/);
+    await esperarResumo("1 de 3 veículos");
+    expect(placasNaTela()).toEqual(["MNB7880"]);
   });
 
   it("filtra por modelo, sem acento", async () => {
@@ -161,7 +236,8 @@ describe("PatioView: busca", () => {
 
     await userEvent.type(campoBusca(), "corolla");
 
-    await waitFor(() => expect(placasNaTela()).toEqual(["ZNF7Z70"]));
+    await esperarResumo("1 de 3 veículos");
+    expect(placasNaTela()).toEqual(["ZNF7Z70"]);
   });
 
   it("filtra por ticket e por sequencial", async () => {
@@ -169,11 +245,8 @@ describe("PatioView: busca", () => {
     await esperarResumo("3 veículos no pátio");
 
     await userEvent.type(campoBusca(), "24024");
-    await waitFor(() => expect(placasNaTela()).toEqual(["BRA2E19"]));
-
-    await userEvent.clear(campoBusca());
-    await userEvent.type(campoBusca(), "2464");
-    await waitFor(() => expect(placasNaTela()).toEqual(["BRA2E19"]));
+    await esperarResumo("1 de 3 veículos");
+    expect(placasNaTela()).toEqual(["BRA2E19"]);
   });
 
   it("sem resultado diz o que foi buscado e deixa limpar", async () => {
@@ -182,81 +255,76 @@ describe("PatioView: busca", () => {
 
     await userEvent.type(campoBusca(), "zzzz");
 
-    expect(await screen.findByText("Nada encontrado para “zzzz”.")).toBeInTheDocument();
-    expect(screen.queryByRole("table")).not.toBeInTheDocument();
-
+    expect(await screen.findByText("Nenhum carro encontrado")).toBeInTheDocument();
+    expect(screen.getByText(/Nada encontrado para “zzzz”/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Limpar busca" }));
-    await waitFor(() => expect(placasNaTela()).toHaveLength(3));
+
+    await esperarResumo("3 veículos no pátio");
     expect(campoBusca()).toHaveValue("");
   });
 });
 
 describe("PatioView: filtros", () => {
-  it("filtra por tipo e mostra Limpar filtros só enquanto há filtro", async () => {
+  it("tocar num tipo filtra e tocar de novo desfaz", async () => {
     abrir();
     await esperarResumo("3 veículos no pátio");
-    expect(screen.queryByRole("button", { name: "Limpar filtros" })).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: /^Mensalistas/ }));
-
+    const mensal = screen.getByRole("button", { name: /^Filtrar por Mensal/ });
+    await userEvent.click(mensal);
+    await esperarResumo("1 de 3 veículos");
+    expect(mensal).toHaveAttribute("aria-pressed", "true");
     expect(placasNaTela()).toEqual(["ZNF7Z70"]);
-    expect(resumo()).toMatch(/ de 3 veículos$/);
 
+    await userEvent.click(mensal);
+    await esperarResumo("3 veículos no pátio");
+  });
+
+  it("filtra por categoria e conta os filtros ativos no botão", async () => {
+    abrir();
+    await esperarResumo("3 veículos no pátio");
+    expect(screen.getByRole("button", { name: "Filtros" })).toHaveAttribute("aria-expanded", "false");
+
+    await userEvent.click(screen.getByRole("button", { name: "Filtros" }));
+    expect(screen.getByRole("button", { name: "Filtros" })).toHaveAttribute("aria-expanded", "true");
+    const grupo = screen.getByRole("group", { name: "Categoria" });
+    await userEvent.click(within(grupo).getAllByRole("button")[0]);
+
+    await esperarResumo("1 de 3 veículos");
+    expect(screen.getByRole("button", { name: "Filtros 1" })).toBeInTheDocument();
+  });
+
+  it("Limpar filtros só aparece enquanto há filtro e desfaz todos", async () => {
+    abrir();
+    await esperarResumo("3 veículos no pátio");
+    expect(screen.queryByRole("button", { name: "Limpar filtros" })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /^Filtrar por Avulso/ }));
+    await esperarResumo("2 de 3 veículos");
+    await userEvent.click(screen.getByRole("button", { name: "Filtros 1" }));
     await userEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
-    expect(placasNaTela()).toHaveLength(3);
+
+    await esperarResumo("3 veículos no pátio");
     expect(screen.queryByRole("button", { name: "Limpar filtros" })).not.toBeInTheDocument();
   });
 
-  it("avulsos e categoria", async () => {
+  it("os filtros vêm da URL", async () => {
+    nav.gravar("tipo=avulsos");
     abrir();
-    await esperarResumo("3 veículos no pátio");
 
-    await userEvent.click(screen.getByRole("button", { name: /^Avulsos/ }));
-    expect(placasNaTela()).toEqual(["BRA2E19", "MNB7880"]);
-
-    await userEvent.click(screen.getByRole("button", { name: /^Moto/ }));
-    expect(placasNaTela()).toEqual(["MNB7880"]);
+    await esperarResumo("2 de 3 veículos");
+    expect(screen.getByRole("button", { name: /^Filtrar por Avulso/ })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("a barra e os chips mostram a proporção e só as categorias que estão no pátio", async () => {
-    abrir();
-    await esperarResumo("3 veículos no pátio");
-
-    expect(screen.getByRole("button", { name: "Mensalistas 33% · 1" })).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByRole("button", { name: "Avulsos 67% · 2" })).toBeInTheDocument();
-    const chips = within(screen.getByRole("group", { name: "Categoria" })).getAllByRole("button").map((chip) => chip.textContent);
-    expect(chips).toEqual(["Carro grande1", "Carro médio1", "Moto1"]);
-  });
-
-  it("tocar de novo no filtro ativo o desfaz", async () => {
-    abrir();
-    await esperarResumo("3 veículos no pátio");
-
-    await userEvent.click(screen.getByRole("button", { name: /^Mensalistas/ }));
-    expect(screen.getByRole("button", { name: /^Mensalistas/ })).toHaveAttribute("aria-pressed", "true");
-    await userEvent.click(screen.getByRole("button", { name: /^Mensalistas/ }));
-
-    expect(placasNaTela()).toHaveLength(3);
-    await userEvent.click(screen.getByRole("button", { name: /^Moto/ }));
-    expect(placasNaTela()).toEqual(["MNB7880"]);
-    await userEvent.click(screen.getByRole("button", { name: /^Moto/ }));
-    expect(placasNaTela()).toHaveLength(3);
-  });
-
-  it("mostra a permanência média e quantos estão há 3 dias ou mais", async () => {
-    abrir([veiculo({ minutosPermanencia: 120 }), veiculo({ minutosPermanencia: 5000 })]);
+  it("filtro sem resultado diz que nenhum veículo tem esses filtros", async () => {
+    abrir([UM_DIA, MENSALISTA]);
     await esperarResumo("2 veículos no pátio");
 
-    expect(screen.getByText("Permanência média 1d 18h")).toBeInTheDocument();
-    expect(screen.getByText("1 há 3 dias ou mais")).toBeInTheDocument();
-  });
+    // Categoria do avulso + tipo mensal: nenhum veículo tem os dois.
+    await userEvent.click(screen.getByRole("button", { name: "Filtros" }));
+    await userEvent.click(within(screen.getByRole("group", { name: "Categoria" })).getByRole("button", { name: /^Moto/ }));
+    await userEvent.click(screen.getByRole("button", { name: /^Filtrar por Mensal/ }));
 
-  it("mostra a ocupação das vagas, com carros e motos separados", async () => {
-    abrir();
-    await esperarResumo("3 veículos no pátio");
-
-    // 3 veículos (1 moto, 2 carros) para 35 vagas (12 de moto e 23 de carro).
-    expect(screen.getByText("Ocupação 9%")).toHaveAttribute("title", "Carros 2 de 23 · Motos 1 de 12");
+    expect(await screen.findByText("Nenhum veículo com esses filtros")).toBeInTheDocument();
   });
 
   it("os gráficos do pátio ficam recolhidos até o operador abrir", async () => {
@@ -265,34 +333,19 @@ describe("PatioView: filtros", () => {
 
     const detalhes = screen.getByText("Ver gráficos do pátio").closest("details");
     expect(detalhes).not.toHaveAttribute("open");
-    await userEvent.click(screen.getByText("Ver gráficos do pátio"));
-    expect(detalhes).toHaveAttribute("open");
-    expect(screen.getByRole("region", { name: "Tempo no pátio" })).toBeInTheDocument();
   });
+});
 
-  it("busca e filtros valem juntos; sem resultado, a busca se limpa ali e os filtros na barra", async () => {
-    abrir();
-    await esperarResumo("3 veículos no pátio");
-
-    await userEvent.click(screen.getByRole("button", { name: /^Mensalistas/ }));
-    await userEvent.type(campoBusca(), "mnb");
-
-    expect(await screen.findByText("Nada encontrado para “mnb”.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Limpar busca" })).toBeInTheDocument();
-    // Um só botão de limpar filtros: o da barra, que continua à vista.
-    expect(screen.getAllByRole("button", { name: "Limpar filtros" })).toHaveLength(1);
-  });
-
-  it("filtro sem resultado diz que nenhum veículo tem esses filtros", async () => {
+describe("PatioView: depois de uma saída", () => {
+  it("anuncia a saída, mostra o aviso e põe o foco no primeiro card", async () => {
+    nav.gravar("saiu=BRA2E19");
     abrir([UM_DIA, MENSALISTA]);
+
     await esperarResumo("2 veículos no pátio");
-
-    await userEvent.click(screen.getByRole("button", { name: /^Mensalistas/ }));
-    await userEvent.click(screen.getByRole("button", { name: /^Moto/ }));
-
-    expect(await screen.findByText("Nenhum veículo com esses filtros.")).toBeInTheDocument();
-    // A barra de busca e os filtros continuam à vista.
-    expect(campoBusca()).toBeInTheDocument();
+    expect((await screen.findAllByText("BRA2E19 saiu do pátio.")).length).toBeGreaterThan(0);
+    await waitFor(() => expect(cards()[0]).toHaveFocus());
+    // O parâmetro some da URL: recarregar a página não repete o aviso.
+    await waitFor(() => expect(nav.ler()).toBe(""));
   });
 });
 

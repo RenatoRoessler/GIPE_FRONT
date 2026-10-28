@@ -8,17 +8,22 @@ vi.mock("@/contexts/CurrentUserContext", () => ({
   useCurrentUser: () => ({ user: { id: "x", name: "Renato", email: "r@e.com", perfil: 1 }, isLoading: false }),
 }));
 vi.mock("@/components/patio/useVagasPatio", () => ({ useVagasPatio: () => null }));
+vi.mock("@/components/patio/useEstacionamento", () => ({ useEstacionamento: () => null }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn() }),
+  usePathname: () => "/patio",
+  useSearchParams: () => new URLSearchParams(),
+}));
 // Em produção o host dos modais vem do layout da área logada; aqui só a página é renderizada.
 vi.mock("@/components/veiculos/VeiculoModais", () => ({ useVeiculoModais: () => ({ abrirEntrada: vi.fn(), abrirSaida: vi.fn() }) }));
 
 import PatioPage from "./page";
 
 describe("página do pátio", () => {
-  it("mostra o título, a descrição e a tela do pátio", () => {
+  it("mostra o título e a tela do pátio", () => {
     renderWithProviders(<PatioPage />);
 
-    expect(screen.getByText("Pátio")).toBeInTheDocument();
-    expect(screen.getByText(/Veículos que estão no pátio agora/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Pátio" })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: "Carregando o pátio" })).toBeInTheDocument();
   });
 });

@@ -4,6 +4,7 @@ import {
   categoriaConhecida,
   chegadasPorHora,
   contarForaDoQuadro,
+  contagemPorTipo,
   contarNoQuadro,
   corDoVeiculo,
   estatisticasPatio,
@@ -13,6 +14,7 @@ import {
   ordenarPatio,
   resumirPatio,
   rotuloCategoria,
+  rotuloTipo,
 } from "./patio";
 
 let proximoId = 1;
@@ -352,5 +354,18 @@ describe("filtro por chave no quadro", () => {
   it("conta quem está no quadro", () => {
     expect(contarNoQuadro(lista)).toBe(1);
     expect(contarNoQuadro([])).toBe(0);
+  });
+});
+
+describe("tipo do veículo", () => {
+  it("rotula mensalista e avulso", () => {
+    expect(rotuloTipo(veiculo({ mensalista: true }))).toBe("Mensalista");
+    expect(rotuloTipo(veiculo({ mensalista: false }))).toBe("Avulso");
+  });
+
+  it("conta o pátio vazio, só avulsos e misto", () => {
+    expect(contagemPorTipo([])).toEqual({ avulso: 0, mensal: 0 });
+    expect(contagemPorTipo([veiculo(), veiculo()])).toEqual({ avulso: 2, mensal: 0 });
+    expect(contagemPorTipo([veiculo(), veiculo({ mensalista: true }), veiculo({ mensalista: true })])).toEqual({ avulso: 1, mensal: 2 });
   });
 });

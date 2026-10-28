@@ -67,6 +67,8 @@ type ThemeColors = {
   onSuccess: string;
   background: string;
   surface: string;
+  // Trilhos de barra e estado pressionado de cartões: um degrau acima de `surface`.
+  surfaceMuted: string;
   text: string;
   textMuted: string;
   // Divisórias e bordas decorativas.
@@ -134,6 +136,7 @@ export const lightTheme: AppTheme = {
     onSuccess: "#FFFFFF",
     background: "#F4F1E8",
     surface: "#FFFFFF",
+    surfaceMuted: "#ECE8DA",
     text: "#0E1729",
     textMuted: "#5A6478",
     border: "#D9D4C5",
@@ -170,6 +173,7 @@ export const darkTheme: AppTheme = {
     onSuccess: "#0E1729",
     background: "#0E1729",
     surface: "#16223A",
+    surfaceMuted: "#22304B",
     text: "#F4F1E8",
     textMuted: "#9AA3B5",
     border: "#3A4C6B",

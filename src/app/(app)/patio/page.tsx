@@ -1,12 +1,11 @@
-import { PatioView } from "@/components/patio/PatioView";
-import { Text } from "@/components/ui/Text";
+import { Suspense } from "react";
+import { PatioEsqueleto, PatioView } from "@/components/patio/PatioView";
 
+// `PatioView` lê a busca e os filtros da URL: o Suspense deixa o resto da página sair pré-renderizado.
 export default function PatioPage() {
   return (
-    <>
-      <Text variant="heading">Pátio</Text>
-      <Text variant="muted">Veículos que estão no pátio agora, com a entrada, a permanência e a saída de cada um.</Text>
+    <Suspense fallback={<PatioEsqueleto />}>
       <PatioView />
-    </>
+    </Suspense>
   );
 }
