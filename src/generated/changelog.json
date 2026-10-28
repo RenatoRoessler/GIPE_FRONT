@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.260",
+      "type": "feat",
+      "scope": "patio",
+      "title": "novo layout do Pátio com ticket e comprovante digital",
+      "description": "O Pátio ganha um painel de ocupação (vagas ocupadas, livres e barra) e um\nbloco por tipo que também filtra a lista. Cada veículo vira um card que abre\no detalhe do ticket, com permanência, valor até agora, tabela de preço,\noperador e chave no quadro. Do detalhe o operador registra a saída, guarda ou\naltera a chave e mostra ao cliente o comprovante digital com QR Code, em tela\nclara e com a tela do aparelho acesa.\n\nA busca e os filtros passam a viver no endereço da página, então voltar do\nticket mantém o recorte, e depois de uma saída a lista avisa e devolve o foco.\nNo computador os cards se organizam em grade. Nenhuma função do Pátio anterior\nfoi removida.",
+      "date": "2026-10-28T18:11:25-03:00"
+    },
+    {
       "version": "1.0.258",
       "type": "feat",
       "scope": "patio",
