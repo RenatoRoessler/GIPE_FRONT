@@ -26,7 +26,8 @@ scp %SSH_OPCOES% "%PACOTE%" %SERVIDOR%:/tmp/gipe-deploy.tgz
 if errorlevel 1 goto erro
 
 echo [3/4] Instalando dependencias e gerando o build de producao (leva alguns minutos)...
-ssh %SSH_OPCOES% %SERVIDOR% "set -e; mkdir -p %DESTINO% && tar -xzf /tmp/gipe-deploy.tgz -C %DESTINO% && rm /tmp/gipe-deploy.tgz && cd %DESTINO% && npm ci && npm run build:prod"
+rem O src do servidor e apagado antes de extrair: sem isso, arquivos removidos do projeto continuam la e quebram o type check.
+ssh %SSH_OPCOES% %SERVIDOR% "set -e; mkdir -p %DESTINO% && rm -rf %DESTINO%/src && tar -xzf /tmp/gipe-deploy.tgz -C %DESTINO% && rm /tmp/gipe-deploy.tgz && cd %DESTINO% && npm ci && npm run build:prod"
 if errorlevel 1 goto erro
 
 echo [4/4] Reiniciando o app...
