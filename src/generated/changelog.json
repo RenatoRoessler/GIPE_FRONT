@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.265",
+      "type": "feat",
+      "scope": "patio",
+      "title": "remove as informações do quadro de chaves da tela do Pátio",
+      "description": "A lista do Pátio deixa de mostrar a posição da chave em cada card, os\nfiltros \"Chave fora/dentro do quadro\" e o indicador de chaves fora do\nquadro. A tela fica focada nos veículos; a chave continua disponível no\nticket do veículo e na tela de quadros de chaves.",
+      "date": "2026-10-28T20:56:56-03:00"
+    },
+    {
       "version": "1.0.260",
       "type": "feat",
       "scope": "patio",
