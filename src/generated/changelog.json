@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.284",
+      "type": "feat",
+      "scope": "saida",
+      "title": "formata o valor recebido em dinheiro como moeda",
+      "description": "Ao digitar o valor recebido na saída, o campo passa a mostrar o valor em reais com o prefixo R$ e o ponto nos milhares (ex.: R$ 1.234,5). Aceita só números e uma vírgula, com até duas casas, e o cálculo do troco continua igual.",
+      "date": "2026-10-28T22:18:54-03:00"
+    },
+    {
       "version": "1.0.281",
       "type": "feat",
       "scope": "veiculos",
