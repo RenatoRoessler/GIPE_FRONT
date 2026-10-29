@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.292",
+      "type": "feat",
+      "scope": "conveniadas",
+      "title": "adiciona listagem e cadastro de empresas conveniadas",
+      "description": "Nova tela \"Empresas conveniadas\" no menu, visível ao Administrador (ou por\npermissão de módulo). A listagem mostra um convênio por linha, com filtro\npor situação (todos, ativos, encerrados). A página de cadastro reúne os\ndados da empresa e do responsável, com preenchimento do endereço pelo CEP,\nvalidação dos campos e mensagem de resultado conforme a empresa e o usuário\nsejam novos ou já existentes.",
+      "date": "2026-10-29T16:30:32-03:00"
+    },
+    {
+      "version": "1.0.290",
+      "type": "fix",
+      "scope": "dashboard",
+      "title": "esconde entrada e saída de quem não tem acesso ao pátio",
+      "description": "Os botões \"Registrar entrada\" e \"Registrar saída\" do Dashboard agora só\naparecem para perfis com permissão na área do pátio, respeitando também a\npermissão por módulo. A linha de ações some quando fica vazia, sem deixar\nespaço em branco.",
+      "date": "2026-10-29T16:30:32-03:00"
+    },
+    {
       "version": "1.0.288",
       "type": "fix",
       "scope": "patio",
