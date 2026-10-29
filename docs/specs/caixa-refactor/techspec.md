@@ -133,6 +133,17 @@ aberto      → <AberturaCaixa /> <ValorEmCaixa /> <FundoEGaveta /> <RecebidoPor
 - **Tema claro:** o número em destaque usa `accent` (não `primary`) para ter contraste nos dois temas; conferir visualmente os dois.
 - **Fim da barra de navegação:** os mockups incluem a barra inferior com "Mais"; é o comportamento atual do menu e não muda.
 
+## Código órfão para remover (após a decisão do RF11)
+
+Depois desta entrega, a tela `/caixa` não usa mais os arquivos abaixo (todos em `src/components/caixa`). Seguem no repositório, com os testes passando, até o produto decidir onde o histórico passa a viver. Quando decidir, remover junto com os testes ao lado:
+
+- `AbasCaixa.tsx`, `aba.ts`
+- `GraficosCaixa.tsx` (+ `.styles.ts`) e `LinhaDoTempo.tsx` (+ `.styles.ts`), `eventosCaixa.ts`
+- `HistoricoTurnosModal.tsx`
+- `CaixaHeader.tsx`, `GavetaResumo.tsx` (+ `.styles.ts`), `TurnoAtual.tsx`, `FormasPagamentoTabela.tsx` (+ `.styles.ts`)
+
+Continuam em uso e **não** entram na remoção: `MovimentosLista` (extrato), `calcularGaveta`, `agregados`, `format`, `CaixaFechado` e os modais de abrir, sangria, passar turno e fechar.
+
 ## Fora de escopo técnico
 - Funcionalidade de **lançar despesa** (formulário, endpoint, efeito no saldo).
 - Mudanças nas regras de caixa, turno, sangria e fechamento, e nos endpoints.
