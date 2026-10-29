@@ -134,4 +134,17 @@ describe("CarimboPage", () => {
     expect(carimbar).toHaveBeenNthCalledWith(2, "58BMTFRW");
     expect(await screen.findByRole("heading", { name: "Ticket carimbado" })).toBeInTheDocument();
   });
+
+  it("carimba o token digitado e valida o campo vazio", async () => {
+    carimbar.mockResolvedValue(CARIMBO);
+    const user = userEvent.setup();
+    renderWithProviders(<CarimboPage />);
+
+    await user.click(screen.getByRole("button", { name: "Carimbar" }));
+    expect(screen.getByText("Informe o token do ticket")).toBeInTheDocument();
+    expect(carimbar).not.toHaveBeenCalled();
+
+    await user.type(screen.getByLabelText("Token do ticket"), "58bmtfrw{Enter}");
+    await waitFor(() => expect(carimbar).toHaveBeenCalledWith("58BMTFRW"));
+  });
 });

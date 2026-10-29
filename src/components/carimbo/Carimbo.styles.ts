@@ -35,3 +35,28 @@ export const ErroArea = styled.div`
   align-items: flex-start;
   gap: ${({ theme }) => theme.space[2]}px;
 `;
+
+export const Divisor = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[2]}px;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.textMuted};
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: ${({ theme }) => theme.colors.border};
+  }
+`;
+
+export const TokenForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[3]}px;
+`;
