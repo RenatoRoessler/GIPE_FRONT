@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.269",
+      "type": "feat",
+      "scope": "menu",
+      "title": "adiciona menu lateral recolhido nas telas grandes",
+      "description": "Em telas a partir de 1024px a navegação passa a ser um menu lateral fixo\nà esquerda, no lugar da barra inferior. Ele fica recolhido, mostrando só\nos ícones, e expande com os nomes ao passar o mouse ou focar um item pelo\nteclado, por cima do conteúdo e sem empurrá-lo. No celular e no tablet a\nbarra inferior continua como antes.",
+      "date": "2026-10-28T21:26:05-03:00"
+    },
+    {
       "version": "1.0.267",
       "type": "feat",
       "scope": "menu",
