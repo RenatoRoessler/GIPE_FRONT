@@ -270,8 +270,12 @@ export const FiltrosBotao = styled(Button)`
   min-height: 48px;
   box-shadow: inset 0 0 0 1px ${({ theme }) => theme.colors.border};
 
-  /* No computador o painel está sempre aberto: o botão não faz sentido. */
+  /* No computador o painel está sempre aberto; no celular o botão não aparece. */
   ${desktop} {
+    display: none;
+  }
+
+  ${mobile} {
     display: none;
   }
 `;
@@ -543,6 +547,10 @@ export const EsqueletoLinha = styled.div`
 `;
 
 export const GraficosDetalhes = styled.details`
+  ${mobile} {
+    display: none;
+  }
+
   summary {
     display: inline-flex;
     align-items: center;
