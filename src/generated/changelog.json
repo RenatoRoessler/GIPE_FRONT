@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.281",
+      "type": "feat",
+      "scope": "veiculos",
+      "title": "melhora o campo Modelo com a lista carregada ao abrir o sistema",
+      "description": "O endpoint de modelos agora devolve sempre a lista inteira. O sistema busca essa lista uma vez ao abrir e o campo Modelo sugere os modelos na hora, sem consultar o servidor a cada tecla.\n\n- Sugestões desde a primeira letra, sem diferenciar acento nem maiúsculas, com o trecho digitado em destaque.\n- Funciona por toque e teclado, e a lista não é cortada dentro dos modais.\n- O cadastro de mensalista também passa a sugerir modelos.\n- Dá para digitar um modelo que não está na lista, e o campo continua utilizável se a lista demorar ou falhar.",
+      "date": "2026-10-28T22:06:49-03:00"
+    },
+    {
       "version": "1.0.279",
       "type": "feat",
       "scope": "patio",
