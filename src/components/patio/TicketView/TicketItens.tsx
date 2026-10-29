@@ -34,12 +34,6 @@ export function TicketItens({ veiculo, comQuadros, onGuardarChave }: TicketItens
         </Item>
       )}
       <Item>
-        <dt>Sequencial</dt>
-        <dd>
-          <Mono>{veiculo.sequencial}</Mono>
-        </dd>
-      </Item>
-      <Item>
         <dt>Tabela de preço</dt>
         <dd>{veiculo.rotatividadeDescricao ?? TRACO}</dd>
       </Item>

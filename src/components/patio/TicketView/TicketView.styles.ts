@@ -5,59 +5,6 @@ import { Button } from "@/components/ui/Button";
 
 const desktop = ({ theme }: { theme: { breakpoints: { md: string } } }) => `@media (min-width: ${theme.breakpoints.md})`;
 
-export const Pagina = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.space[3]}px;
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-`;
-
-export const Cabecalho = styled.header`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.space[2]}px;
-`;
-
-export const Voltar = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 44px;
-  height: 44px;
-  margin-left: -${({ theme }) => theme.space[2]}px;
-  border: 0;
-  border-radius: ${({ theme }) => theme.radii.md};
-  background: transparent;
-  color: ${({ theme }) => theme.colors.text};
-  cursor: pointer;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primarySoft};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.focus};
-    outline-offset: 2px;
-  }
-`;
-
-export const TituloTicket = styled.h1`
-  flex: 1;
-  margin: 0;
-  font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: ${({ theme }) => theme.fontWeights.extrabold};
-`;
-
-export const CodigoTicket = styled.span`
-  color: ${({ theme }) => theme.colors.textMuted};
-  font-family: ${({ theme }) => theme.fontFamilies.mono};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
-`;
-
 // Celular: uma coluna. Computador: veículo e destaques à esquerda; itens e ações à direita.
 export const Colunas = styled.div`
   display: flex;

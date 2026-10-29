@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
 import type { PatioVeiculo } from "@/types/patio";
@@ -88,6 +88,16 @@ const comprovante: ComprovanteCliente = {
   valorAtual: 12,
 };
 
+// jsdom não implementa <dialog>.
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function close() {
+    this.removeAttribute("open");
+  };
+});
+
 const QUADRO = { id: 1, nome: "Recepção" };
 
 function abrir(lista: PatioVeiculo[] = [veiculo()], patioId = 7) {
@@ -113,20 +123,21 @@ describe("TicketView: dados", () => {
     expect(await screen.findByText("FLP3C88")).toBeInTheDocument();
     expect(screen.getByText("Corolla · BRANCO · Carro pequeno")).toBeInTheDocument();
     expect(screen.getByText("Avulso")).toBeInTheDocument();
-    expect(screen.getAllByText("24024")).toHaveLength(2);
+    expect(screen.getByText("24024")).toBeInTheDocument();
     expect(await screen.findByText("R$ 12,00")).toBeInTheDocument();
     expect(screen.getByText("Permanência").nextElementSibling).toHaveTextContent("8min");
     expect(consultarComprovante).toHaveBeenCalledWith("ABCD1234");
   });
 
-  it("lista a entrada, a tabela de preço, o operador e o sequencial, sem próxima faixa", async () => {
+  it("lista a entrada, a tabela de preço, e o operador, sem o sequencial nem próxima faixa", async () => {
     abrir();
     await screen.findByText("FLP3C88");
 
     const itens = screen.getByLabelText("Detalhes do ticket");
     expect(within(itens).getByText("TABELA CARROS")).toBeInTheDocument();
     expect(within(itens).getByText("Ana")).toBeInTheDocument();
-    expect(within(itens).getByText("2464")).toBeInTheDocument();
+    expect(within(itens).queryByText("Sequencial")).not.toBeInTheDocument();
+    expect(within(itens).queryByText("2464")).not.toBeInTheDocument();
     expect(screen.queryByText(/Próxima faixa/)).not.toBeInTheDocument();
   });
 
@@ -175,7 +186,7 @@ describe("TicketView: dados", () => {
     abrir([veiculo({ patioId: 99 })]);
 
     expect(await screen.findByText("Este carro não está mais no pátio")).toBeInTheDocument();
-    await userEvent.click(screen.getAllByRole("button", { name: "Voltar ao pátio" })[1]);
+    await userEvent.click(screen.getByRole("button", { name: "Voltar ao pátio" }));
     expect(nav.replace).toHaveBeenCalledWith("/patio");
   });
 
@@ -188,12 +199,12 @@ describe("TicketView: dados", () => {
 });
 
 describe("TicketView: navegação", () => {
-  it("Voltar leva à lista com os filtros que vieram na URL", async () => {
+  it("Fechar o popup leva à lista com os filtros que vieram na URL", async () => {
     nav.query = "tipo=avulsos&q=gol";
     abrir();
     await screen.findByText("FLP3C88");
 
-    await userEvent.click(screen.getByRole("button", { name: "Voltar ao pátio" }));
+    await userEvent.click(screen.getByRole("button", { name: "Fechar" }));
 
     expect(nav.replace).toHaveBeenCalledWith("/patio?q=gol&tipo=avulsos");
   });
@@ -230,7 +241,7 @@ describe("TicketView: saída", () => {
     await userEvent.click(await screen.findByRole("button", { name: /^Registrar saída/ }));
     await userEvent.click(screen.getByRole("button", { name: "Cancelar saída" }));
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Saída" })).not.toBeInTheDocument();
     expect(screen.getByText("FLP3C88")).toBeInTheDocument();
     expect(nav.replace).not.toHaveBeenCalled();
   });
@@ -255,7 +266,7 @@ describe("TicketView: chave", () => {
     await userEvent.click(screen.getByRole("button", { name: "Confirmar gancho" }));
 
     expect(await screen.findByText("Chave guardada no A2.")).toBeInTheDocument();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Guardar chave" })).not.toBeInTheDocument();
   });
 
   it("com gancho mostra a posição e oferece alterar", async () => {
@@ -280,7 +291,16 @@ describe("TicketView: chave", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Guardar chave de FLP3C88" }));
     await userEvent.click(screen.getByRole("button", { name: "Cancelar chave" }));
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Guardar chave" })).not.toBeInTheDocument();
     expect(screen.getByText("Fora do quadro")).toBeInTheDocument();
+  });
+});
+
+describe("TicketView: popup", () => {
+  it("abre como um diálogo com o título e o código do ticket", async () => {
+    abrir();
+
+    const dialogo = await screen.findByRole("dialog", { name: "Ticket de entrada · 24024" });
+    expect(within(dialogo).getByText("FLP3C88")).toBeInTheDocument();
   });
 });
