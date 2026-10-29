@@ -15,8 +15,14 @@ describe("telaInicial", () => {
 
   it("tela pequena abre o Dashboard para quem não acessa o Pátio ou não tem perfil", () => {
     expect(telaInicial(8, false)).toBe("/dashboard");
-    expect(telaInicial(5, false)).toBe("/dashboard");
     expect(telaInicial(null, false)).toBe("/dashboard");
     expect(telaInicial(undefined, false)).toBe("/dashboard");
+  });
+
+  it("os perfis de conveniada abrem o Carimbo em qualquer largura", () => {
+    for (const perfil of [5, 6, 7] as const) {
+      expect(telaInicial(perfil, true)).toBe("/carimbo");
+      expect(telaInicial(perfil, false)).toBe("/carimbo");
+    }
   });
 });

@@ -11,7 +11,14 @@ export function ehTelaGrande(): boolean {
 }
 
 // Tela em que o sistema abre depois do login e na raiz: o Pátio no celular, o Dashboard nas telas grandes.
-// Quem não acessa o Pátio vai sempre ao Dashboard.
-export function telaInicial(perfil: PerfilUsuario | null | undefined, telaGrande: boolean = ehTelaGrande()): "/patio" | "/dashboard" {
+// Quem não acessa o Pátio vai sempre ao Dashboard, exceto a conveniada, que abre o Carimbo.
+export function telaInicial(
+  perfil: PerfilUsuario | null | undefined,
+  telaGrande: boolean = ehTelaGrande(),
+): "/patio" | "/dashboard" | "/carimbo" {
+  // A conveniada vive no carimbo: o Dashboard dela não tem o que mostrar.
+  if (podeAcessar(perfil, AREA.Carimbo)) {
+    return "/carimbo";
+  }
   return !telaGrande && podeAcessar(perfil, AREA.Patio) ? "/patio" : "/dashboard";
 }

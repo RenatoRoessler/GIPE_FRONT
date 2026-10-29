@@ -22,6 +22,7 @@ const PERMITIDOS: Record<Area, PerfilUsuario[]> = {
   [AREA.Empresa]: [Administrador],
   [AREA.Usuarios]: [Administrador, AdministradorConveniada],
   [AREA.QuadroChaves]: [Administrador, Gerente],
+  [AREA.Carimbo]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
 };
 
 describe("podeAcessar", () => {
@@ -62,6 +63,8 @@ describe("areaDaRota", () => {
     expect(areaDaRota("/notas-fiscais")).toBe(AREA.NotasFiscais);
     expect(areaDaRota("/quadros-chaves")).toBe(AREA.QuadroChaves);
     expect(areaDaRota("/quadros-chaves/novo")).toBe(AREA.QuadroChaves);
+    expect(areaDaRota("/carimbo")).toBe(AREA.Carimbo);
+    expect(areaDaRota("/carimbo/qualquer")).toBe(AREA.Carimbo);
   });
 
   it("o histórico de caixas é uma área própria, o resto do caixa não", () => {

@@ -134,6 +134,15 @@ function AgreementIcon(props: IconProps) {
   );
 }
 
+// Carimbo: cabo redondo, base larga e a marca deixada no papel.
+function StampIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M9 4h6v6l2 3H7l2-3zM5 17h14v3H5z" />
+    </IconBase>
+  );
+}
+
 const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   dashboard: DashboardIcon,
   pricing: PricingIcon,
@@ -147,6 +156,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   company: CompanyIcon,
   keys: KeysIcon,
   agreement: AgreementIcon,
+  stamp: StampIcon,
 };
 
 export function NavIcon({ id, ...props }: { id: NavIconId } & IconProps) {

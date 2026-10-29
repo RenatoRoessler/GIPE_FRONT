@@ -1,7 +1,7 @@
 import { AREA, podeAcessar, type Area } from "@/lib/permissoes";
 import type { PerfilUsuario } from "@/types/usuario";
 
-export type NavIconId = "dashboard" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "company" | "invoice" | "keys" | "agreement";
+export type NavIconId = "dashboard" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "company" | "invoice" | "keys" | "agreement" | "stamp";
 
 // Ações do menu que abrem um modal por cima da tela atual, em vez de levar a uma página.
 export type NavAction = "entrada" | "saida";
@@ -39,6 +39,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Entrada de Veículos", shortLabel: "Entrada", acao: "entrada", icon: "vehicleIn", area: AREA.Patio },
   { label: "Saída de Veículos", shortLabel: "Saída", acao: "saida", icon: "vehicleOut", area: AREA.Patio },
   { label: "Caixa", shortLabel: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa },
+  { label: "Carimbar ticket", shortLabel: "Carimbo", href: "/carimbo", icon: "stamp", area: AREA.Carimbo },
   { label: "Dashboard", shortLabel: "Dashboard", href: "/dashboard", icon: "dashboard", area: AREA.Inicio },
   { label: "Gestão de Preços", shortLabel: "Preços", href: "/precos", icon: "pricing", area: AREA.Precos },
   { label: "Gestão de Usuários", shortLabel: "Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios },

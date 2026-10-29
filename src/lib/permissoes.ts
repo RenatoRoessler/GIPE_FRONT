@@ -17,13 +17,16 @@ export const AREA = {
   Usuarios: "usuarios",
   // Cadastro dos quadros de chaves do pátio; escolher o gancho na entrada de veículos faz parte do pátio.
   QuadroChaves: "quadros-chaves",
+  // Carimbo do ticket de entrada pela empresa conveniada, lendo o QR Code do cliente.
+  Carimbo: "carimbo",
 } as const;
 export type Area = (typeof AREA)[keyof typeof AREA];
 
 // Permissão por módulo (tela de permissões): quando existir, substitui a regra padrão da área.
 export type PermissoesPorModulo = Partial<Record<Area, readonly PerfilUsuario[]>>;
 
-const { Administrador, Gerente, Caixa, Manobrista, Financeiro, AdministradorConveniada } = PERFIL_USUARIO;
+const { Administrador, Gerente, Caixa, Manobrista, Financeiro, AdministradorConveniada, GerenteConveniada, UsuarioConveniada } =
+  PERFIL_USUARIO;
 
 const TODOS: readonly PerfilUsuario[] = Object.values(PERFIL_USUARIO);
 
@@ -42,6 +45,7 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.Empresa]: [Administrador],
   [AREA.Usuarios]: [Administrador, AdministradorConveniada],
   [AREA.QuadroChaves]: [Administrador, Gerente],
+  [AREA.Carimbo]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
 };
 
 // Sem perfil conhecido, só o acesso mínimo: o Início (e, fora das áreas, a troca da própria senha e o sair).
@@ -67,6 +71,7 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/minha-empresa", AREA.Empresa],
   ["/usuarios", AREA.Usuarios],
   ["/quadros-chaves", AREA.QuadroChaves],
+  ["/carimbo", AREA.Carimbo],
 ];
 
 // Rotas da área logada abertas a qualquer usuário autenticado.

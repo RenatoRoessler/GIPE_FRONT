@@ -10,12 +10,13 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS.find((item) => item.label === "Pátio")).toEqual({ label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: "patio" });
   });
 
-  it("mantém os doze itens (um por tela), com Pátio, Entrada, Saída e Caixa primeiro e o Dashboard logo depois", () => {
+  it("mantém os treze itens (um por tela), com Pátio, Entrada, Saída e Caixa primeiro e o Dashboard logo depois", () => {
     expect(NAV_ITEMS.map((item) => item.label)).toEqual([
       "Pátio",
       "Entrada de Veículos",
       "Saída de Veículos",
       "Caixa",
+      "Carimbar ticket",
       "Dashboard",
       "Gestão de Preços",
       "Gestão de Usuários",
@@ -27,13 +28,13 @@ describe("NAV_ITEMS", () => {
     ]);
   });
 
-  it("Entrada e Saída são ações (abrem modal); os outros dez são links", () => {
+  it("Entrada e Saída são ações (abrem modal); os outros onze são links", () => {
     const acoes = NAV_ITEMS.filter(isNavAction);
     expect(acoes.map((item) => [item.label, item.acao, item.icon])).toEqual([
       ["Entrada de Veículos", "entrada", "vehicleIn"],
       ["Saída de Veículos", "saida", "vehicleOut"],
     ]);
-    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(10);
+    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(11);
   });
 
   it("não repete chave nem ícone", () => {
@@ -101,9 +102,9 @@ describe("Notas Fiscais no menu", () => {
 describe("navItemsPermitidos", () => {
   const rotulos = (perfil: Parameters<typeof navItemsPermitidos>[0]) => navItemsPermitidos(perfil).map((item) => item.label);
 
-  it("o Administrador vê tudo", () => {
-    expect(navItemsPermitidos(1)).toEqual(NAV_ITEMS);
-    expect(rotulos(1)).toHaveLength(NAV_ITEMS.length);
+  it("o Administrador vê tudo, menos o Carimbo, que é da conveniada", () => {
+    expect(navItemsPermitidos(1)).toEqual(NAV_ITEMS.filter((item) => item.label !== "Carimbar ticket"));
+    expect(rotulos(1)).not.toContain("Carimbar ticket");
   });
 
   it("o Gerente não vê usuários nem a empresa", () => {
@@ -131,7 +132,12 @@ describe("navItemsPermitidos", () => {
   });
 
   it("o Administrador da conveniada vê o início e a gestão de usuários", () => {
-    expect(rotulos(5)).toEqual(["Dashboard", "Gestão de Usuários"]);
+    expect(rotulos(5)).toEqual(["Carimbar ticket", "Dashboard", "Gestão de Usuários"]);
+  });
+
+  it("o Gerente e o Usuário da conveniada vêem o carimbo e o início", () => {
+    expect(rotulos(6)).toEqual(["Carimbar ticket", "Dashboard"]);
+    expect(rotulos(7)).toEqual(["Carimbar ticket", "Dashboard"]);
   });
 
   it("sem perfil conhecido só o Início", () => {
@@ -167,8 +173,9 @@ describe("navItemsPorPrioridade", () => {
   });
 
   it("tem os mesmos itens do menu, só em outra ordem", () => {
-    expect(navItemsPorPrioridade(1)).toHaveLength(NAV_ITEMS.length);
-    expect(new Set(navItemsPorPrioridade(1).map(navItemKey))).toEqual(new Set(NAV_ITEMS.map(navItemKey)));
+    const doMenu = NAV_ITEMS.filter((item) => item.label !== "Carimbar ticket");
+    expect(navItemsPorPrioridade(1)).toHaveLength(doMenu.length);
+    expect(new Set(navItemsPorPrioridade(1).map(navItemKey))).toEqual(new Set(doMenu.map(navItemKey)));
   });
 
   it("devolve a mesma ordem a cada chamada", () => {
@@ -256,7 +263,8 @@ describe("isMaisAtivo", () => {
 
 describe("ordenarPeloMenu", () => {
   it("devolve os itens na ordem do menu, sem alterar a lista recebida", () => {
-    const embaralhados = [NAV_ITEMS[10], NAV_ITEMS[7], NAV_ITEMS[2]];
+    const item = (rotulo: string) => NAV_ITEMS.find((navItem) => navItem.shortLabel === rotulo)!;
+    const embaralhados = [item("Empresa"), item("Mensalistas"), item("Saída")];
     const copia = [...embaralhados];
 
     expect(ordenarPeloMenu(embaralhados).map((item) => item.shortLabel)).toEqual(["Saída", "Mensalistas", "Empresa"]);
