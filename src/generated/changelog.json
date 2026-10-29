@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.276",
+      "type": "feat",
+      "scope": "inicio",
+      "title": "abre o Pátio no celular e o Dashboard nas telas grandes",
+      "description": "Depois do login, e ao abrir a raiz do sistema ou um endereço que não\nexiste, o sistema passa a levar ao Pátio em telas pequenas e ao Dashboard\nem telas grandes (a partir de 1024px, onde aparece o menu lateral). Quem\nnão tem acesso ao Pátio vai sempre ao Dashboard.",
+      "date": "2026-10-28T21:48:50-03:00"
+    },
+    {
       "version": "1.0.274",
       "type": "feat",
       "scope": "patio",
