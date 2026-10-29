@@ -5,6 +5,8 @@ import { renderWithTheme } from "@/test/render";
 
 const modais = vi.hoisted(() => ({ abrirEntrada: vi.fn(), abrirSaida: vi.fn() }));
 vi.mock("../VeiculoModais", () => ({ useVeiculoModais: () => modais }));
+const permissao = vi.hoisted(() => ({ podeVerPatio: true }));
+vi.mock("@/hooks/useCan", () => ({ useCan: () => permissao.podeVerPatio }));
 
 import { RegistrarEntradaButton } from "./RegistrarEntradaButton";
 import { RegistrarSaidaButton } from "../RegistrarSaidaButton/RegistrarSaidaButton";
@@ -13,6 +15,7 @@ describe("botões do Início", () => {
   beforeEach(() => {
     modais.abrirEntrada.mockReset();
     modais.abrirSaida.mockReset();
+    permissao.podeVerPatio = true;
   });
 
   it("\"Registrar entrada\" abre o modal de entrada pelo host", async () => {
@@ -33,5 +36,18 @@ describe("botões do Início", () => {
     await userEvent.setup().click(botao);
     expect(modais.abrirSaida).toHaveBeenCalledTimes(1);
     expect(modais.abrirEntrada).not.toHaveBeenCalled();
+  });
+
+  it("sem permissão no pátio, nenhum dos dois botões aparece", () => {
+    permissao.podeVerPatio = false;
+    renderWithTheme(
+      <>
+        <RegistrarEntradaButton />
+        <RegistrarSaidaButton />
+      </>,
+    );
+
+    expect(screen.queryByRole("button", { name: /Registrar entrada/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Registrar saída/ })).not.toBeInTheDocument();
   });
 });
