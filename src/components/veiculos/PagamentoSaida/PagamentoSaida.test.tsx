@@ -69,7 +69,7 @@ describe("PagamentoSaida", () => {
     const campo = screen.getByLabelText("Valor recebido");
     expect(campo).not.toHaveFocus();
     await userEvent.type(campo, "5{Enter}");
-    expect(onRecebidoChange).toHaveBeenCalledWith("5");
+    expect(onRecebidoChange).toHaveBeenCalledWith("R$ 5");
     expect(onEnter).toHaveBeenCalledTimes(1);
   });
 

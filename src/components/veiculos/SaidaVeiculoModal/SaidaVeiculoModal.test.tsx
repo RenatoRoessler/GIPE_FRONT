@@ -316,7 +316,7 @@ describe("SaidaVeiculoModal: fase de pagamento", () => {
     await user.click(confirmar("20,00"));
 
     expect(await screen.findByText("Não há caixa aberto.")).toBeInTheDocument();
-    expect(screen.getByLabelText("Valor recebido")).toHaveValue("50");
+    expect(screen.getByLabelText("Valor recebido")).toHaveValue("R$ 50");
     expect(screen.getByText("ONIX · PRATA")).toBeInTheDocument();
     expect(confirmar("20,00")).toBeEnabled();
     expect(voltar()).toBeEnabled();

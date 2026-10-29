@@ -6,7 +6,7 @@ import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Input } from "@/components/ui/Input";
 import { OptionGroup } from "@/components/ui/OptionGroup";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { formatBRL, parseMoney } from "@/lib/money";
+import { formatBRL, maskMoney, parseMoney } from "@/lib/money";
 import { FORMA_PAGAMENTO } from "@/types/caixa";
 import type { SaidaConsulta } from "@/types/saida";
 import { Hint, TrocoLine, VisuallyHidden } from "../Saida.styles";
@@ -105,9 +105,9 @@ export function PagamentoSaida({
         <Input
           label="Valor recebido"
           inputMode="decimal"
-          placeholder="0,00"
+          placeholder="R$ 0,00"
           value={recebido}
-          onChange={(event) => onRecebidoChange(event.target.value)}
+          onChange={(event) => onRecebidoChange(maskMoney(event.target.value))}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
