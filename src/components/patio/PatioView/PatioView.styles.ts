@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { Button } from "@/components/ui/Button";
 
 // Abaixo de `breakpoints.md` os blocos empilham e os alvos de toque chegam a 44px.
-const mobile = ({ theme }: { theme: { breakpoints: { md: string } } }) => `@media (max-width: calc(${theme.breakpoints.md} - 1px))`;
+const mobile = ({ theme }: { theme: { breakpoints: { md: string } } }) => `@media (max-width: ${parseInt(theme.breakpoints.md, 10) - 1}px)`;
 const desktop = ({ theme }: { theme: { breakpoints: { md: string } } }) => `@media (min-width: ${theme.breakpoints.md})`;
 
 export const Conteudo = styled.div`
@@ -24,6 +24,17 @@ export const Topo = styled.header`
   align-items: flex-start;
   justify-content: space-between;
   gap: ${({ theme }) => theme.space[3]}px;
+
+  /* No celular o topo (título, estacionamento e hora) some da vista, mas continua para o leitor de tela. */
+  ${mobile} {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
 `;
 
 export const Titulo = styled.h1`
