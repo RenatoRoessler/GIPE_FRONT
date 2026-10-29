@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.279",
+      "type": "feat",
+      "scope": "patio",
+      "title": "esconde Filtros e gráficos do pátio no celular",
+      "description": "Nas telas pequenas, a tela do Pátio não mostra mais o botão \"Filtros\"\nnem o botão \"Ver gráficos do pátio\". Nas telas grandes nada muda.",
+      "date": "2026-10-28T22:05:38-03:00"
+    },
+    {
+      "version": "1.0.278",
+      "type": "feat",
+      "scope": "menu",
+      "title": "move o link da versão para dentro do menu",
+      "description": "O link da versão (ex.: v1.0.277) saía num rodapé no fim de cada página.\nAgora fica no pé do menu lateral, nas telas grandes, e no fim do painel\n\"Mais\" da barra inferior, no celular. Continua levando à página de\natualizações, com a entrada mais recente destacada, e mostra \"Versão\nindisponível\" quando o histórico está incompleto.\n\n- Remove o rodapé e libera o espaço que ele ocupava\n- Extrai getVersionLink() em lib/version.ts para os dois menus",
+      "date": "2026-10-28T22:05:38-03:00"
+    },
+    {
       "version": "1.0.276",
       "type": "feat",
       "scope": "inicio",
