@@ -8,6 +8,7 @@ const desktop = ({ theme }: { theme: { breakpoints: { md: string } } }) => `@med
 // Celular: uma coluna. Computador: veículo e destaques à esquerda; itens e ações à direita.
 export const Colunas = styled.div`
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
 
@@ -19,11 +20,22 @@ export const Colunas = styled.div`
   }
 `;
 
+// No celular a última coluna ocupa a altura que sobra, para empurrar as ações ao pé do popup.
 export const Coluna = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
   min-width: 0;
+
+  &:last-child {
+    flex: 1;
+  }
+
+  ${desktop} {
+    &:last-child {
+      flex: none;
+    }
+  }
 `;
 
 export const VeiculoBloco = styled.section`
@@ -192,7 +204,8 @@ export const Aviso = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.sm};
 `;
 
-// Celular: as ações ficam coladas acima do menu inferior, com o conteúdo rolando por trás.
+// Celular: as ações ficam no pé do popup (rodapé colado ao fundo, sangrando o respiro do corpo), com o conteúdo
+// rolando por trás quando não cabe.
 export const Acoes = styled.div`
   display: flex;
   flex-direction: column;
@@ -200,10 +213,11 @@ export const Acoes = styled.div`
 
   @media (max-width: calc(${({ theme }) => theme.breakpoints.md} - 1px)) {
     position: sticky;
-    bottom: calc(${({ theme }) => theme.layout.bottomNavHeight} + env(safe-area-inset-bottom, 0px));
+    bottom: -${({ theme }) => theme.space[4]}px;
     z-index: 10;
-    margin: 0 -${({ theme }) => theme.space[3]}px;
-    padding: ${({ theme }) => theme.space[3]}px;
+    margin: auto -${({ theme }) => theme.space[4]}px -${({ theme }) => theme.space[4]}px;
+    padding: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[4]}px
+      calc(${({ theme }) => theme.space[3]}px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid ${({ theme }) => theme.colors.border};
     background-color: ${({ theme }) => theme.colors.surface};
   }
