@@ -24,6 +24,8 @@ import {
   saveRememberedLogin,
 } from "@/lib/rememberedLogin";
 import { loginSchema, LoginValues } from "@/lib/schemas/login";
+import { parseSession } from "@/lib/session";
+import { telaInicial } from "@/lib/telaInicial";
 import type { EmpresaOpcao } from "@/types/auth";
 
 // Avisos exibidos ao chegar no login por outro fluxo (parâmetro de URL -> mensagem).
@@ -57,7 +59,7 @@ export function LoginForm() {
     } else {
       await clearRememberedLogin();
     }
-    router.push("/dashboard");
+    router.push(telaInicial(parseSession(token)?.perfil));
   }
 
   const escolha = useMutation({

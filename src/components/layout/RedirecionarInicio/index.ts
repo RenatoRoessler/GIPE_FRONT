@@ -1,0 +1,1 @@
+export { RedirecionarInicio } from "./RedirecionarInicio";
