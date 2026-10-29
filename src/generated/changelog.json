@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.274",
+      "type": "feat",
+      "scope": "patio",
+      "title": "esconde o topo do Pátio no celular",
+      "description": "Em telas pequenas o título, o nome do estacionamento e a hora no topo do\nPátio deixam de aparecer, dando mais espaço ao resumo e à lista. O título\ncontinua disponível para leitores de tela. Também corrige a regra de tela\npequena do Pátio para funcionar em navegadores de celular que não\nentendem cálculos dentro da condição de largura.",
+      "date": "2026-10-28T21:44:58-03:00"
+    },
+    {
       "version": "1.0.272",
       "type": "feat",
       "scope": "patio",
