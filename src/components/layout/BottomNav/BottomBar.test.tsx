@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
 
 import { BottomBar } from "./BottomBar";
 
-// Início, Entrada, Saída e Pátio: o que cabe numa tela de 320px a 375px, com o "Mais" no quinto espaço.
+// Pátio, Entrada, Saída e Caixa: o que cabe numa tela de 320px a 375px, com o "Mais" no quinto espaço.
 const itensDoAdmin = navItemsPorPrioridade(1);
 const quatro = itensDoAdmin.slice(0, 4);
 
@@ -35,15 +35,15 @@ function renderBar(props: Partial<React.ComponentProps<typeof BottomBar>> = {}) 
 }
 
 describe("BottomBar", () => {
-  it("mostra Início (link), Entrada e Saída (botões), Pátio (link) e o botão Mais", () => {
+  it("mostra Pátio (link), Entrada e Saída (botões), Caixa (link) e o botão Mais", () => {
     pathname = "/dashboard";
     renderBar();
 
     expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Início" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: "Pátio" })).toHaveAttribute("href", "/patio");
     expect(screen.getByRole("button", { name: "Entrada" })).toHaveAttribute("aria-haspopup", "dialog");
     expect(screen.getByRole("button", { name: "Saída" })).toHaveAttribute("aria-haspopup", "dialog");
-    expect(screen.getByRole("link", { name: "Pátio" })).toHaveAttribute("href", "/patio");
+    expect(screen.getByRole("link", { name: "Caixa" })).toHaveAttribute("href", "/caixa");
     expect(screen.getByRole("button", { name: "Mais" })).toBeInTheDocument();
     // Entrada e Saída não levam a nenhuma página.
     expect(screen.queryByRole("link", { name: "Entrada" })).not.toBeInTheDocument();
@@ -88,20 +88,20 @@ describe("BottomBar", () => {
   });
 
   it("marca como página atual só o link da rota atual", () => {
-    pathname = "/dashboard";
+    pathname = "/patio";
     const { unmount } = renderBar();
-    expect(screen.getByRole("link", { name: "Início" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Pátio" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Pátio" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Caixa" })).not.toHaveAttribute("aria-current");
     unmount();
 
-    pathname = "/patio/detalhe";
+    pathname = "/caixa/detalhe";
     renderBar();
-    expect(screen.getByRole("link", { name: "Início" })).not.toHaveAttribute("aria-current");
-    expect(screen.getByRole("link", { name: "Pátio" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Pátio" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Caixa" })).toHaveAttribute("aria-current", "page");
   });
 
   it("destaca o Mais só quando pedido (painel aberto ou tela atual entre os itens que não couberam)", () => {
-    pathname = "/caixa";
+    pathname = "/dashboard";
     const { unmount } = renderBar({ maisAtivo: true });
     expect(screen.getByRole("button", { name: "Mais" })).toHaveStyle({ color: lightTheme.colors.text });
     unmount();
@@ -115,10 +115,10 @@ describe("BottomBar", () => {
     renderBar();
 
     const abas = [
-      screen.getByRole("link", { name: "Início" }),
+      screen.getByRole("link", { name: "Pátio" }),
       screen.getByRole("button", { name: "Entrada" }),
       screen.getByRole("button", { name: "Saída" }),
-      screen.getByRole("link", { name: "Pátio" }),
+      screen.getByRole("link", { name: "Caixa" }),
       screen.getByRole("button", { name: "Mais" }),
     ];
     const desenhos = abas.map((aba) => {

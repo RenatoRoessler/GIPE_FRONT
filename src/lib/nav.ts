@@ -1,7 +1,7 @@
 import { AREA, podeAcessar, type Area } from "@/lib/permissoes";
 import type { PerfilUsuario } from "@/types/usuario";
 
-export type NavIconId = "home" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "company" | "invoice" | "keys";
+export type NavIconId = "dashboard" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "company" | "invoice" | "keys";
 
 // Ações do menu que abrem um modal por cima da tela atual, em vez de levar a uma página.
 export type NavAction = "entrada" | "saida";
@@ -35,11 +35,11 @@ export function navItemKey(item: NavItem): string {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Início", shortLabel: "Início", href: "/dashboard", icon: "home", area: AREA.Inicio },
+  { label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: AREA.Patio },
   { label: "Entrada de Veículos", shortLabel: "Entrada", acao: "entrada", icon: "vehicleIn", area: AREA.Patio },
   { label: "Saída de Veículos", shortLabel: "Saída", acao: "saida", icon: "vehicleOut", area: AREA.Patio },
-  { label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: AREA.Patio },
   { label: "Caixa", shortLabel: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa },
+  { label: "Dashboard", shortLabel: "Dashboard", href: "/dashboard", icon: "dashboard", area: AREA.Inicio },
   { label: "Gestão de Preços", shortLabel: "Preços", href: "/precos", icon: "pricing", area: AREA.Precos },
   { label: "Gestão de Usuários", shortLabel: "Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios },
   { label: "Mensalistas", shortLabel: "Mensalistas", href: "/mensalistas", icon: "members", area: AREA.Mensalistas },
@@ -48,12 +48,12 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Quadros de Chaves", shortLabel: "Chaves", href: "/quadros-chaves", icon: "keys", area: AREA.QuadroChaves },
 ];
 
-// Itens do menu que o perfil pode abrir; sem perfil conhecido, só o Início.
+// Itens do menu que o perfil pode abrir; sem perfil conhecido, só o Dashboard.
 export function navItemsPermitidos(perfil: PerfilUsuario | null | undefined): NavItem[] {
   return NAV_ITEMS.filter((item) => podeAcessar(perfil, item.area));
 }
 
-// "Início" só é ativo na rota exata; os demais também nas rotas filhas.
+// "Dashboard" só é ativo na rota exata; os demais também nas rotas filhas.
 export function isNavItemActive(pathname: string, href: string) {
   return href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -64,10 +64,10 @@ export function isNavActive(pathname: string, item: NavItem) {
 }
 
 // Itens que a barra inferior mostra primeiro quando falta espaço: o dia a dia do pátio.
-const BAR_PRIORITY = ["/dashboard", "entrada", "saida"];
+const BAR_PRIORITY = ["/patio", "entrada", "saida", "/caixa"];
 
 // Itens que o perfil pode abrir, na ordem em que disputam espaço na barra inferior:
-// Início, Entrada e Saída primeiro e depois a ordem do menu.
+// Pátio, Entrada, Saída e Caixa primeiro e depois a ordem do menu.
 export function navItemsPorPrioridade(perfil: PerfilUsuario | null | undefined): NavItem[] {
   const prioridade = (item: NavItem) => {
     const posicao = BAR_PRIORITY.indexOf(navItemKey(item));
@@ -79,17 +79,23 @@ export function navItemsPorPrioridade(perfil: PerfilUsuario | null | undefined):
     .map(({ item }) => item);
 }
 
-// A barra tem no mínimo três espaços (três itens, ou dois itens e o "Mais").
-const MIN_SLOTS = 3;
+// A barra tem no mínimo cinco espaços (quatro itens e o "Mais"): Pátio, Entrada, Saída e Caixa aparecem até em telas estreitas.
+const MIN_SLOTS = 5;
+
+// Em telas de celular (menos de COMPACTA_ABAIXO espaços) a barra mostra só os itens prioritários (Pátio, Entrada, Saída e Caixa)
+// e deixa o resto, a começar pelo Dashboard, no "Mais".
+const COMPACTA_ABAIXO = 8;
+const ITENS_NA_BARRA_COMPACTA = BAR_PRIORITY.length;
 
 // Separa os itens que cabem na barra dos que vão para o menu estendido. Se nem todos cabem, o último
 // espaço é do botão "Mais", então um a menos é mostrado.
 export function dividirItensDaBarra<T>(itens: T[], capacidade: number): { visiveis: T[]; excedentes: T[] } {
   const slots = Math.max(capacidade, MIN_SLOTS);
-  if (itens.length <= slots) {
+  const mostrados = slots < COMPACTA_ABAIXO ? ITENS_NA_BARRA_COMPACTA : slots - 1;
+  if (itens.length <= mostrados || (slots >= COMPACTA_ABAIXO && itens.length <= slots)) {
     return { visiveis: itens, excedentes: [] };
   }
-  return { visiveis: itens.slice(0, slots - 1), excedentes: itens.slice(slots - 1) };
+  return { visiveis: itens.slice(0, mostrados), excedentes: itens.slice(mostrados) };
 }
 
 // O botão "Mais" fica ativo quando a tela atual é um dos itens que não couberam na barra.

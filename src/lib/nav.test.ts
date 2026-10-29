@@ -3,21 +3,20 @@ import { lightTheme, darkTheme } from "@/styles/theme";
 import { dividirItensDaBarra, isMaisAtivo, isNavAction, isNavActive, isNavItemActive, NAV_ITEMS, navItemKey, navItemsPermitidos, navItemsPorPrioridade, ordenarPeloMenu } from "./nav";
 
 describe("NAV_ITEMS", () => {
-  it("o Pátio fica entre a saída de veículos e o caixa", () => {
+  it("o Pátio é o primeiro item, seguido de Entrada, Saída e Caixa", () => {
     const rotulos = NAV_ITEMS.map((item) => item.label);
 
-    expect(rotulos.indexOf("Pátio")).toBe(rotulos.indexOf("Saída de Veículos") + 1);
-    expect(rotulos.indexOf("Caixa")).toBe(rotulos.indexOf("Pátio") + 1);
+    expect(rotulos.slice(0, 4)).toEqual(["Pátio", "Entrada de Veículos", "Saída de Veículos", "Caixa"]);
     expect(NAV_ITEMS.find((item) => item.label === "Pátio")).toEqual({ label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: "patio" });
   });
 
-  it("mantém os onze itens (um por tela), com Entrada, Saída, Pátio e Caixa logo depois do Início", () => {
+  it("mantém os onze itens (um por tela), com Pátio, Entrada, Saída e Caixa primeiro e o Dashboard logo depois", () => {
     expect(NAV_ITEMS.map((item) => item.label)).toEqual([
-      "Início",
+      "Pátio",
       "Entrada de Veículos",
       "Saída de Veículos",
-      "Pátio",
       "Caixa",
+      "Dashboard",
       "Gestão de Preços",
       "Gestão de Usuários",
       "Mensalistas",
@@ -108,11 +107,11 @@ describe("navItemsPermitidos", () => {
 
   it("o Gerente não vê usuários nem a empresa", () => {
     expect(rotulos(2)).toEqual([
-      "Início",
+      "Pátio",
       "Entrada de Veículos",
       "Saída de Veículos",
-      "Pátio",
       "Caixa",
+      "Dashboard",
       "Gestão de Preços",
       "Mensalistas",
       "Notas Fiscais",
@@ -121,22 +120,22 @@ describe("navItemsPermitidos", () => {
   });
 
   it("o Caixa e o Manobrista só veem o dia a dia do pátio e do caixa", () => {
-    const esperado = ["Início", "Entrada de Veículos", "Saída de Veículos", "Pátio", "Caixa"];
+    const esperado = ["Pátio", "Entrada de Veículos", "Saída de Veículos", "Caixa", "Dashboard"];
     expect(rotulos(4)).toEqual(esperado);
     expect(rotulos(3)).toEqual(esperado);
   });
 
   it("o Financeiro vê o início e as notas fiscais", () => {
-    expect(rotulos(8)).toEqual(["Início", "Notas Fiscais"]);
+    expect(rotulos(8)).toEqual(["Dashboard", "Notas Fiscais"]);
   });
 
   it("o Administrador da conveniada vê o início e a gestão de usuários", () => {
-    expect(rotulos(5)).toEqual(["Início", "Gestão de Usuários"]);
+    expect(rotulos(5)).toEqual(["Dashboard", "Gestão de Usuários"]);
   });
 
   it("sem perfil conhecido só o Início", () => {
-    expect(rotulos(null)).toEqual(["Início"]);
-    expect(rotulos(undefined)).toEqual(["Início"]);
+    expect(rotulos(null)).toEqual(["Dashboard"]);
+    expect(rotulos(undefined)).toEqual(["Dashboard"]);
   });
 });
 
@@ -156,14 +155,14 @@ describe("rótulos curtos", () => {
 describe("navItemsPorPrioridade", () => {
   const rotulos = (perfil: Parameters<typeof navItemsPorPrioridade>[0]) => navItemsPorPrioridade(perfil).map((item) => item.shortLabel);
 
-  it("Início, Entrada e Saída vêm primeiro e o resto segue a ordem do menu", () => {
-    expect(rotulos(1)).toEqual(["Início", "Entrada", "Saída", "Pátio", "Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
+  it("Pátio, Entrada, Saída e Caixa vêm primeiro e o resto segue a ordem do menu", () => {
+    expect(rotulos(1)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Dashboard", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
   });
 
   it("só traz o que o perfil pode abrir", () => {
-    expect(rotulos(4)).toEqual(["Início", "Entrada", "Saída", "Pátio", "Caixa"]);
-    expect(rotulos(8)).toEqual(["Início", "Notas"]);
-    expect(rotulos(null)).toEqual(["Início"]);
+    expect(rotulos(4)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Dashboard"]);
+    expect(rotulos(8)).toEqual(["Dashboard", "Notas"]);
+    expect(rotulos(null)).toEqual(["Dashboard"]);
   });
 
   it("tem os mesmos itens do menu, só em outra ordem", () => {
@@ -190,8 +189,8 @@ describe("dividirItensDaBarra", () => {
 
   it("reserva o último espaço para o Mais quando falta lugar", () => {
     const { visiveis, excedentes } = dividirItensDaBarra(itens, 5);
-    expect(rotulos(visiveis)).toEqual(["Início", "Entrada", "Saída", "Pátio"]);
-    expect(rotulos(excedentes)).toEqual(["Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
+    expect(rotulos(visiveis)).toEqual(["Pátio", "Entrada", "Saída", "Caixa"]);
+    expect(rotulos(excedentes)).toEqual(["Dashboard", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
     expect(visiveis.length + 1).toBe(5);
   });
 
@@ -201,11 +200,11 @@ describe("dividirItensDaBarra", () => {
     expect(excedentes).toHaveLength(3);
   });
 
-  it("nunca usa menos de três espaços", () => {
+  it("nunca usa menos de cinco espaços", () => {
     for (const capacidade of [0, 1, 2, 3]) {
       const { visiveis, excedentes } = dividirItensDaBarra(itens, capacidade);
-      expect(rotulos(visiveis)).toEqual(["Início", "Entrada"]);
-      expect(excedentes).toHaveLength(itens.length - 2);
+      expect(rotulos(visiveis)).toEqual(["Pátio", "Entrada", "Saída", "Caixa"]);
+      expect(excedentes).toHaveLength(itens.length - 4);
     }
   });
 
@@ -216,9 +215,10 @@ describe("dividirItensDaBarra", () => {
     }
   });
 
-  it("perfil com poucos itens cabe sem Mais mesmo em tela estreita", () => {
+  it("perfil com poucos itens: em tela estreita o Dashboard vai para o Mais, em tela larga cabe tudo", () => {
     const operador = navItemsPorPrioridade(4);
-    expect(dividirItensDaBarra(operador, 5).excedentes).toEqual([]);
+    expect(dividirItensDaBarra(operador, 5).excedentes.map((item) => item.shortLabel)).toEqual(["Dashboard"]);
+    expect(dividirItensDaBarra(operador, 8).excedentes).toEqual([]);
     const financeiro = navItemsPorPrioridade(8);
     expect(dividirItensDaBarra(financeiro, 1)).toEqual({ visiveis: financeiro, excedentes: [] });
   });
@@ -234,18 +234,18 @@ describe("isMaisAtivo", () => {
   const { excedentes } = dividirItensDaBarra(itens, 5);
 
   it("é verdadeiro quando a tela atual é um item que não coube na barra", () => {
-    expect(isMaisAtivo("/caixa", excedentes)).toBe(true);
+    expect(isMaisAtivo("/dashboard", excedentes)).toBe(true);
     expect(isMaisAtivo("/mensalistas/novo", excedentes)).toBe(true);
   });
 
   it("é falso quando a tela atual está na barra ou fora do menu", () => {
-    expect(isMaisAtivo("/dashboard", excedentes)).toBe(false);
+    expect(isMaisAtivo("/caixa", excedentes)).toBe(false);
     expect(isMaisAtivo("/patio", excedentes)).toBe(false);
     expect(isMaisAtivo("/acesso-negado", excedentes)).toBe(false);
   });
 
   it("é falso sem itens excedentes", () => {
-    expect(isMaisAtivo("/caixa", [])).toBe(false);
+    expect(isMaisAtivo("/dashboard", [])).toBe(false);
   });
 
   it("Entrada e Saída são ações e nunca deixam o Mais ativo", () => {
@@ -264,6 +264,6 @@ describe("ordenarPeloMenu", () => {
 
   it("recoloca os excedentes da barra na ordem natural do menu", () => {
     const { excedentes } = dividirItensDaBarra(navItemsPorPrioridade(1), 5);
-    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Caixa", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
+    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Dashboard", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
   });
 });

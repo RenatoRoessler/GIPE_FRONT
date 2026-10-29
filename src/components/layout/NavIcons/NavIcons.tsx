@@ -20,10 +20,14 @@ function IconBase(props: IconProps) {
   );
 }
 
-function HomeIcon(props: IconProps) {
+// Dashboard: quatro painéis, dois maiores e dois menores.
+function DashboardIcon(props: IconProps) {
   return (
     <IconBase {...props}>
-      <path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z" />
+      <rect x="4" y="4" width="7" height="9" rx="1.5" />
+      <rect x="13" y="4" width="7" height="5" rx="1.5" />
+      <rect x="4" y="15" width="7" height="5" rx="1.5" />
+      <rect x="13" y="11" width="7" height="9" rx="1.5" />
     </IconBase>
   );
 }
@@ -122,7 +126,7 @@ function KeysIcon(props: IconProps) {
 }
 
 const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
-  home: HomeIcon,
+  dashboard: DashboardIcon,
   pricing: PricingIcon,
   users: UsersIcon,
   members: MembersIcon,

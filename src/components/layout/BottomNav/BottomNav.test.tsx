@@ -57,7 +57,7 @@ describe("BottomNav: itens da barra", () => {
     renderWithTheme(<BottomNav />);
 
     const nomes = Array.from(screen.getByRole("navigation", { name: "Navegação principal" }).querySelectorAll("a, button")).map((item) => item.textContent);
-    expect(nomes).toEqual(["Início", "Entrada", "Saída", "Pátio", "Mais"]);
+    expect(nomes).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Mais"]);
   });
 
   it("quando todos os itens cabem, mostra todos e não oferece o Mais", () => {
@@ -71,12 +71,12 @@ describe("BottomNav: itens da barra", () => {
     expect(itensDoPainel()).toEqual([]);
   });
 
-  it("nunca usa menos de três espaços, mesmo com a barra mais estreita", () => {
+  it("nunca usa menos de cinco espaços: Pátio, Entrada, Saída, Caixa e Mais, mesmo com a barra mais estreita", () => {
     barra.capacidade = 0;
     renderWithTheme(<BottomNav />);
 
     const nomes = Array.from(screen.getByRole("navigation", { name: "Navegação principal" }).querySelectorAll("a, button")).map((item) => item.textContent);
-    expect(nomes).toEqual(["Início", "Entrada", "Mais"]);
+    expect(nomes).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Mais"]);
   });
 
   it("enquanto a largura não foi medida, mostra só espaços reservados", () => {
@@ -97,7 +97,7 @@ describe("BottomNav: itens da barra", () => {
     sessao.atual = { user: { name: "Ana", perfil: 8 }, isLoading: false };
     renderWithTheme(<BottomNav />);
 
-    expect(screen.getByRole("link", { name: "Início" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Notas" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrada" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
@@ -129,73 +129,33 @@ describe("BottomNav: menu estendido", () => {
     expect(painel()).toHaveAttribute("open");
     expect(maisButton()).toHaveAttribute("aria-expanded", "true");
     expect(within(painel()).getByRole("heading", { name: "Mais", ...opcoes })).toBeInTheDocument();
-    expect(itensDoPainel()).toEqual(["Caixa", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Notas Fiscais", "Minha Empresa", "Quadros de Chaves"]);
+    expect(itensDoPainel()).toEqual(["Dashboard", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Notas Fiscais", "Minha Empresa", "Quadros de Chaves"]);
   });
 
   it("mostra o nome completo dos itens, não o rótulo curto", async () => {
     barra.capacidade = 3;
     await abrir();
 
-    expect(itensDoPainel()).toContain("Saída de Veículos");
+    expect(itensDoPainel()).toContain("Dashboard");
     expect(itensDoPainel()).toContain("Gestão de Preços");
-    expect(itensDoPainel()).not.toContain("Início");
+    expect(itensDoPainel()).not.toContain("Pátio");
     expect(itensDoPainel()).not.toContain("Entrada de Veículos");
   });
 
   it("o painel mostra só as telas que o perfil pode abrir", async () => {
-    sessao.atual = { user: { name: "Joao", perfil: 3 }, isLoading: false };
+    sessao.atual = { user: { name: "Joao", perfil: 2 }, isLoading: false };
     barra.capacidade = 4;
     await abrir();
 
-    expect(itensDoPainel()).toEqual(["Pátio", "Caixa"]);
-  });
-
-  it("Entrada e Saída, quando não cabem na barra, são botões no painel, não links", async () => {
-    barra.capacidade = 3;
-    await abrir();
-
-    expect(within(painel()).queryByRole("link", { name: "Saída de Veículos", ...opcoes })).not.toBeInTheDocument();
-    const saida = within(painel()).getByRole("button", { name: "Saída de Veículos", ...opcoes });
-    expect(saida).toHaveAttribute("aria-haspopup", "dialog");
-    expect(saida).not.toHaveAttribute("aria-current");
-  });
-
-  it("tocar em Saída no painel fecha o painel e só depois abre o modal; o foco volta ao Mais", async () => {
-    barra.capacidade = 3;
-    const { user } = await abrir();
-    // No instante em que o modal é pedido, o painel já não pode estar aberto.
-    let painelAbertoNaAbertura: boolean | null = null;
-    modais.abrirSaida.mockImplementation(() => {
-      painelAbertoNaAbertura = painel().hasAttribute("open");
-    });
-
-    await user.click(within(painel()).getByRole("button", { name: "Saída de Veículos", ...opcoes }));
-
-    expect(modais.abrirSaida).toHaveBeenCalledTimes(1);
-    expect(painelAbertoNaAbertura).toBe(false);
-    expect(painel()).not.toHaveAttribute("open");
-    expect(modais.abrirEntrada).not.toHaveBeenCalled();
-    expect(maisButton()).toHaveFocus();
-  });
-
-  it("fechar o painel sem escolher nada nunca abre modal, nem depois de uma ação anterior", async () => {
-    barra.capacidade = 3;
-    const { user } = await abrir();
-    await user.click(within(painel()).getByRole("button", { name: "Saída de Veículos", ...opcoes }));
-    expect(modais.abrirSaida).toHaveBeenCalledTimes(1);
-
-    await user.click(maisButton());
-    await user.click(within(painel()).getByRole("button", { name: "Fechar menu", ...opcoes }));
-    expect(modais.abrirSaida).toHaveBeenCalledTimes(1);
-    expect(modais.abrirEntrada).not.toHaveBeenCalled();
+    expect(itensDoPainel()).toEqual(["Dashboard", "Gestão de Preços", "Mensalistas", "Notas Fiscais", "Quadros de Chaves"]);
   });
 
   it("marca a tela atual no painel, e só ela", async () => {
-    pathname = "/caixa";
+    pathname = "/dashboard";
     await abrir();
 
     const links = within(painel()).getAllByRole("link", opcoes);
-    expect(links.filter((link) => link.getAttribute("aria-current") === "page").map((link) => link.textContent)).toEqual(["Caixa"]);
+    expect(links.filter((link) => link.getAttribute("aria-current") === "page").map((link) => link.textContent)).toEqual(["Dashboard"]);
   });
 
   it("fecha no botão de fechar e devolve o foco ao botão Mais", async () => {
@@ -219,7 +179,7 @@ describe("BottomNav: menu estendido", () => {
 
   it("fecha ao escolher uma tela", async () => {
     const { user } = await abrir();
-    await user.click(within(painel()).getByRole("link", { name: "Caixa", ...opcoes }));
+    await user.click(within(painel()).getByRole("link", { name: "Dashboard", ...opcoes }));
     expect(painel()).not.toHaveAttribute("open");
   });
 
@@ -246,11 +206,11 @@ describe("BottomNav: menu estendido", () => {
   it("continua aberto, só com menos itens, quando a barra passa a comportar mais um item", async () => {
     const { rerender } = await abrir();
 
-    barra.capacidade = 6;
+    barra.capacidade = 8;
     rerender(<BottomNav />);
 
     expect(painel()).toHaveAttribute("open");
-    expect(itensDoPainel()).toEqual(["Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Notas Fiscais", "Minha Empresa", "Quadros de Chaves"]);
+    expect(itensDoPainel()).toEqual(["Mensalistas", "Notas Fiscais", "Minha Empresa", "Quadros de Chaves"]);
   });
 
   it("fecha quando a tela cresce e tudo passa a caber na barra, e o foco vai para a barra", async () => {
@@ -261,13 +221,13 @@ describe("BottomNav: menu estendido", () => {
 
     expect(painel()).not.toHaveAttribute("open");
     expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Início" })).toHaveFocus();
+    expect(screen.getByRole("link", { name: "Pátio" })).toHaveFocus();
   });
 });
 
 describe("BottomNav: Mais destacado", () => {
-  it("fica apagado quando a tela atual é o Início ou outro item que cabe na barra", () => {
-    for (const rota of ["/dashboard", "/patio"]) {
+  it("fica apagado quando a tela atual é o Pátio ou outro item que cabe na barra", () => {
+    for (const rota of ["/caixa", "/patio"]) {
       pathname = rota;
       const { unmount } = renderWithTheme(<BottomNav />);
       expect(maisButton()).toHaveStyle({ color: lightTheme.colors.textMuted });
@@ -276,7 +236,7 @@ describe("BottomNav: Mais destacado", () => {
   });
 
   it("é destacado quando a tela atual é um item que não coube na barra", () => {
-    for (const rota of ["/caixa", "/mensalistas/novo", "/minha-empresa"]) {
+    for (const rota of ["/dashboard", "/mensalistas/novo", "/minha-empresa"]) {
       pathname = rota;
       const { unmount } = renderWithTheme(<BottomNav />);
       expect(maisButton()).toHaveStyle({ color: lightTheme.colors.text });
