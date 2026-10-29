@@ -35,6 +35,9 @@ const shared = {
     bottomNavHeight: "64px",
     // Largura máxima do conteúdo da barra inferior e do menu estendido em telas grandes.
     contentMaxWidth: "1120px",
+    // Menu lateral das telas grandes: recolhido (só ícones) e expandido (com os nomes).
+    sideNavWidth: "72px",
+    sideNavExpandedWidth: "240px",
   },
   breakpoints: {
     sm: "480px",

@@ -9,8 +9,14 @@ export const Layout = styled.div`
   min-height: 100vh;
   background-color: ${({ theme }) => theme.colors.surface};
 
-  /* A barra de navegação inferior é fixa em todas as larguras: o fim da página (rodapé) ganha a folga dela. */
+  /* No celular a barra de navegação inferior é fixa: o fim da página (rodapé) ganha a folga dela. */
   padding-bottom: calc(${({ theme }) => theme.layout.bottomNavHeight} + env(safe-area-inset-bottom, 0px));
+
+  /* Em telas grandes a navegação é o menu lateral: o conteúdo abre espaço à esquerda e a folga de baixo some. */
+  @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+    padding-bottom: 0;
+    padding-left: ${({ theme }) => theme.layout.sideNavWidth};
+  }
 `;
 
 export const Main = styled.main`

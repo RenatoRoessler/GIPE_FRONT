@@ -4,7 +4,7 @@ import styled, { css } from "styled-components";
 
 const TOUCH_TARGET = "44px";
 
-// Barra fixa na base, em todas as larguras. O contêiner externo ocupa a janela (é ele que se mede);
+// Barra fixa na base, no celular e no tablet. O contêiner externo ocupa a janela (é ele que se mede);
 // o interno limita a largura do conteúdo em telas grandes.
 export const Bar = styled.nav`
   position: fixed;
@@ -16,6 +16,11 @@ export const Bar = styled.nav`
   /* Filete em sombra, e não em borda: a borda somaria 1px à altura e cobriria o fim da página. */
   box-shadow: 0 -1px 0 ${({ theme }) => theme.colors.border};
   background-color: ${({ theme }) => theme.colors.surface};
+
+  /* Em telas grandes quem navega é o menu lateral. */
+  @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: none;
+  }
 `;
 
 export const BarInner = styled.div<{ $slots: number }>`
