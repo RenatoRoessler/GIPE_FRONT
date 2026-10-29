@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.304",
+      "type": "feat",
+      "scope": "caixa",
+      "title": "refaz o layout do caixa em cartões",
+      "description": "A tela do caixa aberto passa a ser uma pilha de cartões pensada para o\ncelular: abertura, valor em caixa em destaque, fundo de caixa e dinheiro\nna gaveta, recebido por forma de pagamento e as ações no pé.\n\n- Mostra a quantidade de tickets no total e por forma de pagamento\n- Perfis de movimentação veem Sangria e Lançar despesa (em breve);\n  os demais veem Trocar turno\n- Fechar caixa vira o botão principal da tela\n- Cada cartão trata o próprio carregamento e erro, sem derrubar a tela\n- Deixa de buscar a lista de turnos e de usar a aba na URL",
+      "date": "2026-10-29T18:55:27-03:00"
+    },
+    {
       "version": "1.0.302",
       "type": "feat",
       "scope": "carimbo",
