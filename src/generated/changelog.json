@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.286",
+      "type": "feat",
+      "scope": "patio",
+      "title": "abre o ticket de entrada como popup e tira o sequencial",
+      "description": "Ao tocar num veículo do Pátio, o ticket de entrada agora abre num popup sobre a lista, em vez de uma tela inteira. Fechar o popup volta à lista, mantendo a busca e os filtros. Os fluxos de saída e de guardar chave continuam abrindo por cima do ticket.\n\nTambém remove a linha \"Sequencial\" dos detalhes do ticket.",
+      "date": "2026-10-28T22:31:09-03:00"
+    },
+    {
       "version": "1.0.284",
       "type": "feat",
       "scope": "saida",
