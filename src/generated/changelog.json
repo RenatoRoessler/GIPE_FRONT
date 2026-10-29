@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.295",
+      "type": "feat",
+      "scope": "precos",
+      "title": "adiciona o campo Empresa conveniada no cadastro de preço",
+      "description": "O cadastro e a edição de preço passam a ter o campo \"Empresa conveniada\",\ncom a lista de conveniadas que têm convênio ativo. A escolha é enviada como\nempresaConveniadaId. O tipo Convênio exige a empresa conveniada, e escolher\numa empresa exige o tipo Convênio. Mudanças no campo aparecem no resumo de\nalterações da tabela.",
+      "date": "2026-10-29T18:16:44-03:00"
+    },
+    {
+      "version": "1.0.294",
+      "type": "fix",
+      "scope": "conveniadas",
+      "title": "mostra o aviso do cadastro uma única vez ao voltar à lista",
+      "description": "Depois de cadastrar, a lista lia o resultado na URL num efeito que dependia\nde objetos recriados a cada renderização, o que podia repetir o aviso. Agora\no efeito depende só dos valores da URL. Também corrige testes da lista e do\ncadastro que buscavam textos repetidos.",
+      "date": "2026-10-29T18:16:44-03:00"
+    },
+    {
       "version": "1.0.292",
       "type": "feat",
       "scope": "conveniadas",
