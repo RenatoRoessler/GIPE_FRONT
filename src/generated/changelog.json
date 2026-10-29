@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.300",
+      "type": "feat",
+      "scope": "carimbo",
+      "title": "adiciona a tela de carimbo do ticket para conveniadas",
+      "description": "A empresa conveniada passa a carimbar o ticket de entrada do cliente\npela leitura do QR Code, em uma nova tela em /carimbo.\n\n- Nova área \"carimbo\", liberada aos perfis de conveniada\n- Item \"Carimbar ticket\" no menu, com ícone próprio\n- Conveniada abre direto no Carimbo após o login, já que o Dashboard\n  não tem o que mostrar para ela\n- Serviço, mapper e tipos da API de carimbo, com testes",
+      "date": "2026-10-29T18:34:56-03:00"
+    },
+    {
       "version": "1.0.295",
       "type": "feat",
       "scope": "precos",
