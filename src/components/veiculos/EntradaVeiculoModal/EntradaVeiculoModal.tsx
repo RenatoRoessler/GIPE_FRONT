@@ -19,6 +19,7 @@ import { CardMensalista } from "../CardMensalista";
 import { CategoriaIcon } from "../categoriaIcons";
 import { LeitorPlacaModal } from "../LeitorPlacaModal";
 import { ReciboEntradaStep } from "../ReciboEntradaStep";
+import { ModeloField } from "../ModeloField";
 import { useModelos } from "../useModelos";
 import { usePlacaLookup, type PlacaLookupStatus } from "../usePlacaLookup";
 import { Form } from "./EntradaVeiculoModal.styles";
@@ -51,7 +52,6 @@ function placaHint(status: PlacaLookupStatus): { hint?: string; tone?: "muted" |
 
 export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalProps) {
   const formId = useId();
-  const datalistId = useId();
   const { status, cadastro, lookup, reset: resetLookup } = usePlacaLookup();
   // Com a entrada registrada, o modal passa do formulário para a escolha do gancho da chave e, depois, para o comprovante.
   const [entrada, setEntrada] = useState<EntradaRegistrada | null>(null);
@@ -89,7 +89,6 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
     onSubmit: ({ value }) => mutation.mutate(value),
   });
 
-  const modeloTexto = useStore(form.store, (state) => state.values.modelo);
   const hasChanges = useStore(
     form.store,
     ({ values }) => values.placa !== "" || values.categoria !== "" || values.modelo !== "" || values.cor !== COR_PADRAO,
@@ -101,7 +100,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   );
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [leitorAberto, setLeitorAberto] = useState(false);
-  const { data: modelos = [] } = useModelos(modeloTexto);
+  const { data: modelos = [] } = useModelos();
 
   // O listener do campo pode ser recriado a cada render; a ref garante a lista mais recente.
   const modelosRef = useRef(modelos);
@@ -248,9 +247,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
           />
         )}
         <form.AppField name="modelo" listeners={{ onChange: ({ value }) => handleModeloChange(value) }}>
-          {(field) => (
-            <field.TextField label="Modelo" list={datalistId} autoComplete="off" maxLength={60} disabled={isSending} />
-          )}
+          {() => <ModeloField maxLength={60} disabled={isSending} />}
         </form.AppField>
         <form.AppField name="cor">
           {(field) => <field.ColorField legend="Cor" options={CORES_VEICULO} disabled={isSending} />}
@@ -264,11 +261,6 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
             />
           )}
         </form.AppField>
-        <datalist id={datalistId}>
-          {modelos.map((modelo) => (
-            <option key={modelo.modeloId} value={modelo.nome} />
-          ))}
-        </datalist>
       </Form>
         </>
       )}

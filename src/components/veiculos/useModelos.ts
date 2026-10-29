@@ -1,22 +1,17 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useQuery } from "@tanstack/react-query";
+import { prepararModelos } from "@/lib/buscaModelo";
 import { listModelos } from "@/lib/api/services/veiculo";
 
-const MIN_CHARS = 2;
-const DEBOUNCE_MS = 250;
-
-// Sugestões de modelo a partir de 2 caracteres, com debounce para não consultar a cada tecla.
-export function useModelos(texto: string) {
-  const termo = useDebouncedValue(texto.trim(), DEBOUNCE_MS);
-
+// A lista inteira de modelos é buscada uma vez e fica no cache durante a sessão; todos os campos a compartilham.
+export function useModelos() {
   return useQuery({
-    queryKey: ["veiculo", "modelos", termo],
-    queryFn: ({ signal }) => listModelos(termo, signal),
-    enabled: termo.length >= MIN_CHARS,
-    staleTime: 5 * 60 * 1000,
-    placeholderData: keepPreviousData,
+    queryKey: ["veiculo", "modelos"],
+    queryFn: ({ signal }) => listModelos(signal),
+    select: prepararModelos,
+    staleTime: Infinity,
+    gcTime: Infinity,
     refetchOnWindowFocus: false,
   });
 }

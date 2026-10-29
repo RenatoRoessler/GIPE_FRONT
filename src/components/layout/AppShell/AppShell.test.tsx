@@ -7,6 +7,7 @@ vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => ({ user:
 vi.mock("@/contexts/ThemeModeContext", () => ({ useThemeMode: () => ({ mode: "light", toggleThemeMode: vi.fn() }) }));
 vi.mock("@/components/layout/UserMenu", () => ({ UserMenu: () => <div data-testid="user-menu" /> }));
 vi.mock("@/components/layout/InstallPwaButton", () => ({ InstallPwaButton: () => null }));
+vi.mock("@/components/veiculos/useModelos", () => ({ useModelos: vi.fn() }));
 // A largura real não existe no jsdom: a barra cabe 5 espaços.
 vi.mock("@/components/layout/BottomNav/useBarCapacity", () => ({ useBarCapacity: () => ({ ref: vi.fn(), capacidade: 5 }) }));
 

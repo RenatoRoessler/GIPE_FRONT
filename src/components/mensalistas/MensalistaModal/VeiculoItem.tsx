@@ -3,6 +3,7 @@
 import { withForm } from "@/components/form";
 import { CameraButton } from "@/components/ui/CameraButton";
 import { Input } from "@/components/ui/Input";
+import { ModeloField } from "@/components/veiculos/ModeloField";
 import { CATEGORIA_VEICULO_OPTIONS, CORES_VEICULO } from "@/types/veiculo";
 import type { TipoCategoria } from "@/types/preco";
 import { CondutoresList } from "./CondutoresList";
@@ -51,7 +52,7 @@ export const VeiculoItem = withForm({
 
         <FieldRow>
           <form.AppField name={`veiculos[${index}].modelo`}>
-            {(field) => <field.TextField label="Modelo" maxLength={80} autoComplete="off" disabled={disabled} />}
+            {() => <ModeloField maxLength={80} disabled={disabled} />}
           </form.AppField>
 
           {categoriaFixa !== "" ? (
