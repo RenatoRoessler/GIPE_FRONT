@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.302",
+      "type": "feat",
+      "scope": "carimbo",
+      "title": "permite digitar o token do ticket manualmente",
+      "description": "Abaixo do leitor de QR Code, a tela de carimbo ganha o campo \"Token do\nticket\" e o botão Carimbar, no mesmo estilo da saída de veículos, para\nquando a câmera não consegue ler o código.\n\n- Aceita o token impresso no cupom ou o link do comprovante\n- Valida campo vazio e token inválido antes de chamar a API\n- Envia o token em maiúsculas e bloqueia o campo durante o envio",
+      "date": "2026-10-29T18:42:49-03:00"
+    },
+    {
       "version": "1.0.300",
       "type": "feat",
       "scope": "carimbo",
