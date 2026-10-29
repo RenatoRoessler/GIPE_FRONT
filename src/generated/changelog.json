@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.267",
+      "type": "feat",
+      "scope": "menu",
+      "title": "renomeia Início para Dashboard e reorganiza o menu",
+      "description": "O item de início passa a se chamar Dashboard e ganha um ícone de painéis\nno lugar da casinha. A ordem do menu agora é Pátio, Entrada, Saída e\nCaixa, seguidos do Dashboard e das demais telas.\n\nNo celular, a barra inferior mostra sempre Pátio, Entrada, Saída, Caixa\ne o botão Mais; o Dashboard e o resto ficam dentro do Mais. Em telas\nlargas a barra continua mostrando mais itens conforme a largura.",
+      "date": "2026-10-28T21:16:47-03:00"
+    },
+    {
       "version": "1.0.265",
       "type": "feat",
       "scope": "patio",
