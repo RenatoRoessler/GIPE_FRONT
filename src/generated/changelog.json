@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.272",
+      "type": "feat",
+      "scope": "patio",
+      "title": "esconde a linha de atualização do Pátio no celular",
+      "description": "Em telas pequenas a linha com a contagem de veículos, a hora da última\natualização e o botão Atualizar deixa de aparecer, liberando espaço para\na lista, que já se atualiza sozinha. Em telas maiores ela continua igual.",
+      "date": "2026-10-28T21:38:30-03:00"
+    },
+    {
+      "version": "1.0.271",
+      "type": "feat",
+      "scope": "patio",
+      "title": "atualiza a lista do Pátio sozinha a cada 1 minuto",
+      "description": "A lista passa a ser atualizada automaticamente a cada 1 minuto, em vez de\n5, para que entradas e saídas feitas em outros terminais e o tempo de\npermanência apareçam mais rápido. A atualização continua parada com a aba\nescondida ou com um modal aberto.",
+      "date": "2026-10-28T21:38:30-03:00"
+    },
+    {
       "version": "1.0.269",
       "type": "feat",
       "scope": "menu",
