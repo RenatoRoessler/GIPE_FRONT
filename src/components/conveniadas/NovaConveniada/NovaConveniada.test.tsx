@@ -46,7 +46,7 @@ async function preencher(user: User) {
   await user.type(screen.getByLabelText(/^Bairro/), "Centro");
   await user.type(screen.getByLabelText(/^Cidade/), "São Paulo");
   await user.selectOptions(screen.getByLabelText(/^Estado/), "SP");
-  await user.type(screen.getByLabelText(/^Nome/), "Maria Souza");
+  await user.type(screen.getByLabelText(/^Nome(?! fantasia)/), "Maria Souza");
   await user.type(screen.getByLabelText(/^CPF/), "52998224725");
   await user.type(screen.getByLabelText(/^E-mail/), "maria@exemplo.com");
   await user.type(screen.getByLabelText(/^Celular/), "11987654321");

@@ -7,8 +7,10 @@ const push = vi.fn();
 const replace = vi.fn();
 let params: Record<string, string> = {};
 
+// Router estável, como o do Next: um objeto novo a cada render refaria o efeito que lê o resultado do cadastro.
+const router = { push, replace };
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push, replace }),
+  useRouter: () => router,
   useSearchParams: () => ({ get: (key: string) => params[key] ?? null }),
 }));
 vi.mock("@/lib/api/services/conveniada", () => ({ listConveniadas: vi.fn().mockResolvedValue([]) }));

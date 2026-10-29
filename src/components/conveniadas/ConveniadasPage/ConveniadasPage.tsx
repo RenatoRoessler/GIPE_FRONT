@@ -18,7 +18,8 @@ export const NOVA_URL = `${LISTA_URL}/nova`;
 export function ConveniadasPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const situacao = parseSituacao(searchParams.get("situacao"));
+  const situacaoParam = searchParams.get("situacao");
+  const situacao = parseSituacao(situacaoParam);
   const cadastro = searchParams.get("cadastro");
   const { toast, showToast, dismissToast } = useToast();
 
@@ -29,8 +30,8 @@ export function ConveniadasPage() {
       return;
     }
     showToast(mensagemCadastro(resultado));
-    router.replace(situacaoUrl(parseSituacao(searchParams.get("situacao"))), { scroll: false });
-  }, [cadastro, router, searchParams, showToast]);
+    router.replace(situacaoUrl(parseSituacao(situacaoParam)), { scroll: false });
+  }, [cadastro, situacaoParam, router, showToast]);
 
   function changeSituacao(next: string) {
     router.replace(situacaoUrl(next as SituacaoFiltro), { scroll: false });

@@ -24,7 +24,17 @@ const sul: Conveniada = {
   ativo: true,
   dataCriacao: "2026-03-12T10:00:00",
 };
-const norte: Conveniada = { ...sul, empresaConvenioId: 2, nomeFantasia: "", razaoSocial: "Norte Ltda", ativo: false };
+const norte: Conveniada = {
+  ...sul,
+  empresaConvenioId: 2,
+  nomeFantasia: "",
+  razaoSocial: "Norte Ltda",
+  cnpj: "99888777000166",
+  telefone: "11911112222",
+  endereco: { ...sul.endereco, logradouro: "Rua Y" },
+  ativo: false,
+  dataCriacao: "2026-04-01T09:00:00",
+};
 
 const onNova = vi.fn();
 const onVerTodos = vi.fn();
