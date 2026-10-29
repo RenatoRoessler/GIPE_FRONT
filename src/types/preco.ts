@@ -94,6 +94,8 @@ export interface PrecoInfoValues {
   periodoDiaria: string;
   valorDiaria: string;
   valorAdicionalDiaria: string;
+  // Id da empresa conveniada (valor do <select>); "" = sem conveniada.
+  empresaConveniadaId: string;
   ativo: boolean;
 }
 
@@ -141,6 +143,7 @@ export const EMPTY_PRECO_INFO: PrecoInfoValues = {
   periodoDiaria: String(PERIODO_DIARIA_OPTIONS[1].minutos),
   valorDiaria: "",
   valorAdicionalDiaria: "",
+  empresaConveniadaId: "",
   ativo: true,
 };
 

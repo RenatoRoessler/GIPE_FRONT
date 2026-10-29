@@ -29,6 +29,7 @@ import { GradeHorarios } from "../GradeHorarios";
 import { horariosForaDaGrade } from "../grade";
 import { PrecoHorariosStepFields } from "../PrecoHorariosStepFields";
 import { PrecoResumoAoVivo } from "../PrecoResumoAoVivo";
+import { usePrecoConvenios } from "../usePrecoConvenios";
 import { hasChanges } from "../diff";
 import { Section, SectionTitle } from "../shared/FormSection.styles";
 import { SITUACAO_BADGE } from "../situacao";
@@ -91,6 +92,7 @@ export function PrecoWizardForm({
   const [original] = useState(initial);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const convenios = usePrecoConvenios();
   const [step, setStep] = useState(1);
   // Etapas já abertas: só depois de visitada uma etapa incompleta passa a mostrar pendência.
   const [visitadas, setVisitadas] = useState<ReadonlySet<number>>(() => new Set([1]));
@@ -320,7 +322,15 @@ export function PrecoWizardForm({
 
             {step === 1 && (
               <>
-                <PrecoBasicoFields form={infoForm} disabled={saving} semFim={semFim} onSemFimChange={setSemFim} />
+                <PrecoBasicoFields
+                  form={infoForm}
+                  disabled={saving}
+                  semFim={semFim}
+                  onSemFimChange={setSemFim}
+                  convenios={convenios.data ?? []}
+                  conveniosErro={convenios.error?.message}
+                  conveniosState={convenios.isError ? "erro" : convenios.isPending ? "carregando" : "pronto"}
+                />
                 <Section>
                   <SectionTitle>Categorias de veículo</SectionTitle>
                   <PrecoCategoriasStepFields form={categoriasForm} disabled={saving} />

@@ -3,16 +3,25 @@
 import { withForm } from "@/components/form";
 import { Grid, GridItem } from "@/components/form/FormGrid.styles";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { Select } from "@/components/ui/Select";
 import { Text } from "@/components/ui/Text";
+import type { ConveniadaOpcao } from "@/types/conveniada";
 import { EMPTY_PRECO_INFO } from "@/types/preco";
 import { Section, SectionTitle } from "../shared/FormSection.styles";
 import { TipoRegraCards } from "../TipoRegraCards";
 
 export const PrecoBasicoFields = withForm({
   defaultValues: EMPTY_PRECO_INFO,
-  props: {} as { disabled?: boolean; semFim: boolean; onSemFimChange: (semFim: boolean) => void },
-  render: function Render({ form, disabled, semFim, onSemFimChange }) {
+  props: {} as {
+    disabled?: boolean;
+    semFim: boolean;
+    onSemFimChange: (semFim: boolean) => void;
+    // Conveniadas com convênio ativo para o campo "Empresa conveniada"; `conveniosState` diz se a lista ainda carrega ou falhou.
+    convenios: ConveniadaOpcao[];
+    conveniosState: "carregando" | "pronto" | "erro";
+    // Motivo devolvido pela API quando a lista falha.
+    conveniosErro?: string;
+  },
+  render: function Render({ form, disabled, semFim, onSemFimChange, convenios, conveniosState, conveniosErro }) {
     function handleSemFim(checked: boolean) {
       if (checked) {
         form.setFieldValue("fimVigencia", "");
@@ -46,11 +55,33 @@ export const PrecoBasicoFields = withForm({
               </form.AppField>
             </GridItem>
             <GridItem $span>
-              {/* Reservado para uso futuro: sempre desabilitado e fora do valor do formulário. */}
-              <Select label="Empresa conveniada" value="" disabled onChange={() => undefined}>
-                <option value="">Nenhuma</option>
-              </Select>
-              <Text variant="muted">Disponível em breve.</Text>
+              <form.AppField name="empresaConveniadaId">
+                {(field) => {
+                  const atual = field.state.value;
+                  // Convênio já gravado que não veio na lista (ex.: encerrado) continua escolhido, para não se perder ao salvar.
+                  const foraDaLista = atual !== "" && !convenios.some((convenio) => String(convenio.empresaConveniadaId) === atual);
+                  return (
+                    <>
+                      <field.SelectField label="Empresa conveniada" disabled={disabled || conveniosState === "carregando"}>
+                        <option value="">Nenhuma</option>
+                        {foraDaLista && <option value={atual}>{`Empresa nº ${atual}`}</option>}
+                        {convenios.map((convenio) => (
+                          <option key={convenio.empresaConveniadaId} value={String(convenio.empresaConveniadaId)}>
+                            {convenio.nome}
+                          </option>
+                        ))}
+                      </field.SelectField>
+                      <Text variant={conveniosState === "erro" ? "error" : "muted"}>
+                        {conveniosState === "carregando"
+                          ? "Carregando conveniadas…"
+                          : conveniosState === "erro"
+                            ? `Não foi possível carregar as conveniadas${conveniosErro ? `: ${conveniosErro}` : "."} A tabela vale para todos.`
+                            : "Obrigatória no tipo Convênio; nos outros tipos, deixe em Nenhuma."}
+                      </Text>
+                    </>
+                  );
+                }}
+              </form.AppField>
             </GridItem>
           </Grid>
         </Section>

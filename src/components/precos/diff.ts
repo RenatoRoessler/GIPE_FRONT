@@ -40,6 +40,7 @@ const INFO_LABELS: Record<keyof PrecoInfoValues, string> = {
   periodoDiaria: "Período da diária",
   valorDiaria: "Valor da diária",
   valorAdicionalDiaria: "Valor adicional da diária",
+  empresaConveniadaId: "Empresa conveniada",
   ativo: "Situação",
 };
 
@@ -82,6 +83,8 @@ function display(campo: keyof PrecoInfoValues, value: PrecoInfoValues[keyof Prec
       const parsed = parseMoney(text);
       return Number.isNaN(parsed) ? text || "—" : formatBRL(parsed);
     }
+    case "empresaConveniadaId":
+      return text ? `Empresa nº ${text}` : "Nenhuma";
     case "toleranciaEntradaMinutos":
     case "toleranciaAlteracaoFaixaMinutos":
     case "periodoDiaria":

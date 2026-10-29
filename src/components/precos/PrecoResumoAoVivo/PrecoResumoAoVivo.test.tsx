@@ -15,6 +15,7 @@ const COMPLETO: PrecoFormValues = {
     periodoDiaria: "1440",
     valorDiaria: "70,00",
     valorAdicionalDiaria: "2,00",
+    empresaConveniadaId: "",
     ativo: true,
   },
   horarios: [2, 3, 4, 5, 6].map((dia) => ({

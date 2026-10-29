@@ -82,3 +82,10 @@ export const EMPTY_CONVENIADA_FORM: ConveniadaFormValues = {
   usuarioEmail: "",
   usuarioCelular: "",
 };
+
+// Conveniada como opção de escolha em outras telas (ex.: cadastro de preço).
+export type ConveniadaOpcao = {
+  empresaConveniadaId: number;
+  // Nome fantasia ou, sem ele, razão social.
+  nome: string;
+};

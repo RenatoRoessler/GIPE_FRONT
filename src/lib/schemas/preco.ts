@@ -3,6 +3,7 @@ import { parseMoney } from "@/lib/money";
 import {
   TIPO_CATEGORIA,
   TIPO_CATEGORIA_OPTIONS,
+  TIPO_REGRA,
   TIPO_REGRA_OPTIONS,
   type PrecoFormValues,
 } from "@/types/preco";
@@ -37,6 +38,7 @@ export const precoInfoSchema = z
     ),
     valorDiaria: moneyField("Informe o valor da diária"),
     valorAdicionalDiaria: moneyField("Informe o valor adicional"),
+    empresaConveniadaId: z.string().regex(/^\d*$/, "Selecione uma empresa conveniada válida"),
     ativo: z.boolean(),
   })
   .superRefine((value, ctx) => {
@@ -46,6 +48,23 @@ export const precoInfoSchema = z
         code: "custom",
         path: ["fimVigencia"],
         message: "O fim deve ser posterior ao início da vigência",
+      });
+    }
+
+    // Conveniada e tipo Convênio andam juntos: um não existe sem o outro.
+    const ehConvenio = value.tipoRegra === String(TIPO_REGRA.Convenio);
+    if (ehConvenio && value.empresaConveniadaId === "") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["empresaConveniadaId"],
+        message: "Selecione a empresa conveniada",
+      });
+    }
+    if (!ehConvenio && value.empresaConveniadaId !== "") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["tipoRegra"],
+        message: "Com empresa conveniada, selecione o tipo Convênio",
       });
     }
   });
@@ -143,7 +162,7 @@ export const precoCategoriasSchema = z
     { path: ["categorias"], message: "\"Todas\" não pode ser combinada com outras categorias" },
   );
 
-const CAMPOS_BASICO = new Set(["descricao", "tipoRegra", "inicioVigencia", "fimVigencia"]);
+const CAMPOS_BASICO = new Set(["descricao", "tipoRegra", "empresaConveniadaId", "inicioVigencia", "fimVigencia"]);
 
 export interface EtapasPreco {
   basico: string[];

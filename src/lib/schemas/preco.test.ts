@@ -13,6 +13,7 @@ const VALIDO: PrecoFormValues = {
     periodoDiaria: "1440",
     valorDiaria: "70,00",
     valorAdicionalDiaria: "2,00",
+    empresaConveniadaId: "",
     ativo: true,
   },
   horarios: [{ diaSemana: "2", horaInicio: "08:00", horaFim: "18:00", dataInicio: "", dataFim: "", ativo: true }],
@@ -51,6 +52,17 @@ describe("validarEtapasPreco", () => {
   it("fim anterior ao início pendencia 'O básico'", () => {
     const etapas = validarEtapasPreco(com({ info: { fimVigencia: "2026-10-01T00:00" } }));
     expect(etapas.basico).toEqual(["O fim deve ser posterior ao início da vigência"]);
+  });
+
+  it("tipo Convênio exige a empresa conveniada", () => {
+    const etapas = validarEtapasPreco(com({ info: { tipoRegra: "2", empresaConveniadaId: "" } }));
+    expect(etapas.basico).toEqual(["Selecione a empresa conveniada"]);
+    expect(validarEtapasPreco(com({ info: { tipoRegra: "2", empresaConveniadaId: "4" } })).basico).toEqual([]);
+  });
+
+  it("empresa conveniada exige o tipo Convênio", () => {
+    const etapas = validarEtapasPreco(com({ info: { tipoRegra: "1", empresaConveniadaId: "4" } }));
+    expect(etapas.basico).toEqual(["Com empresa conveniada, selecione o tipo Convênio"]);
   });
 
   it("sem horário pendencia 'Quando vale'", () => {

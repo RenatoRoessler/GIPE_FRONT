@@ -46,7 +46,7 @@ export interface PrecoDto {
 
 export interface PrecoPayload {
   rotatividade: {
-    empresaConveniadaId: null;
+    empresaConveniadaId: number | null;
     descricao: string;
     inicioVigencia: string | null;
     fimVigencia: string | null;
@@ -164,7 +164,7 @@ export function toPrecoPayload(values: PrecoFormValues): PrecoPayload {
 
   return {
     rotatividade: {
-      empresaConveniadaId: null,
+      empresaConveniadaId: info.empresaConveniadaId === "" ? null : Number(info.empresaConveniadaId),
       descricao: info.descricao.trim(),
       inicioVigencia: toDateTime(info.inicioVigencia),
       fimVigencia: toDateTime(info.fimVigencia),
@@ -215,6 +215,7 @@ export function toPrecoFormValues(view: PrecoView): PrecoFormValues {
       periodoDiaria: String(view.periodoDiaria),
       valorDiaria: numberToText(view.valorDiaria),
       valorAdicionalDiaria: numberToText(view.valorAdicionalDiaria),
+      empresaConveniadaId: view.empresaConveniadaId === null ? "" : String(view.empresaConveniadaId),
       ativo: view.ativo,
     },
     horarios: view.regras.map((regra) => ({

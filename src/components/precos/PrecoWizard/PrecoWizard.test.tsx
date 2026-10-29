@@ -9,6 +9,13 @@ const push = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }) }));
 vi.mock("@/lib/api/services/preco", () => ({ getPreco: vi.fn(), createPreco: vi.fn(), updatePreco: vi.fn() }));
 
+vi.mock("@/lib/api/services/conveniada", () => ({
+  listConveniadas: vi.fn().mockResolvedValue([
+    { empresaConveniadaId: 4, nomeFantasia: "Auto Peças Sul", razaoSocial: "Auto Peças Sul LTDA" },
+    { empresaConveniadaId: 9, nomeFantasia: "", razaoSocial: "Norte Ltda" },
+  ]),
+}));
+
 import { createPreco, getPreco, updatePreco } from "@/lib/api/services/preco";
 import { toPrecoFormValues } from "@/lib/api/services/preco.mapper";
 import { inicioVigenciaDeHoje } from "../novoPreco";
@@ -221,6 +228,27 @@ describe("PrecoWizard: cadastro", () => {
     expect(screen.getByLabelText("Fim da vigência")).toBeEnabled();
     await user.click(semFim);
     expect(screen.getByLabelText("Fim da vigência")).toBeDisabled();
+  });
+
+  it("o campo Empresa conveniada lista as conveniadas ativas e começa em Nenhuma", async () => {
+    const user = await renderCadastro();
+    const campo = await screen.findByLabelText("Empresa conveniada");
+
+    await waitFor(() => expect(campo).toBeEnabled());
+    expect(campo).toHaveValue("");
+    expect(screen.getByRole("option", { name: "Auto Peças Sul" })).toBeInTheDocument();
+
+    await user.selectOptions(campo, "9");
+    expect(campo).toHaveValue("9");
+    expect(screen.getByRole("option", { name: "Norte Ltda" })).toHaveProperty("selected", true);
+  });
+
+  it("ao editar, mostra a conveniada gravada na tabela", async () => {
+    vi.mocked(getPreco).mockResolvedValue({ ...TABELA, empresaConveniadaId: 4 });
+    renderWithProviders(<PrecoWizard id={7} />);
+
+    const campo = await screen.findByLabelText("Empresa conveniada");
+    await waitFor(() => expect(campo).toHaveValue("4"));
   });
 
   it("escolher o tipo de regra em cartões muda o tipo da tabela", async () => {
