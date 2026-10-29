@@ -13,7 +13,8 @@ export function proporcao(valor: number, maior: number): number {
   return Math.min(100, (valor / maior) * 100);
 }
 
-export type TotalForma = { formaPagamento: FormaPagamentoId; entradas: number; saidas: number };
+// quantidade = número de movimentos de entrada da forma (um por ticket cobrado).
+export type TotalForma = { formaPagamento: FormaPagamentoId; entradas: number; saidas: number; quantidade: number };
 
 // Sangria é saída em dinheiro, mesmo que o movimento não traga a forma. Dinheiro vem primeiro, depois pelo código.
 export function totaisPorForma(movimentos: Movimento[]): TotalForma[] {
@@ -23,10 +24,11 @@ export function totaisPorForma(movimentos: Movimento[]): TotalForma[] {
     if (forma === null) {
       continue;
     }
-    const total = porForma.get(forma) ?? { formaPagamento: forma, entradas: 0, saidas: 0 };
+    const total = porForma.get(forma) ?? { formaPagamento: forma, entradas: 0, saidas: 0, quantidade: 0 };
     const valor = Number.isFinite(movimento.valor) ? movimento.valor : 0;
     if (movimento.tipo === "entrada") {
       total.entradas += valor;
+      total.quantidade += 1;
     } else {
       total.saidas += valor;
     }

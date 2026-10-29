@@ -4,28 +4,28 @@ import { useState } from "react";
 import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
 import { isForbiddenError } from "@/lib/api/errors";
+import { AberturaCaixa } from "../AberturaCaixa";
 import { AbrirCaixaModal } from "../AbrirCaixaModal";
+import { AcoesCaixa } from "../AcoesCaixa";
+import { VisuallyHidden, StatusRow } from "../Caixa.styles";
 import { CaixaFechado } from "../CaixaFechado";
-import { CaixaHeader } from "../CaixaHeader";
+import { Tela } from "../CaixaResumo.styles";
+import { CaixaSkeleton } from "../CaixaSkeleton";
 import { FecharCaixaModal } from "../FecharCaixaModal";
-import { HistoricoTurnosModal } from "../HistoricoTurnosModal";
+import { FundoEGaveta } from "../FundoEGaveta";
 import { PassarTurnoModal } from "../PassarTurnoModal";
+import { RecebidoPorForma } from "../RecebidoPorForma";
 import { SangriaModal } from "../SangriaModal";
-import { AbasCaixa } from "../AbasCaixa";
-import { GavetaResumo } from "../GavetaResumo";
-import { TurnoAtual } from "../TurnoAtual";
-import { Page, StatusRow, TitleGroup, VisuallyHidden } from "../Caixa.styles";
 import { useCaixa } from "../useCaixa";
+import { ValorEmCaixa } from "../ValorEmCaixa";
 
-type ModalId = "abrir" | "sangria" | "passagem" | "fechar" | "historico";
+type ModalId = "abrir" | "sangria" | "passagem" | "fechar";
 
 export function CaixaPage() {
-  const { caixaQuery, caixa, turnoQuery, movimentosQuery, turnosQuery } = useCaixa();
+  const { caixaQuery, caixa, turnoQuery, movimentosQuery } = useCaixa();
   const [modal, setModal] = useState<ModalId | null>(null);
   const { toast, showToast, dismissToast } = useToast();
 
@@ -34,19 +34,11 @@ export function CaixaPage() {
   const modalProps = { onClose: closeModal, onSuccess: showToast };
 
   return (
-    <Page>
-      <TitleGroup>
-        <Text variant="heading" as="h1">
-          Caixa
-        </Text>
-        <Text variant="muted">Controle o caixa, os turnos e as retiradas de dinheiro da sua empresa.</Text>
-      </TitleGroup>
+    <Tela>
+      <VisuallyHidden as="h1">Caixa</VisuallyHidden>
 
       {caixaQuery.isPending ? (
-        <div role="status" aria-busy="true">
-          <VisuallyHidden>Carregando caixa…</VisuallyHidden>
-          <Skeleton height="84px" radius="16px" />
-        </div>
+        <CaixaSkeleton />
       ) : caixaQuery.isError && isForbiddenError(caixaQuery.error) ? (
         <ErroSemPermissao />
       ) : caixaQuery.isError ? (
@@ -63,31 +55,20 @@ export function CaixaPage() {
         </StatusRow>
       ) : caixa === null ? (
         <CaixaFechado onAbrir={() => setModal("abrir")} />
+      ) : turnoQuery.isError && isForbiddenError(turnoQuery.error) ? (
+        <ErroSemPermissao />
       ) : (
         <>
-          <CaixaHeader
-            caixa={caixa}
+          <AberturaCaixa caixa={caixa} />
+          <ValorEmCaixa caixa={caixa} movimentos={movimentosQuery} />
+          <FundoEGaveta caixa={caixa} turno={turnoQuery} />
+          <RecebidoPorForma caixa={caixa} movimentos={movimentosQuery} />
+          <AcoesCaixa
             turnoPronto={Boolean(turno)}
-            onPassarTurno={() => setModal("passagem")}
-            onHistorico={() => setModal("historico")}
+            onSangria={() => setModal("sangria")}
+            onTrocarTurno={() => setModal("passagem")}
             onFechar={() => setModal("fechar")}
           />
-          {turnoQuery.isError && isForbiddenError(turnoQuery.error) ? (
-            <ErroSemPermissao />
-          ) : turnoQuery.isError ? (
-            <StatusRow>
-              <ErrorBanner role="alert">{turnoQuery.error.message}</ErrorBanner>
-              <Button type="button" variant="secondary" onClick={() => void turnoQuery.refetch()}>
-                Tentar novamente
-              </Button>
-            </StatusRow>
-          ) : (
-            <>
-              <GavetaResumo caixa={caixa} turno={turno} onRetirada={() => setModal("sangria")} />
-              <TurnoAtual turno={turno} />
-            </>
-          )}
-          <AbasCaixa caixa={caixa} movimentos={movimentosQuery} turnos={turnosQuery} />
         </>
       )}
 
@@ -95,9 +76,8 @@ export function CaixaPage() {
       {modal === "sangria" && turno && <SangriaModal turno={turno} {...modalProps} />}
       {modal === "passagem" && turno && <PassarTurnoModal turno={turno} {...modalProps} />}
       {modal === "fechar" && turno && <FecharCaixaModal turno={turno} {...modalProps} />}
-      {modal === "historico" && <HistoricoTurnosModal onClose={closeModal} />}
 
       {toast && <Toast message={toast.message} variant={toast.variant} onDismiss={dismissToast} />}
-    </Page>
+    </Tela>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getCaixa, getTurnoAtual, listMovimentos, listTurnos } from "@/lib/api/services/caixa";
+import { getCaixa, getTurnoAtual, listMovimentos } from "@/lib/api/services/caixa";
 import { isCaixaAberto } from "./format";
 
 export const CAIXA_KEY = ["caixa"] as const;
@@ -18,7 +18,7 @@ export function useCaixa() {
     enabled: caixa !== null,
   });
 
-  // Movimentos e lista de turnos mudam por ação de qualquer operador: recarregam ao voltar o foco, sem polling.
+  // Os movimentos mudam por ação de qualquer operador: recarregam ao voltar o foco, sem polling.
   const movimentosQuery = useQuery({
     queryKey: [...CAIXA_KEY, "movimentos"],
     queryFn: listMovimentos,
@@ -26,12 +26,5 @@ export function useCaixa() {
     refetchOnWindowFocus: true,
   });
 
-  const turnosQuery = useQuery({
-    queryKey: [...CAIXA_KEY, "turnos"],
-    queryFn: listTurnos,
-    enabled: caixa !== null,
-    refetchOnWindowFocus: true,
-  });
-
-  return { caixaQuery, caixa, turnoQuery, movimentosQuery, turnosQuery };
+  return { caixaQuery, caixa, turnoQuery, movimentosQuery };
 }

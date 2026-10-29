@@ -130,20 +130,34 @@ describe("totaisPorForma", () => {
       mov({ formaPagamento: 2, tipo: "saida", valor: 10 }),
     ]);
     expect(totais).toEqual([
-      { formaPagamento: 1, entradas: 20, saidas: 5 },
-      { formaPagamento: 2, entradas: 30, saidas: 10 },
+      { formaPagamento: 1, entradas: 20, saidas: 5, quantidade: 1 },
+      { formaPagamento: 2, entradas: 30, saidas: 10, quantidade: 1 },
     ]);
   });
 
   it("sangria sem forma conta como saída em dinheiro; movimento sem forma e sem ser sangria é ignorado", () => {
     const totais = totaisPorForma([mov({ tipo: "sangria", formaPagamento: null, valor: 50 }), mov({ formaPagamento: null })]);
-    expect(totais).toEqual([{ formaPagamento: 1, entradas: 0, saidas: 50 }]);
+    expect(totais).toEqual([{ formaPagamento: 1, entradas: 0, saidas: 50, quantidade: 0 }]);
   });
 
   it("arredonda a duas casas", () => {
     const totais = totaisPorForma([mov({ valor: 0.1 }), mov({ valor: 0.2 })]);
     expect(totais[0].entradas).toBe(0.3);
     expect(arredondar(1.005)).toBe(1.01);
+  });
+
+  it("conta uma entrada por movimento; saídas e sangrias não são tickets", () => {
+    const totais = totaisPorForma([
+      mov({ formaPagamento: 2, valor: 10 }),
+      mov({ formaPagamento: 2, valor: 15 }),
+      mov({ formaPagamento: 2, tipo: "saida", valor: 5 }),
+      mov({ formaPagamento: 1, valor: 20 }),
+      mov({ tipo: "sangria", formaPagamento: null, valor: 50 }),
+    ]);
+    expect(totais.map((total) => [total.formaPagamento, total.quantidade])).toEqual([
+      [1, 1],
+      [2, 2],
+    ]);
   });
 
   it("lista vazia", () => {

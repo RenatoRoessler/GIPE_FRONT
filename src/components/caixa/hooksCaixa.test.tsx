@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/api/services/caixa", () => ({
   getCaixa: vi.fn(),
   getTurnoAtual: vi.fn(),
-  listTurnos: vi.fn(),
   listMovimentos: vi.fn(),
   listHistoricoCaixas: vi.fn(),
   listMovimentosCaixa: vi.fn(),
@@ -18,7 +17,6 @@ import {
   listHistoricoCaixas,
   listMovimentos,
   listMovimentosCaixa,
-  listTurnos,
 } from "@/lib/api/services/caixa";
 import { CAIXA_KEY, useCaixa } from "./useCaixa";
 import { useHistoricoCaixas } from "./useHistoricoCaixas";
@@ -39,10 +37,9 @@ beforeEach(() => {
 });
 
 describe("useCaixa", () => {
-  it("com o caixa aberto busca turno, turnos e movimentos", async () => {
+  it("com o caixa aberto busca turno e movimentos, sem a lista de turnos", async () => {
     vi.mocked(getCaixa).mockResolvedValue(aberto);
     vi.mocked(getTurnoAtual).mockResolvedValue(null);
-    vi.mocked(listTurnos).mockResolvedValue([]);
     vi.mocked(listMovimentos).mockResolvedValue([]);
     const { wrapper } = setup();
 
@@ -50,11 +47,10 @@ describe("useCaixa", () => {
 
     await waitFor(() => expect(result.current.movimentosQuery.isSuccess).toBe(true));
     expect(result.current.caixa).toEqual(aberto);
-    expect(listTurnos).toHaveBeenCalled();
     expect(getTurnoAtual).toHaveBeenCalled();
   });
 
-  it("com o caixa fechado não busca turno, turnos nem movimentos", async () => {
+  it("com o caixa fechado não busca turno nem movimentos", async () => {
     vi.mocked(getCaixa).mockResolvedValue(null);
     const { wrapper } = setup();
 
@@ -63,14 +59,12 @@ describe("useCaixa", () => {
     await waitFor(() => expect(result.current.caixaQuery.isSuccess).toBe(true));
     expect(result.current.caixa).toBeNull();
     expect(listMovimentos).not.toHaveBeenCalled();
-    expect(listTurnos).not.toHaveBeenCalled();
     expect(getTurnoAtual).not.toHaveBeenCalled();
   });
 
-  it("invalidar o prefixo do caixa refaz movimentos, turnos e histórico", async () => {
+  it("invalidar o prefixo do caixa refaz movimentos e histórico", async () => {
     vi.mocked(getCaixa).mockResolvedValue(aberto);
     vi.mocked(getTurnoAtual).mockResolvedValue(null);
-    vi.mocked(listTurnos).mockResolvedValue([]);
     vi.mocked(listMovimentos).mockResolvedValue([]);
     vi.mocked(listHistoricoCaixas).mockResolvedValue({ items: [], page: 1, pageSize: 20, totalRecords: 0, totalPages: 0 });
     const { queryClient, wrapper } = setup();
@@ -84,7 +78,6 @@ describe("useCaixa", () => {
     });
 
     expect(listMovimentos).toHaveBeenCalledTimes(2);
-    expect(listTurnos).toHaveBeenCalledTimes(2);
     expect(listHistoricoCaixas).toHaveBeenCalledTimes(2);
   });
 });
