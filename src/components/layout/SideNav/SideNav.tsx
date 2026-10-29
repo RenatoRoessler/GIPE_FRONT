@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { NavIcon } from "@/components/layout/NavIcons";
 import { useVeiculoModais } from "@/components/veiculos/VeiculoModais";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
+import { getVersionLink } from "@/lib/version";
 import { isNavAction, isNavItemActive, navItemKey, navItemsPermitidos } from "@/lib/nav";
-import { Aside, ItemButton, ItemLink, Lista, Rotulo } from "./SideNav.styles";
+import { Aside, ItemButton, ItemLink, Lista, Rotulo, VersaoLink } from "./SideNav.styles";
 
 // Menu lateral das telas grandes: todos os itens que o perfil pode abrir, na ordem do menu. Recolhido mostra só os ícones;
 // ao passar o mouse (ou focar um item pelo teclado) expande com o nome completo. O texto está sempre no DOM, para o leitor de tela.
@@ -14,6 +15,7 @@ export function SideNav() {
   const pathname = usePathname();
   const { user, isLoading } = useCurrentUser();
   const { abrirEntrada, abrirSaida } = useVeiculoModais();
+  const versao = getVersionLink();
   const itens = isLoading ? [] : navItemsPermitidos(user?.perfil);
 
   return (
@@ -40,6 +42,9 @@ export function SideNav() {
           </li>
         ))}
       </Lista>
+      <VersaoLink as={NextLink} href={versao.href}>
+        {versao.label}
+      </VersaoLink>
     </Aside>
   );
 }

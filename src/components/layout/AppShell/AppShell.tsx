@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode } from "react";
-import { AppFooter } from "@/components/layout/AppFooter";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { SideNav } from "@/components/layout/SideNav";
 import { Header } from "@/components/layout/Header";
@@ -18,7 +17,6 @@ export function AppShell({ children }: AppShellProps) {
       <Layout>
         <Header />
         <Main>{children}</Main>
-        <AppFooter />
         <BottomNav />
         <SideNav />
       </Layout>

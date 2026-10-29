@@ -119,3 +119,26 @@ export const ItemLink = styled.a<{ $active: boolean }>`
 export const ItemButton = styled.button<{ $active: boolean }>`
   ${itemStyles}
 `;
+
+// Versão atual, no pé do menu: leva à página de atualizações. Fica visível também com o menu recolhido.
+export const VersaoLink = styled.a`
+  margin-top: auto;
+  padding: ${({ theme }) => theme.space[2]}px 0;
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
+    outline-offset: -2px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      color: ${({ theme }) => theme.colors.text};
+    }
+  }
+`;

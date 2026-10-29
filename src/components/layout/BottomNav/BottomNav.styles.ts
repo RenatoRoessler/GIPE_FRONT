@@ -255,3 +255,21 @@ export const SheetRow = styled.a<{ $active: boolean }>`
     outline-offset: 2px;
   }
 `;
+
+// Versão atual, no fim do painel "Mais": leva à página de atualizações.
+export const VersaoRow = styled.a`
+  display: block;
+  margin-top: ${({ theme }) => theme.space[2]}px;
+  padding: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[2]}px;
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  text-align: center;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
+    outline-offset: 2px;
+  }
+`;

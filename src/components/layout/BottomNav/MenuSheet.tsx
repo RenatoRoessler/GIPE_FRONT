@@ -3,8 +3,9 @@
 import NextLink from "next/link";
 import type { Ref } from "react";
 import { NavIcon } from "@/components/layout/NavIcons";
+import { getVersionLink } from "@/lib/version";
 import { isNavAction, isNavActive, navItemKey, type NavAction, type NavItem } from "@/lib/nav";
-import { CloseButton, Grabber, IconTile, Sheet, SheetHeader, SheetList, SheetRow, SheetTitle } from "./BottomNav.styles";
+import { CloseButton, Grabber, IconTile, Sheet, SheetHeader, SheetList, SheetRow, SheetTitle, VersaoRow } from "./BottomNav.styles";
 
 export interface MenuSheetProps {
   id: string;
@@ -29,6 +30,8 @@ function ChevronIcon() {
 }
 
 export function MenuSheet({ id, dialogRef, pathname, itens, onRequestClose, onAction, onClosed }: MenuSheetProps) {
+  const versao = getVersionLink();
+
   return (
     <Sheet
       ref={dialogRef}
@@ -80,6 +83,9 @@ export function MenuSheet({ id, dialogRef, pathname, itens, onRequestClose, onAc
           })}
         </SheetList>
       </nav>
+      <VersaoRow as={NextLink} href={versao.href} onClick={onRequestClose}>
+        {versao.label}
+      </VersaoRow>
     </Sheet>
   );
 }
