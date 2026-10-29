@@ -337,6 +337,11 @@ export const Atualizacao = styled.div`
   gap: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
   color: ${({ theme }) => theme.colors.textMuted};
   font-size: ${({ theme }) => theme.fontSizes.xs};
+
+  /* No celular a linha (contagem, hora da atualização e botão) some: a lista se atualiza sozinha. */
+  ${mobile} {
+    display: none;
+  }
 `;
 
 export const AtualizarBotao = styled(Button)`
