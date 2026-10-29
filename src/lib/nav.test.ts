@@ -10,7 +10,7 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS.find((item) => item.label === "Pátio")).toEqual({ label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: "patio" });
   });
 
-  it("mantém os onze itens (um por tela), com Pátio, Entrada, Saída e Caixa primeiro e o Dashboard logo depois", () => {
+  it("mantém os doze itens (um por tela), com Pátio, Entrada, Saída e Caixa primeiro e o Dashboard logo depois", () => {
     expect(NAV_ITEMS.map((item) => item.label)).toEqual([
       "Pátio",
       "Entrada de Veículos",
@@ -20,19 +20,20 @@ describe("NAV_ITEMS", () => {
       "Gestão de Preços",
       "Gestão de Usuários",
       "Mensalistas",
+      "Empresas conveniadas",
       "Notas Fiscais",
       "Minha Empresa",
       "Quadros de Chaves",
     ]);
   });
 
-  it("Entrada e Saída são ações (abrem modal); os outros nove são links", () => {
+  it("Entrada e Saída são ações (abrem modal); os outros dez são links", () => {
     const acoes = NAV_ITEMS.filter(isNavAction);
     expect(acoes.map((item) => [item.label, item.acao, item.icon])).toEqual([
       ["Entrada de Veículos", "entrada", "vehicleIn"],
       ["Saída de Veículos", "saida", "vehicleOut"],
     ]);
-    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(9);
+    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(10);
   });
 
   it("não repete chave nem ícone", () => {
@@ -156,7 +157,7 @@ describe("navItemsPorPrioridade", () => {
   const rotulos = (perfil: Parameters<typeof navItemsPorPrioridade>[0]) => navItemsPorPrioridade(perfil).map((item) => item.shortLabel);
 
   it("Pátio, Entrada, Saída e Caixa vêm primeiro e o resto segue a ordem do menu", () => {
-    expect(rotulos(1)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Dashboard", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
+    expect(rotulos(1)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Dashboard", "Preços", "Usuários", "Mensalistas", "Conveniadas", "Notas", "Empresa", "Chaves"]);
   });
 
   it("só traz o que o perfil pode abrir", () => {
@@ -180,7 +181,7 @@ describe("dividirItensDaBarra", () => {
   const rotulos = (lista: typeof itens) => lista.map((item) => item.shortLabel);
 
   it("mostra tudo, sem Mais, quando todos cabem", () => {
-    for (const capacidade of [11, 12, 20]) {
+    for (const capacidade of [12, 13, 20]) {
       const { visiveis, excedentes } = dividirItensDaBarra(itens, capacidade);
       expect(visiveis).toEqual(itens);
       expect(excedentes).toEqual([]);
@@ -190,14 +191,14 @@ describe("dividirItensDaBarra", () => {
   it("reserva o último espaço para o Mais quando falta lugar", () => {
     const { visiveis, excedentes } = dividirItensDaBarra(itens, 5);
     expect(rotulos(visiveis)).toEqual(["Pátio", "Entrada", "Saída", "Caixa"]);
-    expect(rotulos(excedentes)).toEqual(["Dashboard", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
+    expect(rotulos(excedentes)).toEqual(["Dashboard", "Preços", "Usuários", "Mensalistas", "Conveniadas", "Notas", "Empresa", "Chaves"]);
     expect(visiveis.length + 1).toBe(5);
   });
 
-  it("com capacidade 9 esconde três itens: oito visíveis mais o Mais", () => {
+  it("com capacidade 9 esconde quatro itens: oito visíveis mais o Mais", () => {
     const { visiveis, excedentes } = dividirItensDaBarra(itens, 9);
     expect(visiveis).toHaveLength(8);
-    expect(excedentes).toHaveLength(3);
+    expect(excedentes).toHaveLength(4);
   });
 
   it("nunca usa menos de cinco espaços", () => {
@@ -255,7 +256,7 @@ describe("isMaisAtivo", () => {
 
 describe("ordenarPeloMenu", () => {
   it("devolve os itens na ordem do menu, sem alterar a lista recebida", () => {
-    const embaralhados = [NAV_ITEMS[9], NAV_ITEMS[7], NAV_ITEMS[2]];
+    const embaralhados = [NAV_ITEMS[10], NAV_ITEMS[7], NAV_ITEMS[2]];
     const copia = [...embaralhados];
 
     expect(ordenarPeloMenu(embaralhados).map((item) => item.shortLabel)).toEqual(["Saída", "Mensalistas", "Empresa"]);
@@ -264,6 +265,6 @@ describe("ordenarPeloMenu", () => {
 
   it("recoloca os excedentes da barra na ordem natural do menu", () => {
     const { excedentes } = dividirItensDaBarra(navItemsPorPrioridade(1), 5);
-    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Dashboard", "Preços", "Usuários", "Mensalistas", "Notas", "Empresa", "Chaves"]);
+    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Dashboard", "Preços", "Usuários", "Mensalistas", "Conveniadas", "Notas", "Empresa", "Chaves"]);
   });
 });

@@ -38,6 +38,7 @@ describe("SideNav", () => {
       "Gestão de Preços",
       "Gestão de Usuários",
       "Mensalistas",
+      "Empresas conveniadas",
       "Notas Fiscais",
       "Minha Empresa",
       "Quadros de Chaves",

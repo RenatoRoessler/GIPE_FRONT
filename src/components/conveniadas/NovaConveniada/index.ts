@@ -1,0 +1,1 @@
+export { NovaConveniada } from "./NovaConveniada";

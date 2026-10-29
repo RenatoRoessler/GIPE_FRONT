@@ -125,6 +125,15 @@ function KeysIcon(props: IconProps) {
   );
 }
 
+// Empresas conveniadas: duas mãos que se encontram (convênio).
+function AgreementIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M3 11l4-4 4 2 3-2 4 4M3 11v4l5 4 2-1M21 11v4l-5 4-2-1M10 18l-2-2M13 17l-2-2" />
+    </IconBase>
+  );
+}
+
 const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   dashboard: DashboardIcon,
   pricing: PricingIcon,
@@ -137,6 +146,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   invoice: InvoiceIcon,
   company: CompanyIcon,
   keys: KeysIcon,
+  agreement: AgreementIcon,
 };
 
 export function NavIcon({ id, ...props }: { id: NavIconId } & IconProps) {

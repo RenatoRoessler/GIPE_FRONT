@@ -1,0 +1,1 @@
+export { ConveniadasPage } from "./ConveniadasPage";
