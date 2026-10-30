@@ -1,6 +1,6 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
 import { TIPO_CATEGORIA, TIPO_REGRA, type PrecoView } from "@/types/preco";
@@ -39,6 +39,16 @@ const TABELA: PrecoView = {
   faixas: [{ minutosLimite: 60, valor: 10, percentualConveniada: null }],
   categorias: [TIPO_CATEGORIA.Todas],
 };
+
+// jsdom não implementa <dialog> (o popup de erro usa o Modal).
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function close() {
+    this.removeAttribute("open");
+  };
+});
 
 // Preencher o fluxo campo a campo é lento; o limite padrão ficaria perto do estouro.
 vi.setConfig({ testTimeout: 20_000 });
@@ -136,7 +146,9 @@ describe("PrecoWizard: edição", () => {
     await avancarAteACategoria(user);
     await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
 
-    expect(await screen.findByText("Erro no servidor.")).toBeInTheDocument();
+    const popup = await screen.findByRole("dialog", { name: "Não foi possível salvar as alterações" });
+    expect(within(popup).getByText("Erro no servidor.")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Erro no servidor.");
     expect(push).not.toHaveBeenCalled();
   });
 
@@ -187,6 +199,34 @@ describe("PrecoWizard: cadastro", () => {
     // O back não devolve o id da tabela criada: a lista escolhe a de maior id.
     expect(push).toHaveBeenCalledWith("/precos?salvo=criado");
     expect(createPreco).toHaveBeenCalledTimes(1);
+  });
+
+  it("falha ao cadastrar abre o popup com o erro e mantém o aviso na etapa", async () => {
+    vi.mocked(createPreco).mockRejectedValue(new ApiError("validation", "Já existe uma tabela com esta descrição.", 400));
+    const user = await renderCadastro();
+    await avancarAteACategoria(user);
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    const popup = await screen.findByRole("dialog", { name: "Não foi possível cadastrar o preço" });
+    expect(within(popup).getByText("Já existe uma tabela com esta descrição.")).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
+
+    await user.click(within(popup).getByRole("button", { name: "Voltar ao formulário" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Já existe uma tabela com esta descrição.");
+  });
+
+  it("Tentar novamente no popup salva de novo", async () => {
+    vi.mocked(createPreco).mockRejectedValueOnce(new ApiError("network")).mockResolvedValueOnce(undefined);
+    const user = await renderCadastro();
+    await avancarAteACategoria(user);
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    const popup = await screen.findByRole("dialog", { name: "Não foi possível cadastrar o preço" });
+    await user.click(within(popup).getByRole("button", { name: "Tentar novamente" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/precos?salvo=criado"));
+    expect(createPreco).toHaveBeenCalledTimes(2);
   });
 
   it("o cadastro novo vem com o início da vigência na data de hoje", async () => {

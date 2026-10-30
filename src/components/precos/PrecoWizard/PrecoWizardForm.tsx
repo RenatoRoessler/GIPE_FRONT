@@ -8,6 +8,7 @@ import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
+import { ErrorDialog } from "@/components/ui/ErrorDialog";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/Text";
 import {
@@ -98,6 +99,8 @@ export function PrecoWizardForm({
   const [visitadas, setVisitadas] = useState<ReadonlySet<number>>(() => new Set([1]));
   // Etapa onde a última tentativa de salvar encontrou erros; o aviso some quando ela fica válida.
   const [falhaEtapa, setFalhaEtapa] = useState<number | null>(null);
+  // Popup com o erro do salvamento; o aviso na etapa continua até a próxima tentativa.
+  const [erroSalvarAberto, setErroSalvarAberto] = useState(false);
   const [semFim, setSemFim] = useState(initial.info.fimVigencia === "");
   // O ajuste fino já abre quando a tabela tem horários que a grade não desenha (minutos, inativos, períodos).
   const [ajusteFinoAberto, setAjusteFinoAberto] = useState(() => horariosForaDaGrade(initial.horarios).length > 0);
@@ -165,6 +168,7 @@ export function PrecoWizardForm({
       ]);
       router.push(`/precos?salvo=${savedFlag}${savedPrecoId === undefined ? "" : `&preco=${savedPrecoId}`}`);
     },
+    onError: () => setErroSalvarAberto(true),
   });
 
   const infoValues = useStore(infoForm.store, (state) => state.values);
@@ -405,6 +409,19 @@ export function PrecoWizardForm({
           <PrecoResumoAoVivo values={values} original={isEdit ? original : undefined} etapasCompletas={etapasCompletas} />
         </Corpo>
       </Card>
+      {erroSalvarAberto && mutation.isError && (
+        <ErrorDialog
+          title={isEdit ? "Não foi possível salvar as alterações" : "Não foi possível cadastrar o preço"}
+          message={mutation.error.message}
+          onClose={() => setErroSalvarAberto(false)}
+          closeLabel="Voltar ao formulário"
+          actionLabel="Tentar novamente"
+          onAction={() => {
+            setErroSalvarAberto(false);
+            void salvar();
+          }}
+        />
+      )}
     </Page>
   );
 }
