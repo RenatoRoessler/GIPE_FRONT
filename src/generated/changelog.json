@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.307",
+      "type": "feat",
+      "scope": "caixa",
+      "title": "adiciona tela para ver os movimentos do caixa",
+      "description": "Em telas grandes, o caixa aberto passa a ter o botão \"Ver movimentos\",\nque abre a lista das entradas, saídas e sangrias do caixa, da mais\nrecente para a mais antiga, com o resumo de abertura, entradas e saídas.\nQuem confere o caixa no computador deixa de depender de relatório externo.",
+      "date": "2026-10-30T17:26:03-03:00"
+    },
+    {
       "version": "1.0.304",
       "type": "feat",
       "scope": "caixa",
