@@ -2,6 +2,30 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.319",
+      "type": "feat",
+      "scope": "conveniadas",
+      "title": "redesenha o cadastro de empresa conveniada",
+      "description": "A tela Nova conveniada segue o mesmo padrão do cadastro de empresa:\n- O botão Cadastrar fica sempre à vista (ao lado do formulário em telas\n  grandes, numa barra fixa no celular), com o andamento das seções\n  Empresa e Responsável.\n- Os dados da empresa foram separados em Identificação e Endereço, com\n  campos do tamanho do conteúdo.\n- O aviso sobre CPF já cadastrado aparece no topo da seção Responsável,\n  antes do preenchimento.\n- Menos espaço vazio entre títulos e campos, e o botão de voltar virou\n  um atalho discreto acima do título.",
+      "date": "2026-10-30T19:06:16-03:00"
+    },
+    {
+      "version": "1.0.318",
+      "type": "feat",
+      "scope": "empresa",
+      "title": "redesenha o cadastro da empresa com painel de conclusão",
+      "description": "As telas Adicionar empresa e Minha empresa ficaram mais fáceis de\npreencher, no computador e no celular:\n- O botão de criar ou salvar fica sempre à vista: ao lado do formulário\n  em telas grandes e numa barra fixa no celular, sem precisar rolar até\n  o fim.\n- O painel mostra quais seções estão prontas, quais faltam e quais têm\n  campos para corrigir, e leva direto a cada uma. Em Minha empresa ele\n  avisa se há alterações não salvas.\n- Os dados da empresa foram separados em Identificação, Endereço e\n  Capacidade, com campos do tamanho do conteúdo (CEP, número e estado\n  mais estreitos; razão social e logradouro mais largos). A melhoria\n  também vale para a etapa de dados da empresa na adesão.\n- Adicionar empresa ganhou o atalho para voltar a Minha empresa acima\n  do título.",
+      "date": "2026-10-30T19:06:10-03:00"
+    },
+    {
+      "version": "1.0.317",
+      "type": "feat",
+      "scope": "ui",
+      "title": "adiciona painel de conclusão, voltar e grupos de campos ao design system",
+      "description": "Peças reaproveitáveis para formulários de cadastro longos:\n- PainelCadastro: mostra o progresso por seção (pronta, falta preencher,\n  há campos para corrigir), leva a cada seção e guarda as ações do\n  formulário. Em telas grandes fica fixo ao lado do formulário; no celular\n  e no tablet vira uma barra de ações fixa acima da navegação inferior.\n- BackButton: volta discreta acima do título, com ícone e alvo de toque\n  de 44px.\n- FieldGroup/FieldCell: subgrupos nomeados de campos, em uma grade que\n  acompanha a largura do próprio formulário (1, 2 ou 6 colunas), para cada\n  campo ocupar a largura que o conteúdo pede.\n- Accordion: aceita id no item e respeita o cabeçalho fixo ao rolar até ele.\n- Tema: novos tokens stickyTop, formAsideWidth e formGridWide.",
+      "date": "2026-10-30T19:06:02-03:00"
+    },
+    {
       "version": "1.0.314",
       "type": "feat",
       "scope": "financeiro",
