@@ -38,6 +38,12 @@ const shared = {
     // Menu lateral das telas grandes: recolhido (só ícones) e expandido (com os nomes).
     sideNavWidth: "72px",
     sideNavExpandedWidth: "240px",
+    // Folga abaixo do cabeçalho fixo: topo de painéis fixos e margem ao rolar até uma seção.
+    stickyTop: "88px",
+    // Painel lateral dos formulários de cadastro (seções e ações) em telas grandes.
+    formAsideWidth: "280px",
+    // Largura do formulário a partir da qual os campos se distribuem em 6 colunas, cada um com a sua largura.
+    formGridWide: "560px",
   },
   breakpoints: {
     sm: "480px",

@@ -20,6 +20,8 @@ export function Accordion(props: HTMLAttributes<HTMLDivElement>) {
 }
 
 export interface AccordionItemProps {
+  // id do item, para rolar até ele (ex.: atalho de seção do PainelCadastro).
+  id?: string;
   title: string;
   summary?: string;
   open: boolean;
@@ -32,6 +34,7 @@ export interface AccordionItemProps {
 
 // O painel recolhido continua montado (apenas oculto) para preservar valores e erros dos campos.
 export function AccordionItem({
+  id: itemId,
   title,
   summary,
   open,
@@ -45,7 +48,7 @@ export function AccordionItem({
   const panelId = `${id}-panel`;
 
   return (
-    <Item $hasError={hasError}>
+    <Item id={itemId} $hasError={hasError}>
       <HeaderRow>
         <Heading>
           <Trigger
@@ -58,9 +61,7 @@ export function AccordionItem({
             <TitleGroup>
               <Title>{title}</Title>
               {(summary || hasError) && (
-                <Summary $hasError={hasError}>
-                  {hasError ? "Há campos para corrigir" : summary}
-                </Summary>
+                <Summary $hasError={hasError}>{hasError ? "Há campos para corrigir" : summary}</Summary>
               )}
             </TitleGroup>
             <Chevron

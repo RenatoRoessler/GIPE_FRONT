@@ -9,6 +9,7 @@ export const List = styled.div`
 `;
 
 export const Item = styled.section<{ $hasError: boolean }>`
+  scroll-margin-top: ${({ theme }) => theme.layout.stickyTop};
   border: 1px solid
     ${({ theme, $hasError }) => ($hasError ? theme.colors.danger : theme.colors.border)};
   border-radius: ${({ theme }) => theme.radii.lg};
