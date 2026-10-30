@@ -10,7 +10,7 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS.find((item) => item.label === "Pátio")).toEqual({ label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: "patio" });
   });
 
-  it("mantém os treze itens (um por tela), com Pátio, Entrada, Saída e Caixa primeiro e o Dashboard logo depois", () => {
+  it("mantém os quatorze itens (um por tela), com Pátio, Entrada, Saída e Caixa primeiro e o Dashboard logo depois", () => {
     expect(NAV_ITEMS.map((item) => item.label)).toEqual([
       "Pátio",
       "Entrada de Veículos",
@@ -23,18 +23,19 @@ describe("NAV_ITEMS", () => {
       "Mensalistas",
       "Empresas conveniadas",
       "Notas Fiscais",
+      "Financeiro",
       "Minha Empresa",
       "Quadros de Chaves",
     ]);
   });
 
-  it("Entrada e Saída são ações (abrem modal); os outros onze são links", () => {
+  it("Entrada e Saída são ações (abrem modal); os outros doze são links", () => {
     const acoes = NAV_ITEMS.filter(isNavAction);
     expect(acoes.map((item) => [item.label, item.acao, item.icon])).toEqual([
       ["Entrada de Veículos", "entrada", "vehicleIn"],
       ["Saída de Veículos", "saida", "vehicleOut"],
     ]);
-    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(11);
+    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(12);
   });
 
   it("não repete chave nem ícone", () => {
@@ -99,6 +100,26 @@ describe("Notas Fiscais no menu", () => {
   });
 });
 
+describe("Financeiro no menu", () => {
+  const item = NAV_ITEMS.find((navItem) => navItem.label === "Financeiro")!;
+
+  it("é um link para /financeiro, com ícone próprio, logo depois de Notas Fiscais", () => {
+    expect(item).toEqual({ label: "Financeiro", shortLabel: "Financeiro", href: "/financeiro", icon: "finance", area: "financeiro" });
+    const rotulos = NAV_ITEMS.map((navItem) => navItem.label);
+    expect(rotulos.indexOf("Financeiro")).toBe(rotulos.indexOf("Notas Fiscais") + 1);
+  });
+
+  it("fica ativo em /financeiro e nas rotas filhas, não em rotas parecidas", () => {
+    expect(isNavActive("/financeiro", item)).toBe(true);
+    expect(isNavActive("/financeiro/x", item)).toBe(true);
+    expect(isNavActive("/financeiros", item)).toBe(false);
+  });
+
+  it("não está entre os itens que a barra inferior mostra primeiro", () => {
+    expect(navItemsPorPrioridade(1).slice(0, 4).map((navItem) => navItem.label)).not.toContain("Financeiro");
+  });
+});
+
 describe("navItemsPermitidos", () => {
   const rotulos = (perfil: Parameters<typeof navItemsPermitidos>[0]) => navItemsPermitidos(perfil).map((item) => item.label);
 
@@ -117,6 +138,7 @@ describe("navItemsPermitidos", () => {
       "Gestão de Preços",
       "Mensalistas",
       "Notas Fiscais",
+      "Financeiro",
       "Quadros de Chaves",
     ]);
   });
@@ -127,8 +149,8 @@ describe("navItemsPermitidos", () => {
     expect(rotulos(3)).toEqual(esperado);
   });
 
-  it("o Financeiro vê o início e as notas fiscais", () => {
-    expect(rotulos(8)).toEqual(["Dashboard", "Notas Fiscais"]);
+  it("o Financeiro vê o início, as notas fiscais e o financeiro", () => {
+    expect(rotulos(8)).toEqual(["Dashboard", "Notas Fiscais", "Financeiro"]);
   });
 
   it("o Administrador da conveniada vê o início e a gestão de usuários", () => {
@@ -163,12 +185,12 @@ describe("navItemsPorPrioridade", () => {
   const rotulos = (perfil: Parameters<typeof navItemsPorPrioridade>[0]) => navItemsPorPrioridade(perfil).map((item) => item.shortLabel);
 
   it("Pátio, Entrada, Saída e Caixa vêm primeiro e o resto segue a ordem do menu", () => {
-    expect(rotulos(1)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Dashboard", "Preços", "Usuários", "Mensalistas", "Conveniadas", "Notas", "Empresa", "Chaves"]);
+    expect(rotulos(1)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Dashboard", "Preços", "Usuários", "Mensalistas", "Conveniadas", "Notas", "Financeiro", "Empresa", "Chaves"]);
   });
 
   it("só traz o que o perfil pode abrir", () => {
     expect(rotulos(4)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Dashboard"]);
-    expect(rotulos(8)).toEqual(["Dashboard", "Notas"]);
+    expect(rotulos(8)).toEqual(["Dashboard", "Notas", "Financeiro"]);
     expect(rotulos(null)).toEqual(["Dashboard"]);
   });
 
@@ -188,7 +210,7 @@ describe("dividirItensDaBarra", () => {
   const rotulos = (lista: typeof itens) => lista.map((item) => item.shortLabel);
 
   it("mostra tudo, sem Mais, quando todos cabem", () => {
-    for (const capacidade of [12, 13, 20]) {
+    for (const capacidade of [13, 14, 20]) {
       const { visiveis, excedentes } = dividirItensDaBarra(itens, capacidade);
       expect(visiveis).toEqual(itens);
       expect(excedentes).toEqual([]);
@@ -198,14 +220,14 @@ describe("dividirItensDaBarra", () => {
   it("reserva o último espaço para o Mais quando falta lugar", () => {
     const { visiveis, excedentes } = dividirItensDaBarra(itens, 5);
     expect(rotulos(visiveis)).toEqual(["Pátio", "Entrada", "Saída", "Caixa"]);
-    expect(rotulos(excedentes)).toEqual(["Dashboard", "Preços", "Usuários", "Mensalistas", "Conveniadas", "Notas", "Empresa", "Chaves"]);
+    expect(rotulos(excedentes)).toEqual(["Dashboard", "Preços", "Usuários", "Mensalistas", "Conveniadas", "Notas", "Financeiro", "Empresa", "Chaves"]);
     expect(visiveis.length + 1).toBe(5);
   });
 
-  it("com capacidade 9 esconde quatro itens: oito visíveis mais o Mais", () => {
+  it("com capacidade 9 esconde cinco itens: oito visíveis mais o Mais", () => {
     const { visiveis, excedentes } = dividirItensDaBarra(itens, 9);
     expect(visiveis).toHaveLength(8);
-    expect(excedentes).toHaveLength(4);
+    expect(excedentes).toHaveLength(5);
   });
 
   it("nunca usa menos de cinco espaços", () => {
@@ -273,6 +295,6 @@ describe("ordenarPeloMenu", () => {
 
   it("recoloca os excedentes da barra na ordem natural do menu", () => {
     const { excedentes } = dividirItensDaBarra(navItemsPorPrioridade(1), 5);
-    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Dashboard", "Preços", "Usuários", "Mensalistas", "Conveniadas", "Notas", "Empresa", "Chaves"]);
+    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Dashboard", "Preços", "Usuários", "Mensalistas", "Conveniadas", "Notas", "Financeiro", "Empresa", "Chaves"]);
   });
 });

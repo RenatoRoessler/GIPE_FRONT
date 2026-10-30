@@ -61,10 +61,10 @@ describe("BottomNav: itens da barra", () => {
   });
 
   it("quando todos os itens cabem, mostra todos e não oferece o Mais", () => {
-    barra.capacidade = 12;
+    barra.capacidade = 13;
     renderWithTheme(<BottomNav />);
 
-    expect(screen.getAllByRole("link")).toHaveLength(10);
+    expect(screen.getAllByRole("link")).toHaveLength(11);
     expect(screen.getByRole("button", { name: "Entrada" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Saída" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
@@ -129,7 +129,7 @@ describe("BottomNav: menu estendido", () => {
     expect(painel()).toHaveAttribute("open");
     expect(maisButton()).toHaveAttribute("aria-expanded", "true");
     expect(within(painel()).getByRole("heading", { name: "Mais", ...opcoes })).toBeInTheDocument();
-    expect(itensDoPainel()).toEqual(["Dashboard", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Empresas conveniadas", "Notas Fiscais", "Minha Empresa", "Quadros de Chaves"]);
+    expect(itensDoPainel()).toEqual(["Dashboard", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Empresas conveniadas", "Notas Fiscais", "Financeiro", "Minha Empresa", "Quadros de Chaves"]);
   });
 
   it("mostra o nome completo dos itens, não o rótulo curto", async () => {
@@ -147,7 +147,7 @@ describe("BottomNav: menu estendido", () => {
     barra.capacidade = 4;
     await abrir();
 
-    expect(itensDoPainel()).toEqual(["Dashboard", "Gestão de Preços", "Mensalistas", "Notas Fiscais", "Quadros de Chaves"]);
+    expect(itensDoPainel()).toEqual(["Dashboard", "Gestão de Preços", "Mensalistas", "Notas Fiscais", "Financeiro", "Quadros de Chaves"]);
   });
 
   it("marca a tela atual no painel, e só ela", async () => {
@@ -210,13 +210,13 @@ describe("BottomNav: menu estendido", () => {
     rerender(<BottomNav />);
 
     expect(painel()).toHaveAttribute("open");
-    expect(itensDoPainel()).toEqual(["Mensalistas", "Empresas conveniadas", "Notas Fiscais", "Minha Empresa", "Quadros de Chaves"]);
+    expect(itensDoPainel()).toEqual(["Mensalistas", "Empresas conveniadas", "Notas Fiscais", "Financeiro", "Minha Empresa", "Quadros de Chaves"]);
   });
 
   it("fecha quando a tela cresce e tudo passa a caber na barra, e o foco vai para a barra", async () => {
     const { rerender } = await abrir();
 
-    barra.capacidade = 12;
+    barra.capacidade = 13;
     rerender(<BottomNav />);
 
     expect(painel()).not.toHaveAttribute("open");
@@ -250,7 +250,7 @@ describe("BottomNav: Mais destacado", () => {
   });
 
   it("some junto com o botão quando tudo cabe, e a tela atual fica destacada na própria barra", () => {
-    barra.capacidade = 12;
+    barra.capacidade = 13;
     pathname = "/caixa";
     renderWithTheme(<BottomNav />);
 

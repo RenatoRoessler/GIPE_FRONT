@@ -13,6 +13,8 @@ export const AREA = {
   // Empresas com convênio com o estacionamento: consulta e cadastro de conveniadas.
   Conveniadas: "conveniadas",
   NotasFiscais: "notas-fiscais",
+  // Fluxo de caixa, lançamentos e categorias de receita e despesa.
+  Financeiro: "financeiro",
   Empresa: "empresa",
   Usuarios: "usuarios",
   // Cadastro dos quadros de chaves do pátio; escolher o gancho na entrada de veículos faz parte do pátio.
@@ -42,6 +44,7 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.Mensalistas]: [Administrador, Gerente],
   [AREA.Conveniadas]: [Administrador],
   [AREA.NotasFiscais]: [Administrador, Gerente, Financeiro],
+  [AREA.Financeiro]: [Administrador, Gerente, Financeiro],
   [AREA.Empresa]: [Administrador],
   [AREA.Usuarios]: [Administrador, AdministradorConveniada],
   [AREA.QuadroChaves]: [Administrador, Gerente],
@@ -68,6 +71,7 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/mensalistas", AREA.Mensalistas],
   ["/empresas-conveniadas", AREA.Conveniadas],
   ["/notas-fiscais", AREA.NotasFiscais],
+  ["/financeiro", AREA.Financeiro],
   ["/minha-empresa", AREA.Empresa],
   ["/usuarios", AREA.Usuarios],
   ["/quadros-chaves", AREA.QuadroChaves],

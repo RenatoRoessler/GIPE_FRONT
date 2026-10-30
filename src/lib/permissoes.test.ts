@@ -19,6 +19,7 @@ const PERMITIDOS: Record<Area, PerfilUsuario[]> = {
   [AREA.Mensalistas]: [Administrador, Gerente],
   [AREA.Conveniadas]: [Administrador],
   [AREA.NotasFiscais]: [Administrador, Gerente, Financeiro],
+  [AREA.Financeiro]: [Administrador, Gerente, Financeiro],
   [AREA.Empresa]: [Administrador],
   [AREA.Usuarios]: [Administrador, AdministradorConveniada],
   [AREA.QuadroChaves]: [Administrador, Gerente],
@@ -61,6 +62,8 @@ describe("areaDaRota", () => {
     expect(areaDaRota("/empresas-conveniadas")).toBe(AREA.Conveniadas);
     expect(areaDaRota("/empresas-conveniadas/nova")).toBe(AREA.Conveniadas);
     expect(areaDaRota("/notas-fiscais")).toBe(AREA.NotasFiscais);
+    expect(areaDaRota("/financeiro")).toBe(AREA.Financeiro);
+    expect(areaDaRota("/financeiro/qualquer")).toBe(AREA.Financeiro);
     expect(areaDaRota("/quadros-chaves")).toBe(AREA.QuadroChaves);
     expect(areaDaRota("/quadros-chaves/novo")).toBe(AREA.QuadroChaves);
     expect(areaDaRota("/carimbo")).toBe(AREA.Carimbo);

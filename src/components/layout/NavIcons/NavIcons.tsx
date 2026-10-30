@@ -106,6 +106,14 @@ function InvoiceIcon(props: IconProps) {
   );
 }
 
+// Financeiro: eixo com colunas de entrada e saída e a linha do saldo.
+function FinanceIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M4 4v16h16M8 16v-3M12 16V9M16 16v-5M7 8l4-3 4 3 4-3" />
+    </IconBase>
+  );
+}
 
 function CompanyIcon(props: IconProps) {
   return (
@@ -153,6 +161,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   yard: YardIcon,
   cashier: CashierIcon,
   invoice: InvoiceIcon,
+  finance: FinanceIcon,
   company: CompanyIcon,
   keys: KeysIcon,
   agreement: AgreementIcon,

@@ -1,0 +1,15 @@
+"use client";
+
+import styled from "styled-components";
+
+export const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[3]}px;
+
+  p[role="note"] {
+    margin: 0;
+    color: ${({ theme }) => theme.colors.textMuted};
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+  }
+`;
