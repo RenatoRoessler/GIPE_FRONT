@@ -32,6 +32,8 @@ describe("CaixaFechado", () => {
     renderWithTheme(<CaixaFechado onAbrir={vi.fn()} />);
 
     expect(screen.getByRole("link", { name: "Caixas anteriores" })).toHaveAttribute("href", "/caixa/historico");
+    // Em tela grande o botão assume o lugar do link; display:none no jsdom, então acha-se pelo texto.
+    expect(screen.getByText("Ver Histórico").closest("a")).toHaveAttribute("href", "/caixa/historico");
   });
 
   it.each([
@@ -42,5 +44,6 @@ describe("CaixaFechado", () => {
     renderWithTheme(<CaixaFechado onAbrir={vi.fn()} />);
 
     expect(screen.queryByRole("link", { name: "Caixas anteriores" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Ver Histórico")).not.toBeInTheDocument();
   });
 });

@@ -9,10 +9,11 @@ import { useToast } from "@/hooks/useToast";
 import { isForbiddenError } from "@/lib/api/errors";
 import { AberturaCaixa } from "../AberturaCaixa";
 import { AbrirCaixaModal } from "../AbrirCaixaModal";
+import { AcessosCaixa } from "../AcessosCaixa";
 import { AcoesCaixa } from "../AcoesCaixa";
 import { VisuallyHidden, StatusRow } from "../Caixa.styles";
 import { CaixaFechado } from "../CaixaFechado";
-import { Tela, VerMovimentos } from "../CaixaResumo.styles";
+import { Tela } from "../CaixaResumo.styles";
 import { CaixaSkeleton } from "../CaixaSkeleton";
 import { FecharCaixaModal } from "../FecharCaixaModal";
 import { FundoEGaveta } from "../FundoEGaveta";
@@ -59,7 +60,7 @@ export function CaixaPage() {
         <ErroSemPermissao />
       ) : (
         <>
-          <VerMovimentos href="/caixa/movimentos">Ver movimentos</VerMovimentos>
+          <AcessosCaixa />
           <AberturaCaixa caixa={caixa} />
           <ValorEmCaixa caixa={caixa} movimentos={movimentosQuery} />
           <FundoEGaveta caixa={caixa} turno={turnoQuery} />

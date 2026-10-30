@@ -159,10 +159,21 @@ export const Tela = styled.div`
   margin-inline: auto;
 `;
 
-// Navegação para a conferência dos movimentos; só em tela grande.
-export const VerMovimentos = styled(Link)`
+// Faixa de acessos de conferência (histórico, movimentos); só em tela grande.
+export const Acessos = styled.div`
   display: none;
-  align-self: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: ${({ theme }) => theme.space[2]}px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: flex;
+  }
+`;
+
+// Link com visual de botão secundário para outras telas; só em tela grande.
+export const AcessoRapido = styled(Link)`
+  display: none;
   align-items: center;
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[4]}px;
   border-radius: ${({ theme }) => theme.radii.lg};
@@ -179,5 +190,12 @@ export const VerMovimentos = styled(Link)`
 
   @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
     display: inline-flex;
+  }
+`;
+
+// Substituído por "Ver Histórico" em tela grande.
+export const CaixasAnteriores = styled(Link)`
+  @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: none;
   }
 `;

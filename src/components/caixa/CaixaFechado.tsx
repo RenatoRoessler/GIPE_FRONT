@@ -1,11 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import { Link } from "@/components/ui/Link";
 import { Text } from "@/components/ui/Text";
 import { useCan } from "@/hooks/useCan";
 import { AREA } from "@/lib/permissoes";
 import { EmptyPanel, PanelTitle } from "./Caixa.styles";
+import { AcessoRapido, CaixasAnteriores } from "./CaixaResumo.styles";
 
 export function CaixaFechado({ onAbrir }: { onAbrir: () => void }) {
   const podeVerCaixasAnteriores = useCan(AREA.CaixaHistorico);
@@ -19,7 +19,12 @@ export function CaixaFechado({ onAbrir }: { onAbrir: () => void }) {
       <Button type="button" onClick={onAbrir}>
         Abrir caixa
       </Button>
-      {podeVerCaixasAnteriores && <Link href="/caixa/historico">Caixas anteriores</Link>}
+      {podeVerCaixasAnteriores && (
+        <>
+          <CaixasAnteriores href="/caixa/historico">Caixas anteriores</CaixasAnteriores>
+          <AcessoRapido href="/caixa/historico">Ver Histórico</AcessoRapido>
+        </>
+      )}
     </EmptyPanel>
   );
 }

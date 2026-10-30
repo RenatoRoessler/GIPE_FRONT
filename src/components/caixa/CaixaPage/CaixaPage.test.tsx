@@ -126,6 +126,16 @@ describe("CaixaPage: caixa aberto", () => {
 
     // Em tela pequena o link fica display:none (o jsdom não aplica o breakpoint e o tira da árvore de acessibilidade): acha-se pelo texto.
     expect(screen.getByText("Ver movimentos").closest("a")).toHaveAttribute("href", "/caixa/movimentos");
+    expect(screen.getByText("Ver Histórico").closest("a")).toHaveAttribute("href", "/caixa/historico");
+  });
+
+  it("para quem não vê o histórico oferece só os movimentos", () => {
+    sessao.atual = { user: { name: "Caio", perfil: 4 }, isLoading: false };
+    caixaAberto();
+    renderWithProviders(<CaixaPage />);
+
+    expect(screen.getByText("Ver movimentos")).toBeInTheDocument();
+    expect(screen.queryByText("Ver Histórico")).not.toBeInTheDocument();
   });
 
   it("mostra a pilha de cartões na ordem do design, sem abas nem histórico", () => {
