@@ -1,0 +1,1 @@
+export { MovimentosCaixaPage } from "./MovimentosCaixaPage";

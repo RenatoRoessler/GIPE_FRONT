@@ -8,12 +8,11 @@ import { Link } from "@/components/ui/Link";
 import { Text } from "@/components/ui/Text";
 import { ApiError } from "@/lib/api/errors";
 import type { CaixaFechado, Movimento } from "@/types/caixa";
-import { arredondar } from "../agregados";
 import { InfoList, Page, Panel, StatusRow, TitleGroup } from "../Caixa.styles";
 import { baixarCsv, movimentosParaCsv } from "../exportCsv";
 import { formatDateTime, formatMoeda } from "../format";
 import { MovimentosLista } from "../MovimentosLista";
-import { turnosDosMovimentos } from "../movimentos";
+import { somarMovimentos, turnosDosMovimentos } from "../movimentos";
 import { baixarExtratoPdf } from "../pdf/extratoPdf";
 import { CAIXA_KEY } from "../useCaixa";
 import { useEmpresaPdf } from "../useEmpresaPdf";
@@ -34,20 +33,6 @@ function useCaixaDoHistorico(caixaId: number): CaixaFechado | undefined {
     }
   }
   return undefined;
-}
-
-function somar(movimentos: Movimento[]) {
-  let entradas = 0;
-  let saidas = 0;
-  for (const movimento of movimentos) {
-    const valor = Number.isFinite(movimento.valor) ? movimento.valor : 0;
-    if (movimento.tipo === "entrada") {
-      entradas += valor;
-    } else {
-      saidas += valor;
-    }
-  }
-  return { entradas: arredondar(entradas), saidas: arredondar(saidas) };
 }
 
 // Movimentos de um caixa já fechado (Administrador e Gerente), com exportação em CSV e PDF do que está filtrado.
@@ -90,7 +75,7 @@ export function ExtratoCaixaPage({ caixaId }: ExtratoCaixaPageProps) {
     );
   }
 
-  const totais = movimentos ? somar(movimentos) : null;
+  const totais = movimentos ? somarMovimentos(movimentos) : null;
 
   async function baixarPdf(filtrados: Movimento[], filtrado: boolean) {
     setGerandoPdf(true);

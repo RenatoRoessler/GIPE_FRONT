@@ -72,6 +72,7 @@ describe("areaDaRota", () => {
     expect(areaDaRota("/caixa/historico")).toBe(AREA.CaixaHistorico);
     expect(areaDaRota("/caixa/historico/12")).toBe(AREA.CaixaHistorico);
     expect(areaDaRota("/caixa/historicos")).toBe(AREA.Caixa);
+    expect(areaDaRota("/caixa/movimentos")).toBe(AREA.Caixa);
   });
 
   it("rotas abertas não têm área", () => {

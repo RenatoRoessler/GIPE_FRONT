@@ -1,4 +1,5 @@
 import type { Movimento, TipoMovimento, Turno } from "@/types/caixa";
+import { arredondar } from "./agregados";
 import { formatTime } from "./format";
 
 export type FiltroTipo = "todos" | TipoMovimento;
@@ -79,4 +80,19 @@ export function turnosDosMovimentos(movimentos: Movimento[]): TurnoRef[] {
     }
   }
   return [...porTurno.values()].sort((a, b) => (a.dataHoraInicio < b.dataHoraInicio ? -1 : a.dataHoraInicio > b.dataHoraInicio ? 1 : a.turnoId - b.turnoId));
+}
+
+// Entradas contra todo o resto (saída e sangria); valor que não é número conta como 0.
+export function somarMovimentos(movimentos: Movimento[]): { entradas: number; saidas: number } {
+  let entradas = 0;
+  let saidas = 0;
+  for (const movimento of movimentos) {
+    const valor = Number.isFinite(movimento.valor) ? movimento.valor : 0;
+    if (movimento.tipo === "entrada") {
+      entradas += valor;
+    } else {
+      saidas += valor;
+    }
+  }
+  return { entradas: arredondar(entradas), saidas: arredondar(saidas) };
 }

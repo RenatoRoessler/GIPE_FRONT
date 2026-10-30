@@ -1,6 +1,7 @@
 "use client";
 
 import styled from "styled-components";
+import { Link } from "@/components/ui/Link";
 import type { CorForma } from "./resumo";
 
 export const Pilha = styled.div`
@@ -156,4 +157,27 @@ export const Tela = styled.div`
   width: 100%;
   max-width: 720px;
   margin-inline: auto;
+`;
+
+// Navegação para a conferência dos movimentos; só em tela grande.
+export const VerMovimentos = styled(Link)`
+  display: none;
+  align-self: flex-end;
+  align-items: center;
+  padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[4]}px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  color: ${({ theme }) => theme.colors.text};
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  font-weight: ${({ theme }) => theme.fontWeights.extrabold};
+  text-decoration: none;
+  box-shadow: inset 0 0 0 1.5px ${({ theme }) => theme.colors.borderStrong};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primarySoft};
+    text-decoration: none;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: inline-flex;
+  }
 `;

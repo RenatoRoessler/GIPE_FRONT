@@ -120,6 +120,14 @@ describe("CaixaPage: carregando e erros", () => {
 });
 
 describe("CaixaPage: caixa aberto", () => {
+  it("oferece o link Ver movimentos para a tela de movimentos", () => {
+    caixaAberto();
+    renderWithProviders(<CaixaPage />);
+
+    // Em tela pequena o link fica display:none (o jsdom não aplica o breakpoint e o tira da árvore de acessibilidade): acha-se pelo texto.
+    expect(screen.getByText("Ver movimentos").closest("a")).toHaveAttribute("href", "/caixa/movimentos");
+  });
+
   it("mostra a pilha de cartões na ordem do design, sem abas nem histórico", () => {
     caixaAberto();
     renderWithProviders(<CaixaPage />);
@@ -196,5 +204,6 @@ describe("CaixaPage: caixa fechado", () => {
     expect(screen.getByRole("link", { name: "Caixas anteriores" })).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Valor em caixa" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Fechar caixa" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Ver movimentos")).not.toBeInTheDocument();
   });
 });

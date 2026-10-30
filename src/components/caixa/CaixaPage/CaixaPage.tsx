@@ -12,7 +12,7 @@ import { AbrirCaixaModal } from "../AbrirCaixaModal";
 import { AcoesCaixa } from "../AcoesCaixa";
 import { VisuallyHidden, StatusRow } from "../Caixa.styles";
 import { CaixaFechado } from "../CaixaFechado";
-import { Tela } from "../CaixaResumo.styles";
+import { Tela, VerMovimentos } from "../CaixaResumo.styles";
 import { CaixaSkeleton } from "../CaixaSkeleton";
 import { FecharCaixaModal } from "../FecharCaixaModal";
 import { FundoEGaveta } from "../FundoEGaveta";
@@ -59,6 +59,7 @@ export function CaixaPage() {
         <ErroSemPermissao />
       ) : (
         <>
+          <VerMovimentos href="/caixa/movimentos">Ver movimentos</VerMovimentos>
           <AberturaCaixa caixa={caixa} />
           <ValorEmCaixa caixa={caixa} movimentos={movimentosQuery} />
           <FundoEGaveta caixa={caixa} turno={turnoQuery} />
