@@ -6,7 +6,7 @@ export const Page = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[4]}px;
-  max-width: 880px;
+  max-width: ${({ theme }) => theme.layout.contentMaxWidth};
 `;
 
 export const HeaderRow = styled.div`
@@ -27,6 +27,13 @@ export const HeaderRow = styled.div`
   }
 `;
 
+// Voltar, título e descrição da página.
+export const Cabecalho = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[2]}px;
+`;
+
 export const TitleGroup = styled.div`
   display: flex;
   flex-direction: column;
@@ -37,18 +44,6 @@ export const Sections = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[4]}px;
-`;
-
-export const Actions = styled.div`
-  display: flex;
-  flex-direction: column-reverse;
-  gap: ${({ theme }) => theme.space[2]}px;
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: center;
-  }
 `;
 
 export const StatusRow = styled.div`
@@ -100,4 +95,13 @@ export const SkeletonHeader = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[2]}px;
+`;
+
+// Lugar do painel de conclusão enquanto carrega; só existe ao lado do formulário, em telas grandes.
+export const SkeletonAside = styled(SkeletonCard)`
+  display: none;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: flex;
+  }
 `;

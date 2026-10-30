@@ -1,2 +1,2 @@
-export { EmpresaSecoes } from "./EmpresaSecoes";
+export { EmpresaSecoes, painelDaEmpresa } from "./EmpresaSecoes";
 export type { EmpresaSecoesProps } from "./EmpresaSecoes";

@@ -51,6 +51,9 @@ export function useEmpresaForms(initial: EmpresaFormValues, sectionsRef: RefObje
   const companyInvalid = useSelector(companyForm.store, (state) => state.submissionAttempts > 0 && !state.isValid);
   const hoursInvalid = useSelector(hoursForm.store, (state) => state.submissionAttempts > 0 && !state.isValid);
   const paymentsInvalid = useSelector(paymentsForm.store, (state) => state.submissionAttempts > 0 && !state.isValid);
+  const companyComplete = useSelector(companyForm.store, (state) => companySchema.safeParse(state.values).success);
+  const hoursComplete = useSelector(hoursForm.store, (state) => businessHoursSchema.safeParse(state.values).success);
+  const paymentsComplete = useSelector(paymentsForm.store, (state) => paymentsSchema.safeParse(state.values).success);
   const meiosAceitos = useSelector(paymentsForm.store, (state) =>
     MEIOS_PAGAMENTO.filter(({ key }) => state.values[key])
       .map((meio) => meio.curto)
@@ -106,6 +109,9 @@ export function useEmpresaForms(initial: EmpresaFormValues, sectionsRef: RefObje
     companyInvalid,
     hoursInvalid,
     paymentsInvalid,
+    companyComplete,
+    hoursComplete,
+    paymentsComplete,
     meiosAceitos,
     razaoSocial,
     openDays,

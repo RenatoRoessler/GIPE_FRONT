@@ -3,10 +3,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
-import { EmpresaSecoes } from "@/components/empresa/EmpresaSecoes";
+import { EmpresaSecoes, painelDaEmpresa } from "@/components/empresa/EmpresaSecoes";
 import { useEmpresaForms } from "@/components/empresa/useEmpresaForms";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
+import { CadastroCorpo, PainelCadastro } from "@/components/ui/PainelCadastro";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { useCan } from "@/hooks/useCan";
@@ -14,7 +15,7 @@ import { useToast } from "@/hooks/useToast";
 import { updateEmpresa } from "@/lib/api/services/empresa";
 import { AREA } from "@/lib/permissoes";
 import type { EmpresaFormValues } from "@/types/empresa";
-import { Actions, HeaderRow, Page, Sections, TitleGroup } from "./MinhaEmpresa.styles";
+import { HeaderRow, Page, TitleGroup } from "./MinhaEmpresa.styles";
 
 export const EMPRESA_QUERY_KEY = ["empresa"] as const;
 
@@ -40,6 +41,7 @@ export function EmpresaForm({ initial }: EmpresaFormProps) {
   });
 
   const isSaving = mutation.isPending;
+  const painel = painelDaEmpresa(forms);
 
   async function handleSave() {
     const values = await forms.validarTudo();
@@ -71,23 +73,22 @@ export function EmpresaForm({ initial }: EmpresaFormProps) {
 
       {mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
 
-      <Sections ref={sectionsRef}>
+      <CadastroCorpo ref={sectionsRef}>
         <EmpresaSecoes forms={forms} disabled={isSaving} lockCnpj />
 
-        <Actions>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleDiscard}
-            disabled={!forms.isDirty || isSaving}
-          >
+        <PainelCadastro
+          secoes={painel.secoes}
+          onSelect={painel.onSelect}
+          status={forms.isDirty ? "Alterações não salvas" : "Tudo salvo"}
+        >
+          <Button type="button" variant="secondary" onClick={handleDiscard} disabled={!forms.isDirty || isSaving}>
             Descartar alterações
           </Button>
           <Button type="button" onClick={() => void handleSave()} disabled={!forms.isDirty || isSaving}>
             {isSaving ? "Salvando..." : "Salvar"}
           </Button>
-        </Actions>
-      </Sections>
+        </PainelCadastro>
+      </CadastroCorpo>
 
       {toast && <Toast message={toast.message} variant={toast.variant} onDismiss={dismissToast} />}
     </Page>

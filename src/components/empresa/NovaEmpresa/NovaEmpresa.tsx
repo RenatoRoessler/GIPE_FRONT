@@ -4,13 +4,15 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { EmpresaCriada } from "@/components/empresa/EmpresaCriada";
-import { EmpresaSecoes } from "@/components/empresa/EmpresaSecoes";
+import { EmpresaSecoes, painelDaEmpresa } from "@/components/empresa/EmpresaSecoes";
 import { useEmpresaForms } from "@/components/empresa/useEmpresaForms";
-import { Actions, Page, Sections, TitleGroup } from "@/components/empresa/MinhaEmpresa/MinhaEmpresa.styles";
+import { Cabecalho, Page, TitleGroup } from "@/components/empresa/MinhaEmpresa/MinhaEmpresa.styles";
 import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
+import { BackButton } from "@/components/ui/BackButton";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
+import { CadastroCorpo, PainelCadastro } from "@/components/ui/PainelCadastro";
 import { Text } from "@/components/ui/Text";
 import { isForbiddenError } from "@/lib/api/errors";
 import { addEmpresa } from "@/lib/api/services/empresa";
@@ -40,6 +42,7 @@ export function NovaEmpresa() {
   });
 
   const isSaving = mutation.isPending;
+  const painel = painelDaEmpresa(forms);
 
   async function handleCriar() {
     const values = await forms.validarTudo();
@@ -66,14 +69,19 @@ export function NovaEmpresa() {
 
   return (
     <Page>
-      <TitleGroup>
-        <Text variant="heading" as="h1">
-          Adicionar empresa
-        </Text>
-        <Text variant="muted">
-          Cadastre outra empresa na sua conta. Você poderá entrar nela escolhendo a empresa no login.
-        </Text>
-      </TitleGroup>
+      <Cabecalho>
+        <BackButton onClick={handleCancelar} disabled={isSaving}>
+          Minha empresa
+        </BackButton>
+        <TitleGroup>
+          <Text variant="heading" as="h1">
+            Adicionar empresa
+          </Text>
+          <Text variant="muted">
+            Cadastre outra empresa na sua conta. Você poderá entrar nela escolhendo a empresa no login.
+          </Text>
+        </TitleGroup>
+      </Cabecalho>
 
       {mutation.isError &&
         (isForbiddenError(mutation.error) ? (
@@ -82,18 +90,18 @@ export function NovaEmpresa() {
           <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>
         ))}
 
-      <Sections ref={sectionsRef}>
+      <CadastroCorpo ref={sectionsRef}>
         <EmpresaSecoes forms={forms} disabled={isSaving} />
 
-        <Actions>
+        <PainelCadastro secoes={painel.secoes} onSelect={painel.onSelect}>
           <Button type="button" variant="secondary" onClick={handleCancelar} disabled={isSaving}>
             Cancelar
           </Button>
           <Button type="button" onClick={() => void handleCriar()} disabled={isSaving}>
             {isSaving ? "Criando…" : "Criar empresa"}
           </Button>
-        </Actions>
-      </Sections>
+        </PainelCadastro>
+      </CadastroCorpo>
 
       {confirmandoCancelar && (
         <ConfirmDialog
