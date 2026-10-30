@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.314",
+      "type": "feat",
+      "scope": "financeiro",
+      "title": "adiciona o módulo Financeiro",
+      "description": "Nova área \"Financeiro\" no menu, para Administrador, Gerente e Financeiro,\ncom três abas:\n- Fluxo de caixa: saldo do período, gráfico diário ou mensal com o saldo\n  acumulado, composição de entradas e saídas por origem e categoria, e\n  tabela com todos os dias ou meses.\n- Lançamentos: lista com filtros por período, tipo, categoria e\n  cancelados; cadastro, edição, detalhe e cancelamento, inclusive\n  lançamentos que entram ou saem da gaveta do caixa.\n- Categorias: receitas e despesas com subcategorias, ativação e\n  inativação.\nFunciona no computador e no celular.",
+      "date": "2026-10-30T18:42:56-03:00"
+    },
+    {
       "version": "1.0.310",
       "type": "feat",
       "scope": "caixa",
