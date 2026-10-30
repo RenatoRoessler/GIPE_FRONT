@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.322",
+      "type": "feat",
+      "scope": "precos",
+      "title": "melhora a responsividade e a usabilidade da Gestão de Preços",
+      "description": "- No tablet, a lista e o detalhe passam a caber na tela: a altura considera\n  a navegação inferior, e a paginação não fica mais escondida atrás dela.\n- O detalhe da tabela se adapta à largura da própria coluna: Tarifa,\n  Informações, Horários e o simulador de cobrança não ficam mais espremidos.\n- O filtro de situação virou chips de um toque (Todas, Vigente, Agendada,\n  Encerrada, Inativa), e a busca ganhou ícone de lupa e borda mais visível.\n- A tabela selecionada na lista se destaca pelo fundo e pelo nome em\n  negrito. O botão Editar segue o mesmo estilo dos demais botões.\n- O campo de minutos do simulador tem altura de toque confortável.",
+      "date": "2026-10-30T19:21:05-03:00"
+    },
+    {
+      "version": "1.0.321",
+      "type": "feat",
+      "scope": "precos",
+      "title": "mostra um popup quando o cadastro de preço dá erro",
+      "description": "Ao salvar uma tabela de preço (nova ou editada) e a operação falhar, agora\nabre um popup com o motivo do erro, além do aviso que já aparecia na última\netapa. O popup oferece \"Tentar novamente\", que salva de novo sem perder o\nque foi preenchido, e \"Voltar ao formulário\".\n\nCria o componente ErrorDialog no design system, para reaproveitar em outros\nformulários.",
+      "date": "2026-10-30T19:21:04-03:00"
+    },
+    {
       "version": "1.0.319",
       "type": "feat",
       "scope": "conveniadas",
