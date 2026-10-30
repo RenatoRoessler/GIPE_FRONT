@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatTime } from "@/components/caixa/format";
 import { ListError } from "@/components/mensalistas/ListError";
@@ -21,6 +21,7 @@ import { PatioLista } from "./PatioLista";
 import { PatioResumo } from "./PatioResumo";
 import {
   Anuncio,
+  AcoesTopo,
   AtualizarBotao,
   Atualizacao,
   Conteudo,
@@ -29,6 +30,7 @@ import {
   GraficosGrade,
   Hora,
   Indicadores,
+  Lado,
   MaisBotao,
   ResumoGrade,
   Subtitulo,
@@ -60,14 +62,17 @@ function Relogio() {
   return <Hora aria-hidden="true">{agora === null ? "" : formatTime(new Date(agora).toISOString())}</Hora>;
 }
 
-function PatioTopo({ estacionamento }: { estacionamento: string | null }) {
+function PatioTopo({ estacionamento, acoes }: { estacionamento: string | null; acoes?: ReactNode }) {
   return (
     <Topo>
       <div>
         <Titulo>Pátio</Titulo>
         {estacionamento && <Subtitulo>{estacionamento}</Subtitulo>}
       </div>
-      <Relogio />
+      <Lado>
+        {acoes && <AcoesTopo>{acoes}</AcoesTopo>}
+        <Relogio />
+      </Lado>
     </Topo>
   );
 }
@@ -94,7 +99,18 @@ export function PatioView() {
   const { data, isPending, isError, error, refetch, isFetching, dataUpdatedAt } = usePatio();
   const vagas = useVagasPatio();
   const estacionamento = useEstacionamento();
-  const { abrirEntrada } = useVeiculoModais();
+  const { abrirEntrada, abrirSaida } = useVeiculoModais();
+  // A ação mais frequente do operador fica à vista com nome, e não só como ícone na lateral.
+  const acoes = (
+    <>
+      <Button type="button" aria-haspopup="dialog" onClick={abrirEntrada}>
+        Entrada
+      </Button>
+      <Button type="button" variant="secondary" aria-haspopup="dialog" onClick={abrirSaida}>
+        Saída
+      </Button>
+    </>
+  );
   const { busca, setBusca, termo, tipo, setTipo, categoria, setCategoria, limparFiltros, limparBusca, filtros } = usePatioFiltros();
 
   // A saída é concluída no ticket, que volta para cá com `?saiu=PLACA`. O aviso nasce uma vez; o parâmetro some da URL
@@ -141,7 +157,7 @@ export function PatioView() {
   if (isError && data === undefined) {
     return (
       <Conteudo ref={conteudo}>
-        <PatioTopo estacionamento={estacionamento} />
+        <PatioTopo estacionamento={estacionamento} acoes={acoes} />
         <ListError error={error} what="o pátio" onRetry={() => void refetch()} retrying={isFetching} />
         {extras}
       </Conteudo>
@@ -161,7 +177,7 @@ export function PatioView() {
 
   return (
     <Conteudo ref={conteudo}>
-      <PatioTopo estacionamento={estacionamento} />
+      <PatioTopo estacionamento={estacionamento} acoes={acoes} />
 
       <ResumoGrade>
         <PatioResumo veiculos={todos} ocupacao={ocupacao} tipo={tipo} onTipoChange={setTipo} />

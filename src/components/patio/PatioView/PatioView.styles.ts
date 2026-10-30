@@ -37,6 +37,22 @@ export const Topo = styled.header`
   }
 `;
 
+// Hora e, em telas grandes, as ações de entrada e saída. Abaixo de `lg` quem faz isso é a barra de navegação inferior.
+export const Lado = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[3]}px;
+`;
+
+export const AcoesTopo = styled.div`
+  display: none;
+  gap: ${({ theme }) => theme.space[2]}px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: flex;
+  }
+`;
+
 export const Titulo = styled.h1`
   margin: 0;
   font-size: ${({ theme }) => theme.fontSizes.subtitle};

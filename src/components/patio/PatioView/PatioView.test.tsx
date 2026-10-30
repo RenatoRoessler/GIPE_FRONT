@@ -184,6 +184,18 @@ describe("PatioView: lista", () => {
     expect(modais.abrirEntrada).toHaveBeenCalledTimes(1);
   });
 
+  it("o topo tem Entrada e Saída com nome, que abrem os modais", async () => {
+    abrir([]);
+    await screen.findByText("Nenhum carro no pátio");
+
+    // Só aparecem a partir de `lg` (abaixo, a barra inferior faz isso); o jsdom não avalia a media query.
+    await userEvent.click(screen.getByRole("button", { name: "Entrada", hidden: true }));
+    await userEvent.click(screen.getByRole("button", { name: "Saída", hidden: true }));
+
+    expect(modais.abrirEntrada).toHaveBeenCalledTimes(1);
+    expect(modais.abrirSaida).toHaveBeenCalledTimes(1);
+  });
+
   it("erro mostra a mensagem do back e deixa tentar de novo", async () => {
     vi.mocked(listPatio).mockRejectedValueOnce(new ApiError("server", "Serviço fora do ar.", 500));
     renderWithProviders(<PatioView />);
