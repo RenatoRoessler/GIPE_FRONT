@@ -7,7 +7,6 @@ import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Pagination } from "@/components/ui/Pagination";
-import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
@@ -17,12 +16,16 @@ import { PrecoListItem, type DirecaoFoco } from "../PrecoListItem";
 import {
   Anuncio,
   Busca,
+  BuscaCampo,
+  Chip,
+  Chips,
   ColunaDetalhe,
   ColunaLista,
   Contagem,
   EstadoLista,
   Filtros,
   Header,
+  LegendaOculta,
   Lista,
   Moldura,
   Page,
@@ -196,31 +199,41 @@ export function PrecosMasterDetail() {
         <ColunaLista $detalheAberto={selecao.detalheAberto} aria-label="Lista de tabelas de preço">
           <Filtros>
             <RotuloOculto htmlFor="busca-precos">Buscar tabela de preço</RotuloOculto>
-            <Busca
-              id="busca-precos"
-              type="search"
-              placeholder="Buscar tabela de preço"
-              autoComplete="off"
-              value={url.q}
-              onChange={(event) => url.setQ(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Escape" && url.q !== "") {
-                  event.preventDefault();
-                  url.setQ("");
-                }
-              }}
-            />
-            <Select
-              label="Situação"
-              value={url.situacao}
-              onChange={(event) => url.setSituacao(parseFiltroSituacao(event.target.value))}
-            >
+            <BuscaCampo>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <Busca
+                id="busca-precos"
+                type="search"
+                placeholder="Buscar tabela de preço"
+                autoComplete="off"
+                value={url.q}
+                onChange={(event) => url.setQ(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape" && url.q !== "") {
+                    event.preventDefault();
+                    url.setQ("");
+                  }
+                }}
+              />
+            </BuscaCampo>
+            <Chips>
+              <LegendaOculta>Situação</LegendaOculta>
               {FILTRO_SITUACAO_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
+                <Chip key={option.value} $ativo={url.situacao === option.value}>
+                  <input
+                    type="radio"
+                    name="situacao-precos"
+                    value={option.value}
+                    checked={url.situacao === option.value}
+                    onChange={(event) => url.setSituacao(parseFiltroSituacao(event.target.value))}
+                  />
                   {option.label}
-                </option>
+                </Chip>
               ))}
-            </Select>
+            </Chips>
             <Contagem aria-live="polite">{pronto ? pronto.contagem : " "}</Contagem>
           </Filtros>
 

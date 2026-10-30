@@ -263,12 +263,12 @@ describe("PrecosMasterDetail: busca e filtro", () => {
   it("filtra por situação e mostra a contagem no plural e no singular", async () => {
     const user = userEvent.setup();
     await tela();
-    await user.selectOptions(screen.getByLabelText("Situação"), "vigente");
+    await user.click(screen.getByRole("radio", { name: "Vigente" }));
     expect(itens()).toHaveLength(3);
     expect(screen.getByText("3 vigentes")).toBeInTheDocument();
     expect(nav.get().get("situacao")).toBe("vigente");
 
-    await user.selectOptions(screen.getByLabelText("Situação"), "agendada");
+    await user.click(screen.getByRole("radio", { name: "Agendada" }));
     expect(itens()).toHaveLength(1);
     expect(screen.getByText("1 agendada")).toBeInTheDocument();
   });
@@ -276,7 +276,7 @@ describe("PrecosMasterDetail: busca e filtro", () => {
   it("busca e situação funcionam juntas", async () => {
     const user = userEvent.setup();
     await tela();
-    await user.selectOptions(screen.getByLabelText("Situação"), "vigente");
+    await user.click(screen.getByRole("radio", { name: "Vigente" }));
     await user.type(screen.getByRole("searchbox"), "tarifa");
     expect(itens()).toHaveLength(1);
     expect(itens()[0]).toHaveTextContent("Tarifa padrão rotativo");
@@ -287,7 +287,7 @@ describe("PrecosMasterDetail: busca e filtro", () => {
     nav.set("/precos?situacao=inativa");
     await tela();
     expect(itens()).toHaveLength(1);
-    await user.selectOptions(screen.getByLabelText("Situação"), "todas");
+    await user.click(screen.getByRole("radio", { name: "Todas" }));
     expect(nav.get().get("situacao")).toBeNull();
     expect(itens()).toHaveLength(6);
   });
@@ -322,7 +322,7 @@ describe("PrecosMasterDetail: paginação", () => {
     const user = userEvent.setup();
     nav.set("/precos?pagina=2");
     await tela([...TABELAS, ...mais(30)]);
-    await user.selectOptions(screen.getByLabelText("Situação"), "vigente");
+    await user.click(screen.getByRole("radio", { name: "Vigente" }));
     expect(nav.get().get("pagina")).toBeNull();
   });
 
@@ -483,7 +483,7 @@ describe("PrecosMasterDetail: link compartilhável", () => {
     nav.set("/precos?preco=6&q=tarifa&situacao=encerrada");
     await tela();
     expect(screen.getByRole("searchbox")).toHaveValue("tarifa");
-    expect(screen.getByLabelText("Situação")).toHaveValue("encerrada");
+    expect(screen.getByRole("radio", { name: "Encerrada" })).toBeChecked();
     expect(itens()).toHaveLength(1);
     expect(tituloDoDetalhe()).toHaveTextContent("Tarifa verão 2025");
   });

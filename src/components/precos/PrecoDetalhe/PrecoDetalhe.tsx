@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BackButton } from "@/components/ui/BackButton";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -27,7 +28,7 @@ import {
   Tarifa,
   TipoNome,
   Titulo,
-  Voltar,
+  VoltarArea,
 } from "./PrecoDetalhe.styles";
 
 export type AbaDetalhe = "tarifa" | "horarios" | "informacoes";
@@ -94,9 +95,9 @@ export function PrecoDetalhe({ estado, preco, mensagemErro, onTentarNovamente, o
     return (
       <Estado>
         {onVoltar && (
-          <Voltar type="button" onClick={onVoltar}>
-            ← Preços
-          </Voltar>
+          <VoltarArea>
+            <BackButton onClick={onVoltar}>Preços</BackButton>
+          </VoltarArea>
         )}
         <ErrorBanner role="alert">Não foi possível carregar a tabela de preço. {mensagemErro}</ErrorBanner>
         {onTentarNovamente && (
@@ -112,9 +113,9 @@ export function PrecoDetalhe({ estado, preco, mensagemErro, onTentarNovamente, o
     return (
       <Estado>
         {onVoltar && (
-          <Voltar type="button" onClick={onVoltar}>
-            ← Preços
-          </Voltar>
+          <VoltarArea>
+            <BackButton onClick={onVoltar}>Preços</BackButton>
+          </VoltarArea>
         )}
         <Text variant="muted">{TABELA_INEXISTENTE_MESSAGE}</Text>
         {onIrParaPrimeira && (
@@ -132,9 +133,9 @@ export function PrecoDetalhe({ estado, preco, mensagemErro, onTentarNovamente, o
   return (
     <Detalhe aria-labelledby={`detalhe-titulo-${preco.rotatividadeId}`}>
       {onVoltar && (
-        <Voltar type="button" onClick={onVoltar}>
-          ← Preços
-        </Voltar>
+        <VoltarArea>
+          <BackButton onClick={onVoltar}>Preços</BackButton>
+        </VoltarArea>
       )}
       <Cabecalho>
         <Identificacao>
@@ -146,6 +147,10 @@ export function PrecoDetalhe({ estado, preco, mensagemErro, onTentarNovamente, o
           </Meta>
         </Identificacao>
         <EditarLink href={`/precos/${preco.rotatividadeId}/editar`} aria-label={`Editar ${preco.descricao}`}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
           Editar
         </EditarLink>
       </Cabecalho>

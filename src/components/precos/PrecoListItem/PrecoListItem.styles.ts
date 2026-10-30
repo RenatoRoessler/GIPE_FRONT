@@ -14,15 +14,19 @@ export const Item = styled.button<{ $selecionado: boolean }>`
   padding: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[3]}px;
   border: 0;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  border-left: 4px solid ${({ theme, $selecionado }) => ($selecionado ? theme.colors.accent : "transparent")};
-  background-color: ${({ theme, $selecionado }) => ($selecionado ? theme.colors.background : "transparent")};
+  background-color: ${({ theme, $selecionado }) => ($selecionado ? theme.colors.primarySoft : "transparent")};
   color: ${({ theme }) => theme.colors.text};
   font-family: inherit;
   text-align: left;
   cursor: pointer;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.background};
+    background-color: ${({ theme, $selecionado }) => ($selecionado ? theme.colors.primarySofter : theme.colors.background)};
+  }
+
+  /* O selecionado também se distingue pelo peso do nome, não só pelo fundo. */
+  &[aria-current="true"] > span:first-child {
+    font-weight: ${({ theme }) => theme.fontWeights.bold};
   }
 
   &:focus-visible {

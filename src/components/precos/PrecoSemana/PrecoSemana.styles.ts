@@ -2,13 +2,15 @@
 
 import styled from "styled-components";
 
+// Contêiner: as colunas acompanham a largura onde a semana aparece (coluna do detalhe, painel do wizard).
 export const Wrapper = styled.div`
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[2]}px;
 `;
 
-// Mesmas colunas da régua e das linhas; no celular o texto desce para baixo do nome do dia.
+// Mesmas colunas da régua e das linhas; em espaço estreito o texto desce para baixo do nome do dia.
 const COLUNAS_LARGAS = "56px minmax(0, 1fr) 150px";
 const COLUNAS_ESTREITAS = "56px minmax(0, 1fr)";
 
@@ -20,7 +22,7 @@ export const Regua = styled.div`
   color: ${({ theme }) => theme.colors.textMuted};
   font-variant-numeric: tabular-nums;
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @container (min-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-template-columns: ${COLUNAS_LARGAS};
   }
 `;
@@ -48,7 +50,7 @@ export const Linha = styled.li<{ $inativa: boolean }>`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   opacity: ${({ $inativa }) => ($inativa ? 0.6 : 1)};
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @container (min-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-template-columns: ${COLUNAS_LARGAS};
   }
 `;
@@ -83,7 +85,7 @@ export const Detalhe = styled.span`
   grid-column: 2;
   font-variant-numeric: tabular-nums;
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @container (min-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-column: auto;
     text-align: right;
   }

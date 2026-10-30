@@ -3,7 +3,9 @@
 import NextLink from "next/link";
 import styled from "styled-components";
 
+// Contêiner: Tarifa e as demais partes se ajustam à largura da coluna do detalhe, não à da janela.
 export const Detalhe = styled.article`
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[4]}px;
@@ -53,23 +55,26 @@ export const TipoNome = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.xs};
 `;
 
-// Mesma aparência do botão secundário: é um link para a edição, não uma ação da tela.
+// Mesma aparência do botão secundário (Button variant="secondary"): é um link para a edição, não uma ação da tela.
 export const EditarLink = styled(NextLink)`
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: ${({ theme }) => theme.space[2]}px;
+  flex-shrink: 0;
   min-height: 44px;
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[4]}px;
-  border-radius: ${({ theme }) => theme.radii.md};
-  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  box-shadow: inset 0 0 0 1.5px ${({ theme }) => theme.colors.borderStrong};
+  background-color: transparent;
   color: ${({ theme }) => theme.colors.text};
   font-size: ${({ theme }) => theme.fontSizes.md};
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  font-weight: ${({ theme }) => theme.fontWeights.extrabold};
   text-decoration: none;
   transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.border};
+    background-color: ${({ theme }) => theme.colors.primarySoft};
   }
 
   &:focus-visible {
@@ -78,25 +83,10 @@ export const EditarLink = styled(NextLink)`
   }
 `;
 
-export const Voltar = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.space[2]}px;
-  min-height: 44px;
-  padding: 0 ${({ theme }) => theme.space[2]}px;
-  border: 0;
-  background: transparent;
-  color: ${({ theme }) => theme.colors.link};
-  font: inherit;
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
-  cursor: pointer;
+// Voltar para a lista: só no celular, onde lista e detalhe não aparecem juntos.
+export const VoltarArea = styled.div`
+  display: flex;
 
-  &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.focus};
-    outline-offset: 2px;
-  }
-
-  /* Só no celular: no desktop a lista fica sempre ao lado. */
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
     display: none;
   }
@@ -108,7 +98,7 @@ export const Tarifa = styled.div`
   gap: ${({ theme }) => theme.space[4]}px;
   align-items: start;
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+  @container (min-width: ${({ theme }) => theme.layout.formGridWide}) {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   }
 `;
@@ -139,7 +129,7 @@ export const Fatos = styled.dl`
 `;
 
 export const FatosEmColunas = styled(Fatos)`
-  @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @container (min-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 `;

@@ -2,13 +2,16 @@
 
 import styled from "styled-components";
 
+// Contêiner: os controles ficam lado a lado quando o próprio bloco é largo o bastante.
 export const Bloco = styled.section`
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
   padding: ${({ theme }) => theme.space[4]}px;
-  border: 2px solid ${({ theme }) => theme.colors.text};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
+  background-color: ${({ theme }) => theme.colors.surface};
 `;
 
 export const Titulo = styled.h3`
@@ -25,7 +28,7 @@ export const Controles = styled.div`
   grid-template-columns: minmax(0, 1fr);
   gap: ${({ theme }) => theme.space[3]}px;
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @container (min-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
     align-items: end;
   }
@@ -57,8 +60,9 @@ export const PermanenciaLinha = styled.div`
 
 export const Minutos = styled.input`
   width: 84px;
+  min-height: 44px;
   padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[2]}px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: 1px solid ${({ theme }) => theme.colors.borderStrong};
   border-radius: ${({ theme }) => theme.radii.md};
   background-color: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.text};
