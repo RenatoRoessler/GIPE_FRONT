@@ -1,7 +1,7 @@
 "use client";
 
 import { withForm } from "@/components/form";
-import { Grid, GridItem } from "@/components/form/FormGrid.styles";
+import { FieldCell, FieldGroup, FieldGroups } from "@/components/form/FieldGroup";
 import { Input } from "@/components/ui/Input";
 import { type CepLookupStatus, useCepLookup } from "@/hooks/useCepLookup";
 import { formatCEP, isValidCEP } from "@/lib/cep";
@@ -53,94 +53,115 @@ export const ConveniadaEmpresaFields = withForm({
     }
 
     return (
-      <Grid>
-        <form.Field name="cnpj">
-          {(field) => (
-            <Input
-              label="CNPJ"
-              placeholder="00.000.000/0000-00"
-              inputMode="numeric"
-              value={field.state.value}
-              onChange={(event) => field.handleChange(formatCNPJ(event.target.value))}
-              onBlur={field.handleBlur}
-              error={field.state.meta.isTouched ? field.state.meta.errors[0] : undefined}
-              disabled={disabled}
-              required
-            />
-          )}
-        </form.Field>
-        <form.Field name="telefone">
-          {(field) => (
-            <Input
-              label="Telefone"
-              type="tel"
-              placeholder="(00) 0000-0000"
-              inputMode="tel"
-              value={field.state.value}
-              onChange={(event) => field.handleChange(formatPhone(event.target.value))}
-              onBlur={field.handleBlur}
-              error={field.state.meta.isTouched ? field.state.meta.errors[0] : undefined}
-              disabled={disabled}
-              required
-            />
-          )}
-        </form.Field>
-        <GridItem $span>
-          <form.AppField name="razaoSocial">
-            {(field) => <field.TextField label="Razão social" disabled={disabled} required />}
-          </form.AppField>
-        </GridItem>
-        <GridItem $span>
-          <form.AppField name="nomeFantasia">
-            {(field) => <field.TextField label="Nome fantasia" disabled={disabled} />}
-          </form.AppField>
-        </GridItem>
-        <form.Field name="cep">
-          {(field) => (
-            <Input
-              label="CEP"
-              placeholder="00000-000"
-              inputMode="numeric"
-              autoComplete="postal-code"
-              value={field.state.value}
-              onChange={(event) => void handleCepChange(event.target.value)}
-              {...cepHint(cepLookup.status)}
-              onBlur={field.handleBlur}
-              error={field.state.meta.isTouched ? field.state.meta.errors[0] : undefined}
-              disabled={disabled}
-              required
-            />
-          )}
-        </form.Field>
-        <form.AppField name="logradouro">
-          {(field) => <field.TextField label="Logradouro" disabled={disabled} required />}
-        </form.AppField>
-        <form.AppField name="numero">
-          {(field) => (
-            <field.TextField label="Número" inputMode="numeric" format={onlyDigits} disabled={disabled} required />
-          )}
-        </form.AppField>
-        <form.AppField name="bairro">
-          {(field) => <field.TextField label="Bairro" disabled={disabled} required />}
-        </form.AppField>
-        <form.AppField name="cidade">
-          {(field) => <field.TextField label="Cidade" disabled={disabled} required />}
-        </form.AppField>
-        <form.AppField name="estado">
-          {(field) => (
-            <field.SelectField label="Estado" disabled={disabled} required>
-              <option value="" disabled>
-                Selecione...
-              </option>
-              {ESTADOS.map((estado) => (
-                <option key={estado.sigla} value={estado.sigla}>
-                  {estado.sigla} - {estado.nome}
-                </option>
-              ))}
-            </field.SelectField>
-          )}
-        </form.AppField>
-      </Grid>
+      <FieldGroups>
+        <FieldGroup titulo="Identificação">
+          <FieldCell $w={2}>
+            <form.Field name="cnpj">
+              {(field) => (
+                <Input
+                  label="CNPJ"
+                  placeholder="00.000.000/0000-00"
+                  inputMode="numeric"
+                  value={field.state.value}
+                  onChange={(event) => field.handleChange(formatCNPJ(event.target.value))}
+                  onBlur={field.handleBlur}
+                  error={field.state.meta.isTouched ? field.state.meta.errors[0] : undefined}
+                  disabled={disabled}
+                  required
+                />
+              )}
+            </form.Field>
+          </FieldCell>
+          <FieldCell $w={4}>
+            <form.AppField name="razaoSocial">
+              {(field) => <field.TextField label="Razão social" disabled={disabled} required />}
+            </form.AppField>
+          </FieldCell>
+          <FieldCell $w={4}>
+            <form.AppField name="nomeFantasia">
+              {(field) => <field.TextField label="Nome fantasia" disabled={disabled} />}
+            </form.AppField>
+          </FieldCell>
+          <FieldCell $w={2}>
+            <form.Field name="telefone">
+              {(field) => (
+                <Input
+                  label="Telefone"
+                  type="tel"
+                  placeholder="(00) 0000-0000"
+                  inputMode="tel"
+                  value={field.state.value}
+                  onChange={(event) => field.handleChange(formatPhone(event.target.value))}
+                  onBlur={field.handleBlur}
+                  error={field.state.meta.isTouched ? field.state.meta.errors[0] : undefined}
+                  disabled={disabled}
+                  required
+                />
+              )}
+            </form.Field>
+          </FieldCell>
+        </FieldGroup>
+
+        <FieldGroup titulo="Endereço">
+          <FieldCell $w={2}>
+            <form.Field name="cep">
+              {(field) => (
+                <Input
+                  label="CEP"
+                  placeholder="00000-000"
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  value={field.state.value}
+                  onChange={(event) => void handleCepChange(event.target.value)}
+                  {...cepHint(cepLookup.status)}
+                  onBlur={field.handleBlur}
+                  error={field.state.meta.isTouched ? field.state.meta.errors[0] : undefined}
+                  disabled={disabled}
+                  required
+                />
+              )}
+            </form.Field>
+          </FieldCell>
+          <FieldCell $w={3}>
+            <form.AppField name="logradouro">
+              {(field) => <field.TextField label="Logradouro" disabled={disabled} required />}
+            </form.AppField>
+          </FieldCell>
+          <FieldCell $w={1}>
+            <form.AppField name="numero">
+              {(field) => (
+                <field.TextField label="Número" inputMode="numeric" format={onlyDigits} disabled={disabled} required />
+              )}
+            </form.AppField>
+          </FieldCell>
+          <FieldCell $w={2}>
+            <form.AppField name="bairro">
+              {(field) => <field.TextField label="Bairro" disabled={disabled} required />}
+            </form.AppField>
+          </FieldCell>
+          <FieldCell $w={2}>
+            <form.AppField name="cidade">
+              {(field) => <field.TextField label="Cidade" disabled={disabled} required />}
+            </form.AppField>
+          </FieldCell>
+          <FieldCell $w={2}>
+            <form.AppField name="estado">
+              {(field) => (
+                <field.SelectField label="Estado" disabled={disabled} required>
+                  <option value="" disabled>
+                    Selecione...
+                  </option>
+                  {ESTADOS.map((estado) => (
+                    <option key={estado.sigla} value={estado.sigla}>
+                      {estado.sigla} - {estado.nome}
+                    </option>
+                  ))}
+                </field.SelectField>
+              )}
+            </form.AppField>
+          </FieldCell>
+        </FieldGroup>
+      </FieldGroups>
     );
   },
 });

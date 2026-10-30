@@ -69,24 +69,43 @@ export const SkeletonRows = styled.div`
   padding: ${({ theme }) => theme.space[3]}px;
 `;
 
-// Texto de apoio abaixo dos campos (ex.: o que acontece com um CPF já cadastrado).
-export const Aviso = styled.p`
+// Seção do formulário de cadastro: mesma moldura das seções de Minha empresa (acordeão), sem recolher.
+export const Secao = styled.section`
+  scroll-margin-top: ${({ theme }) => theme.layout.stickyTop};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  background-color: ${({ theme }) => theme.colors.background};
+`;
+
+export const SecaoCabecalho = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[1]}px;
+  padding: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[4]}px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+export const SecaoTitulo = styled.h2`
   margin: 0;
-  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+export const SecaoDescricao = styled.p`
+  margin: 0;
+  max-width: 65ch;
   font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textMuted};
 `;
 
-export const SectionTitle = styled.div`
-  margin-bottom: ${({ theme }) => theme.space[3]}px;
+export const SecaoCorpo = styled.div`
+  padding: ${({ theme }) => theme.space[4]}px;
 `;
 
-export const VoltarWrapper = styled.div`
-  align-self: flex-start;
-`;
-
-// Formulário em seções empilhadas (mesmo ritmo de Sections em Minha Empresa).
-export const FormSections = styled.form`
+export const Secoes = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[4]}px;
+  min-width: 0;
 `;
