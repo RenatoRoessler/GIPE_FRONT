@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.310",
+      "type": "feat",
+      "scope": "caixa",
+      "title": "adiciona o botão Ver Histórico na tela do caixa",
+      "description": "Em telas grandes, Administrador e Gerente passam a ter o botão\n\"Ver Histórico\" na tela do Caixa, ao lado de \"Ver movimentos\", para\nabrir a lista de caixas anteriores com quem abriu, quem fechou e os\ntotais do fechamento. Com o caixa fechado, o botão assume o lugar do\nlink \"Caixas anteriores\" em telas grandes; no celular o link continua.",
+      "date": "2026-10-30T17:37:24-03:00"
+    },
+    {
       "version": "1.0.307",
       "type": "feat",
       "scope": "caixa",
