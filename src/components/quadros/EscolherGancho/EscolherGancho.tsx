@@ -12,7 +12,7 @@ import { Text } from "@/components/ui/Text";
 import type { ChaveEscolhida } from "@/types/quadroChaves";
 import { linhasDaGrade, rotuloGancho } from "../gancho";
 import { useQuadros } from "../useQuadros";
-import { Acoes, EscolhaPage, ErrorArea, Rodape, SugestaoLetra, VeiculoCard, VeiculoInfo } from "../Quadros.styles";
+import { Acoes, EscolhaPage, ErrorArea, RodapeDoModal, SugestaoLetra, VeiculoCard, VeiculoInfo } from "../Quadros.styles";
 import { useEscolherGancho, type ChaveAtual } from "./useEscolherGancho";
 
 export interface EscolherGanchoProps {
@@ -153,7 +153,7 @@ function Escolha({ quadros, patioId, placa, modelo, cor, onGuardado, onPular, ro
         grade
       )}
 
-      <Rodape>
+      <RodapeDoModal>
         {rotulo && (
           <Text variant="muted">
             Pendure a chave no {rotulo}. A posição aparece no card do carro no pátio.
@@ -167,7 +167,7 @@ function Escolha({ quadros, patioId, placa, modelo, cor, onGuardado, onPular, ro
             {rotuloPular}
           </Button>
         )}
-      </Rodape>
+      </RodapeDoModal>
     </EscolhaPage>
   );
 }

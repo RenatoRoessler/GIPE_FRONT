@@ -123,12 +123,20 @@ export const PreviaTitulo = styled.h2`
 export const Rodape = styled.div`
   position: sticky;
   bottom: 0;
+  /* Acima dos rótulos de linha da grade (sticky, z-index 1), que senão atravessam o rodapé. */
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: ${({ theme }) => theme.space[2]}px;
   padding: ${({ theme }) => theme.space[3]}px 0;
   background-color: ${({ theme }) => theme.colors.background};
+`;
+
+// Dentro de um modal o corpo tem folga (padding) em volta: com `bottom: 0` o rodapé para acima dela e a grade aparece
+// por baixo. Descer a folga toda faz o rodapé encostar na borda do modal.
+export const RodapeDoModal = styled(Rodape)`
+  bottom: -${({ theme }) => theme.space[4]}px;
 `;
 
 export const LinkButton = styled.button`
