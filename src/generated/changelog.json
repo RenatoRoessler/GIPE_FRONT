@@ -2,6 +2,30 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.326",
+      "type": "fix",
+      "scope": "veiculos",
+      "title": "corrige e agiliza o registro de entrada de veículos",
+      "description": "- Ao abrir a tela, o cursor já fica na placa; antes o que era digitado nos\n  primeiros instantes se perdia.\n- Ao trocar a placa, saem o modelo, a categoria e a cor preenchidos pela placa\n  anterior, para não registrar a tarifa de outro veículo.\n- Placa que já está no pátio mostra um aviso, com o atalho para o ticket, e\n  bloqueia o registro.\n- Os campos seguem a ordem Placa, Modelo, Categoria e Cor, e o rodapé diz o\n  que ainda falta. Modelo e cor passam a ser obrigatórios, como o sistema já\n  exigia, e a cor não vem mais marcada como prata. Se a cor do cadastro não\n  estiver na lista, ela aparece como texto.\n- Placa sem cadastro avisa que o modelo e a categoria são preenchidos na hora.\n- Enter e Tab na placa vão direto ao próximo campo, sem passar pela câmera.\n- As categorias ficam em ordem de tamanho, e as 8 cores cabem numa linha só\n  no celular.\n- As mensagens de erro do sistema aparecem com o detalhe, no lugar de \"Um ou\n  mais erros ocorreram\".\n- Depois de registrar, aparece a confirmação com o número do ticket e a hora.",
+      "date": "2026-10-30T20:44:43-03:00"
+    },
+    {
+      "version": "1.0.325",
+      "type": "feat",
+      "scope": "patio",
+      "title": "adiciona os botões Entrada e Saída no topo do Pátio",
+      "description": "No computador, a ação mais frequente do operador só aparecia como um ícone\nsem nome na barra lateral. Agora o topo do Pátio tem os botões \"Entrada\" e\n\"Saída\" com nome, ao lado do relógio. No celular e no tablet continua valendo\na barra de navegação inferior.",
+      "date": "2026-10-30T20:44:42-03:00"
+    },
+    {
+      "version": "1.0.324",
+      "type": "fix",
+      "scope": "quadros",
+      "title": "corrige o rodapé do quadro de chaves no celular",
+      "description": "Na escolha do gancho, os rótulos das linhas (C, D, E) passavam por cima do\ntexto e dos botões \"Guardar no gancho\" e \"Escolher depois\", e a última linha\nda grade aparecia por baixo do rodapé. Agora o rodapé fica por cima da grade\ne encosta na borda da janela.",
+      "date": "2026-10-30T20:44:42-03:00"
+    },
+    {
       "version": "1.0.322",
       "type": "feat",
       "scope": "precos",
