@@ -33,4 +33,11 @@ describe("ColorSwatchGroup", () => {
     renderWithTheme(<ColorSwatchGroup legend="Cor" options={options} value="" onChange={() => {}} error="Selecione a cor" />);
     expect(screen.getByRole("alert")).toHaveTextContent("Selecione a cor");
   });
+
+  it("mostra o texto de apoio, que cede lugar ao erro", () => {
+    const { rerender } = renderWithTheme(<ColorSwatchGroup legend="Cor" options={options} value="" onChange={() => {}} hint="Cor no cadastro: rosa" />);
+    expect(screen.getByText("Cor no cadastro: rosa")).toBeInTheDocument();
+    rerender(<ColorSwatchGroup legend="Cor" options={options} value="" onChange={() => {}} hint="Cor no cadastro: rosa" error="Selecione a cor" />);
+    expect(screen.queryByText("Cor no cadastro: rosa")).not.toBeInTheDocument();
+  });
 });

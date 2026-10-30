@@ -3,7 +3,7 @@
 import { ColorSwatchGroup, type ColorSwatchGroupProps } from "@/components/ui/ColorSwatchGroup";
 import { useFieldContext } from "./context";
 
-export type ColorFieldProps = Pick<ColorSwatchGroupProps, "legend" | "options" | "disabled">;
+export type ColorFieldProps = Pick<ColorSwatchGroupProps, "legend" | "options" | "disabled" | "hint">;
 
 export function ColorField(props: ColorFieldProps) {
   const field = useFieldContext<string>();

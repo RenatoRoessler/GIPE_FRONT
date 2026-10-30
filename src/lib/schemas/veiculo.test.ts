@@ -15,6 +15,10 @@ describe("entradaVeiculoSchema", () => {
     }
   });
 
+  it("rejeita modelo vazio (o back o exige)", () => {
+    expect(entradaVeiculoSchema.safeParse({ ...entradaValida, modelo: "  " }).success).toBe(false);
+  });
+
   it("rejeita cor vazia ou fora do enum", () => {
     expect(entradaVeiculoSchema.safeParse({ ...entradaValida, cor: "" }).success).toBe(false);
     expect(entradaVeiculoSchema.safeParse({ ...entradaValida, cor: "ROSA" }).success).toBe(false);

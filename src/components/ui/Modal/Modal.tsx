@@ -29,6 +29,8 @@ export function Modal({ open, title, onClose, children, footer, size = "sm", clo
     // O foco volta ao elemento que abriu o modal, mesmo que o <dialog> seja desmontado.
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     dialog.showModal();
+    // O <dialog> foca o primeiro controle (o "×"); quem marca um campo com data-autofocus o recebe no lugar.
+    dialog.querySelector<HTMLElement>("[data-autofocus]")?.focus();
     return () => {
       dialog.close();
       opener?.focus();

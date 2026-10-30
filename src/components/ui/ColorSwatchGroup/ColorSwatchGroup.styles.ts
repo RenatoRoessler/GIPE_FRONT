@@ -31,9 +31,9 @@ export const SelectedName = styled.span`
   color: ${({ theme }) => theme.colors.text};
 `;
 
+// Uma linha só: as amostras encolhem (até 28px) em vez de quebrar e deixar uma cor sozinha na linha de baixo.
 export const Swatches = styled.div`
   display: flex;
-  flex-wrap: wrap;
   gap: ${({ theme }) => theme.space[1]}px;
 `;
 
@@ -42,7 +42,9 @@ export const Swatch = styled.label<{ $disabled: boolean }>`
   position: relative;
   display: grid;
   place-items: center;
-  width: 44px;
+  flex: 1 1 44px;
+  min-width: 28px;
+  max-width: 44px;
   height: 44px;
   cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
   opacity: ${({ $disabled }) => ($disabled ? 0.6 : 1)};
@@ -80,4 +82,9 @@ export const Dot = styled.span<{ $color: string; $checked: boolean }>`
 export const ErrorText = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: ${({ theme }) => theme.colors.danger};
+`;
+
+export const Hint = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textMuted};
 `;

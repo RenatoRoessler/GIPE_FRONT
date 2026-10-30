@@ -2,11 +2,13 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
+import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
 import type { QuadroChaves } from "@/types/quadroChaves";
+import type { PatioVeiculo } from "@/types/patio";
 import type { EntradaRegistrada } from "@/types/veiculo";
 
-vi.mock("@/lib/api/services/patio", () => ({ registrarEntrada: vi.fn() }));
+vi.mock("@/lib/api/services/patio", () => ({ registrarEntrada: vi.fn(), listPatio: vi.fn() }));
 vi.mock("@/lib/api/services/veiculo", () => ({ consultarPlaca: vi.fn(), listModelos: vi.fn().mockResolvedValue([]) }));
 vi.mock("@/lib/api/services/quadroChaves", () => ({ listQuadros: vi.fn().mockResolvedValue([]), escolherQuadroChave: vi.fn() }));
 vi.mock("@/lib/api/services/empresa", () => ({ getEmpresa: vi.fn().mockRejectedValue(new Error("sem empresa")) }));
@@ -26,7 +28,7 @@ vi.mock("../LeitorPlacaModal", () => ({
     ) : null,
 }));
 
-import { registrarEntrada } from "@/lib/api/services/patio";
+import { listPatio, registrarEntrada } from "@/lib/api/services/patio";
 import { escolherQuadroChave, listQuadros } from "@/lib/api/services/quadroChaves";
 import { consultarPlaca } from "@/lib/api/services/veiculo";
 import { EntradaVeiculoModal } from "./EntradaVeiculoModal";
@@ -42,6 +44,11 @@ beforeAll(() => {
 });
 
 const handlers = { onClose: vi.fn(), onSuccess: vi.fn() };
+
+// Pátio vazio por padrão; os testes de "já está no pátio" põem um veículo na lista.
+beforeEach(() => {
+  vi.mocked(listPatio).mockReset().mockResolvedValue([]);
+});
 
 const registrada: EntradaRegistrada = {
   patioId: 10,
@@ -60,6 +67,16 @@ const registrada: EntradaRegistrada = {
   token: "227SUSYV",
 };
 
+type User = ReturnType<typeof userEvent.setup>;
+
+// Placa, categoria, modelo e cor são obrigatórios (o back recusa sem eles).
+async function preencher(user: User, { placa = "abc1d23", categoria = "Carro pequeno", modelo = "Onix", cor = "Azul" } = {}) {
+  await user.type(screen.getByLabelText("Placa"), placa);
+  await user.click(screen.getByRole("radio", { name: categoria }));
+  await user.type(screen.getByLabelText("Modelo"), modelo);
+  await user.click(screen.getByRole("radio", { name: cor }));
+}
+
 function renderModal() {
   return renderWithProviders(<EntradaVeiculoModal {...handlers} />);
 }
@@ -74,18 +91,74 @@ describe("EntradaVeiculoModal", () => {
     vi.mocked(escolherQuadroChave).mockReset();
   });
 
-  it("começa com a cor Prata e o registro bloqueado", () => {
+  it("começa sem cor pré-marcada, com o registro bloqueado e dizendo o que falta", () => {
     renderModal();
-    expect(screen.getByRole("radio", { name: "Prata" })).toBeChecked();
+    expect(screen.queryByRole("radio", { checked: true })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeDisabled();
+    expect(screen.getByText("Informe a placa completa.")).toBeInTheDocument();
   });
 
-  it("libera o registro com placa válida e categoria", async () => {
+  it("depois da placa, o rodapé lista o que falta e vai encurtando", async () => {
     const user = userEvent.setup();
     renderModal();
     await user.type(screen.getByLabelText("Placa"), "abc1d23");
-    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeDisabled();
+    expect(screen.getByText("Falta: modelo, categoria e cor.")).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Modelo"), "Onix");
+    expect(screen.getByText("Falta: categoria e cor.")).toBeInTheDocument();
     await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    expect(screen.getByText("Falta: cor.")).toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: "Azul" }));
+    expect(screen.queryByText(/^Falta:/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeEnabled();
+  });
+
+  it("o modelo vem antes da categoria e da cor, com os carros do menor para o maior", () => {
+    renderModal();
+    const grupo = screen.getByRole("group", { name: /Categoria/ });
+    const nomes = Array.from(grupo.querySelectorAll("label")).map((label) => label.textContent?.trim());
+    expect(nomes).toEqual(["Carro pequeno", "Carro médio", "Carro grande", "Moto", "Caminhonete", "Caminhão"]);
+    const modelo = screen.getByLabelText("Modelo");
+    const cor = screen.getByRole("group", { name: /^Cor/ });
+    expect(modelo.compareDocumentPosition(grupo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(grupo.compareDocumentPosition(cor) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("mostra as mensagens específicas do back, e não o texto genérico", async () => {
+    vi.mocked(registrarEntrada).mockRejectedValue(
+      new ApiError("validation", "Um ou mais erros ocorreram", 400, [
+        { code: "BUSINESS_ERROR", message: "Modelo: O modelo do veículo é obrigatório" },
+        { code: "BUSINESS_ERROR", message: "Cor: A cor do veículo é obrigatória" },
+      ]),
+    );
+    const user = userEvent.setup();
+    renderModal();
+    await preencher(user);
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+
+    const alerta = await screen.findByRole("alert");
+    expect(alerta).toHaveTextContent("Modelo: O modelo do veículo é obrigatório");
+    expect(alerta).toHaveTextContent("Cor: A cor do veículo é obrigatória");
+    expect(alerta).not.toHaveTextContent("Um ou mais erros ocorreram");
+  });
+
+  it("sem detalhes, mostra a mensagem do erro", async () => {
+    vi.mocked(registrarEntrada).mockRejectedValue(new Error("Sem caixa aberto."));
+    const user = userEvent.setup();
+    renderModal();
+    await preencher(user);
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Sem caixa aberto.");
+  });
+
+  it("só libera o registro com placa, categoria, modelo e cor", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeDisabled();
+    await user.type(screen.getByLabelText("Modelo"), "Onix");
+    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeDisabled();
+    await user.click(screen.getByRole("radio", { name: "Azul" }));
     expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeEnabled();
   });
 
@@ -93,13 +166,11 @@ describe("EntradaVeiculoModal", () => {
     vi.mocked(registrarEntrada).mockResolvedValue(registrada);
     const user = userEvent.setup();
     renderModal();
-    await user.type(screen.getByLabelText("Placa"), "abc1d23");
-    await user.click(screen.getByRole("radio", { name: "Azul" }));
-    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    await preencher(user);
     await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
 
     await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
-    expect(vi.mocked(registrarEntrada).mock.calls[0][0]).toMatchObject({ placa: "ABC1D23", categoria: 2, cor: "AZUL" });
+    expect(vi.mocked(registrarEntrada).mock.calls[0][0]).toMatchObject({ placa: "ABC1D23", categoria: 2, modelo: "Onix", cor: "AZUL" });
     expect(await screen.findByText("Entrada registrada")).toBeInTheDocument();
   });
 
@@ -119,7 +190,7 @@ describe("EntradaVeiculoModal", () => {
     await waitFor(() => expect(screen.getByRole("radio", { name: "Vermelho" })).toBeChecked());
   });
 
-  it("mantém a seleção quando a cor do cadastro não é da lista", async () => {
+  it("mostra como texto a cor do cadastro que não é da lista, sem escolher outra no lugar", async () => {
     vi.mocked(consultarPlaca).mockResolvedValue({
       placa: "ABC1D23",
       encontrado: true,
@@ -133,7 +204,63 @@ describe("EntradaVeiculoModal", () => {
     await user.type(screen.getByLabelText("Placa"), "abc1d23");
     await user.tab();
     await screen.findByText("Dados do cadastro preenchidos.");
-    expect(screen.getByRole("radio", { name: "Prata" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Prata" })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: "Cinza" })).not.toBeChecked();
+    expect(screen.getByText(/Cor no cadastro: cinza claro/)).toBeInTheDocument();
+  });
+
+  it("placa sem cadastro avisa que o modelo e a categoria são com o operador", async () => {
+    vi.mocked(consultarPlaca).mockResolvedValue({ placa: "ABC1D23", encontrado: false, origem: "x" } as never);
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.tab();
+    expect(await screen.findByText("Placa sem cadastro: preencha o modelo e escolha a categoria.")).toBeInTheDocument();
+  });
+
+  it("ao trocar a placa, tira o que a consulta da anterior preencheu", async () => {
+    vi.mocked(consultarPlaca).mockResolvedValue({ placa: "ABC1D23", encontrado: true, origem: "x", modelo: "ONIX", cor: "Vermelho", categoria: 3 });
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.tab();
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Carro médio" })).toBeChecked());
+    expect(screen.getByLabelText("Modelo")).toHaveValue("ONIX");
+
+    await user.type(screen.getByLabelText("Placa"), "{backspace}");
+
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Carro médio" })).not.toBeChecked());
+    expect(screen.getByLabelText("Modelo")).toHaveValue("");
+    expect(screen.getByRole("radio", { name: "Vermelho" })).not.toBeChecked();
+  });
+
+  it("ao trocar a placa, mantém o que o operador mudou à mão", async () => {
+    vi.mocked(consultarPlaca).mockResolvedValue({ placa: "ABC1D23", encontrado: true, origem: "x", modelo: "ONIX", cor: "Vermelho", categoria: 3 });
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.tab();
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Carro médio" })).toBeChecked());
+    await user.click(screen.getByRole("radio", { name: "Carro grande" }));
+
+    await user.type(screen.getByLabelText("Placa"), "{backspace}");
+
+    await waitFor(() => expect(screen.getByLabelText("Modelo")).toHaveValue(""));
+    expect(screen.getByRole("radio", { name: "Carro grande" })).toBeChecked();
+  });
+
+  it("Enter na placa leva ao primeiro campo que falta (o modelo), sem mostrar erro nem registrar", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23{Enter}");
+    expect(screen.getByLabelText("Modelo")).toHaveFocus();
+    expect(screen.queryByText("Selecione a categoria")).not.toBeInTheDocument();
+    expect(registrarEntrada).not.toHaveBeenCalled();
+  });
+
+  it("o botão da câmera fica fora da ordem do Tab", () => {
+    renderModal();
+    expect(screen.getByRole("button", { name: "Ler placa pela câmera" })).toHaveAttribute("tabindex", "-1");
   });
 
   it("preenche a placa e consulta o cadastro ao confirmar a leitura da câmera", async () => {
@@ -169,8 +296,7 @@ describe("EntradaVeiculoModal", () => {
     vi.mocked(registrarEntrada).mockReturnValue(new Promise(() => {}));
     const user = userEvent.setup();
     renderModal();
-    await user.type(screen.getByLabelText("Placa"), "abc1d23");
-    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    await preencher(user);
     await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Ler placa pela câmera" })).toBeDisabled());
   });
@@ -245,6 +371,8 @@ describe("EntradaVeiculoModal: mensalista", () => {
     expect(screen.queryByText(/Mensalista/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    await user.type(screen.getByLabelText("Modelo"), "Onix");
+    await user.click(screen.getByRole("radio", { name: "Azul" }));
     await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
     await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
     expect(vi.mocked(registrarEntrada).mock.calls[0][0]).toMatchObject({ mensalista: false });
@@ -264,14 +392,64 @@ describe("EntradaVeiculoModal: mensalista", () => {
   });
 });
 
+const noPatio = {
+  patioId: 77,
+  placa: "ABC1D23",
+  categoria: 2,
+  modelo: "ONIX",
+  cor: "PRATA",
+  codigoTicket: 5,
+  sequencial: 3,
+  mensalista: false,
+  dataHoraEntrada: "2026-10-15T20:13:00",
+  minutosPermanencia: 100,
+  permanencia: "1h 40min",
+  rotatividadeDescricao: null,
+  usuarioEntrada: null,
+  token: null,
+} as PatioVeiculo;
+
+describe("EntradaVeiculoModal: placa que já está no pátio", () => {
+  it("avisa, bloqueia o registro e leva ao ticket", async () => {
+    vi.mocked(listPatio).mockResolvedValue([noPatio]);
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+
+    const aviso = await screen.findByRole("alert");
+    expect(aviso).toHaveTextContent("ABC1D23 já está no pátio desde");
+    expect(screen.getByRole("link", { name: "Ver o ticket e dar saída" })).toHaveAttribute("href", "/patio/77");
+    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeDisabled();
+    expect(screen.getByText("Esta placa já está no pátio.")).toBeInTheDocument();
+  });
+
+  it("o Enter também não registra", async () => {
+    vi.mocked(listPatio).mockResolvedValue([noPatio]);
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await screen.findByRole("alert");
+    await user.type(screen.getByLabelText("Placa"), "{Enter}");
+    expect(registrarEntrada).not.toHaveBeenCalled();
+  });
+
+  it("sem a placa na lista, nenhum aviso", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await waitFor(() => expect(listPatio).toHaveBeenCalled());
+    expect(screen.queryByText(/já está no pátio/)).not.toBeInTheDocument();
+  });
+});
+
 describe("EntradaVeiculoModal: lista do pátio", () => {
   it("registrar a entrada invalida a lista do pátio", async () => {
     vi.mocked(registrarEntrada).mockResolvedValue(registrada);
     const user = userEvent.setup();
     const { queryClient } = renderModal();
     const invalidar = vi.spyOn(queryClient, "invalidateQueries");
-    await user.type(screen.getByLabelText("Placa"), "abc1d23");
-    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    await preencher(user);
 
     await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
 
@@ -284,8 +462,7 @@ describe("EntradaVeiculoModal: lista do pátio", () => {
     const user = userEvent.setup();
     const { queryClient } = renderModal();
     const invalidar = vi.spyOn(queryClient, "invalidateQueries");
-    await user.type(screen.getByLabelText("Placa"), "abc1d23");
-    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    await preencher(user);
 
     await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
 
@@ -312,8 +489,7 @@ describe("EntradaVeiculoModal: gancho da chave", () => {
   async function registrar() {
     const user = userEvent.setup();
     const rendered = renderModal();
-    await user.type(screen.getByLabelText("Placa"), "abc1d23");
-    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    await preencher(user);
     await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
     return { user, ...rendered };
   }
@@ -325,7 +501,9 @@ describe("EntradaVeiculoModal: gancho da chave", () => {
     const { user } = await registrar();
 
     expect(await screen.findByRole("button", { name: "Guardar no gancho A1" })).toBeInTheDocument();
-    expect(screen.queryByText("Entrada registrada")).not.toBeInTheDocument();
+    // A confirmação já aparece acima do quadro, com o ticket e a hora.
+    expect(screen.getByText(/^Entrada registrada · Ticket nº 7 · /)).toBeInTheDocument();
+    expect(screen.queryByText(/null|undefined/)).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Guardar no gancho A1" }));
 
     expect(escolherQuadroChave).toHaveBeenCalledWith(10, 5);

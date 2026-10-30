@@ -1,7 +1,17 @@
 "use client";
 
 import { useId } from "react";
-import { Dot, ErrorText, Fieldset, Legend, RadioInput, SelectedName, Swatch, Swatches } from "./ColorSwatchGroup.styles";
+import {
+  Dot,
+  ErrorText,
+  Fieldset,
+  Hint,
+  Legend,
+  RadioInput,
+  SelectedName,
+  Swatch,
+  Swatches,
+} from "./ColorSwatchGroup.styles";
 
 export interface ColorSwatchOption {
   value: string;
@@ -16,10 +26,20 @@ export interface ColorSwatchGroupProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   error?: string;
+  // Texto de apoio abaixo das amostras (ex.: a cor do cadastro, quando não está na lista).
+  hint?: string;
 }
 
 // Escolha única de cor em amostras; usa radios nativos (setas, foco e leitor de tela vêm do navegador).
-export function ColorSwatchGroup({ legend, options, value, onChange, disabled = false, error }: ColorSwatchGroupProps) {
+export function ColorSwatchGroup({
+  legend,
+  options,
+  value,
+  onChange,
+  disabled = false,
+  error,
+  hint,
+}: ColorSwatchGroupProps) {
   const name = useId();
   const selected = options.find((option) => option.value === value);
 
@@ -47,6 +67,7 @@ export function ColorSwatchGroup({ legend, options, value, onChange, disabled = 
           );
         })}
       </Swatches>
+      {hint && !error && <Hint>{hint}</Hint>}
       {error && <ErrorText role="alert">{error}</ErrorText>}
     </Fieldset>
   );
