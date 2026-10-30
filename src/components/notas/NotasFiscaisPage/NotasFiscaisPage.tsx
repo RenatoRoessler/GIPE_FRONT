@@ -8,7 +8,7 @@ import { Text } from "@/components/ui/Text";
 import { mesAtual } from "@/lib/periodoNotas";
 import type { PeriodoNotas } from "@/types/notaFiscal";
 import { ABAS, abaUrl, parseAba, type AbaId } from "../aba";
-import { FiltroPeriodo } from "../FiltroPeriodo";
+import { FiltroPeriodo } from "@/components/ui/FiltroPeriodo";
 import { Conteudo } from "../Notas.styles";
 import { NotasList } from "../NotasList";
 import { useNotasLancadas, useNotasPendentes } from "../useNotas";

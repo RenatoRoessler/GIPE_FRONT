@@ -23,29 +23,6 @@ export const Conteudo = styled.div`
   gap: ${({ theme }) => theme.space[3]}px;
 `;
 
-// Filtro de período da aba Lançadas: campos empilhados no celular e em uma linha a partir de `md`.
-export const FiltroForm = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.space[3]}px;
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-
-  /* Alinha o botão aos campos (que têm rótulo em cima). */
-  button {
-    align-self: flex-start;
-  }
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    button {
-      margin-top: 28px;
-    }
-  }
-`;
-
 // Moldura da tabela: a partir de `md` é uma tabela com rolagem lateral; abaixo disso cada nota vira um cartão (ver NotaRow).
 export const NotasTabela = styled.div<{ $refreshing: boolean }>`
   display: flex;
