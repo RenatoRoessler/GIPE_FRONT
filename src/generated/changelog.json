@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.333",
+      "type": "feat",
+      "scope": "teclados",
+      "title": "usa os novos teclados nos campos de operação",
+      "description": "Aplica o teclado de placa, numérico ou de letras nos campos de saída de\nveículos, caixa, mensalistas, lançamentos, preços e busca do pátio. Campos\ncom máscara (CPF, CNPJ, CEP, telefone) ou que exigem acento continuam com o\nteclado do sistema.\n\nCampos de valor não aceitam mais \"-\", \".\" nem a terceira casa decimal; os\ntestes que digitavam valores inválidos passaram a injetá-los direto.",
+      "date": "2026-10-31T17:08:32-03:00"
+    },
+    {
+      "version": "1.0.332",
+      "type": "feat",
+      "scope": "teclados",
+      "title": "adiciona teclados de placa, numérico e de letras no celular",
+      "description": "Em aparelhos de toque, campos com a prop `teclado` abrem uma folha própria\nna base da tela (placa por posição, numérico inteiro/decimal/livre e letras\nmaiúsculas sem acento) em vez do teclado do sistema. As teclas escrevem no\ncampo pelo setter nativo, então máscaras e validações continuam valendo.\n\nNo computador o campo mantém o teclado físico e bloqueia os mesmos\ncaracteres; texto colado é limpo pela regra do campo. \"Próximo\" avança para\no campo seguinte e \"OK\" fecha. O Modal e o AppShell reservam o espaço do\nteclado aberto, e a folha é montada dentro do <dialog> quando há modal.",
+      "date": "2026-10-31T17:08:31-03:00"
+    },
+    {
       "version": "1.0.329",
       "type": "feat",
       "scope": "adesao",
