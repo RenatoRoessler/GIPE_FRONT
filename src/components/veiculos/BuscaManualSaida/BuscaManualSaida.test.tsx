@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { MEDIA_TOQUE } from "@/components/teclado/useTecladoCampo";
 import type { SaidaBuscaValues } from "@/lib/schemas/saida";
 import { renderWithTheme } from "@/test/render";
 import { BuscaManualSaida, SEQUENCIAL_ENTER_HINT, type BuscaManualSaidaProps } from "./BuscaManualSaida";
@@ -33,7 +34,31 @@ const placa = () => screen.getByLabelText("Placa");
 const token = () => screen.getByLabelText("Token");
 const sequencial = () => screen.getByLabelText("Sequencial");
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe("BuscaManualSaida", () => {
+  it("no celular os três campos usam o teclado do Murel, não o do sistema", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === MEDIA_TOQUE,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+    renderBusca();
+
+    expect(placa()).toHaveAttribute("inputmode", "none");
+    expect(token()).toHaveAttribute("inputmode", "none");
+    expect(sequencial()).toHaveAttribute("inputmode", "none");
+  });
+
+  it("no computador o sequencial mantém o teclado numérico do sistema", () => {
+    renderBusca();
+
+    expect(sequencial()).toHaveAttribute("inputmode", "numeric");
+  });
+
   it("mostra os três campos habilitados quando nenhum está preenchido", () => {
     renderBusca();
     expect(placa()).toBeEnabled();

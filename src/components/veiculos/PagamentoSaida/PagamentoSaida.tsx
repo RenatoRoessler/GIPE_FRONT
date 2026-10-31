@@ -14,6 +14,7 @@ import { calcularTroco, FORMA_DINHEIRO, FORMAS_SAIDA, getPagamentoStatus } from 
 import type { MeiosPagamento } from "../useMeiosPagamento";
 import { CreditoIcon, DebitoIcon, DinheiroIcon, PixIcon } from "../saidaIcons";
 import { Wrapper } from "./PagamentoSaida.styles";
+import { TECLADO_DECIMAL } from "@/lib/teclado/tipos";
 
 const ICONES: Record<string, ReactNode> = {
   [String(FORMA_PAGAMENTO.Dinheiro)]: DinheiroIcon,
@@ -105,6 +106,7 @@ export function PagamentoSaida({
         <Input
           label="Valor recebido"
           inputMode="decimal"
+          teclado={TECLADO_DECIMAL}
           placeholder="R$ 0,00"
           value={recebido}
           onChange={(event) => onRecebidoChange(maskMoney(event.target.value))}

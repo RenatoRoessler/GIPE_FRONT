@@ -1,8 +1,10 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useTecladoCampo } from "@/components/teclado/useTecladoCampo";
 import { Select } from "@/components/ui/Select";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { TECLADO_INTEIRO } from "@/lib/teclado/tipos";
 import { TIPO_CATEGORIA, TIPO_CATEGORIA_OPTIONS, type PrecoView, type TipoCategoria } from "@/types/preco";
 import { formatBRL, formatMinutos } from "../format";
 import { estimarCobranca, type Estimativa } from "./estimarCobranca";
@@ -69,6 +71,7 @@ export function SimuladorCobranca({ preco }: SimuladorCobrancaProps) {
   const ids = useId();
   const [categoria, setCategoria] = useState<TipoCategoria>(() => categoriaInicial(preco));
   const [minutos, setMinutos] = useState(PERMANENCIA_INICIAL);
+  const tecladoMinutos = useTecladoCampo(TECLADO_INTEIRO, { inputMode: "numeric" });
 
   const estimativa = estimarCobranca(preco, categoria, minutos);
   // O resultado visível muda a cada passo; o anúncio para leitor de tela só depois que o usuário para de mexer.
@@ -102,13 +105,12 @@ export function SimuladorCobranca({ preco }: SimuladorCobrancaProps) {
             />
             <Minutos
               id={`${ids}-minutos`}
-              type="number"
+              type="text"
               inputMode="numeric"
-              min={0}
-              max={PERMANENCIA_MAXIMA}
-              step={PASSO}
+              maxLength={String(PERMANENCIA_MAXIMA).length}
               value={minutos}
               onChange={(event) => setMinutos(limitar(Number(event.target.value)))}
+              {...tecladoMinutos}
             />
           </PermanenciaLinha>
           <Equivalencia>= {formatMinutos(minutos)}</Equivalencia>

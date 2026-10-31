@@ -20,6 +20,7 @@ import { useCategorias } from "../useCategorias";
 import { useLancamentoMutations } from "../useLancamentoMutations";
 import { useTurnoParaLancamento } from "../useTurnoParaLancamento";
 import { Aviso, FieldRow, Form, PeloCaixa } from "./LancamentoModal.styles";
+import { TECLADO_ALFA, TECLADO_DECIMAL } from "@/lib/teclado/tipos";
 
 export interface LancamentoFormProps {
   // Presente => edição.
@@ -227,6 +228,7 @@ export function LancamentoForm({ lancamento, tipoInicial, onClose, onSuccess, on
               <field.TextField
                 label="Valor (R$)"
                 inputMode="decimal"
+                teclado={TECLADO_DECIMAL}
                 autoComplete="off"
                 placeholder="R$ 0,00"
                 format={maskMoney}
@@ -281,7 +283,7 @@ export function LancamentoForm({ lancamento, tipoInicial, onClose, onSuccess, on
             {(field) => <field.TextField label="Documento" hint="Nota, boleto ou recibo." autoComplete="off" disabled={isSending} />}
           </form.AppField>
           <form.AppField name="observacao">
-            {(field) => <field.TextField label="Observação" autoComplete="off" disabled={isSending} />}
+            {(field) => <field.TextField label="Observação" autoComplete="off" teclado={TECLADO_ALFA} disabled={isSending} />}
           </form.AppField>
         </FieldRow>
         {!isEdit && (

@@ -17,6 +17,7 @@ import { TIPO_CATEGORIA, TIPO_CATEGORIA_OPTIONS } from "@/types/preco";
 import { MENSALISTAS_QUERY_KEY, TIPOS_QUERY_KEY } from "../useTiposMensalidade";
 import { DiasAtendimento } from "../DiasAtendimento";
 import { FieldRow, Form } from "./TipoModal.styles";
+import { TECLADO_DECIMAL } from "@/lib/teclado/tipos";
 
 export interface TipoModalProps {
   // Presente => edição.
@@ -165,6 +166,7 @@ export function TipoModal({ tipo, onClose, onSuccess }: TipoModalProps) {
               <field.TextField
                 label="Valor da mensalidade (R$)"
                 inputMode="decimal"
+                teclado={TECLADO_DECIMAL}
                 autoComplete="off"
                 placeholder="0,00"
                 disabled={isSending}

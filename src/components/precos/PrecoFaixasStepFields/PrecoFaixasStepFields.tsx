@@ -19,6 +19,7 @@ import {
 import { RemoveRowButton } from "../shared/RemoveRowButton";
 import { DuracaoFaixa } from "./DuracaoFaixa";
 import { Aviso, Avisos, FaixaRow, RowFields, RowFooter, Salto, SemAvisos } from "./PrecoFaixasStepFields.styles";
+import { TECLADO_DECIMAL } from "@/lib/teclado/tipos";
 
 const DEFAULT_VALUES: PrecoFaixasValues = { faixas: [] };
 
@@ -184,6 +185,7 @@ export const PrecoFaixasStepFields = withForm({
                             <field.TextField
                               label={`Valor (R$) — faixa ${index + 1}`}
                               inputMode="decimal"
+                              teclado={TECLADO_DECIMAL}
                               format={(value) => value.replace(/[^\d.,]/g, "")}
                               disabled={disabled}
                             />
@@ -195,6 +197,7 @@ export const PrecoFaixasStepFields = withForm({
                               <field.TextField
                                 label={`% conveniada (opcional) — faixa ${index + 1}`}
                                 inputMode="decimal"
+                                teclado={TECLADO_DECIMAL}
                                 format={(value) => value.replace(/[^\d.,]/g, "")}
                                 disabled={disabled}
                               />

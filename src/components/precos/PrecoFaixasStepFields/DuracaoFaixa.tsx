@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { Duracao } from "./PrecoFaixasStepFields.styles";
+import { TECLADO_INTEIRO } from "@/lib/teclado/tipos";
 
 const SO_DIGITOS = /\D/g;
 
@@ -47,6 +48,7 @@ export function DuracaoFaixa({ value, onChange, onBlur, numero, error, disabled 
         <Input
           label={`Horas — faixa ${numero}`}
           inputMode="numeric"
+          teclado={TECLADO_INTEIRO}
           value={atual.horas}
           onChange={(evento) => alterar("horas", evento.target.value)}
           onBlur={onBlur}
@@ -56,6 +58,7 @@ export function DuracaoFaixa({ value, onChange, onBlur, numero, error, disabled 
         <Input
           label={`Minutos — faixa ${numero}`}
           inputMode="numeric"
+          teclado={TECLADO_INTEIRO}
           value={atual.minutos}
           onChange={(evento) => alterar("minutos", evento.target.value)}
           onBlur={onBlur}

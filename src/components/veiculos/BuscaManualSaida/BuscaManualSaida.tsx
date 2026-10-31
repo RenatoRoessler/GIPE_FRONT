@@ -8,6 +8,7 @@ import type { SaidaBuscaValues } from "@/lib/schemas/saida";
 import { LeitorPlacaModal } from "../LeitorPlacaModal";
 import { FieldGrid, Hint } from "../Saida.styles";
 import { Aviso, Divisor, Wrapper } from "./BuscaManualSaida.styles";
+import { TECLADO_ALFA, TECLADO_INTEIRO, TECLADO_PLACA } from "@/lib/teclado/tipos";
 
 export type SaidaBuscaField = keyof SaidaBuscaValues;
 
@@ -92,18 +93,21 @@ export function BuscaManualSaida({
           autoCapitalize="characters"
           spellCheck={false}
           maxLength={7}
+          teclado={TECLADO_PLACA}
         />
         <Input
           {...fieldProps("token")}
           onChange={(event) => onChange("token", event.target.value)}
           autoCapitalize="characters"
           spellCheck={false}
+          teclado={TECLADO_ALFA}
         />
         <Input
           {...fieldProps("sequencial", SEQUENCIAL_ENTER_HINT)}
           onChange={(event) => onChange("sequencial", event.target.value.replace(/\D/g, ""))}
           inputMode="numeric"
           enterKeyHint="search"
+          teclado={TECLADO_INTEIRO}
         />
       </FieldGrid>
       <Aviso aria-live="polite">{aviso}</Aviso>

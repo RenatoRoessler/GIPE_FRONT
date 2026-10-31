@@ -33,6 +33,7 @@ import { FieldRow, Form, Note } from "./MensalistaModal.styles";
 import { mapMensalistaServerError } from "./serverErrors";
 import { SectionTitle } from "./Veiculos.styles";
 import { VeiculosSection } from "./VeiculosSection";
+import { TECLADO_INTEIRO } from "@/lib/teclado/tipos";
 
 export interface MensalistaModalProps {
   // Presente => edição.
@@ -319,6 +320,7 @@ export function MensalistaModal({ mensalista, onClose, onSuccess, onGoToTipos }:
               label="Dia de vencimento"
               format={(value) => value.replace(/\D/g, "").slice(0, 2)}
               inputMode="numeric"
+              teclado={TECLADO_INTEIRO}
               autoComplete="off"
               hint="Dia do mês em que a mensalidade vence (1 a 31)."
               disabled={isSending}

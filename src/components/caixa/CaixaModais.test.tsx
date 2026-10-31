@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
@@ -260,7 +260,8 @@ describe("FecharCaixaModal", () => {
     const user = userEvent.setup();
     renderWithProviders(<FecharCaixaModal turno={turnoBase()} {...props()} />);
 
-    await user.type(screen.getByLabelText("Fundo de caixa contado na gaveta (opcional)"), "-5");
+    // O teclado do campo não deixa digitar "-"; a validação segue valendo para um valor que chegue por outro caminho.
+    fireEvent.change(screen.getByLabelText("Fundo de caixa contado na gaveta (opcional)"), { target: { value: "-5" } });
     await user.click(screen.getByRole("button", { name: "Fechar caixa" }));
 
     expect(await screen.findByText(/valor válido/i)).toBeInTheDocument();

@@ -45,7 +45,7 @@ describe("SimuladorCobranca", () => {
     renderWithTheme(<SimuladorCobranca preco={preco()} />);
     expect(screen.getByRole("heading", { name: "Simular cobrança" })).toBeInTheDocument();
     expect(screen.getByLabelText("Categoria")).toHaveValue(String(TIPO_CATEGORIA.CarroMedio));
-    expect(minutos()).toHaveValue(150);
+    expect(minutos()).toHaveValue("150");
     expect(screen.getByText("= 2 h 30 min")).toBeInTheDocument();
     expect(resultado()).toHaveTextContent(/R\$\s20,00/);
     expect(resultado()).toHaveTextContent("Degrau até 3 h");
@@ -79,7 +79,7 @@ describe("SimuladorCobranca", () => {
   it("o controle deslizante e o campo andam juntos", () => {
     renderWithTheme(<SimuladorCobranca preco={preco()} />);
     fireEvent.change(deslizante(), { target: { value: "60" } });
-    expect(minutos()).toHaveValue(60);
+    expect(minutos()).toHaveValue("60");
     fireEvent.change(minutos(), { target: { value: "90" } });
     expect(deslizante()).toHaveValue("90");
   });
@@ -87,9 +87,9 @@ describe("SimuladorCobranca", () => {
   it("limita a permanência ao intervalo do controle", () => {
     renderWithTheme(<SimuladorCobranca preco={preco()} />);
     fireEvent.change(minutos(), { target: { value: "5000" } });
-    expect(minutos()).toHaveValue(900);
+    expect(minutos()).toHaveValue("900");
     fireEvent.change(minutos(), { target: { value: "-10" } });
-    expect(minutos()).toHaveValue(0);
+    expect(minutos()).toHaveValue("0");
   });
 
   it("explica a tolerância de entrada com valor zero", () => {

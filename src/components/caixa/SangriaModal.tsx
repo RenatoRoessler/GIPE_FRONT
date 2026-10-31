@@ -14,6 +14,7 @@ import { FieldStack, Hint } from "./Caixa.styles";
 import type { CaixaModalProps } from "./AbrirCaixaModal";
 import { CAIXA_KEY } from "./useCaixa";
 import { formatMoeda } from "./format";
+import { TECLADO_DECIMAL } from "@/lib/teclado/tipos";
 
 export function SangriaModal({ turno, onClose, onSuccess }: CaixaModalProps & { turno: Turno }) {
   const formId = useId();
@@ -76,6 +77,7 @@ export function SangriaModal({ turno, onClose, onSuccess }: CaixaModalProps & { 
               <field.TextField
                 label="Valor"
                 inputMode="decimal"
+                teclado={TECLADO_DECIMAL}
                 placeholder="0,00"
                 autoFocus
                 disabled={mutation.isPending}

@@ -19,6 +19,7 @@ import { ResumoFechamento } from "./ResumoFechamento";
 import { useConferencia } from "./useConferencia";
 import { CAIXA_KEY } from "./useCaixa";
 import { formatMoeda } from "./format";
+import { TECLADO_ALFA, TECLADO_DECIMAL } from "@/lib/teclado/tipos";
 
 export function PassarTurnoModal({ turno, onClose, onSuccess }: CaixaModalProps & { turno: Turno }) {
   const formId = useId();
@@ -106,6 +107,7 @@ export function PassarTurnoModal({ turno, onClose, onSuccess }: CaixaModalProps 
           <Input
             label="Fundo de caixa do novo turno (opcional)"
             inputMode="decimal"
+            teclado={TECLADO_DECIMAL}
             placeholder="0,00"
             hint={`Dinheiro que fica na gaveta. Se vazio, fica o fundo do turno atual mais o dinheiro conferido: ${formatMoeda(fundoAssumido)}.`}
             value={values.fundoCaixa}
@@ -116,6 +118,7 @@ export function PassarTurnoModal({ turno, onClose, onSuccess }: CaixaModalProps 
           <Input
             label="Observação (opcional)"
             maxLength={200}
+            teclado={TECLADO_ALFA}
             value={values.observacao}
             onChange={(event) => setField("observacao", event.target.value)}
             disabled={mutation.isPending}

@@ -139,12 +139,22 @@ describe("PagamentoMensalistaModal", () => {
     expect(pagarMensalista).not.toHaveBeenCalled();
   });
 
-  it.each(["0", "-5", "280,555"])("recusa o valor %s", async (digitado) => {
+  it("o teclado do campo não deixa digitar sinal nem a terceira casa decimal", async () => {
     const user = userEvent.setup();
     abrir();
 
     await user.clear(screen.getByLabelText("Valor pago (R$)"));
-    await user.type(screen.getByLabelText("Valor pago (R$)"), digitado);
+    await user.type(screen.getByLabelText("Valor pago (R$)"), "-280,555");
+
+    expect(screen.getByLabelText("Valor pago (R$)")).toHaveValue("280,55");
+  });
+
+  // "-5" e "280,555" não são mais digitáveis; a validação segue valendo para um valor que chegue por outro caminho.
+  it.each(["0", "-5", "280,555"])("recusa o valor %s", async (digitado) => {
+    const user = userEvent.setup();
+    abrir();
+
+    fireEvent.change(screen.getByLabelText("Valor pago (R$)"), { target: { value: digitado } });
     await user.click(botaoConfirmar());
 
     expect(await screen.findByText(/Informe um valor maior que zero/)).toBeInTheDocument();

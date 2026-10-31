@@ -1,6 +1,8 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { TecladoProvider } from "@/components/teclado/TecladoProvider";
+import { MEDIA_TOQUE } from "@/components/teclado/useTecladoCampo";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
 import type { PatioVeiculo } from "@/types/patio";
@@ -90,6 +92,10 @@ const resumo = () =>
 const esperarResumo = (texto: string) => waitFor(() => expect(resumo()).toBe(texto));
 
 const campoBusca = () => screen.getByLabelText("Buscar por placa, modelo ou ticket");
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 beforeEach(() => {
   proximoId = 1;
@@ -232,6 +238,35 @@ describe("PatioView: atualizar", () => {
 });
 
 describe("PatioView: busca", () => {
+  it("no celular usa o teclado de letras; OK fecha o teclado e mantém o filtro", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === MEDIA_TOQUE,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+    vi.mocked(listPatio).mockResolvedValue([UM_DIA, DOIS_DIAS, MENSALISTA]);
+    renderWithProviders(
+      <TecladoProvider>
+        <PatioView />
+      </TecladoProvider>,
+    );
+    await esperarResumo("3 veículos no pátio");
+
+    expect(campoBusca()).toHaveAttribute("inputmode", "none");
+    act(() => campoBusca().focus());
+    for (const tecla of ["M", "N", "B"]) {
+      fireEvent.click(screen.getByRole("button", { name: tecla }));
+    }
+    await esperarResumo("1 de 3 veículos");
+
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+
+    expect(screen.queryByRole("group", { name: "Teclado de letras e números" })).not.toBeInTheDocument();
+    expect(campoBusca()).toHaveValue("MNB");
+    expect(placasNaTela()).toEqual(["MNB7880"]);
+  });
+
   it("filtra por placa, com o resumo no formato M de N", async () => {
     abrir();
     await esperarResumo("3 veículos no pátio");

@@ -186,7 +186,7 @@ describe("PrecoDetalhe: simulador", () => {
     const { rerender } = renderWithTheme(<PrecoDetalhe estado="pronto" preco={preco()} />);
     fireEvent.change(screen.getByLabelText("Permanência (minutos)"), { target: { value: "45" } });
     rerender(<PrecoDetalhe estado="pronto" preco={preco({ rotatividadeId: 8 })} />);
-    expect(screen.getByLabelText("Permanência (minutos)")).toHaveValue(150);
+    expect(screen.getByLabelText("Permanência (minutos)")).toHaveValue("150");
   });
 });
 

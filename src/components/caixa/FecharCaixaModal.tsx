@@ -16,6 +16,7 @@ import { ConferenciaFields } from "./ConferenciaFields";
 import { ResumoFechamento } from "./ResumoFechamento";
 import { useConferencia } from "./useConferencia";
 import { CAIXA_KEY } from "./useCaixa";
+import { TECLADO_ALFA, TECLADO_DECIMAL } from "@/lib/teclado/tipos";
 
 // Duas fases: conferência e, depois de fechar, o resumo do turno encerrado.
 export function FecharCaixaModal({ turno, onClose, onSuccess }: CaixaModalProps & { turno: Turno }) {
@@ -88,6 +89,7 @@ export function FecharCaixaModal({ turno, onClose, onSuccess }: CaixaModalProps 
           <Input
             label="Fundo de caixa contado na gaveta (opcional)"
             inputMode="decimal"
+            teclado={TECLADO_DECIMAL}
             placeholder="0,00"
             hint="Informe o que há na gaveta no fechamento, além do dinheiro conferido."
             value={values.fundoCaixa}
@@ -98,6 +100,7 @@ export function FecharCaixaModal({ turno, onClose, onSuccess }: CaixaModalProps 
           <Input
             label="Observação (opcional)"
             maxLength={200}
+            teclado={TECLADO_ALFA}
             value={values.observacao}
             onChange={(event) => setField("observacao", event.target.value)}
             disabled={mutation.isPending}

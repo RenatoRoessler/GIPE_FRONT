@@ -11,6 +11,7 @@ import { parseMoney } from "@/lib/money";
 import { fundoCaixaSchema } from "@/lib/schemas/caixa";
 import { Hint } from "./Caixa.styles";
 import { CAIXA_KEY } from "./useCaixa";
+import { TECLADO_DECIMAL } from "@/lib/teclado/tipos";
 
 export interface CaixaModalProps {
   onClose: () => void;
@@ -71,6 +72,7 @@ export function AbrirCaixaModal({ onClose, onSuccess }: CaixaModalProps) {
             <field.TextField
               label="Fundo de caixa"
               inputMode="decimal"
+              teclado={TECLADO_DECIMAL}
               placeholder="0,00"
               autoFocus
               disabled={mutation.isPending}

@@ -9,6 +9,7 @@ import { isValidPlaca, normalizePlaca } from "@/lib/placa";
 import { Mira, Video, VisuallyHidden } from "../LeitorQrSaida/LeitorQrSaida.styles";
 import { Acoes, Conferencia, Content, Mensagem, Moldura, PlacaLida, Visor } from "./LeitorPlacaModal.styles";
 import { useLeitorPlaca, type LeitorPlacaEstado } from "./useLeitorPlaca";
+import { TECLADO_PLACA } from "@/lib/teclado/tipos";
 
 export interface LeitorPlacaModalProps {
   open: boolean;
@@ -91,6 +92,7 @@ function LeitorPlacaAberto({ onClose, onConfirm, onDigitar = onClose }: Omit<Lei
             autoComplete="off"
             autoCapitalize="characters"
             spellCheck={false}
+            teclado={TECLADO_PLACA}
           />
         </Conferencia>
       </Modal>

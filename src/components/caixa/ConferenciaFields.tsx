@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/Input";
 import { FORMA_PAGAMENTO, type TurnoFormaPagamento } from "@/types/caixa";
 import { FieldStack, Hint } from "./Caixa.styles";
 import { formaPagamentoLabel } from "./format";
+import { TECLADO_DECIMAL } from "@/lib/teclado/tipos";
 
 export interface ConferenciaFieldsProps {
   formas: TurnoFormaPagamento[];
@@ -23,6 +24,7 @@ export function ConferenciaFields({ formas, values, errors, onChange, disabled }
           key={forma.formaPagamento}
           label={formaPagamentoLabel(forma.formaPagamento)}
           inputMode="decimal"
+          teclado={TECLADO_DECIMAL}
           placeholder="0,00"
           hint={forma.formaPagamento === FORMA_PAGAMENTO.Dinheiro ? "Sem o fundo de caixa." : undefined}
           value={values[index] ?? ""}

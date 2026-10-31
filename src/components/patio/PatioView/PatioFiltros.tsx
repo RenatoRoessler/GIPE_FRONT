@@ -1,6 +1,8 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useTecladoCampo } from "@/components/teclado/useTecladoCampo";
+import { TECLADO_ALFA } from "@/lib/teclado/tipos";
 import type { PatioEstatisticas, PatioFiltroTipo } from "@/types/patio";
 import { rotuloCategoria } from "../patio";
 import { BarraFiltros, BuscaCampo, Chip, Chips, FiltrosBotao, LimparFiltros, LinhaBusca, LinhaChips, PainelFiltros, SomenteLeitor } from "./PatioView.styles";
@@ -38,6 +40,7 @@ export function PatioFiltros({
   estatisticas,
 }: PatioFiltrosProps) {
   const painelId = useId();
+  const tecladoBusca = useTecladoCampo(TECLADO_ALFA);
   // No celular o painel começa recolhido; no computador está sempre aberto (CSS).
   const [aberto, setAberto] = useState(false);
   const ativos = [tipo !== "todos", categoria !== "todas"].filter(Boolean).length;
@@ -62,6 +65,7 @@ export function PatioFiltros({
             autoComplete="off"
             autoCapitalize="characters"
             spellCheck={false}
+            {...tecladoBusca}
           />
         </BuscaCampo>
         <FiltrosBotao type="button" variant="secondary" aria-expanded={aberto} aria-controls={painelId} onClick={() => setAberto((valor) => !valor)}>

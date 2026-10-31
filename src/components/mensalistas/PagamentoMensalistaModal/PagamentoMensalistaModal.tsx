@@ -23,6 +23,7 @@ import { MENSALISTAS_QUERY_KEY } from "../useTiposMensalidade";
 import { usePagamentoMensalista } from "../usePagamentoMensalista";
 import { ComprovantePagamento } from "./ComprovantePagamento";
 import { BadgeRow, Effect, ErrorBox, Form, Header, StatusNote, Summary } from "./PagamentoMensalistaModal.styles";
+import { TECLADO_DECIMAL } from "@/lib/teclado/tipos";
 
 export interface PagamentoMensalistaModalProps {
   mensalista: Mensalista;
@@ -236,6 +237,7 @@ export function PagamentoMensalistaModal({ mensalista, situacao, onClose, onToas
             <field.TextField
               label="Valor pago (R$)"
               inputMode="decimal"
+              teclado={TECLADO_DECIMAL}
               autoComplete="off"
               autoFocus
               onFocus={(event) => event.currentTarget.select()}

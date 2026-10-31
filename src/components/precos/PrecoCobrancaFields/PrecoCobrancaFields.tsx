@@ -5,6 +5,7 @@ import { Grid, GridItem } from "@/components/form/FormGrid.styles";
 import { EMPTY_PRECO_INFO, PERIODO_DIARIA_OPTIONS } from "@/types/preco";
 import { formatMinutos } from "../format";
 import { Section, SectionTitle } from "../shared/FormSection.styles";
+import { TECLADO_DECIMAL, TECLADO_INTEIRO } from "@/lib/teclado/tipos";
 
 export const PrecoCobrancaFields = withForm({
   defaultValues: EMPTY_PRECO_INFO,
@@ -43,6 +44,7 @@ export const PrecoCobrancaFields = withForm({
                   <field.TextField
                     label="Valor da diária (R$)"
                     inputMode="decimal"
+                    teclado={TECLADO_DECIMAL}
                     aria-required="true"
                     format={(value) => value.replace(/[^\d.,]/g, "")}
                     disabled={disabled}
@@ -56,6 +58,7 @@ export const PrecoCobrancaFields = withForm({
                   <field.TextField
                     label="Valor adicional da diária (R$)"
                     inputMode="decimal"
+                    teclado={TECLADO_DECIMAL}
                     aria-required="true"
                     hint="Cobrado por hora depois do período da diária."
                     format={(value) => value.replace(/[^\d.,]/g, "")}
@@ -76,6 +79,7 @@ export const PrecoCobrancaFields = withForm({
                   <field.TextField
                     label="Tolerância de entrada (min)"
                     inputMode="numeric"
+                    teclado={TECLADO_INTEIRO}
                     hint="Minutos iniciais sem cobrança."
                     format={(value) => value.replace(/\D/g, "")}
                     disabled={disabled}
@@ -89,6 +93,7 @@ export const PrecoCobrancaFields = withForm({
                   <field.TextField
                     label="Tolerância de alteração de faixa (min)"
                     inputMode="numeric"
+                    teclado={TECLADO_INTEIRO}
                     hint="Minutos extras antes de passar para o degrau seguinte."
                     format={(value) => value.replace(/\D/g, "")}
                     disabled={disabled}
