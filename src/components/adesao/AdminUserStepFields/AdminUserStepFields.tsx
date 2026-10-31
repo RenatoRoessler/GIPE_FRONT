@@ -4,6 +4,7 @@ import { useSelector } from "@tanstack/react-form";
 import { withForm } from "@/components/form";
 import { Input } from "@/components/ui/Input";
 import { PasswordRequirements } from "@/components/ui/PasswordRequirements";
+import { Text } from "@/components/ui/Text";
 import { formatCPF } from "@/lib/cpf";
 import { formatPhone } from "@/lib/phone";
 import { EMPTY_ADMIN_USER_DATA } from "@/types/adesao";
@@ -17,6 +18,9 @@ export const AdminUserStepFields = withForm({
 
     return (
       <Grid>
+        <GridItem $span>
+          <Text variant="muted">Este será o usuário administrador da conta.</Text>
+        </GridItem>
         <GridItem $span>
           <form.AppField name="nome">
             {(field) => (
@@ -33,6 +37,7 @@ export const AdminUserStepFields = withForm({
           {(field) => (
             <Input
               label="CPF"
+              name="cpf"
               placeholder="000.000.000-00"
               inputMode="numeric"
               value={field.state.value}

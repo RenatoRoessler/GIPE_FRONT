@@ -44,6 +44,11 @@ const shared = {
     formAsideWidth: "280px",
     // Largura do formulário a partir da qual os campos se distribuem em 6 colunas, cada um com a sua largura.
     formGridWide: "560px",
+    // Alvo de toque mínimo (WCAG 2.2) e altura da barra de ações fixa do fluxo de adesão no celular.
+    touchTarget: "44px",
+    actionBarHeight: "76px",
+    // Coluna da credencial da empresa ao lado do formulário de adesão.
+    credentialWidth: "330px",
   },
   breakpoints: {
     sm: "480px",

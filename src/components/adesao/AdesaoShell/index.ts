@@ -1,0 +1,1 @@
+export { AdesaoShell } from "./AdesaoShell";

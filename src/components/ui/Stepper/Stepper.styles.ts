@@ -65,15 +65,35 @@ export const Connector = styled.span<{ $filled: boolean }>`
   transition: background-color 0.2s ease;
 `;
 
-export const StepLabel = styled.span<{ $status: "done" | "current" | "pending" }>`
+export const StepLabel = styled.span<{ $status: "done" | "current" | "pending"; $hidden?: boolean }>`
   margin-left: ${({ theme }) => theme.space[2]}px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   color: ${({ theme, $status }) =>
     $status === "pending" ? theme.colors.textMuted : theme.colors.text};
   white-space: nowrap;
+  ${({ $hidden }) => $hidden && "display: none;"}
 
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     display: none;
+  }
+`;
+
+// Etapa concluída clicável: o botão envolve o ponto e o nome, com alvo de toque confortável.
+export const StepButton = styled.button`
+  display: flex;
+  align-items: center;
+  min-height: ${({ theme }) => theme.layout.touchTarget};
+  padding: 0;
+  border: 0;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
+    outline-offset: 2px;
   }
 `;

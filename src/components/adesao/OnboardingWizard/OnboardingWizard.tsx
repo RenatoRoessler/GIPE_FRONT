@@ -1,213 +1,178 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { ReactNode } from "react";
+import { AdesaoShell } from "@/components/adesao/AdesaoShell";
 import { AdminUserStepFields } from "@/components/adesao/AdminUserStepFields";
 import { BusinessHoursStepFields } from "@/components/adesao/BusinessHoursStepFields";
-import { CompanyStepFields } from "@/components/adesao/CompanyStepFields";
+import { CompanyStepFields, GrupoEmpresa } from "@/components/adesao/CompanyStepFields";
+import { ConferirStep } from "@/components/adesao/ConferirStep";
+import { useAdesaoWizard } from "@/components/adesao/useAdesaoWizard";
 import { PagamentosFields } from "@/components/empresa/PagamentosFields";
-import { useAppForm, zodFieldErrors } from "@/components/form";
+import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
-import { Logo } from "@/components/ui/Logo";
-import { Tagline } from "@/components/ui/Tagline";
-import { PageBackground } from "@/components/ui/PageBackground";
-import { Stepper } from "@/components/ui/Stepper";
-import { Text } from "@/components/ui/Text";
-import { saveAdesao } from "@/lib/api/services/adesao";
-import { adminUserSchema, businessHoursSchema, companySchema, paymentsSchema } from "@/lib/schemas/adesao";
-import {
-  AdminUserData,
-  BusinessHoursData,
-  CompanyData,
-  EMPTY_ADMIN_USER_DATA,
-  EMPTY_BUSINESS_HOURS_DATA,
-  EMPTY_COMPANY_DATA,
-  EMPTY_PAYMENTS_DATA,
-  PaymentsData,
-} from "@/types/adesao";
-import { Actions, Form, Header, TitleGroup } from "./OnboardingWizard.styles";
+import { BlocoAcoes, ErroAcoes, Form } from "./OnboardingWizard.styles";
 
-const STEPS = ["Dados da empresa", "Funcionamento", "Usuário titular"];
+const FORM_ID = "adesao-form";
 
-const STEP_DESCRIPTIONS = [
-  "Conte para a gente sobre a sua empresa.",
+const TITULOS = [
+  "Dados da empresa",
   "Quando a empresa funciona?",
-  "Agora crie o usuário titular da conta.",
+  "Usuário titular",
+  "Confira os dados",
 ];
 
+const DESCRICOES = [
+  "Conte para a gente sobre a sua empresa.",
+  "Defina os dias e horários de atendimento.",
+  "Agora crie o usuário titular da conta.",
+  "Revise antes de criar a conta. Dá para corrigir qualquer seção.",
+];
+
+const TITULO_BLOCO: Record<GrupoEmpresa, string> = {
+  identificacao: "Identificação",
+  endereco: "Endereço",
+  capacidade: "Capacidade e pagamentos",
+};
+
 export function OnboardingWizard() {
-  const router = useRouter();
-  const [step, setStep] = useState(1);
-  const stepDescriptionRef = useRef<HTMLParagraphElement>(null);
-  const formRef = useRef<HTMLFormElement>(null);
-  const isFirstRender = useRef(true);
+  const wizard = useAdesaoWizard();
+  const { etapa, etapas, dados, enviando } = wizard;
+  const ultima = etapa === etapas.length;
 
-  // Ao trocar de etapa, o foco vai para a descrição da nova etapa (leitores de tela e teclado).
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    stepDescriptionRef.current?.focus();
-  }, [step]);
-
-  const mutation = useMutation({
-    mutationFn: (payload: {
-      company: CompanyData;
-      hours: BusinessHoursData;
-      payments: PaymentsData;
-      adminUser: AdminUserData;
-    }) => saveAdesao(payload),
-    onSuccess: () => {
-      router.push("/login?cadastro=sucesso");
-    },
-  });
-
-  const companyForm = useAppForm({
-    defaultValues: EMPTY_COMPANY_DATA,
-    validators: {
-      onChange: ({ value }) => {
-        const result = companySchema.safeParse(value);
-        return result.success ? undefined : zodFieldErrors(result);
-      },
-    },
-  });
-
-  // Os meios de pagamento fazem parte da etapa 1, mas têm formulário próprio (regra do conjunto).
-  const paymentsForm = useAppForm({
-    defaultValues: EMPTY_PAYMENTS_DATA,
-    validators: {
-      onChange: ({ value }) => {
-        const result = paymentsSchema.safeParse(value);
-        return result.success ? undefined : zodFieldErrors(result);
-      },
-    },
-  });
-
-  // Só avança quando a empresa e os pagamentos são válidos; senão foca o primeiro campo inválido.
-  async function handleNextFromCompany() {
-    await Promise.all([companyForm.handleSubmit(), paymentsForm.handleSubmit()]);
-    if (companyForm.state.isValid && paymentsForm.state.isValid) {
-      setStep(2);
-      return;
-    }
-    requestAnimationFrame(() => {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"], [data-invalid="true"]')?.focus();
-    });
+  function resumoBloco(grupo: GrupoEmpresa): string | undefined {
+    if (!wizard.blocosConcluidos.includes(grupo)) return undefined;
+    const { company } = dados;
+    if (grupo === "identificacao") return `${company.nomeFantasia} · ${company.cnpj}`;
+    if (grupo === "endereco") return `${company.logradouro}, ${company.numero} · ${company.cidade}/${company.estado}`;
+    return `${company.quantidadeVagasCarro} carros · ${company.quantidadeVagasMoto} motos`;
   }
 
-  const hoursForm = useAppForm({
-    defaultValues: EMPTY_BUSINESS_HOURS_DATA,
-    validators: {
-      onChange: ({ value }) => {
-        const result = businessHoursSchema.safeParse(value);
-        return result.success ? undefined : zodFieldErrors(result);
-      },
-    },
-    onSubmit: () => {
-      setStep(3);
-    },
-  });
-
-  const adminUserForm = useAppForm({
-    defaultValues: EMPTY_ADMIN_USER_DATA,
-    validators: {
-      onChange: ({ value }) => {
-        const result = adminUserSchema.safeParse(value);
-        return result.success ? undefined : zodFieldErrors(result);
-      },
-    },
-    onSubmit: async ({ value }) => {
-      await mutation.mutateAsync({
-        company: companyForm.state.values,
-        hours: hoursForm.state.values,
-        payments: paymentsForm.state.values,
-        adminUser: value,
-      });
-    },
-  });
-
-  function handleBack() {
-    setStep((current) => Math.max(1, current - 1));
+  function bloco(grupo: GrupoEmpresa, conteudo: ReactNode, continuar: boolean) {
+    return (
+      <AccordionItem
+        id={`bloco-${grupo}`}
+        title={TITULO_BLOCO[grupo]}
+        summary={resumoBloco(grupo)}
+        open={wizard.blocosAbertos.includes(grupo)}
+        onOpenChange={(aberto) => wizard.alternarBloco(grupo, aberto)}
+      >
+        {conteudo}
+        {continuar && (
+          <BlocoAcoes>
+            <Button type="button" variant="secondary" size="sm" onClick={() => wizard.concluirBloco(grupo)}>
+              Continuar
+            </Button>
+          </BlocoAcoes>
+        )}
+      </AccordionItem>
+    );
   }
+
+  const faltamAviso = wizard.faltam > 0 && (
+    <ErrorBanner role="alert">
+      {wizard.faltam === 1 ? "Falta 1 campo para corrigir." : `Faltam ${wizard.faltam} campos para corrigir.`}
+    </ErrorBanner>
+  );
+
+  let conteudo: ReactNode;
+  if (etapa === 1) {
+    conteudo = (
+      <>
+        {faltamAviso}
+        <Accordion>
+          {bloco(
+            "identificacao",
+            <CompanyStepFields form={wizard.companyForm} grupo="identificacao" />,
+            true,
+          )}
+          {bloco("endereco", <CompanyStepFields form={wizard.companyForm} grupo="endereco" />, true)}
+          {bloco(
+            "capacidade",
+            <>
+              <CompanyStepFields form={wizard.companyForm} grupo="capacidade" />
+              <PagamentosFields form={wizard.paymentsForm} />
+            </>,
+            false,
+          )}
+        </Accordion>
+      </>
+    );
+  } else if (etapa === 2) {
+    conteudo = (
+      <>
+        {faltamAviso}
+        <BusinessHoursStepFields form={wizard.hoursForm} />
+      </>
+    );
+  } else if (etapa === 3) {
+    conteudo = (
+      <>
+        {faltamAviso}
+        <AdminUserStepFields form={wizard.adminUserForm} />
+      </>
+    );
+  } else {
+    const erro = wizard.erroBackend;
+    conteudo = (
+      <>
+        {erro && (
+          <ErrorBanner role="alert">
+            <ErroAcoes>
+              {erro.mensagem}
+              {erro.alvo && (
+                <Button type="button" variant="secondary" size="sm" onClick={() => wizard.corrigir(erro.alvo!)}>
+                  Corrigir {erro.alvo.rotulo}
+                </Button>
+              )}
+            </ErroAcoes>
+          </ErrorBanner>
+        )}
+        <ConferirStep {...dados} onEditar={wizard.editar} />
+      </>
+    );
+  }
+
+  const proximaEtapa = etapas[etapa];
+  let rotuloPrincipal = `Próximo: ${proximaEtapa}`;
+  if (ultima) rotuloPrincipal = enviando ? "Criando conta…" : "Criar conta";
+  else if (wizard.retornoConferencia) rotuloPrincipal = "Voltar para a conferência";
 
   return (
-    <PageBackground>
-      <Card maxWidth="640px">
-        <Header>
-          <TitleGroup>
-            <Logo size={56} animated />
-            <Tagline />
-            <Text variant="heading" as="h1">
-              Adesão ao sistema
-            </Text>
-            <Text variant="muted" ref={stepDescriptionRef} tabIndex={-1}>
-              {STEP_DESCRIPTIONS[step - 1]}
-            </Text>
-          </TitleGroup>
-          <Stepper steps={STEPS} currentStep={step} />
-        </Header>
-
-        {step === 1 ? (
-          <Form
-            ref={formRef}
-            onSubmit={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              void handleNextFromCompany();
-            }}
-          >
-            <CompanyStepFields form={companyForm} />
-            <PagamentosFields form={paymentsForm} />
-            <Actions>
-              <Button type="submit">Próximo</Button>
-            </Actions>
-          </Form>
-        ) : step === 2 ? (
-          <Form
-            onSubmit={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              void hoursForm.handleSubmit();
-            }}
-          >
-            <BusinessHoursStepFields form={hoursForm} />
-            <Actions>
-              <Button type="button" variant="secondary" onClick={handleBack}>
-                Voltar
-              </Button>
-              <Button type="submit">Próximo</Button>
-            </Actions>
-          </Form>
-        ) : (
-          <Form
-            onSubmit={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              void adminUserForm.handleSubmit();
-            }}
-          >
-            {mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
-            <AdminUserStepFields form={adminUserForm} disabled={mutation.isPending} />
-            <Actions>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleBack}
-                disabled={mutation.isPending}
-              >
-                Voltar
-              </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Salvando..." : "Salvar"}
-              </Button>
-            </Actions>
-          </Form>
-        )}
-      </Card>
-    </PageBackground>
+    <AdesaoShell
+      etapas={etapas}
+      etapaAtual={etapa}
+      onEtapaClick={wizard.irParaEtapa}
+      titulo={TITULOS[etapa - 1]}
+      descricao={DESCRICOES[etapa - 1]}
+      tituloRef={wizard.tituloRef}
+      credencial={wizard.credencial}
+      secundaria={
+        etapa > 1 ? (
+          <Button type="button" variant="secondary" onClick={wizard.voltar} disabled={enviando}>
+            Voltar
+          </Button>
+        ) : undefined
+      }
+      principal={
+        <Button type="submit" form={FORM_ID} disabled={enviando}>
+          {rotuloPrincipal}
+        </Button>
+      }
+    >
+      <Form
+        id={FORM_ID}
+        // A validação é nossa (erro junto do campo, foco no primeiro inválido); a nativa travaria o envio
+        // com campos `required` dentro de blocos recolhidos.
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void (ultima ? wizard.enviar() : wizard.avancar());
+        }}
+      >
+        {conteudo}
+      </Form>
+    </AdesaoShell>
   );
 }

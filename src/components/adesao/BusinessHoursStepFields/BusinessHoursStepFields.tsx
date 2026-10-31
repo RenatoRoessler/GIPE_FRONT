@@ -1,40 +1,26 @@
 "use client";
 
+import { useSelector } from "@tanstack/react-form";
 import { withForm } from "@/components/form";
-import { Button } from "@/components/ui/Button";
-import { Text } from "@/components/ui/Text";
 import { DIAS_SEMANA, EMPTY_BUSINESS_HOURS_DATA } from "@/types/adesao";
+import { AtalhosHorario } from "../AtalhosHorario";
+import { Chip } from "../AtalhosHorario/AtalhosHorario.styles";
 import { DayList, DayName, DayRow, Toolbar, Wrapper } from "./BusinessHoursStepFields.styles";
-
-// Segunda-feira é o ponto de partida para "copiar para os outros dias".
-const MONDAY_INDEX = 1;
 
 export const BusinessHoursStepFields = withForm({
   defaultValues: EMPTY_BUSINESS_HOURS_DATA,
   props: {} as { disabled?: boolean },
   render: function Render({ form, disabled }) {
-    function copyMondayToOtherDays() {
-      const horarios = form.state.values.horarios;
-      const monday = horarios[MONDAY_INDEX];
-      form.setFieldValue(
-        "horarios",
-        horarios.map((day, index) => (index === MONDAY_INDEX ? day : { ...monday })),
-      );
-    }
+    const horarios = useSelector(form.store, (state) => state.values.horarios);
 
     return (
       <Wrapper>
         <Toolbar>
-          <Text variant="muted">Defina os horários de cada dia da semana.</Text>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={copyMondayToOtherDays}
+          <AtalhosHorario
+            hours={{ horarios }}
             disabled={disabled}
-          >
-            Copiar segunda para os outros dias
-          </Button>
+            onAplicar={(hours) => form.setFieldValue("horarios", hours.horarios)}
+          />
         </Toolbar>
         <DayList>
           {DIAS_SEMANA.map((dia, index) => (
@@ -54,41 +40,39 @@ export const BusinessHoursStepFields = withForm({
                   />
                 )}
               </form.AppField>
-              <form.Subscribe selector={(state) => state.values.horarios[index]}>
-                {(day) => (
-                  <>
-                    <form.AppField name={`horarios[${index}].aberto24Horas`}>
-                      {(field) => (
-                        <field.SwitchField
-                          label="24 horas"
-                          aria-label={`${dia.label}: aberto 24 horas`}
-                          disabled={disabled || !day.aberto}
-                        />
-                      )}
-                    </form.AppField>
-                    <form.AppField name={`horarios[${index}].horarioAbertura`}>
-                      {(field) => (
-                        <field.TextField
-                          label="Abertura"
-                          aria-label={`Abertura de ${dia.label}`}
-                          type="time"
-                          disabled={disabled || !day.aberto || day.aberto24Horas}
-                        />
-                      )}
-                    </form.AppField>
-                    <form.AppField name={`horarios[${index}].horarioFechamento`}>
-                      {(field) => (
-                        <field.TextField
-                          label="Fechamento"
-                          aria-label={`Fechamento de ${dia.label}`}
-                          type="time"
-                          disabled={disabled || !day.aberto || day.aberto24Horas}
-                        />
-                      )}
-                    </form.AppField>
-                  </>
+              <form.Field name={`horarios[${index}].aberto24Horas`}>
+                {(field) => (
+                  <Chip
+                    type="button"
+                    aria-pressed={field.state.value}
+                    aria-label={`${dia.label}: aberto 24 horas`}
+                    disabled={disabled || !horarios[index].aberto}
+                    onClick={() => field.handleChange(!field.state.value)}
+                  >
+                    24 horas
+                  </Chip>
                 )}
-              </form.Subscribe>
+              </form.Field>
+              <form.AppField name={`horarios[${index}].horarioAbertura`}>
+                {(field) => (
+                  <field.TextField
+                    label="Abertura"
+                    aria-label={`Abertura de ${dia.label}`}
+                    type="time"
+                    disabled={disabled || !horarios[index].aberto || horarios[index].aberto24Horas}
+                  />
+                )}
+              </form.AppField>
+              <form.AppField name={`horarios[${index}].horarioFechamento`}>
+                {(field) => (
+                  <field.TextField
+                    label="Fechamento"
+                    aria-label={`Fechamento de ${dia.label}`}
+                    type="time"
+                    disabled={disabled || !horarios[index].aberto || horarios[index].aberto24Horas}
+                  />
+                )}
+              </form.AppField>
             </DayRow>
           ))}
         </DayList>

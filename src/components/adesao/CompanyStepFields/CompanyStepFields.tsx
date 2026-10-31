@@ -35,14 +35,17 @@ function cepHint(status: CepLookupStatus) {
   }
 }
 
+// Sem `grupo`, renderiza os três (cadastro e edição de empresa); com ele, só o grupo pedido (etapas do wizard).
+export type GrupoEmpresa = "identificacao" | "endereco" | "capacidade";
+
 const TIPO_EMPRESA_OPTIONS = Object.values(TipoEmpresa).filter(
   (value): value is TipoEmpresa => typeof value === "number",
 );
 
 export const CompanyStepFields = withForm({
   defaultValues: EMPTY_COMPANY_DATA,
-  props: {} as { disabled?: boolean; lockCnpj?: boolean },
-  render: function Render({ form, disabled, lockCnpj }) {
+  props: {} as { disabled?: boolean; lockCnpj?: boolean; grupo?: GrupoEmpresa },
+  render: function Render({ form, disabled, lockCnpj, grupo }) {
     const cepLookup = useCepLookup();
 
     async function handleCepChange(rawValue: string) {
@@ -61,14 +64,18 @@ export const CompanyStepFields = withForm({
       }
     }
 
+    const mostra = (nome: GrupoEmpresa) => !grupo || grupo === nome;
+
     return (
       <FieldGroups>
-        <FieldGroup titulo="Identificação">
+        {mostra("identificacao") && (
+        <FieldGroup titulo={grupo ? undefined : "Identificação"}>
           <FieldCell $w={2} $w2={2}>
             <form.Field name="cnpj">
               {(field) => (
                 <Input
                   label="CNPJ"
+                  name="cnpj"
                   placeholder="00.000.000/0000-00"
                   inputMode="numeric"
                   value={field.state.value}
@@ -134,8 +141,10 @@ export const CompanyStepFields = withForm({
             </form.Field>
           </FieldCell>
         </FieldGroup>
+        )}
 
-        <FieldGroup titulo="Endereço">
+        {mostra("endereco") && (
+        <FieldGroup titulo={grupo ? undefined : "Endereço"}>
           <FieldCell $w={2}>
             <form.Field name="cep">
               {(field) => (
@@ -194,8 +203,10 @@ export const CompanyStepFields = withForm({
             </form.AppField>
           </FieldCell>
         </FieldGroup>
+        )}
 
-        <FieldGroup titulo="Capacidade">
+        {mostra("capacidade") && (
+        <FieldGroup titulo={grupo ? undefined : "Capacidade"}>
           <FieldCell $w={2}>
             <form.AppField name="quantidadeVagasCarro">
               {(field) => (
@@ -223,6 +234,7 @@ export const CompanyStepFields = withForm({
             </form.AppField>
           </FieldCell>
         </FieldGroup>
+        )}
       </FieldGroups>
     );
   },
