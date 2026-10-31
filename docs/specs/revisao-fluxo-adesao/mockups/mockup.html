@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Mockups — Revisão do fluxo de adesão</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F1E8;--surface:#fff;--muted:#ECE8DA;--text:#0E1729;--tm:#5A6478;--border:#D9D4C5;--bs:#737D91;--y:#FFC20E;--ok:#17795A;--danger:#C8242B}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--text);background:#CFCABA;padding:32px;width:1640px}
+.title{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+.row{display:flex;gap:40px;align-items:flex-start}
+.frame{background:var(--bg);overflow:hidden;position:relative;border-radius:14px;box-shadow:0 12px 32px -8px rgba(14,23,41,.35)}
+.desk{width:1120px;height:720px}
+.mob{width:380px;height:720px;border-radius:28px;border:8px solid #0E1729}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18px;letter-spacing:-.02em}
+.logo i{width:26px;height:26px;border-radius:7px;background:var(--y);display:grid;place-items:center;font-style:normal;font-size:14px}
+h2{font-size:26px;font-weight:800;letter-spacing:-.02em}
+h3{font-size:17px;font-weight:800;letter-spacing:-.01em}
+p.m{color:var(--tm);font-size:14px;margin-top:4px}
+.f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600}
+.f span{height:42px;border:1.5px solid var(--bs);border-radius:10px;background:var(--surface);padding:0 12px;display:flex;align-items:center;font-weight:500;color:var(--text);font-size:14px}
+.f span.ph{color:#98A0B0}
+.f span.err{border-color:var(--danger)}
+.f em{font-style:normal;color:var(--danger);font-size:12px;font-weight:500}
+.f span.ok{border-color:var(--ok)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g6{grid-template-columns:repeat(6,1fr)}
+.btn{height:46px;border-radius:10px;padding:0 22px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border:1.5px solid var(--bs);background:transparent}
+.btn.p{background:var(--y);border-color:var(--y);color:var(--text)}
+.chip{height:34px;padding:0 14px;border-radius:99px;border:1.5px solid var(--bs);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.day{display:grid;grid-template-columns:90px 54px 1fr 1fr;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px;font-weight:600}
+.sw{width:44px;height:26px;border-radius:99px;background:var(--y);position:relative}
+.sw:after{content:"";position:absolute;right:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--text)}
+.sw.off{background:var(--muted);border:1.5px solid var(--bs)}.sw.off:after{right:auto;left:3px;background:var(--bs)}
+.t{display:flex;align-items:center;gap:8px}
+.time{height:34px;border:1.5px solid var(--bs);border-radius:8px;background:#fff;padding:0 10px;display:flex;align-items:center;font-weight:500}
+.time.dis{opacity:.4}
+.steps{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700}
+.dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;border:1.5px solid var(--bs)}
+.dot.done{background:var(--ok);border-color:var(--ok);color:#fff}.dot.cur{background:var(--y);border-color:var(--y)}
+.ln{width:34px;height:2px;background:var(--border)}.ln.d{background:var(--ok)}
+.cred{background:var(--text);color:var(--bg);border-radius:16px;overflow:hidden;box-shadow:0 12px 32px -8px rgba(14,23,41,.4)}
+.cred .stripe{height:10px;background:repeating-linear-gradient(-45deg,var(--y) 0 14px,var(--text) 14px 28px)}
+.cred .b{padding:18px 20px}
+.cred small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#9AA3B5;font-weight:700;display:block}
+.cred strong{font-size:17px;font-weight:800;display:block;margin:2px 0 12px}
+.cred .plate{border:2px solid var(--y);color:var(--y);border-radius:8px;padding:2px 8px;font-weight:800;font-size:12px;display:inline-block}
+.cred .mini{display:flex;gap:4px;margin-top:6px}.cred .mini b{flex:1;height:22px;border-radius:4px;background:#22304B;font-size:9px;display:grid;place-items:center;color:#9AA3B5}.cred .mini b.o{background:var(--y);color:var(--text)}
+.rail{background:var(--text);color:var(--bg);padding:28px 24px;display:flex;flex-direction:column;gap:6px}
+.ri{display:flex;gap:12px;align-items:flex-start;padding:10px 0;font-weight:700;font-size:14px}
+.ri small{display:block;font-weight:500;color:#9AA3B5;font-size:12px;margin-top:2px}
+.ri .dot{border-color:#6B80A4;flex:none}.ri .dot.cur{border-color:var(--y)}
+.sec{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px 22px}
+.sec header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.badge{font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(23,121,90,.12);color:var(--ok)}
+.badge.w{background:rgba(255,194,14,.25);color:var(--text)}
+.badge.n{background:var(--muted);color:var(--tm)}
+.foot{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:10px}
+.foot .btn{flex:1}
+.bar{height:6px;background:var(--muted);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--y)}
+.pad{padding:28px 36px}
+.mp{padding:14px 16px}
+</style>
+</head>
+<body>
+<div class="title" id="t"></div>
+<div class="row" id="r"></div>
+<script>
+const F=(l,v,c='')=>`<label class="f">${l}<span class="${c}">${v}</span></label>`;
+const days=[['Segunda',1],['Terça',1],['Quarta',1],['Quinta',1],['Sexta',1],['Sábado',1],['Domingo',0]];
+const dayRows=(n)=>days.slice(0,n).map(([d,o])=>`<div class="day"><span>${d}</span><div class="sw ${o?'':'off'}"></div><div class="time ${o?'':'dis'}">${o?'08:00':'—'}</div><div class="time ${o?'':'dis'}">${o?(d==='Sábado'?'13:00':'18:00'):'—'}</div></div>`).join('');
+const steps=(cur,labels)=>`<div class="steps">${labels.map((l,i)=>`<div class="dot ${i<cur?'done':i==cur?'cur':''}">${i<cur?'✓':i+1}</div>${i==cur?`<span>${l}</span>`:''}${i<labels.length-1?`<div class="ln ${i<cur?'d':''}"></div>`:''}`).join('')}</div>`;
+const L4=['Empresa','Horários','Titular','Conferir'];
+const quick=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 6px"><span class="chip on">Seg–Sex 08–18</span><span class="chip">Todos os dias</span><span class="chip">24 horas</span><span class="chip">Copiar segunda</span></div>`;
+
+function A(){
+ const d=`<div class="frame desk"><div style="display:flex;justify-content:space-between;align-items:center;padding:18px 36px;border-bottom:1px solid var(--border)"><div class="logo"><i>M</i>Murel</div>${steps(1,L4)}</div>
+ <div style="display:grid;grid-template-columns:1fr 330px;gap:36px;padding:28px 36px">
+  <div><h2>Quando a empresa funciona?</h2><p class="m">Escolha um atalho e ajuste só o que for diferente.</p>${quick}<div style="margin-top:6px">${dayRows(7)}</div></div>
+  <div style="position:sticky"><small style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--tm);text-transform:uppercase">Sua credencial</small>
+   <div class="cred" style="margin-top:8px"><div class="stripe"></div><div class="b"><small>Empresa</small><strong>Estacionamento Central</strong><small>CNPJ</small><strong style="font-size:14px">12.345.678/0001-90</strong><small>Tipo</small><strong style="font-size:14px">Estacionamento + Lava-rápido</strong><div style="display:flex;gap:8px"><span class="plate">80 CARROS</span><span class="plate">20 MOTOS</span></div><small style="margin-top:14px">Funcionamento</small><div class="mini"><b class="o">S</b><b class="o">T</b><b class="o">Q</b><b class="o">Q</b><b class="o">S</b><b class="o">S</b><b>D</b></div></div></div>
+   <p class="m" style="font-size:12px;margin-top:10px">Pagamentos: Pix · Dinheiro · Crédito</p></div></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:16px 36px;display:flex;justify-content:space-between;border-top:1px solid var(--border);background:var(--bg)"><span class="btn">Voltar</span><span class="btn p">Próximo: Titular →</span></div></div>`;
+ const m=`<div class="frame mob"><div class="mp" style="background:var(--text);color:var(--bg)"><div style="display:flex;justify-content:space-between;align-items:center"><div><small style="font-size:10px;color:#9AA3B5;letter-spacing:.12em;font-weight:700">SUA CREDENCIAL</small><div style="font-weight:800;font-size:15px">Estacionamento Central</div></div><span class="plate" style="border:2px solid var(--y);color:var(--y);border-radius:8px;padding:2px 8px;font-weight:800;font-size:11px">80·20</span></div></div>
+ <div class="mp" style="padding-top:16px">${steps(1,L4)}<h3 style="margin-top:16px">Quando a empresa funciona?</h3>${quick}<div style="margin-top:2px">${dayRows(4)}</div></div>
+ <div class="foot"><span class="btn">Voltar</span><span class="btn p">Próximo</span></div></div>`;
+ return [d,m];
+}
+function B(){
+ const labels=[['Empresa','CNPJ e tipo','done'],['Endereço','Onde fica','cur'],['Horários','Dias e horas',''],['Titular','Seu acesso',''],['Conferir','Revisar e enviar','']];
+ const d=`<div class="frame desk" style="display:grid;grid-template-columns:300px 1fr"><div class="rail"><div class="logo" style="margin-bottom:26px"><i>M</i>Murel</div><h3 style="font-size:20px;line-height:1.2;margin-bottom:6px">Vamos colocar sua empresa no ar.</h3><p style="font-size:13px;color:#9AA3B5;margin-bottom:22px">Leva cerca de 5 minutos.</p>
+ ${labels.map(([a,b,s],i)=>`<div class="ri"><div class="dot ${s==='done'?'done':s==='cur'?'cur':''}" style="${s==='cur'?'color:var(--text)':''}">${s==='done'?'✓':i+1}</div><div>${a}<small>${b}</small></div></div>`).join('')}</div>
+ <div class="pad" style="position:relative"><h2>Onde a empresa fica?</h2><p class="m">Digite o CEP e preenchemos o resto para você.</p>
+ <div class="grid g6" style="margin-top:22px"><div style="grid-column:span 2">${F('CEP','01310-100','ok')}</div><div style="grid-column:span 4">${F('Logradouro','Avenida Paulista')}</div>
+ <div style="grid-column:span 1">${F('Número','1578')}</div><div style="grid-column:span 3">${F('Bairro','Bela Vista')}</div><div style="grid-column:span 2"></div>
+ <div style="grid-column:span 3">${F('Cidade','São Paulo')}</div><div style="grid-column:span 3">${F('Estado','SP — São Paulo')}</div></div>
+ <div style="position:absolute;left:36px;right:36px;bottom:28px;display:flex;justify-content:space-between"><span class="btn">Voltar</span><span class="btn p">Próximo →</span></div></div></div>`;
+ const m=`<div class="frame mob"><div class="mp"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div class="logo"><i>M</i>Murel</div><b style="font-size:13px">2 de 5 · Endereço</b></div><div class="bar"><i style="width:40%"></i></div>
+ <h3 style="margin-top:20px;font-size:20px">Onde a empresa fica?</h3><p class="m">Digite o CEP e preenchemos o resto.</p><div class="grid" style="margin-top:16px">${F('CEP','01310-100','ok')}${F('Logradouro','Avenida Paulista')}<div class="grid g2">${F('Número','1578')}${F('Bairro','Bela Vista')}</div>${F('Cidade','São Paulo')}</div></div>
+ <div class="foot"><span class="btn">Voltar</span><span class="btn p">Próximo</span></div></div>`;
+ return [d,m];
+}
+function C(){
+ const nav=[['Empresa','done'],['Endereço','done'],['Horários','cur'],['Titular','']];
+ const d=`<div class="frame desk" style="display:grid;grid-template-columns:260px 1fr"><div style="padding:28px 24px;border-right:1px solid var(--border);position:relative"><div class="logo" style="margin-bottom:24px"><i>M</i>Murel</div><small style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--tm)">SEÇÕES</small>
+ ${nav.map(([a,s])=>`<div class="ri" style="padding:12px 0;color:var(--text)"><div class="dot ${s==='done'?'done':s==='cur'?'cur':''}">${s==='done'?'✓':''}</div>${a}</div>`).join('')}
+ <div style="margin-top:14px" class="bar"><i style="width:62%"></i></div><p class="m" style="font-size:12px">62% completo</p><span class="btn p" style="position:absolute;left:24px;right:24px;bottom:24px">Criar conta</span></div>
+ <div style="padding:20px 28px;display:flex;flex-direction:column;gap:14px;overflow:hidden">
+ <div class="sec"><header><h3>Empresa</h3><span class="badge">Completo</span></header><div class="grid g3">${F('CNPJ','12.345.678/0001-90','ok')}${F('Razão social','Central Estac. Ltda')}${F('Nome fantasia','Estacionamento Central')}</div></div>
+ <div class="sec"><header><h3>Endereço e capacidade</h3><span class="badge">Completo</span></header><div class="grid g3">${F('CEP','01310-100')}${F('Cidade','São Paulo')}${F('Vagas carro/moto','80 / 20')}</div></div>
+ <div class="sec" style="border:2px solid var(--text)"><header><h3>Horários</h3><span class="badge w">Em andamento</span></header>${quick.replace('margin:14px 0 6px','margin:0 0 4px')}${dayRows(3)}</div>
+ <div class="sec"><header><h3>Titular</h3><span class="badge n">Pendente</span></header></div></div></div>`;
+ const m=`<div class="frame mob"><div class="mp" style="border-bottom:1px solid var(--border)"><div class="logo" style="margin-bottom:10px"><i>M</i>Murel</div><div style="display:flex;gap:6px;overflow:hidden"><span class="chip" style="color:var(--ok)">✓ Empresa</span><span class="chip" style="color:var(--ok)">✓ Endereço</span><span class="chip on">Horários</span><span class="chip">Titular</span></div></div>
+ <div class="mp" style="display:flex;flex-direction:column;gap:12px"><div class="sec" style="padding:14px 16px"><header style="margin:0"><h3>Empresa</h3><span class="badge">Completo</span></header></div>
+ <div class="sec" style="padding:14px 16px;border:2px solid var(--text)"><header><h3>Horários</h3><span class="badge w">Em andamento</span></header>${quick.replace('margin:14px 0 6px','margin:0 0 2px')}${dayRows(3)}</div>
+ <div class="sec" style="padding:14px 16px"><header style="margin:0"><h3>Titular</h3><span class="badge n">Pendente</span></header></div></div>
+ <div class="foot"><span class="btn p">Criar conta · 62%</span></div></div>`;
+ return [d,m];
+}
+const k=location.hash.slice(1)||'A';
+document.getElementById('t').textContent={A:'Opção 1 — Credencial ao vivo',B:'Opção 2 — Trilho + etapa',C:'Opção 3 — Ficha única com seções'}[k];
+document.getElementById('r').innerHTML=({A,B,C}[k])().join('');
+</script>
+</body>
+</html>
