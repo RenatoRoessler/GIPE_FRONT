@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.329",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "redesenha o fluxo de adesão com credencial ao vivo e conferência",
+      "description": "O cadastro da empresa agora tem 4 etapas (Empresa, Horários, Titular e\nConferir) e é mais curto e fácil de preencher, no computador e no celular.\n\n- A etapa da empresa é dividida em blocos que se recolhem ao ficarem\n  completos; ao errar, os blocos com problema abrem, o primeiro campo\n  inválido recebe o foco e aparece quantos campos faltam.\n- Uma credencial da empresa se monta ao lado do formulário conforme o\n  preenchimento; no celular vira uma faixa no topo.\n- Os horários ganham atalhos (Seg–Sex, todos os dias, 24 horas e copiar\n  segunda) e cada dia vira um cartão no celular.\n- Antes de criar a conta há uma conferência com os dados e botão Editar\n  em cada seção; a senha nunca é exibida.\n- Se o cadastro for recusado por CNPJ, CPF ou e-mail já cadastrado, o\n  aviso leva direto ao campo, sem perder o que foi preenchido.\n- No celular, as ações ficam fixas no rodapé e o indicador de etapas\n  permite voltar às já concluídas.",
+      "date": "2026-10-31T12:09:46-03:00"
+    },
+    {
       "version": "1.0.326",
       "type": "fix",
       "scope": "veiculos",
