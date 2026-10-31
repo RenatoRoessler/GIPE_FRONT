@@ -49,6 +49,10 @@ const shared = {
     actionBarHeight: "76px",
     // Coluna da credencial da empresa ao lado do formulário de adesão.
     credentialWidth: "330px",
+    // Teclados de toque: altura da tecla, camada (acima do menu e do comprovante, abaixo do Toast) e largura máxima do conteúdo.
+    keyboardKeyHeight: "52px",
+    keyboardZIndex: 50,
+    keyboardMaxWidth: "560px",
   },
   breakpoints: {
     sm: "480px",

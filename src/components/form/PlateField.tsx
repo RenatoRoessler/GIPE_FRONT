@@ -1,9 +1,11 @@
 "use client";
 
 import { InputHTMLAttributes, ReactNode, useId } from "react";
+import { useTecladoCampo } from "@/components/teclado/useTecladoCampo";
 import { PlateDisplay } from "@/components/ui/PlateDisplay";
 import { ErrorText, Field, HintText, Label, type HintTone } from "@/components/ui/Input/Input.styles";
 import { normalizePlaca } from "@/lib/placa";
+import { TECLADO_PLACA } from "@/lib/teclado/tipos";
 import { useFieldContext } from "./context";
 import { PlateAction, PlateFrame, PlateInput, PlateRow } from "./PlateField.styles";
 
@@ -22,6 +24,7 @@ export type PlateFieldProps = Omit<
 export function PlateField({ label, hint, hintTone = "muted", action, ...props }: PlateFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
+  const tecladoProps = useTecladoCampo(TECLADO_PLACA, props);
   const error = field.state.meta.isTouched ? field.state.meta.errors[0] : undefined;
   const errorText = typeof error === "string" ? error : error?.message;
   const visibleHint = errorText ? undefined : hint;
@@ -47,6 +50,7 @@ export function PlateField({ label, hint, hintTone = "muted", action, ...props }
               aria-invalid={Boolean(errorText)}
               aria-describedby={errorText ? `${id}-error` : visibleHint ? `${id}-hint` : undefined}
               {...props}
+              {...tecladoProps}
             />
             {action && <PlateAction>{action}</PlateAction>}
           </PlateRow>

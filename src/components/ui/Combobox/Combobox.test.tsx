@@ -1,9 +1,17 @@
-import { screen } from "@testing-library/react";
+import { act, fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { TecladoProvider } from "@/components/teclado/TecladoProvider";
+import { MEDIA_TOQUE } from "@/components/teclado/useTecladoCampo";
 import { renderWithTheme } from "@/test/render";
-import { Combobox, type ComboboxOption } from "./Combobox";
+import { Combobox, type ComboboxOption, type ComboboxProps } from "./Combobox";
+
+vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 const TODAS: ComboboxOption[] = [
   { id: 1, label: "Civic", destaque: { antes: "", casado: "Ci", depois: "vic" } },
@@ -17,7 +25,9 @@ function Harness({
   loading,
   semOpcoes,
   disabled,
+  teclado,
 }: {
+  teclado?: ComboboxProps["teclado"];
   onSelect?: (option: ComboboxOption) => void;
   onSubmit?: () => void;
   loading?: boolean;
@@ -40,6 +50,7 @@ function Harness({
         options={semOpcoes || valor === "" ? [] : TODAS}
         loading={loading}
         disabled={disabled}
+        teclado={teclado}
         emptyText="Nenhum modelo encontrado."
       />
     </form>
@@ -157,5 +168,39 @@ describe("Combobox", () => {
     renderWithTheme(<Harness disabled />);
     expect(screen.getByRole("combobox", { name: "Modelo" })).toBeDisabled();
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  });
+
+  describe("com o teclado do celular", () => {
+    function simularToque() {
+      vi.stubGlobal("matchMedia", (query: string) => ({
+        matches: query === MEDIA_TOQUE,
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }));
+    }
+
+    it("digitar pelas teclas mantém a lista aberta e permite escolher a sugestão", () => {
+      simularToque();
+      const onSelect = vi.fn();
+      renderWithTheme(
+        <TecladoProvider>
+          <Harness teclado={{ tipo: "alfa" }} onSelect={onSelect} />
+        </TecladoProvider>,
+      );
+      const campo = screen.getByRole("combobox", { name: "Modelo" });
+      act(() => campo.focus());
+
+      fireEvent.click(screen.getByRole("button", { name: "C" }));
+      fireEvent.click(screen.getByRole("button", { name: "I" }));
+
+      expect(campo).toHaveValue("CI");
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+      expect(screen.getByRole("group", { name: "Teclado de letras e números" })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("option", { name: "Civic" }));
+
+      expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ label: "Civic" }));
+    });
   });
 });

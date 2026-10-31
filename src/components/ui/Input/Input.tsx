@@ -1,6 +1,8 @@
 "use client";
 
 import { InputHTMLAttributes, ReactNode, useId, useState } from "react";
+import { useTecladoCampo } from "@/components/teclado/useTecladoCampo";
+import type { TecladoConfig } from "@/lib/teclado/tipos";
 import {
   ErrorText,
   EndAction,
@@ -41,15 +43,18 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hintTone?: HintTone;
   // Ação à direita do campo (ex.: botão de câmera); ignorada em campos de senha.
   endAction?: ReactNode;
+  // Teclado próprio do Murel no celular (placa, numérico ou letras); no computador só filtra o que se digita.
+  teclado?: TecladoConfig;
 }
 
-export function Input({ label, error, hint, hintTone = "muted", endAction, id, ...props }: InputProps) {
+export function Input({ label, error, hint, hintTone = "muted", endAction, teclado, id, ...props }: InputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const visibleHint = error ? undefined : hint;
   // Campos de senha ganham o botão para mostrar/ocultar o que foi digitado.
   const isPassword = props.type === "password";
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const tecladoProps = useTecladoCampo(teclado, props);
 
   return (
     <Field>
@@ -64,6 +69,7 @@ export function Input({ label, error, hint, hintTone = "muted", endAction, id, .
             error ? `${inputId}-error` : visibleHint ? `${inputId}-hint` : undefined
           }
           {...props}
+          {...tecladoProps}
           type={isPassword && isPasswordVisible ? "text" : props.type}
         />
         {isPassword && (

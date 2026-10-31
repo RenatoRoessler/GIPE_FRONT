@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(consulta),
 }));
 
-vi.mock("@/hooks/useMediaQuery", () => ({ useIsMobile: () => mobile }));
+vi.mock("@/hooks/useMediaQuery", () => ({ useIsMobile: () => mobile, useMediaQuery: () => false }));
 
 vi.mock("@/lib/api/services/financeiro", () => ({ getFluxo: vi.fn() }));
 

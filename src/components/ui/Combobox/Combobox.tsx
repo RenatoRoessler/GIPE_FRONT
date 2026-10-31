@@ -1,8 +1,10 @@
 "use client";
 
 import { ChangeEvent, InputHTMLAttributes, KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import { useTecladoCampo } from "@/components/teclado/useTecladoCampo";
 import { ErrorText, Field, Label, StyledInput } from "@/components/ui/Input/Input.styles";
 import { Skeleton } from "@/components/ui/Skeleton";
+import type { TecladoConfig } from "@/lib/teclado/tipos";
 import { Listbox, Match, Message, Option, VisuallyHidden } from "./Combobox.styles";
 
 export type ComboboxOption = {
@@ -24,6 +26,8 @@ export interface ComboboxProps
   error?: string;
   // Mostrada quando há texto e nenhuma opção; o texto digitado continua valendo.
   emptyText?: string;
+  // Teclado próprio do Murel no celular; tocar nas teclas não tira o foco do campo, então a lista não fecha.
+  teclado?: TecladoConfig;
 }
 
 // Campo de texto livre com sugestões (padrão ARIA combobox com lista). Só sugere: nunca bloqueia o que foi digitado.
@@ -36,6 +40,7 @@ export function Combobox({
   loading = false,
   error,
   emptyText,
+  teclado,
   id,
   disabled,
   onBlur,
@@ -48,6 +53,7 @@ export function Combobox({
   const [aberto, setAberto] = useState(false);
   const [ativo, setAtivo] = useState(-1);
   const listaRef = useRef<HTMLUListElement>(null);
+  const tecladoProps = useTecladoCampo(teclado, props);
 
   const temTexto = value.trim() !== "";
   const mostrarLista = aberto && !disabled && options.length > 0;
@@ -61,6 +67,13 @@ export function Combobox({
     }
     listaRef.current?.children[ativoValido]?.scrollIntoView?.({ block: "nearest" });
   }, [ativoValido]);
+
+  // Com o teclado do celular aberto, a lista não pode ficar escondida atrás dele.
+  useEffect(() => {
+    if (mostrarLista && teclado) {
+      listaRef.current?.scrollIntoView?.({ block: "nearest" });
+    }
+  }, [mostrarLista, teclado]);
 
   function escolher(option: ComboboxOption) {
     onChange(option.label);
@@ -153,6 +166,7 @@ export function Combobox({
           onBlur?.(event);
         }}
         {...props}
+        {...tecladoProps}
       />
       {mostrarLista && (
         <Listbox ref={listaRef} id={listId} role="listbox" aria-label={label}>

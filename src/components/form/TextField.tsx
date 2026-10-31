@@ -13,6 +13,7 @@ export type TextFieldProps = Omit<
   hintTone?: InputProps["hintTone"];
   // Normaliza o valor digitado antes de gravar no formulário (ex.: máscara, só dígitos).
   format?: (value: string) => string;
+  teclado?: InputProps["teclado"];
 };
 
 export function TextField({ label, format, ...props }: TextFieldProps) {

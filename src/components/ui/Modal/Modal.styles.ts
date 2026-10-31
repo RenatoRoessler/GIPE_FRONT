@@ -9,6 +9,9 @@ export type ModalSize = "sm" | "md" | "lg";
 const WIDTHS: Record<ModalSize, string> = { sm: "480px", md: "600px", lg: "760px" };
 const MIN_WIDTHS: Record<ModalSize, string> = { sm: "360px", md: "440px", lg: "560px" };
 
+// Altura da folha do teclado de toque (publicada pelo KeyboardSheet); sem teclado aberto vale 0.
+const TECLADO_ALTURA = "var(--teclado-altura, 0px)";
+
 // Desktop: caixa centralizada com margem, do tamanho do conteúdo. No celular (abaixo de md) o modal ocupa
 // a tela toda, com cabeçalho e rodapé fixos e só o corpo rolando.
 export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boolean }>`
@@ -24,7 +27,7 @@ export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boo
       ? css`
           width: 100%;
           max-width: none;
-          height: 100dvh;
+          height: calc(100dvh - ${TECLADO_ALTURA});
           max-height: none;
           margin: 0;
           border: none;
@@ -53,15 +56,20 @@ export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boo
 
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
     max-width: ${({ $size }) => WIDTHS[$size]};
-    max-height: calc(100dvh - ${({ theme }) => theme.space[4] * 2}px);
+    max-height: calc(100dvh - ${({ theme }) => theme.space[4] * 2}px - ${TECLADO_ALTURA});
   }
 
   ${({ $fullScreenOnMobile, $size }) =>
     !$fullScreenOnMobile &&
     css`
       max-width: ${WIDTHS[$size]};
-      max-height: 100dvh;
+      max-height: calc(100dvh - ${TECLADO_ALTURA});
     `}
+
+  /* Modal centralizado: com o teclado aberto ele fica logo acima da folha (a margem inferior só existe então, para não descentralizar). */
+  html[data-teclado] & {
+    margin-bottom: ${TECLADO_ALTURA};
+  }
 
   &[open] {
     display: flex;
