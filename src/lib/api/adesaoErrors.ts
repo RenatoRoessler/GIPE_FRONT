@@ -1,9 +1,10 @@
+import { ETAPA } from "@/components/adesao/etapas";
 import { ApiError } from "./errors";
 
 export type CampoAdesao = "cnpj" | "cpf" | "email";
 
 export interface AlvoErro {
-  etapa: 1 | 3;
+  etapa: typeof ETAPA.Empresa | typeof ETAPA.Titular;
   campo: CampoAdesao;
   rotulo: string;
 }
@@ -14,9 +15,9 @@ export interface ErroAdesao {
 }
 
 const ALVOS: Record<CampoAdesao, AlvoErro> = {
-  cnpj: { etapa: 1, campo: "cnpj", rotulo: "CNPJ" },
-  cpf: { etapa: 3, campo: "cpf", rotulo: "CPF" },
-  email: { etapa: 3, campo: "email", rotulo: "e-mail" },
+  cnpj: { etapa: ETAPA.Empresa, campo: "cnpj", rotulo: "CNPJ" },
+  cpf: { etapa: ETAPA.Titular, campo: "cpf", rotulo: "CPF" },
+  email: { etapa: ETAPA.Titular, campo: "email", rotulo: "e-mail" },
 };
 
 const PALAVRAS_CHAVE: { campo: CampoAdesao; padrao: RegExp }[] = [

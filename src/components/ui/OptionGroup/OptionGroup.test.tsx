@@ -56,3 +56,46 @@ describe("OptionGroup", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Selecione");
   });
 });
+
+describe("OptionGroup variante card", () => {
+  const cartoes = [
+    { value: "1", label: "Mensal", aside: "R$ 149,90", detail: "Cobrado todo mês" },
+    { value: "4", label: "Anual", aside: "R$ 79,90", detail: "Economia de R$ 840,00", badge: "Mais econômico" },
+  ];
+
+  it("inclui valor, detalhe e selo de texto no nome acessível da opção", () => {
+    renderWithTheme(<OptionGroup legend="Plano" options={cartoes} value="" onChange={() => {}} variant="card" />);
+    const anual = screen.getByRole("radio", { name: /Anual/ });
+    expect(anual).toHaveAccessibleName(expect.stringContaining("R$ 79,90"));
+    expect(anual).toHaveAccessibleName(expect.stringContaining("Economia de R$ 840,00"));
+    expect(anual).toHaveAccessibleName(expect.stringContaining("Mais econômico"));
+    expect(screen.getByRole("radio", { name: /Mensal/ })).not.toHaveAccessibleName(
+      expect.stringContaining("Mais econômico"),
+    );
+  });
+
+  it("seleciona por clique e por setas", async () => {
+    const onChange = vi.fn();
+    renderWithTheme(<OptionGroup legend="Plano" options={cartoes} value="1" onChange={onChange} variant="card" />);
+    fireEvent.click(screen.getByRole("radio", { name: /Anual/ }));
+    expect(onChange).toHaveBeenCalledWith("4");
+    onChange.mockClear();
+    screen.getByRole("radio", { name: /Mensal/ }).focus();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(onChange).toHaveBeenCalledWith("4");
+  });
+
+  it("mostra o erro com role alert", () => {
+    renderWithTheme(
+      <OptionGroup
+        legend="Plano"
+        options={cartoes}
+        value=""
+        onChange={() => {}}
+        variant="card"
+        error="Escolha um plano para continuar."
+      />,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Escolha um plano para continuar.");
+  });
+});

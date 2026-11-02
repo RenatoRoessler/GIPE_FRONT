@@ -7,6 +7,7 @@ import { SIGLAS_ESTADOS } from "@/lib/estados";
 import { isValidCelular, isValidPhone } from "@/lib/phone";
 import { getMissingPasswordRules } from "@/lib/password";
 import { TipoEmpresa } from "@/types/adesao";
+import { TipoPlanoAdesao } from "@/types/plano";
 
 function vagasSchema(requiredMessage: string) {
   return z
@@ -164,3 +165,17 @@ export const adminUserSchema = z
   });
 
 export type AdminUserValues = z.infer<typeof adminUserSchema>;
+
+export const PLANO_OBRIGATORIO_MESSAGE = "Escolha um plano para continuar.";
+
+// Trial (0) existe no backend, mas a adesão só oferece 1 a 4.
+export const planoSchema = z.object({
+  plano: z
+    .number()
+    .optional()
+    .refine((value) => value !== undefined && value >= TipoPlanoAdesao.Mensal && value <= TipoPlanoAdesao.Anual, {
+      message: PLANO_OBRIGATORIO_MESSAGE,
+    }),
+});
+
+export type PlanoValues = z.infer<typeof planoSchema>;

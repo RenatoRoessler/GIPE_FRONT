@@ -20,17 +20,32 @@ export const Legend = styled.legend`
   color: ${({ theme }) => theme.colors.text};
 `;
 
-export const Options = styled.div<{ $withIcon?: boolean; $columns?: number }>`
+export const Options = styled.div<{ $withIcon?: boolean; $columns?: number; $card?: boolean }>`
   display: grid;
-  grid-template-columns: repeat(${({ $columns, $withIcon }) => $columns ?? ($withIcon ? 3 : 2)}, minmax(0, 1fr));
+  grid-template-columns: repeat(${({ $columns, $withIcon, $card }) => $columns ?? ($card ? 1 : $withIcon ? 3 : 2)}, minmax(0, 1fr));
   gap: ${({ theme }) => theme.space[2]}px;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    grid-template-columns: repeat(${({ $columns }) => $columns ?? 3}, minmax(0, 1fr));
+    grid-template-columns: repeat(${({ $columns, $card }) => $columns ?? ($card ? 2 : 3)}, minmax(0, 1fr));
   }
+
+  /* Cartões com selo sobre a borda precisam de folga acima da primeira linha. */
+  ${({ $card, theme }) =>
+    $card &&
+    css`
+      padding-top: ${theme.space[2]}px;
+      row-gap: ${theme.space[3]}px;
+    `}
 `;
 
-export const Tile = styled.label<{ $checked: boolean; $disabled: boolean; $hasError: boolean; $withIcon?: boolean }>`
+export const Tile = styled.label<{
+  $checked: boolean;
+  $disabled: boolean;
+  $hasError: boolean;
+  $withIcon?: boolean;
+  $card?: boolean;
+  $highlight?: boolean;
+}>`
   position: relative;
   display: flex;
   align-items: center;
@@ -70,6 +85,21 @@ export const Tile = styled.label<{ $checked: boolean; $disabled: boolean; $hasEr
       `}
     `}
 
+  /* Cartão: conteúdo livre; o destaque (com selo) tem borda de acento fixa e a seleção também engrossa a borda. */
+  ${({ $card, $highlight, $checked, $hasError, theme }) =>
+    $card &&
+    css`
+      align-items: flex-start;
+      min-height: ${theme.layout.touchTarget};
+      padding: ${theme.space[3]}px;
+      border-radius: ${theme.radii.lg};
+      ${($highlight || $checked) &&
+      css`
+        border-width: 2px;
+        border-color: ${$hasError ? theme.colors.danger : theme.colors.accent};
+      `}
+    `}
+
   &:hover {
     border-color: ${({ theme, $disabled }) => ($disabled ? undefined : theme.colors.accent)};
   }
@@ -99,9 +129,16 @@ export const IconSlot = styled.span`
   color: inherit;
 `;
 
-export const Mark = styled.span<{ $checked: boolean; $withIcon?: boolean }>`
+export const Mark = styled.span<{ $checked: boolean; $withIcon?: boolean; $card?: boolean }>`
   /* Com ícone a seleção é dita pela inversão de cores do tile, sem a marca. */
   display: ${({ $withIcon }) => ($withIcon ? "none" : "grid")};
+  ${({ $card, theme }) =>
+    $card &&
+    css`
+      position: absolute;
+      top: ${theme.space[3]}px;
+      right: ${theme.space[3]}px;
+    `}
   place-items: center;
   flex-shrink: 0;
   width: 18px;
@@ -123,4 +160,68 @@ export const Mark = styled.span<{ $checked: boolean; $withIcon?: boolean }>`
 export const ErrorText = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: ${({ theme }) => theme.colors.danger};
+`;
+
+// Selo de texto sobre a borda superior: o destaque não depende só da cor.
+export const Badge = styled.span`
+  position: absolute;
+  top: 0;
+  left: ${({ theme }) => theme.space[3]}px;
+  transform: translateY(-50%);
+  padding: ${({ theme }) => theme.space[1]}px ${({ theme }) => theme.space[2]}px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
+  font-family: ${({ theme }) => theme.fontFamilies.mono};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+`;
+
+// Abaixo de `md` o valor fica à direita do nome; a partir dele tudo empilha.
+export const CardBody = styled.span`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "nome aside"
+    "detail aside";
+  align-items: start;
+  column-gap: ${({ theme }) => theme.space[3]}px;
+  row-gap: ${({ theme }) => theme.space[1]}px;
+  flex: 1;
+  min-width: 0;
+  /* Espaço para a marca de seleção no canto. */
+  padding-right: ${({ theme }) => theme.space[4]}px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "nome"
+      "aside"
+      "detail";
+  }
+`;
+
+export const CardLabel = styled.span`
+  grid-area: nome;
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+`;
+
+export const CardAside = styled.span`
+  grid-area: aside;
+  align-self: center;
+`;
+
+export const CardDetail = styled.span`
+  grid-area: detail;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[1]}px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.regular};
+  color: ${({ theme }) => theme.colors.textMuted};
 `;

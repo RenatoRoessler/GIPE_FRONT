@@ -6,6 +6,7 @@ import {
   TipoEmpresa,
   type CompanyData,
 } from "@/types/adesao";
+import { TipoPlanoAdesao, type PlanoVendido } from "@/types/plano";
 import { toAdesaoPayload, toPaymentsPayload } from "./adesao.mapper";
 
 const company: CompanyData = {
@@ -48,6 +49,7 @@ describe("toPaymentsPayload", () => {
 describe("toAdesaoPayload: meios de pagamento", () => {
   it("inclui os quatro meios dentro de empresa", () => {
     const payload = toAdesaoPayload({
+      plano: TipoPlanoAdesao.Mensal,
       company,
       hours: EMPTY_BUSINESS_HOURS_DATA,
       payments: { dinheiro: true, pix: true, cartaoCredito: false, cartaoDebito: true },
@@ -57,16 +59,28 @@ describe("toAdesaoPayload: meios de pagamento", () => {
   });
 
   it("com o padrão da adesão envia só dinheiro ligado", () => {
-    const payload = toAdesaoPayload({ company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser });
+    const payload = toAdesaoPayload({ plano: TipoPlanoAdesao.Mensal, company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser });
     expect(payload.empresa).toMatchObject({ dinheiro: true, pix: false, cartaoCredito: false, cartaoDebito: false });
   });
 
   it("não muda o restante do payload", () => {
-    const payload = toAdesaoPayload({ company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser });
+    const payload = toAdesaoPayload({ plano: TipoPlanoAdesao.Mensal, company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser });
     expect(payload.empresa.cnpj).toBe("11222333000181");
     expect(payload.empresa.quantidadeVagasMoto).toBe(10);
     expect(payload.horarios).toHaveLength(7);
     expect(payload.usuario).toMatchObject({ nome: "Ana Souza", cpf: "52998224725", celular: "11912345678" });
     expect(payload.usuario).not.toHaveProperty("repetirSenha");
+  });
+});
+
+describe("toAdesaoPayload: plano", () => {
+  it.each<[PlanoVendido, number]>([
+    [TipoPlanoAdesao.Mensal, 1],
+    [TipoPlanoAdesao.Trimestral, 2],
+    [TipoPlanoAdesao.Semestral, 3],
+    [TipoPlanoAdesao.Anual, 4],
+  ])("envia tipoPlanoAdesao %s como %i", (plano, esperado) => {
+    const payload = toAdesaoPayload({ plano, company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser });
+    expect(payload.tipoPlanoAdesao).toBe(esperado);
   });
 });

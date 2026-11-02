@@ -1,3 +1,5 @@
+import { buscarPlano, formatarReais } from "@/lib/planos";
+import type { PlanoVendido } from "@/types/plano";
 import { BusinessHoursData, CompanyData, DIAS_SEMANA, MEIOS_PAGAMENTO, PaymentsData, TIPO_EMPRESA_LABEL } from "@/types/adesao";
 
 export type EstadoDia = "aberto" | "24h" | "fechado";
@@ -17,6 +19,7 @@ export interface DadosCredencial {
   vagasMoto?: number;
   dias: DiaCredencial[];
   pagamentos: string[];
+  plano?: string;
 }
 
 function textoOuUndefined(valor: string): string | undefined {
@@ -28,12 +31,18 @@ function numeroOuUndefined(valor: string): number | undefined {
   return /^\d+$/.test(valor.trim()) ? Number(valor) : undefined;
 }
 
+function descricaoDoPlano(tipo: PlanoVendido): string {
+  const plano = buscarPlano(tipo);
+  return `${plano.nome} · ${formatarReais(plano.centavosPorMes)}/mês`;
+}
+
 export function buildCredencial(input: {
   company: CompanyData;
   hours: BusinessHoursData;
   payments: PaymentsData;
+  plano?: PlanoVendido;
 }): DadosCredencial {
-  const { company, hours, payments } = input;
+  const { company, hours, payments, plano } = input;
 
   return {
     nome: textoOuUndefined(company.nomeFantasia),
@@ -47,5 +56,6 @@ export function buildCredencial(input: {
       return { sigla: dia.label.charAt(0), nome: dia.label, estado };
     }),
     pagamentos: MEIOS_PAGAMENTO.filter(({ key }) => payments[key]).map(({ curto }) => curto),
+    plano: plano === undefined ? undefined : descricaoDoPlano(plano),
   };
 }

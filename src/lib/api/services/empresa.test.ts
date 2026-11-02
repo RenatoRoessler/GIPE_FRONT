@@ -38,6 +38,7 @@ describe("serviços de empresa e adesão: meios de pagamento", () => {
   it("saveAdesao envia os quatro campos dentro de empresa", async () => {
     vi.mocked(api.post).mockResolvedValue({});
     await saveAdesao({
+      plano: 1,
       company: EMPTY_COMPANY_DATA,
       hours: EMPTY_BUSINESS_HOURS_DATA,
       payments: EMPTY_PAYMENTS_DATA,

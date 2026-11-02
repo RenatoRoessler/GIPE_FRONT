@@ -2,6 +2,7 @@
 
 import { Fragment, ReactNode } from "react";
 import { formatCEP } from "@/lib/cep";
+import { buscarPlano, descreverTotal, formatarReais } from "@/lib/planos";
 import {
   AdminUserData,
   BusinessHoursData,
@@ -11,16 +12,19 @@ import {
   PaymentsData,
   TIPO_EMPRESA_LABEL,
 } from "@/types/adesao";
+import type { PlanoVendido } from "@/types/plano";
 import type { GrupoEmpresa } from "../CompanyStepFields";
+import { ETAPA, type EtapaEditavel } from "../etapas";
 import { Detalhe, Editar, Lista, Secao, SecaoCabecalho, SecaoTitulo, Secoes, Termo } from "./ConferirStep.styles";
 
 export interface ConferirStepProps {
+  plano: PlanoVendido;
   company: CompanyData;
   hours: BusinessHoursData;
   payments: PaymentsData;
   adminUser: AdminUserData;
   // Leva o usuário de volta à etapa (e, na empresa, ao bloco) para corrigir; nada é perdido.
-  onEditar: (etapa: 1 | 2 | 3, bloco?: GrupoEmpresa) => void;
+  onEditar: (etapa: EtapaEditavel, bloco?: GrupoEmpresa) => void;
 }
 
 // A senha nunca é exibida: só o tamanho fixo de uma máscara.
@@ -63,12 +67,14 @@ function Linha({ termo, valor }: { termo: string; valor: string }) {
   );
 }
 
-export function ConferirStep({ company, hours, payments, adminUser, onEditar }: ConferirStepProps) {
+export function ConferirStep({ plano, company, hours, payments, adminUser, onEditar }: ConferirStepProps) {
   const meios = MEIOS_PAGAMENTO.filter(({ key }) => payments[key]).map(({ label }) => label);
+
+  const dadosDoPlano = buscarPlano(plano);
 
   return (
     <Secoes>
-      <Bloco titulo="Empresa" onEditar={() => onEditar(1, "identificacao")}>
+      <Bloco titulo="Empresa" onEditar={() => onEditar(ETAPA.Empresa, "identificacao")}>
         <Linha termo="CNPJ" valor={company.cnpj} />
         <Linha termo="Razão social" valor={company.razaoSocial} />
         <Linha termo="Nome fantasia" valor={company.nomeFantasia} />
@@ -79,7 +85,7 @@ export function ConferirStep({ company, hours, payments, adminUser, onEditar }: 
         <Linha termo="Telefone" valor={company.telefone} />
       </Bloco>
 
-      <Bloco titulo="Endereço e capacidade" onEditar={() => onEditar(1, "endereco")}>
+      <Bloco titulo="Endereço e capacidade" onEditar={() => onEditar(ETAPA.Empresa, "endereco")}>
         <Linha termo="Endereço" valor={`${company.logradouro}, ${company.numero}`} />
         <Linha termo="Bairro" valor={company.bairro} />
         <Linha termo="Cidade" valor={`${company.cidade} - ${company.estado}`} />
@@ -88,22 +94,28 @@ export function ConferirStep({ company, hours, payments, adminUser, onEditar }: 
         <Linha termo="Vagas de moto" valor={company.quantidadeVagasMoto} />
       </Bloco>
 
-      <Bloco titulo="Pagamentos" onEditar={() => onEditar(1, "capacidade")}>
+      <Bloco titulo="Pagamentos" onEditar={() => onEditar(ETAPA.Empresa, "capacidade")}>
         <Linha termo="Meios aceitos" valor={meios.join(", ")} />
       </Bloco>
 
-      <Bloco titulo="Horários" onEditar={() => onEditar(2)}>
+      <Bloco titulo="Horários" onEditar={() => onEditar(ETAPA.Horarios)}>
         {DIAS_SEMANA.map((dia, index) => (
           <Linha key={dia.codigo} termo={dia.label} valor={horarioDoDia(hours.horarios[index])} />
         ))}
       </Bloco>
 
-      <Bloco titulo="Titular" onEditar={() => onEditar(3)}>
+      <Bloco titulo="Titular" onEditar={() => onEditar(ETAPA.Titular)}>
         <Linha termo="Nome" valor={adminUser.nome} />
         <Linha termo="CPF" valor={adminUser.cpf} />
         <Linha termo="Celular" valor={adminUser.celular} />
         <Linha termo="E-mail" valor={adminUser.email} />
         <Linha termo="Senha" valor={SENHA_MASCARADA} />
+      </Bloco>
+
+      <Bloco titulo="Plano" onEditar={() => onEditar(ETAPA.Plano)}>
+        <Linha termo="Plano" valor={dadosDoPlano.nome} />
+        <Linha termo="Valor por mês" valor={formatarReais(dadosDoPlano.centavosPorMes)} />
+        <Linha termo="Total" valor={descreverTotal(dadosDoPlano)} />
       </Bloco>
     </Secoes>
   );

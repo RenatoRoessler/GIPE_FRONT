@@ -2,12 +2,13 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useSelector } from "@tanstack/react-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { AlvoErro, atribuirErro } from "@/lib/api/adesaoErrors";
 import { saveAdesao } from "@/lib/api/services/adesao";
-import { adminUserSchema, businessHoursSchema, companySchema, paymentsSchema } from "@/lib/schemas/adesao";
+import { lerPlanoDaUrl } from "@/lib/planos";
+import { adminUserSchema, businessHoursSchema, companySchema, paymentsSchema, planoSchema } from "@/lib/schemas/adesao";
 import {
   CompanyData,
   EMPTY_ADMIN_USER_DATA,
@@ -15,12 +16,17 @@ import {
   EMPTY_COMPANY_DATA,
   EMPTY_PAYMENTS_DATA,
 } from "@/types/adesao";
+import type { PlanoVendido } from "@/types/plano";
 import type { GrupoEmpresa } from "./CompanyStepFields";
 import { buildCredencial } from "./credencial";
+import { ETAPA, type Etapa, type EtapaEditavel } from "./etapas";
 
-export type Etapa = 1 | 2 | 3 | 4;
+export { ETAPA };
+export type { Etapa };
 
-export const ETAPAS = ["Empresa", "Horários", "Titular", "Conferir"];
+export const ETAPAS = ["Empresa", "Horários", "Titular", "Plano", "Conferir"];
+
+const PARAMETRO_PLANO = "tipoPlanoAdesao";
 
 export const GRUPOS_EMPRESA: GrupoEmpresa[] = ["identificacao", "endereco", "capacidade"];
 
@@ -42,13 +48,24 @@ function focarPrimeiroInvalido() {
   aposRender(() => document.querySelector<HTMLElement>(INVALIDO)?.focus());
 }
 
+// O `fieldset` do grupo de planos é quem fica inválido, mas só o radio recebe foco.
+function focarPrimeiroPlano() {
+  aposRender(() => document.querySelector<HTMLElement>('fieldset[aria-invalid="true"] input[type="radio"]')?.focus());
+}
+
 function proximaEtapa(etapa: Etapa): Etapa {
-  return Math.min(4, etapa + 1) as Etapa;
+  return Math.min(ETAPA.Conferir, etapa + 1) as Etapa;
 }
 
 export function useAdesaoWizard() {
   const router = useRouter();
-  const [etapa, setEtapa] = useState<Etapa>(1);
+  const searchParams = useSearchParams();
+  const [etapa, setEtapa] = useState<Etapa>(ETAPA.Empresa);
+  // O parâmetro da URL só vale na abertura; trocar o plano na tela não reescreve a URL.
+  const [plano, setPlano] = useState<PlanoVendido | undefined>(() =>
+    lerPlanoDaUrl(searchParams.get(PARAMETRO_PLANO)),
+  );
+  const [erroPlano, setErroPlano] = useState<string>();
   const [blocosAbertos, setBlocosAbertos] = useState<GrupoEmpresa[]>(["identificacao"]);
   const [blocosConcluidos, setBlocosConcluidos] = useState<GrupoEmpresa[]>([]);
   const [faltam, setFaltam] = useState(0);
@@ -118,7 +135,10 @@ export function useAdesaoWizard() {
   const payments = useSelector(paymentsForm.store, (state) => state.values);
   const adminUser = useSelector(adminUserForm.store, (state) => state.values);
 
-  const credencial = useMemo(() => buildCredencial({ company, hours, payments }), [company, hours, payments]);
+  const credencial = useMemo(
+    () => buildCredencial({ company, hours, payments, plano }),
+    [company, hours, payments, plano],
+  );
 
   // Campos inválidos da empresa por bloco, direto do schema (não depende de o campo ter sido tocado).
   function gruposInvalidos(): { grupo: GrupoEmpresa; quantidade: number }[] {
@@ -162,10 +182,26 @@ export function useAdesaoWizard() {
     setBlocosAbertos((abertos) => (aberto ? [...abertos, grupo] : abertos.filter((item) => item !== grupo)));
   }
 
+  function escolherPlano(tipo: PlanoVendido) {
+    setPlano(tipo);
+    setErroPlano(undefined);
+    setFaltam(0);
+  }
+
   async function validarEtapa(): Promise<boolean> {
     setFaltam(0);
 
-    if (etapa === 1) {
+    if (etapa === ETAPA.Plano) {
+      const result = planoSchema.safeParse({ plano });
+      if (result.success) return true;
+
+      setErroPlano(result.error.issues[0].message);
+      setFaltam(1);
+      focarPrimeiroPlano();
+      return false;
+    }
+
+    if (etapa === ETAPA.Empresa) {
       await Promise.all([companyForm.handleSubmit(), paymentsForm.handleSubmit()]);
       const invalidos = gruposInvalidos();
       if (invalidos.length === 0) {
@@ -179,8 +215,8 @@ export function useAdesaoWizard() {
       return false;
     }
 
-    const form = etapa === 2 ? hoursForm : adminUserForm;
-    const schema = etapa === 2 ? businessHoursSchema : adminUserSchema;
+    const form = etapa === ETAPA.Horarios ? hoursForm : adminUserForm;
+    const schema = etapa === ETAPA.Horarios ? businessHoursSchema : adminUserSchema;
     await form.handleSubmit();
     const result = schema.safeParse(form.state.values);
     if (result.success) return true;
@@ -194,7 +230,7 @@ export function useAdesaoWizard() {
     if (!(await validarEtapa())) return;
     if (retornoConferencia) {
       setRetornoConferencia(false);
-      setEtapa(4);
+      setEtapa(ETAPA.Conferir);
       return;
     }
     setEtapa((atual) => proximaEtapa(atual));
@@ -203,7 +239,7 @@ export function useAdesaoWizard() {
   function voltar() {
     setFaltam(0);
     setRetornoConferencia(false);
-    setEtapa((atual) => Math.max(1, atual - 1) as Etapa);
+    setEtapa((atual) => Math.max(ETAPA.Empresa, atual - 1) as Etapa);
   }
 
   // Só volta a etapas já vistas (o Stepper só oferece as concluídas); nenhum dado se perde.
@@ -216,15 +252,21 @@ export function useAdesaoWizard() {
   }
 
   // "Editar" na conferência: vai à etapa (e ao bloco) e, ao corrigir, volta direto para a conferência.
-  function editar(destino: 1 | 2 | 3, bloco?: GrupoEmpresa) {
+  function editar(destino: EtapaEditavel, bloco?: GrupoEmpresa) {
     setRetornoConferencia(true);
     setEtapa(destino);
-    if (destino === 1 && bloco) setBlocosAbertos([bloco]);
+    if (destino === ETAPA.Empresa && bloco) setBlocosAbertos([bloco]);
   }
 
   async function enviar() {
+    // A etapa Plano é obrigatória; sem plano não há o que enviar, então volta a ela.
+    if (plano === undefined) {
+      editar(ETAPA.Plano);
+      return;
+    }
+
     try {
-      await mutation.mutateAsync({ company, hours, payments, adminUser });
+      await mutation.mutateAsync({ plano, company, hours, payments, adminUser });
     } catch {
       // O erro fica em `mutation.error` e é mostrado no topo da conferência.
     }
@@ -237,7 +279,7 @@ export function useAdesaoWizard() {
     mutation.reset();
     setRetornoConferencia(true);
     setEtapa(alvo.etapa);
-    if (alvo.etapa === 1) setBlocosAbertos(["identificacao"]);
+    if (alvo.etapa === ETAPA.Empresa) setBlocosAbertos(["identificacao"]);
     aposRender(() => document.querySelector<HTMLElement>(`[name="${alvo.campo}"]`)?.focus());
   }
 
@@ -249,7 +291,9 @@ export function useAdesaoWizard() {
     paymentsForm,
     hoursForm,
     adminUserForm,
-    dados: { company, hours, payments, adminUser },
+    dados: { plano, company, hours, payments, adminUser },
+    escolherPlano,
+    erroPlano,
     credencial,
     blocosAbertos,
     blocosConcluidos,

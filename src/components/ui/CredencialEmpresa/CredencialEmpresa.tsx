@@ -33,6 +33,7 @@ export interface CredencialDados {
   vagasMoto?: number;
   dias: CredencialDia[];
   pagamentos: string[];
+  plano?: string;
 }
 
 export interface CredencialEmpresaProps {
@@ -48,7 +49,7 @@ const ESTADO_TEXTO = { aberto: "aberto", "24h": "aberto 24 horas", fechado: "fec
 
 export function CredencialEmpresa({ dados, variant = "completa", onAbrir }: CredencialEmpresaProps) {
   const theme = useTheme();
-  const { nome, cnpj, tipo, vagasCarro, vagasMoto, dias, pagamentos } = dados;
+  const { nome, cnpj, tipo, vagasCarro, vagasMoto, dias, pagamentos, plano } = dados;
   const nomeExibido = nome ?? (variant === "compacta" ? "Sua empresa" : TRACO);
 
   if (variant === "compacta") {
@@ -104,6 +105,7 @@ export function CredencialEmpresa({ dados, variant = "completa", onAbrir }: Cred
             ))}
           </Dias>
         </Campo>
+        <Pagamentos>Plano: {plano ?? TRACO}</Pagamentos>
         <Pagamentos>Pagamentos: {pagamentos.length > 0 ? pagamentos.join(" · ") : TRACO}</Pagamentos>
       </Corpo>
     </Cartao>

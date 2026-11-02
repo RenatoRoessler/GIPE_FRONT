@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { OnboardingWizard } from "@/components/adesao/OnboardingWizard";
 
 export const metadata: Metadata = {
@@ -6,5 +7,10 @@ export const metadata: Metadata = {
 };
 
 export default function AdesaoPage() {
-  return <OnboardingWizard />;
+  return (
+    // useSearchParams (plano na URL) exige Suspense.
+    <Suspense fallback={null}>
+      <OnboardingWizard />
+    </Suspense>
+  );
 }

@@ -20,6 +20,7 @@ const PREENCHIDA: CredencialDados = {
   vagasMoto: 20,
   dias: DIAS,
   pagamentos: ["Dinheiro", "Pix"],
+  plano: "Anual · R$ 79,90/mês",
 };
 
 describe("CredencialEmpresa", () => {
@@ -34,6 +35,7 @@ describe("CredencialEmpresa", () => {
     expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(3);
     expect(screen.getByText("— CARROS")).toBeInTheDocument();
     expect(screen.getByText("Pagamentos: —")).toBeInTheDocument();
+    expect(screen.getByText("Plano: —")).toBeInTheDocument();
   });
 
   it("mostra os dados preenchidos", () => {
@@ -43,6 +45,7 @@ describe("CredencialEmpresa", () => {
     expect(screen.getByText("80 CARROS")).toBeInTheDocument();
     expect(screen.getByText("20 MOTOS")).toBeInTheDocument();
     expect(screen.getByText("Pagamentos: Dinheiro · Pix")).toBeInTheDocument();
+    expect(screen.getByText("Plano: Anual · R$ 79,90/mês")).toBeInTheDocument();
   });
 
   it("descreve o estado de cada dia por texto", () => {

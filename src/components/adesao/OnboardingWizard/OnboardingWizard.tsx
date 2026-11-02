@@ -6,6 +6,8 @@ import { AdminUserStepFields } from "@/components/adesao/AdminUserStepFields";
 import { BusinessHoursStepFields } from "@/components/adesao/BusinessHoursStepFields";
 import { CompanyStepFields, GrupoEmpresa } from "@/components/adesao/CompanyStepFields";
 import { ConferirStep } from "@/components/adesao/ConferirStep";
+import { PlanoStepFields } from "@/components/adesao/PlanoStepFields";
+import { ETAPA } from "@/components/adesao/etapas";
 import { useAdesaoWizard } from "@/components/adesao/useAdesaoWizard";
 import { PagamentosFields } from "@/components/empresa/PagamentosFields";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
@@ -19,6 +21,7 @@ const TITULOS = [
   "Dados da empresa",
   "Quando a empresa funciona?",
   "Usuário titular",
+  "Escolha o seu plano",
   "Confira os dados",
 ];
 
@@ -26,6 +29,7 @@ const DESCRICOES = [
   "Conte para a gente sobre a sua empresa.",
   "Defina os dias e horários de atendimento.",
   "Agora crie o usuário titular da conta.",
+  "Todas as funcionalidades valem em todos os planos. O que muda é o tempo e o valor.",
   "Revise antes de criar a conta. Dá para corrigir qualquer seção.",
 ];
 
@@ -76,7 +80,14 @@ export function OnboardingWizard() {
   );
 
   let conteudo: ReactNode;
-  if (etapa === 1) {
+  if (etapa === ETAPA.Plano) {
+    conteudo = (
+      <>
+        {faltamAviso}
+        <PlanoStepFields plano={dados.plano} onChange={wizard.escolherPlano} error={wizard.erroPlano} />
+      </>
+    );
+  } else if (etapa === ETAPA.Empresa) {
     conteudo = (
       <>
         {faltamAviso}
@@ -98,14 +109,14 @@ export function OnboardingWizard() {
         </Accordion>
       </>
     );
-  } else if (etapa === 2) {
+  } else if (etapa === ETAPA.Horarios) {
     conteudo = (
       <>
         {faltamAviso}
         <BusinessHoursStepFields form={wizard.hoursForm} />
       </>
     );
-  } else if (etapa === 3) {
+  } else if (etapa === ETAPA.Titular) {
     conteudo = (
       <>
         {faltamAviso}
@@ -128,7 +139,8 @@ export function OnboardingWizard() {
             </ErroAcoes>
           </ErrorBanner>
         )}
-        <ConferirStep {...dados} onEditar={wizard.editar} />
+        {/* Só chega aqui com plano escolhido: a etapa Plano não deixa avançar sem ele. */}
+        {dados.plano !== undefined && <ConferirStep {...dados} plano={dados.plano} onEditar={wizard.editar} />}
       </>
     );
   }
@@ -148,7 +160,7 @@ export function OnboardingWizard() {
       tituloRef={wizard.tituloRef}
       credencial={wizard.credencial}
       secundaria={
-        etapa > 1 ? (
+        etapa > ETAPA.Empresa ? (
           <Button type="button" variant="secondary" onClick={wizard.voltar} disabled={enviando}>
             Voltar
           </Button>

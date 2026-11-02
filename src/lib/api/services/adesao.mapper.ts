@@ -8,8 +8,10 @@ import {
   PaymentsData,
   TipoEmpresa,
 } from "@/types/adesao";
+import type { PlanoVendido } from "@/types/plano";
 
 export interface AdesaoPayload {
+  tipoPlanoAdesao: PlanoVendido;
   empresa: {
     razaoSocial: string;
     nomeFantasia: string;
@@ -48,6 +50,7 @@ export interface AdesaoPayload {
 }
 
 export interface AdesaoInput {
+  plano: PlanoVendido;
   company: CompanyData;
   hours: BusinessHoursData;
   payments: PaymentsData;
@@ -101,8 +104,9 @@ export function toHorariosPayload(
 
 // Único ponto que traduz o formulário para o contrato do backend.
 // Formatos seguem o exemplo recebido: documentos/telefones só com dígitos, CEP com hífen.
-export function toAdesaoPayload({ company, hours, payments, adminUser }: AdesaoInput): AdesaoPayload {
+export function toAdesaoPayload({ plano, company, hours, payments, adminUser }: AdesaoInput): AdesaoPayload {
   return {
+    tipoPlanoAdesao: plano,
     empresa: {
       razaoSocial: company.razaoSocial.trim(),
       nomeFantasia: company.nomeFantasia.trim(),

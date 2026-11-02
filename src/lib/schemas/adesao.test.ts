@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { zodFieldErrors } from "@/components/form/zodFieldErrors";
 import { EMPTY_PAYMENTS_DATA, MEIOS_PAGAMENTO, type PaymentsData } from "@/types/adesao";
-import { adminUserSchema, PAGAMENTOS_MINIMO_MESSAGE, paymentsSchema } from "./adesao";
+import { adminUserSchema, PAGAMENTOS_MINIMO_MESSAGE, PLANO_OBRIGATORIO_MESSAGE, paymentsSchema, planoSchema } from "./adesao";
 
 const NENHUM: PaymentsData = { dinheiro: false, pix: false, cartaoCredito: false, cartaoDebito: false };
 
@@ -87,5 +87,17 @@ describe("adminUserSchema: senha com a mesma regra da redefinição", () => {
     const resultado = comSenha("Senha@123", "Senha@124");
     expect(resultado.success).toBe(false);
     expect(resultado.error?.issues.find((issue) => issue.path[0] === "repetirSenha")?.message).toBe("As senhas não coincidem");
+  });
+});
+
+describe("planoSchema", () => {
+  it.each([1, 2, 3, 4])("aceita o plano %i", (plano) => {
+    expect(planoSchema.safeParse({ plano }).success).toBe(true);
+  });
+
+  it.each([undefined, 0, 5])("recusa %s com a mensagem de plano obrigatório", (plano) => {
+    const resultado = planoSchema.safeParse({ plano });
+    expect(resultado.success).toBe(false);
+    expect(resultado.error?.issues[0].message).toBe(PLANO_OBRIGATORIO_MESSAGE);
   });
 });

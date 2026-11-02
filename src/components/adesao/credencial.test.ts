@@ -67,4 +67,12 @@ describe("buildCredencial", () => {
     ]);
     expect(dados.dias).toHaveLength(7);
   });
+
+  it("descreve o plano escolhido e deixa vazio quando não há", () => {
+    const base = { company: EMPTY_COMPANY_DATA, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA };
+
+    expect(buildCredencial(base).plano).toBeUndefined();
+    expect(buildCredencial({ ...base, plano: 4 }).plano).toBe("Anual · R$ 79,90/mês");
+    expect(buildCredencial({ ...base, plano: 1 }).plano).toBe("Mensal · R$ 149,90/mês");
+  });
 });

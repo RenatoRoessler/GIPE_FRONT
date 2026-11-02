@@ -41,6 +41,7 @@ const adminUser = {
 function renderar(onEditar = vi.fn()) {
   renderWithTheme(
     <ConferirStep
+      plano={4}
       company={company}
       hours={EMPTY_BUSINESS_HOURS_DATA}
       payments={{ ...EMPTY_PAYMENTS_DATA, pix: true }}
@@ -52,9 +53,9 @@ function renderar(onEditar = vi.fn()) {
 }
 
 describe("ConferirStep", () => {
-  it("mostra as cinco seções com os dados informados", () => {
+  it("mostra as seções com os dados informados", () => {
     renderar();
-    for (const titulo of ["Empresa", "Endereço e capacidade", "Pagamentos", "Horários", "Titular"]) {
+    for (const titulo of ["Empresa", "Endereço e capacidade", "Pagamentos", "Horários", "Titular", "Plano"]) {
       expect(screen.getByRole("region", { name: titulo })).toBeInTheDocument();
     }
     expect(screen.getByText("Central LTDA")).toBeInTheDocument();
@@ -63,6 +64,20 @@ describe("ConferirStep", () => {
     expect(screen.getByText("Dinheiro, Pix")).toBeInTheDocument();
     expect(screen.getByText("Domingo").nextSibling).toHaveTextContent("Fechado");
     expect(screen.getByText("Segunda-feira").nextSibling).toHaveTextContent("08:00 às 18:00");
+  });
+
+  it("mostra o plano escolhido com valor por mês e total", () => {
+    renderar();
+    const secao = screen.getByRole("region", { name: "Plano" });
+    expect(secao).toHaveTextContent("Anual");
+    expect(secao).toHaveTextContent("R$ 79,90");
+    expect(secao).toHaveTextContent("R$ 958,80 em uma cobrança única");
+  });
+
+  it("Editar Plano leva à etapa do plano", async () => {
+    const onEditar = renderar();
+    await userEvent.click(screen.getByRole("button", { name: "Editar Plano" }));
+    expect(onEditar).toHaveBeenLastCalledWith(4);
   });
 
   it("nunca exibe a senha", () => {

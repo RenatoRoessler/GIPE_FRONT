@@ -6,7 +6,11 @@ import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
 
 const push = vi.hoisted(() => vi.fn());
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+const consulta = vi.hoisted(() => ({ atual: "" }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push }),
+  useSearchParams: () => new URLSearchParams(consulta.atual),
+}));
 vi.mock("@/lib/api/services/adesao", () => ({ saveAdesao: vi.fn() }));
 vi.mock("@/lib/api/services/cep", () => ({ fetchAddressByCep: vi.fn().mockResolvedValue(null) }));
 
@@ -16,12 +20,16 @@ import { OnboardingWizard } from "./OnboardingWizard";
 type User = ReturnType<typeof userEvent.setup>;
 
 // O Logo da tela lê o modo de tema do provider da aplicação.
-const renderWizard = () =>
-  renderWithProviders(
+// Por padrão a adesão abre como se viesse do site com o plano Anual escolhido.
+const renderWizard = (query = "tipoPlanoAdesao=4") => {
+  consulta.atual = query;
+  return renderWithProviders(
     <ThemeModeProvider>
       <OnboardingWizard />
     </ThemeModeProvider>,
   );
+};
+
 
 const meio = (nome: string) => screen.getByRole("switch", { name: nome });
 const proximo = () => screen.getByRole("button", { name: /^Próximo:/ });
@@ -74,9 +82,15 @@ async function irAteTitular(user: User) {
   await titulo("Usuário titular");
 }
 
-async function irAteConferencia(user: User) {
+async function irAtePlano(user: User) {
   await irAteTitular(user);
   await preencherUsuario(user);
+  await user.click(proximo());
+  await titulo("Escolha o seu plano");
+}
+
+async function irAteConferencia(user: User) {
+  await irAtePlano(user);
   await user.click(proximo());
   await titulo("Confira os dados");
 }
@@ -90,16 +104,17 @@ beforeEach(() => {
 });
 
 describe("OnboardingWizard: estrutura", () => {
-  it("tem as quatro etapas no indicador de progresso", () => {
-    renderWizard();
+  it("tem as cinco etapas no indicador de progresso e abre na da empresa", () => {
+    renderWizard("");
     const lista = screen.getByRole("list", { name: "Progresso do cadastro" });
-    for (const etapa of ["Empresa", "Horários", "Titular", "Conferir"]) {
+    for (const etapa of ["Empresa", "Horários", "Titular", "Plano", "Conferir"]) {
       expect(within(lista).getByText(etapa)).toBeInTheDocument();
     }
     expect(screen.getByRole("heading", { level: 1, name: "Dados da empresa" })).toBeInTheDocument();
   });
 
-  it("divide a etapa da empresa em blocos e abre só o primeiro", () => {
+  it("divide a etapa da empresa em blocos e abre só o primeiro", async () => {
+    const user = userEvent.setup();
     renderWizard();
     expect(screen.getByRole("button", { name: /Identificação/ })).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("button", { name: /Endereço/ })).toHaveAttribute("aria-expanded", "false");
@@ -282,6 +297,8 @@ describe("OnboardingWizard: envio", () => {
     await titulo("Usuário titular");
     await preencherUsuario(user);
     await user.click(proximo());
+    await titulo("Escolha o seu plano");
+    await user.click(proximo());
     await titulo("Confira os dados");
     await user.click(criarConta());
 
@@ -292,6 +309,7 @@ describe("OnboardingWizard: envio", () => {
       cartaoCredito: false,
       cartaoDebito: true,
     });
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(4);
     await waitFor(() => expect(push).toHaveBeenCalledWith("/login?cadastro=sucesso"));
   });
 
@@ -337,5 +355,113 @@ describe("OnboardingWizard: envio", () => {
     await user.click(criarConta());
     await waitFor(() => expect(push).toHaveBeenCalledWith("/login?cadastro=sucesso"));
     expect(saveAdesao).toHaveBeenCalledTimes(2);
+  });
+});
+
+const plano = (nome: RegExp) => screen.getByRole("radio", { name: nome });
+
+describe("OnboardingWizard: plano", () => {
+  it.each([
+    ["1", /Mensal/],
+    ["2", /Trimestral/],
+    ["3", /Semestral/],
+    ["4", /Anual/],
+  ])("tipoPlanoAdesao=%s chega à etapa do plano já selecionado", async (valor, nome) => {
+    const user = userEvent.setup();
+    renderWizard(`tipoPlanoAdesao=${valor}`);
+    await irAtePlano(user);
+
+    expect(plano(nome)).toBeChecked();
+    expect(screen.getAllByRole("radio").filter((radio) => (radio as HTMLInputElement).checked)).toHaveLength(1);
+  });
+
+  it.each(["", "tipoPlanoAdesao=0", "tipoPlanoAdesao=9", "tipoPlanoAdesao=abc", "outro=2"])(
+    "chega à etapa do plano sem seleção e sem erro com %j",
+    async (query) => {
+      const user = userEvent.setup();
+      renderWizard(query);
+      await irAtePlano(user);
+
+      screen.getAllByRole("radio").forEach((radio) => expect(radio).not.toBeChecked());
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    },
+  );
+
+  it("o plano vem depois do titular e antes da conferência", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await irAtePlano(user);
+
+    expect(screen.getByRole("button", { name: "Próximo: Conferir" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Voltar" })).toBeInTheDocument();
+  });
+
+  it("não avança sem plano, avisa e leva o foco ao primeiro plano", async () => {
+    const user = userEvent.setup();
+    renderWizard("");
+    await irAtePlano(user);
+    await user.click(proximo());
+
+    expect(screen.getAllByRole("alert").map((alerta) => alerta.textContent)).toEqual(
+      expect.arrayContaining(["Escolha um plano para continuar."]),
+    );
+    expect(screen.getByRole("heading", { level: 1, name: "Escolha o seu plano" })).toBeInTheDocument();
+    await waitFor(() => expect(plano(/Mensal/)).toHaveFocus());
+  });
+
+  it("escolher um plano tira o erro e permite avançar", async () => {
+    const user = userEvent.setup();
+    renderWizard("");
+    await irAtePlano(user);
+    await user.click(proximo());
+    await user.click(plano(/Trimestral/));
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    await user.click(proximo());
+    await titulo("Confira os dados");
+  });
+
+  it("trocar o plano na tela vale sobre o da URL e é mantido ao voltar", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await irAtePlano(user);
+    await user.click(plano(/Mensal/));
+    await user.click(proximo());
+    await titulo("Confira os dados");
+    await user.click(screen.getByRole("button", { name: "Voltar" }));
+
+    expect(plano(/Mensal/)).toBeChecked();
+  });
+
+  it("mostra as áreas do sistema na etapa do plano", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await irAtePlano(user);
+
+    expect(screen.getByRole("region", { name: "Tudo isso em todos os planos" })).toBeInTheDocument();
+  });
+
+  it("a credencial mostra o plano vindo da URL", () => {
+    renderWizard("tipoPlanoAdesao=2");
+    const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
+    expect(within(credencial).getByText("Plano: Trimestral · R$ 134,90/mês")).toBeInTheDocument();
+  });
+
+  it("Editar Plano na conferência troca o plano e volta direto para a conferência", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await irAteConferencia(user);
+
+    await user.click(screen.getByRole("button", { name: "Editar Plano" }));
+    await titulo("Escolha o seu plano");
+    expect(screen.getByRole("button", { name: "Voltar para a conferência" })).toBeInTheDocument();
+    await user.click(plano(/Semestral/));
+    await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
+    await titulo("Confira os dados");
+
+    expect(within(screen.getByRole("region", { name: "Plano" })).getByText("Semestral")).toBeInTheDocument();
+    await user.click(criarConta());
+    await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(3);
   });
 });
