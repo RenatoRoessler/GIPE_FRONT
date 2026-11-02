@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.336",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "adiciona a escolha de plano antes da conferência",
+      "description": "O cadastro ganha uma etapa de plano entre o titular e a conferência,\ncom os mesmos quatro planos, valores e destaque do site (o anual como\nmais econômico) e a lista das 13 áreas do sistema válida para todos.\n\n- Quem chega por /adesao?tipoPlanoAdesao=1..4 já vê o plano marcado;\n  valor ausente ou inválido abre sem plano e sem erro.\n- Não é possível avançar sem escolher um plano.\n- O plano escolhido vai no cadastro como tipoPlanoAdesao (1 a 4), e a\n  conferência e a credencial passam a mostrá-lo.\n- O grupo de opções ganha uma variante em cartão para o conteúdo dos\n  planos.",
+      "date": "2026-11-02T20:20:21-03:00"
+    },
+    {
       "version": "1.0.333",
       "type": "feat",
       "scope": "teclados",
