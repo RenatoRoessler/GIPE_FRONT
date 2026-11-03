@@ -83,4 +83,17 @@ describe("toAdesaoPayload: plano", () => {
     const payload = toAdesaoPayload({ plano, company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser });
     expect(payload.tipoPlanoAdesao).toBe(esperado);
   });
+
+  it("envia o teste grátis como tipoPlanoAdesao 0, sem nenhum dado de cobrança", () => {
+    const payload = toAdesaoPayload({
+      plano: TipoPlanoAdesao.Trial,
+      company,
+      hours: EMPTY_BUSINESS_HOURS_DATA,
+      payments: EMPTY_PAYMENTS_DATA,
+      adminUser,
+    });
+    expect(payload.tipoPlanoAdesao).toBe(0);
+    expect(Object.keys(payload).sort()).toEqual(["empresa", "horarios", "tipoPlanoAdesao", "usuario"]);
+    expect(JSON.stringify(payload)).not.toMatch(/cobran|assinatura|valor|preco|preço/i);
+  });
 });

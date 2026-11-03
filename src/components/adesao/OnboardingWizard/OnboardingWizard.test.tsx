@@ -375,7 +375,7 @@ describe("OnboardingWizard: plano", () => {
     expect(screen.getAllByRole("radio").filter((radio) => (radio as HTMLInputElement).checked)).toHaveLength(1);
   });
 
-  it.each(["", "tipoPlanoAdesao=0", "tipoPlanoAdesao=9", "tipoPlanoAdesao=abc", "outro=2"])(
+  it.each(["", "tipoPlanoAdesao=9", "tipoPlanoAdesao=abc", "tipoPlanoAdesao=00", "outro=2"])(
     "chega à etapa do plano sem seleção e sem erro com %j",
     async (query) => {
       const user = userEvent.setup();
@@ -406,7 +406,7 @@ describe("OnboardingWizard: plano", () => {
       expect.arrayContaining(["Escolha um plano para continuar."]),
     );
     expect(screen.getByRole("heading", { level: 1, name: "Escolha o seu plano" })).toBeInTheDocument();
-    await waitFor(() => expect(plano(/Mensal/)).toHaveFocus());
+    await waitFor(() => expect(plano(/Teste grátis/)).toHaveFocus());
   });
 
   it("escolher um plano tira o erro e permite avançar", async () => {
@@ -447,6 +447,24 @@ describe("OnboardingWizard: plano", () => {
     expect(within(credencial).getByText("Plano: Trimestral · R$ 134,90/mês")).toBeInTheDocument();
   });
 
+  it.each(["1", "2", "3", "4"])("tipoPlanoAdesao=%s mantém as cinco etapas e a etapa do plano", (valor) => {
+    renderWizard(`tipoPlanoAdesao=${valor}`);
+    const lista = screen.getByRole("list", { name: "Progresso do cadastro" });
+    expect(within(lista).getAllByRole("listitem")).toHaveLength(5);
+    expect(within(lista).getByText("Plano")).toBeInTheDocument();
+    expect(screen.getByText(/Etapa 1 de 5/)).toBeInTheDocument();
+  });
+
+  it("no fluxo pago nunca envia o teste grátis", async () => {
+    const user = userEvent.setup();
+    renderWizard("tipoPlanoAdesao=2");
+    await irAteConferencia(user);
+    await user.click(criarConta());
+
+    await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(2);
+  });
+
   it("Editar Plano na conferência troca o plano e volta direto para a conferência", async () => {
     const user = userEvent.setup();
     renderWizard();
@@ -463,5 +481,201 @@ describe("OnboardingWizard: plano", () => {
     await user.click(criarConta());
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
     expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(3);
+  });
+});
+
+const TESTE_GRATIS = "tipoPlanoAdesao=0";
+
+// No teste grátis o Titular leva direto à conferência, sem etapa de plano.
+async function irAteConferenciaDoTeste(user: User) {
+  await irAteTitular(user);
+  await preencherUsuario(user);
+  await user.click(proximo());
+  await titulo("Confira os dados");
+}
+
+describe("OnboardingWizard: teste grátis", () => {
+  it("mostra quatro etapas no indicador, sem a etapa Plano", () => {
+    renderWizard(TESTE_GRATIS);
+    const lista = screen.getByRole("list", { name: "Progresso do cadastro" });
+    expect(within(lista).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      expect.stringContaining("Empresa"),
+      expect.stringContaining("Horários"),
+      expect.stringContaining("Titular"),
+      expect.stringContaining("Conferir"),
+    ]);
+    expect(within(lista).queryByText("Plano")).not.toBeInTheDocument();
+    expect(screen.getByText(/Etapa 1 de 4/)).toBeInTheDocument();
+  });
+
+  it("do titular vai direto à conferência, que é a etapa 4 de 4", async () => {
+    const user = userEvent.setup();
+    renderWizard(TESTE_GRATIS);
+    await irAteTitular(user);
+    await preencherUsuario(user);
+
+    expect(proximo()).toHaveTextContent("Próximo: Conferir");
+    await user.click(proximo());
+    await titulo("Confira os dados");
+
+    expect(screen.getByText(/Etapa 4 de 4/)).toBeInTheDocument();
+    expect(criarConta()).toHaveTextContent("Criar conta");
+    await waitFor(() => expect(screen.getByRole("heading", { level: 1, name: "Confira os dados" })).toHaveFocus());
+  });
+
+  it("em nenhuma etapa mostra preço, escolha de plano ou cobrança", async () => {
+    const user = userEvent.setup();
+    renderWizard(TESTE_GRATIS);
+
+    const semCobranca = () => {
+      expect(document.body.textContent).not.toContain("R$");
+      expect(document.body.textContent).not.toMatch(/cobran|assinatura|por mês|\/mês/i);
+      expect(screen.queryAllByRole("radio")).toHaveLength(0);
+      expect(screen.queryByRole("heading", { level: 1, name: "Escolha o seu plano" })).not.toBeInTheDocument();
+    };
+
+    semCobranca();
+    await irAteHorarios(user);
+    semCobranca();
+    await user.click(proximo());
+    await titulo("Usuário titular");
+    semCobranca();
+    await preencherUsuario(user);
+    await user.click(proximo());
+    await titulo("Confira os dados");
+    semCobranca();
+  });
+
+  it("a conferência mostra o resumo do teste, sem valores de plano", async () => {
+    const user = userEvent.setup();
+    renderWizard(TESTE_GRATIS);
+    await irAteConferenciaDoTeste(user);
+
+    const resumo = screen.getByRole("region", { name: "Teste grátis por 30 dias" });
+    expect(within(resumo).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      "Todas as funcionalidades",
+      "Sem cartão de crédito",
+      "Sem compromisso",
+    ]);
+    expect(screen.queryByRole("region", { name: "Plano" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Editar Teste/ })).not.toBeInTheDocument();
+  });
+
+  it("a credencial mostra o teste desde a primeira etapa", () => {
+    renderWizard(TESTE_GRATIS);
+    const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
+    expect(within(credencial).getByText("Plano: Teste grátis · 30 dias")).toBeInTheDocument();
+  });
+
+  it("envia o cadastro com tipoPlanoAdesao 0 e vai para o login", async () => {
+    const user = userEvent.setup();
+    renderWizard(TESTE_GRATIS);
+    await irAteConferenciaDoTeste(user);
+    await user.click(criarConta());
+
+    await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(0);
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/login?cadastro=sucesso"));
+  });
+
+  it("Voltar da conferência vai ao titular, e voltar e avançar mantém dados e modo", async () => {
+    const user = userEvent.setup();
+    renderWizard(TESTE_GRATIS);
+    await irAteConferenciaDoTeste(user);
+
+    await user.click(screen.getByRole("button", { name: "Voltar" }));
+    await titulo("Usuário titular");
+    expect(screen.getByLabelText(/^Nome completo/)).toHaveValue("Ana Souza");
+
+    await user.click(proximo());
+    await titulo("Confira os dados");
+    expect(screen.getByRole("region", { name: "Teste grátis por 30 dias" })).toBeInTheDocument();
+  });
+
+  it("etapas concluídas do indicador voltam para a etapa certa", async () => {
+    const user = userEvent.setup();
+    renderWizard(TESTE_GRATIS);
+    await irAteConferenciaDoTeste(user);
+
+    await user.click(screen.getByRole("button", { name: "Voltar para Titular" }));
+    await titulo("Usuário titular");
+
+    await user.click(proximo());
+    await titulo("Confira os dados");
+    await user.click(screen.getByRole("button", { name: "Voltar para Horários" }));
+    await titulo("Quando a empresa funciona?");
+  });
+
+  it("Editar Titular volta direto para a conferência do teste", async () => {
+    const user = userEvent.setup();
+    renderWizard(TESTE_GRATIS);
+    await irAteConferenciaDoTeste(user);
+
+    await user.click(screen.getByRole("button", { name: "Editar Titular" }));
+    await titulo("Usuário titular");
+    await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
+    await titulo("Confira os dados");
+    expect(screen.getByRole("region", { name: "Teste grátis por 30 dias" })).toBeInTheDocument();
+  });
+});
+
+describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
+  it("oferece o teste grátis entre as opções, sem preço", async () => {
+    const user = userEvent.setup();
+    renderWizard("");
+    await irAtePlano(user);
+
+    const teste = plano(/Teste grátis/);
+    expect(teste).not.toBeChecked();
+    expect(teste).not.toHaveAccessibleName(expect.stringContaining("R$"));
+    expect(screen.getAllByRole("radio")).toHaveLength(5);
+  });
+
+  it("mantém as cinco etapas, mostra o resumo do teste com Editar e envia 0", async () => {
+    const user = userEvent.setup();
+    renderWizard("");
+    await irAtePlano(user);
+    await user.click(plano(/Teste grátis/));
+    await user.click(proximo());
+    await titulo("Confira os dados");
+
+    expect(screen.getByText(/Etapa 5 de 5/)).toBeInTheDocument();
+    const resumo = screen.getByRole("region", { name: "Teste grátis por 30 dias" });
+    expect(within(resumo).getByRole("button", { name: "Editar Plano" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Plano" })).not.toBeInTheDocument();
+
+    await user.click(criarConta());
+    await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(0);
+  });
+
+  it("trocar do teste para um plano pago pelo Editar envia o plano pago", async () => {
+    const user = userEvent.setup();
+    renderWizard("");
+    await irAtePlano(user);
+    await user.click(plano(/Teste grátis/));
+    await user.click(proximo());
+    await titulo("Confira os dados");
+
+    await user.click(screen.getByRole("button", { name: "Editar Plano" }));
+    await titulo("Escolha o seu plano");
+    expect(plano(/Teste grátis/)).toBeChecked();
+    await user.click(plano(/Anual/));
+    await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
+    await titulo("Confira os dados");
+
+    await user.click(criarConta());
+    await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(4);
+  });
+
+  it("a credencial mostra o teste assim que ele é escolhido", async () => {
+    const user = userEvent.setup();
+    renderWizard("");
+    await irAtePlano(user);
+    await user.click(plano(/Teste grátis/));
+
+    const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
+    expect(within(credencial).getByText("Plano: Teste grátis · 30 dias")).toBeInTheDocument();
   });
 });

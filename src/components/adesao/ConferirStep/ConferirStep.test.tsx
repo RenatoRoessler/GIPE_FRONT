@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithTheme } from "@/test/render";
@@ -9,6 +9,7 @@ import {
   EMPTY_PAYMENTS_DATA,
   TipoEmpresa,
 } from "@/types/adesao";
+import { TipoPlanoAdesao } from "@/types/plano";
 import { ConferirStep } from "./ConferirStep";
 
 const company = {
@@ -38,10 +39,11 @@ const adminUser = {
   repetirSenha: "SenhaSecreta#1",
 };
 
-function renderar(onEditar = vi.fn()) {
+function renderar(onEditar = vi.fn(), plano: TipoPlanoAdesao = TipoPlanoAdesao.Anual, planoEditavel = true) {
   renderWithTheme(
     <ConferirStep
-      plano={4}
+      plano={plano}
+      planoEditavel={planoEditavel}
       company={company}
       hours={EMPTY_BUSINESS_HOURS_DATA}
       payments={{ ...EMPTY_PAYMENTS_DATA, pix: true }}
@@ -78,6 +80,48 @@ describe("ConferirStep", () => {
     const onEditar = renderar();
     await userEvent.click(screen.getByRole("button", { name: "Editar Plano" }));
     expect(onEditar).toHaveBeenLastCalledWith(4);
+  });
+
+  describe("no teste grátis", () => {
+    it("mostra o resumo do teste no lugar do plano", () => {
+      renderar(vi.fn(), TipoPlanoAdesao.Trial);
+      const secao = screen.getByRole("region", { name: "Teste grátis por 30 dias" });
+      expect(secao).toHaveTextContent("Use o sistema completo por 30 dias.");
+      expect(secao).toHaveTextContent("No fim do teste, você escolhe o plano que fizer mais sentido.");
+      expect(screen.queryByRole("region", { name: "Plano" })).not.toBeInTheDocument();
+    });
+
+    it("lista as três garantias numa lista real", () => {
+      renderar(vi.fn(), TipoPlanoAdesao.Trial);
+      const itens = within(screen.getByRole("region", { name: "Teste grátis por 30 dias" })).getAllByRole("listitem");
+      expect(itens.map((item) => item.textContent)).toEqual([
+        "Todas as funcionalidades",
+        "Sem cartão de crédito",
+        "Sem compromisso",
+      ]);
+    });
+
+    it("sem etapa Plano no fluxo não tem Editar, valor por mês, total nem preço", () => {
+      renderar(vi.fn(), TipoPlanoAdesao.Trial, false);
+      expect(screen.queryByRole("button", { name: "Editar Plano" })).not.toBeInTheDocument();
+      expect(screen.queryByText("Valor por mês")).not.toBeInTheDocument();
+      expect(screen.queryByText("Total")).not.toBeInTheDocument();
+      expect(document.body.textContent).not.toContain("R$");
+    });
+
+    it("escolhido na etapa Plano, Editar leva de volta a ela", async () => {
+      const onEditar = renderar(vi.fn(), TipoPlanoAdesao.Trial, true);
+      await userEvent.click(screen.getByRole("button", { name: "Editar Plano" }));
+      expect(onEditar).toHaveBeenLastCalledWith(4);
+      expect(document.body.textContent).not.toContain("R$");
+    });
+
+    it("mantém as demais seções com Editar", () => {
+      renderar(vi.fn(), TipoPlanoAdesao.Trial);
+      for (const titulo of ["Empresa", "Endereço e capacidade", "Pagamentos", "Horários", "Titular"]) {
+        expect(screen.getByRole("button", { name: `Editar ${titulo}` })).toBeInTheDocument();
+      }
+    });
   });
 
   it("nunca exibe a senha", () => {

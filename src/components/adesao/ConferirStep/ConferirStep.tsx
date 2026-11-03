@@ -12,13 +12,29 @@ import {
   PaymentsData,
   TIPO_EMPRESA_LABEL,
 } from "@/types/adesao";
-import type { PlanoVendido } from "@/types/plano";
+import { TipoPlanoAdesao } from "@/types/plano";
 import type { GrupoEmpresa } from "../CompanyStepFields";
 import { ETAPA, type EtapaEditavel } from "../etapas";
-import { Detalhe, Editar, Lista, Secao, SecaoCabecalho, SecaoTitulo, Secoes, Termo } from "./ConferirStep.styles";
+import {
+  Detalhe,
+  Editar,
+  FraseTeste,
+  Garantia,
+  Garantias,
+  Lista,
+  Secao,
+  SecaoCabecalho,
+  SecaoTeste,
+  SecaoTitulo,
+  Secoes,
+  Termo,
+} from "./ConferirStep.styles";
 
 export interface ConferirStepProps {
-  plano: PlanoVendido;
+  // Trial mostra o resumo do teste grátis no lugar do plano pago.
+  plano: TipoPlanoAdesao;
+  // Falso quando a etapa Plano não existe no fluxo (teste grátis vindo do site): não há para onde voltar.
+  planoEditavel?: boolean;
   company: CompanyData;
   hours: BusinessHoursData;
   payments: PaymentsData;
@@ -58,6 +74,40 @@ function Bloco({
   );
 }
 
+const TITULO_TESTE = "Teste grátis por 30 dias";
+
+// As mesmas condições que o site promete; nada de preço, cartão como exigência ou retenção de dados.
+const GARANTIAS_DO_TESTE = ["Todas as funcionalidades", "Sem cartão de crédito", "Sem compromisso"];
+
+// Só tem "Editar" quando o teste foi escolhido na etapa Plano; vindo do site (etapa Plano oculta) não há o que corrigir.
+function ResumoTeste({ onEditar }: { onEditar?: () => void }) {
+  return (
+    <SecaoTeste aria-label={TITULO_TESTE}>
+      <SecaoCabecalho>
+        <SecaoTitulo>{TITULO_TESTE}</SecaoTitulo>
+        {onEditar && (
+          <Editar type="button" aria-label="Editar Plano" onClick={onEditar}>
+            Editar
+          </Editar>
+        )}
+      </SecaoCabecalho>
+      <FraseTeste>
+        Use o sistema completo por 30 dias. No fim do teste, você escolhe o plano que fizer mais sentido.
+      </FraseTeste>
+      <Garantias>
+        {GARANTIAS_DO_TESTE.map((garantia) => (
+          <Garantia key={garantia}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
+              <path d="M5 12.5l4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {garantia}
+          </Garantia>
+        ))}
+      </Garantias>
+    </SecaoTeste>
+  );
+}
+
 function Linha({ termo, valor }: { termo: string; valor: string }) {
   return (
     <Fragment>
@@ -67,10 +117,18 @@ function Linha({ termo, valor }: { termo: string; valor: string }) {
   );
 }
 
-export function ConferirStep({ plano, company, hours, payments, adminUser, onEditar }: ConferirStepProps) {
+export function ConferirStep({
+  plano,
+  planoEditavel = true,
+  company,
+  hours,
+  payments,
+  adminUser,
+  onEditar,
+}: ConferirStepProps) {
   const meios = MEIOS_PAGAMENTO.filter(({ key }) => payments[key]).map(({ label }) => label);
 
-  const dadosDoPlano = buscarPlano(plano);
+  const dadosDoPlano = plano === TipoPlanoAdesao.Trial ? undefined : buscarPlano(plano);
 
   return (
     <Secoes>
@@ -112,11 +170,15 @@ export function ConferirStep({ plano, company, hours, payments, adminUser, onEdi
         <Linha termo="Senha" valor={SENHA_MASCARADA} />
       </Bloco>
 
-      <Bloco titulo="Plano" onEditar={() => onEditar(ETAPA.Plano)}>
-        <Linha termo="Plano" valor={dadosDoPlano.nome} />
-        <Linha termo="Valor por mês" valor={formatarReais(dadosDoPlano.centavosPorMes)} />
-        <Linha termo="Total" valor={descreverTotal(dadosDoPlano)} />
-      </Bloco>
+      {dadosDoPlano ? (
+        <Bloco titulo="Plano" onEditar={() => onEditar(ETAPA.Plano)}>
+          <Linha termo="Plano" valor={dadosDoPlano.nome} />
+          <Linha termo="Valor por mês" valor={formatarReais(dadosDoPlano.centavosPorMes)} />
+          <Linha termo="Total" valor={descreverTotal(dadosDoPlano)} />
+        </Bloco>
+      ) : (
+        <ResumoTeste onEditar={planoEditavel ? () => onEditar(ETAPA.Plano) : undefined} />
+      )}
     </Secoes>
   );
 }

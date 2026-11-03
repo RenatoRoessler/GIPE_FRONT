@@ -8,10 +8,11 @@ import {
   PaymentsData,
   TipoEmpresa,
 } from "@/types/adesao";
-import type { PlanoVendido } from "@/types/plano";
+import type { TipoPlanoAdesao } from "@/types/plano";
 
 export interface AdesaoPayload {
-  tipoPlanoAdesao: PlanoVendido;
+  // 0 = teste grátis (Trial), 1 a 4 = planos pagos.
+  tipoPlanoAdesao: TipoPlanoAdesao;
   empresa: {
     razaoSocial: string;
     nomeFantasia: string;
@@ -50,7 +51,7 @@ export interface AdesaoPayload {
 }
 
 export interface AdesaoInput {
-  plano: PlanoVendido;
+  plano: TipoPlanoAdesao;
   company: CompanyData;
   hours: BusinessHoursData;
   payments: PaymentsData;

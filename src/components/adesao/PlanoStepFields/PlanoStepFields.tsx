@@ -3,7 +3,7 @@
 import { OptionGroup } from "@/components/ui/OptionGroup";
 import { AREAS_DO_SISTEMA } from "@/lib/areasDoSistema";
 import { descreverEconomia, descreverTotal, formatarReais, PLANOS } from "@/lib/planos";
-import type { PlanoVendido } from "@/types/plano";
+import { TipoPlanoAdesao } from "@/types/plano";
 import {
   Area,
   AreaDescricao,
@@ -18,12 +18,20 @@ import {
 } from "./PlanoStepFields.styles";
 
 export interface PlanoStepFieldsProps {
-  plano: PlanoVendido | undefined;
-  onChange: (plano: PlanoVendido) => void;
+  plano: TipoPlanoAdesao | undefined;
+  onChange: (plano: TipoPlanoAdesao) => void;
   error?: string;
 }
 
-const OPCOES = PLANOS.map((plano) => {
+// Sem valor nem total: o teste não cobra nada; as condições são as mesmas que o site promete.
+const OPCAO_TESTE = {
+  value: String(TipoPlanoAdesao.Trial),
+  label: "Teste grátis",
+  aside: <Valor>30 dias</Valor>,
+  detail: <span>Todas as funcionalidades, sem cartão de crédito e sem compromisso.</span>,
+};
+
+const OPCOES_PAGAS = PLANOS.map((plano) => {
   const economia = descreverEconomia(plano);
 
   return {
@@ -52,6 +60,8 @@ const OPCOES = PLANOS.map((plano) => {
   };
 });
 
+const OPCOES = [OPCAO_TESTE, ...OPCOES_PAGAS];
+
 export function PlanoStepFields({ plano, onChange, error }: PlanoStepFieldsProps) {
   return (
     <Raiz>
@@ -60,7 +70,7 @@ export function PlanoStepFields({ plano, onChange, error }: PlanoStepFieldsProps
         variant="card"
         options={OPCOES}
         value={plano === undefined ? "" : String(plano)}
-        onChange={(value) => onChange(Number(value) as PlanoVendido)}
+        onChange={(value) => onChange(Number(value) as TipoPlanoAdesao)}
         error={error}
       />
       <Funcionalidades aria-labelledby="funcionalidades-titulo">

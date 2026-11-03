@@ -168,12 +168,12 @@ export type AdminUserValues = z.infer<typeof adminUserSchema>;
 
 export const PLANO_OBRIGATORIO_MESSAGE = "Escolha um plano para continuar.";
 
-// Trial (0) existe no backend, mas a adesão só oferece 1 a 4.
+// A etapa oferece o teste grátis (0) e os quatro planos pagos (1 a 4).
 export const planoSchema = z.object({
   plano: z
     .number()
     .optional()
-    .refine((value) => value !== undefined && value >= TipoPlanoAdesao.Mensal && value <= TipoPlanoAdesao.Anual, {
+    .refine((value) => value !== undefined && value >= TipoPlanoAdesao.Trial && value <= TipoPlanoAdesao.Anual, {
       message: PLANO_OBRIGATORIO_MESSAGE,
     }),
 });

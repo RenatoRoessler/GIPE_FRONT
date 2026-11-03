@@ -53,6 +53,15 @@ export function buscarPlano(tipo: PlanoVendido): Plano {
   return PLANOS.find((plano) => plano.tipo === tipo) ?? PLANO_MENSAL;
 }
 
+// Só o texto exato "0" abre o teste grátis; os demais valores seguem a regra de lerPlanoDaUrl.
+export function ehTesteGratisNaUrl(valor: string | null): boolean {
+  return valor === "0";
+}
+
+export function descricaoDoTeste(): string {
+  return "Teste grátis · 30 dias";
+}
+
 // Só os textos exatos "1" a "4" valem; qualquer outra coisa é ignorada, sem erro.
 export function lerPlanoDaUrl(valor: string | null): PlanoVendido | undefined {
   if (valor === null || !/^[1-4]$/.test(valor)) return undefined;

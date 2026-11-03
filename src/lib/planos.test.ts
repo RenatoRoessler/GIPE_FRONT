@@ -5,6 +5,8 @@ import {
   calcularCondicoes,
   descreverEconomia,
   descreverTotal,
+  descricaoDoTeste,
+  ehTesteGratisNaUrl,
   formatarReais,
   lerPlanoDaUrl,
   PLANOS,
@@ -61,6 +63,28 @@ describe("descreverEconomia", () => {
 describe("buscarPlano", () => {
   it("devolve o plano do tipo", () => {
     expect(buscarPlano(TipoPlanoAdesao.Semestral).nome).toBe("Semestral");
+  });
+});
+
+describe("ehTesteGratisNaUrl", () => {
+  it("aceita só o texto exato 0", () => {
+    expect(ehTesteGratisNaUrl("0")).toBe(true);
+  });
+
+  it.each([null, "", "1", "4", "00", "abc", " 0", "0.0"])("ignora %j", (valor) => {
+    expect(ehTesteGratisNaUrl(valor)).toBe(false);
+  });
+
+  it("nunca coincide com um plano pago", () => {
+    for (const valor of ["0", "1", "2", "3", "4", "9", "abc", null]) {
+      expect(ehTesteGratisNaUrl(valor) && lerPlanoDaUrl(valor) !== undefined).toBe(false);
+    }
+  });
+});
+
+describe("descricaoDoTeste", () => {
+  it("descreve o teste de 30 dias", () => {
+    expect(descricaoDoTeste()).toBe("Teste grátis · 30 dias");
   });
 });
 

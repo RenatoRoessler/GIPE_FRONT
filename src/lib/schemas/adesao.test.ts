@@ -91,11 +91,11 @@ describe("adminUserSchema: senha com a mesma regra da redefinição", () => {
 });
 
 describe("planoSchema", () => {
-  it.each([1, 2, 3, 4])("aceita o plano %i", (plano) => {
+  it.each([0, 1, 2, 3, 4])("aceita o plano %i (0 é o teste grátis)", (plano) => {
     expect(planoSchema.safeParse({ plano }).success).toBe(true);
   });
 
-  it.each([undefined, 0, 5])("recusa %s com a mensagem de plano obrigatório", (plano) => {
+  it.each([undefined, -1, 5])("recusa %s com a mensagem de plano obrigatório", (plano) => {
     const resultado = planoSchema.safeParse({ plano });
     expect(resultado.success).toBe(false);
     expect(resultado.error?.issues[0].message).toBe(PLANO_OBRIGATORIO_MESSAGE);

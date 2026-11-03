@@ -75,4 +75,10 @@ describe("buildCredencial", () => {
     expect(buildCredencial({ ...base, plano: 4 }).plano).toBe("Anual · R$ 79,90/mês");
     expect(buildCredencial({ ...base, plano: 1 }).plano).toBe("Mensal · R$ 149,90/mês");
   });
+
+  it("descreve o teste grátis sem valor", () => {
+    const base = { company: EMPTY_COMPANY_DATA, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA };
+
+    expect(buildCredencial({ ...base, plano: 0 }).plano).toBe("Teste grátis · 30 dias");
+  });
 });

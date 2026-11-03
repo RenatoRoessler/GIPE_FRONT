@@ -7,12 +7,13 @@ import { BusinessHoursStepFields } from "@/components/adesao/BusinessHoursStepFi
 import { CompanyStepFields, GrupoEmpresa } from "@/components/adesao/CompanyStepFields";
 import { ConferirStep } from "@/components/adesao/ConferirStep";
 import { PlanoStepFields } from "@/components/adesao/PlanoStepFields";
-import { ETAPA } from "@/components/adesao/etapas";
+import { ETAPA, MODO_ADESAO } from "@/components/adesao/etapas";
 import { useAdesaoWizard } from "@/components/adesao/useAdesaoWizard";
 import { PagamentosFields } from "@/components/empresa/PagamentosFields";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
+import { TipoPlanoAdesao } from "@/types/plano";
 import { BlocoAcoes, ErroAcoes, Form } from "./OnboardingWizard.styles";
 
 const FORM_ID = "adesao-form";
@@ -41,8 +42,10 @@ const TITULO_BLOCO: Record<GrupoEmpresa, string> = {
 
 export function OnboardingWizard() {
   const wizard = useAdesaoWizard();
-  const { etapa, etapas, dados, enviando } = wizard;
-  const ultima = etapa === etapas.length;
+  const { etapa, etapas, posicao, modo, dados, enviando } = wizard;
+  // Pelo número interno da etapa: no teste grátis há uma etapa visível a menos que o número da Conferir.
+  const ultima = etapa === ETAPA.Conferir;
+  const planoConferido = modo === MODO_ADESAO.Teste ? TipoPlanoAdesao.Trial : dados.plano;
 
   function resumoBloco(grupo: GrupoEmpresa): string | undefined {
     if (!wizard.blocosConcluidos.includes(grupo)) return undefined;
@@ -139,13 +142,21 @@ export function OnboardingWizard() {
             </ErroAcoes>
           </ErrorBanner>
         )}
-        {/* Só chega aqui com plano escolhido: a etapa Plano não deixa avançar sem ele. */}
-        {dados.plano !== undefined && <ConferirStep {...dados} plano={dados.plano} onEditar={wizard.editar} />}
+        {/* Só chega aqui com plano escolhido (a etapa Plano não deixa avançar sem ele) ou no teste grátis. */}
+        {planoConferido !== undefined && (
+          <ConferirStep
+            {...dados}
+            plano={planoConferido}
+            planoEditavel={modo === MODO_ADESAO.Plano}
+            onEditar={wizard.editar}
+          />
+        )}
       </>
     );
   }
 
-  const proximaEtapa = etapas[etapa];
+  // `posicao` é 1-based, então `etapas[posicao]` é a próxima etapa que o usuário vê.
+  const proximaEtapa = etapas[posicao];
   let rotuloPrincipal = `Próximo: ${proximaEtapa}`;
   if (ultima) rotuloPrincipal = enviando ? "Criando conta…" : "Criar conta";
   else if (wizard.retornoConferencia) rotuloPrincipal = "Voltar para a conferência";
@@ -153,7 +164,7 @@ export function OnboardingWizard() {
   return (
     <AdesaoShell
       etapas={etapas}
-      etapaAtual={etapa}
+      etapaAtual={posicao}
       onEtapaClick={wizard.irParaEtapa}
       titulo={TITULOS[etapa - 1]}
       descricao={DESCRICOES[etapa - 1]}

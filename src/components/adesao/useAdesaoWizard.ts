@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { AlvoErro, atribuirErro } from "@/lib/api/adesaoErrors";
 import { saveAdesao } from "@/lib/api/services/adesao";
-import { lerPlanoDaUrl } from "@/lib/planos";
+import { ehTesteGratisNaUrl, lerPlanoDaUrl } from "@/lib/planos";
 import { adminUserSchema, businessHoursSchema, companySchema, paymentsSchema, planoSchema } from "@/lib/schemas/adesao";
 import {
   CompanyData,
@@ -16,15 +16,24 @@ import {
   EMPTY_COMPANY_DATA,
   EMPTY_PAYMENTS_DATA,
 } from "@/types/adesao";
-import type { PlanoVendido } from "@/types/plano";
+import { TipoPlanoAdesao } from "@/types/plano";
 import type { GrupoEmpresa } from "./CompanyStepFields";
 import { buildCredencial } from "./credencial";
-import { ETAPA, type Etapa, type EtapaEditavel } from "./etapas";
+import {
+  ETAPA,
+  MODO_ADESAO,
+  etapaAnterior as etapaAnteriorNoModo,
+  etapaDaPosicao,
+  etapasDoModo,
+  posicaoDaEtapa,
+  proximaEtapa,
+  type Etapa,
+  type EtapaEditavel,
+  type ModoAdesao,
+} from "./etapas";
 
 export { ETAPA };
 export type { Etapa };
-
-export const ETAPAS = ["Empresa", "Horários", "Titular", "Plano", "Conferir"];
 
 const PARAMETRO_PLANO = "tipoPlanoAdesao";
 
@@ -53,18 +62,19 @@ function focarPrimeiroPlano() {
   aposRender(() => document.querySelector<HTMLElement>('fieldset[aria-invalid="true"] input[type="radio"]')?.focus());
 }
 
-function proximaEtapa(etapa: Etapa): Etapa {
-  return Math.min(ETAPA.Conferir, etapa + 1) as Etapa;
-}
-
 export function useAdesaoWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [etapa, setEtapa] = useState<Etapa>(ETAPA.Empresa);
   // O parâmetro da URL só vale na abertura; trocar o plano na tela não reescreve a URL.
-  const [plano, setPlano] = useState<PlanoVendido | undefined>(() =>
-    lerPlanoDaUrl(searchParams.get(PARAMETRO_PLANO)),
+  const parametroPlano = searchParams.get(PARAMETRO_PLANO);
+  // O modo é decidido na abertura e não tem setter: não muda no meio do fluxo.
+  const [modo] = useState<ModoAdesao>(() =>
+    ehTesteGratisNaUrl(parametroPlano) ? MODO_ADESAO.Teste : MODO_ADESAO.Plano,
   );
+  const [plano, setPlano] = useState<TipoPlanoAdesao | undefined>(() => lerPlanoDaUrl(parametroPlano));
+  // No teste grátis o que vale é o Trial; o plano pago só existe no outro modo.
+  const planoEnviado = modo === MODO_ADESAO.Teste ? TipoPlanoAdesao.Trial : plano;
   const [erroPlano, setErroPlano] = useState<string>();
   const [blocosAbertos, setBlocosAbertos] = useState<GrupoEmpresa[]>(["identificacao"]);
   const [blocosConcluidos, setBlocosConcluidos] = useState<GrupoEmpresa[]>([]);
@@ -136,8 +146,8 @@ export function useAdesaoWizard() {
   const adminUser = useSelector(adminUserForm.store, (state) => state.values);
 
   const credencial = useMemo(
-    () => buildCredencial({ company, hours, payments, plano }),
-    [company, hours, payments, plano],
+    () => buildCredencial({ company, hours, payments, plano: planoEnviado }),
+    [company, hours, payments, planoEnviado],
   );
 
   // Campos inválidos da empresa por bloco, direto do schema (não depende de o campo ter sido tocado).
@@ -182,7 +192,7 @@ export function useAdesaoWizard() {
     setBlocosAbertos((abertos) => (aberto ? [...abertos, grupo] : abertos.filter((item) => item !== grupo)));
   }
 
-  function escolherPlano(tipo: PlanoVendido) {
+  function escolherPlano(tipo: TipoPlanoAdesao) {
     setPlano(tipo);
     setErroPlano(undefined);
     setFaltam(0);
@@ -233,21 +243,23 @@ export function useAdesaoWizard() {
       setEtapa(ETAPA.Conferir);
       return;
     }
-    setEtapa((atual) => proximaEtapa(atual));
+    setEtapa((atual) => proximaEtapa(atual, modo));
   }
 
   function voltar() {
     setFaltam(0);
     setRetornoConferencia(false);
-    setEtapa((atual) => Math.max(ETAPA.Empresa, atual - 1) as Etapa);
+    setEtapa((atual) => etapaAnteriorNoModo(atual, modo));
   }
 
   // Só volta a etapas já vistas (o Stepper só oferece as concluídas); nenhum dado se perde.
-  function irParaEtapa(destino: number) {
+  // O Stepper devolve a posição que o usuário vê; no teste ela difere do número da etapa.
+  function irParaEtapa(posicao: number) {
+    const destino = etapaDaPosicao(posicao, modo);
     if (destino < etapa) {
       setFaltam(0);
       setRetornoConferencia(false);
-      setEtapa(destino as Etapa);
+      setEtapa(destino);
     }
   }
 
@@ -259,14 +271,14 @@ export function useAdesaoWizard() {
   }
 
   async function enviar() {
-    // A etapa Plano é obrigatória; sem plano não há o que enviar, então volta a ela.
-    if (plano === undefined) {
+    // No fluxo pago a etapa Plano é obrigatória; sem plano não há o que enviar, então volta a ela.
+    if (planoEnviado === undefined) {
       editar(ETAPA.Plano);
       return;
     }
 
     try {
-      await mutation.mutateAsync({ plano, company, hours, payments, adminUser });
+      await mutation.mutateAsync({ plano: planoEnviado, company, hours, payments, adminUser });
     } catch {
       // O erro fica em `mutation.error` e é mostrado no topo da conferência.
     }
@@ -285,7 +297,10 @@ export function useAdesaoWizard() {
 
   return {
     etapa,
-    etapas: ETAPAS,
+    modo,
+    // O que o usuário vê no Stepper: no teste grátis são quatro etapas, sem Plano.
+    etapas: etapasDoModo(modo),
+    posicao: posicaoDaEtapa(etapa, modo),
     tituloRef,
     companyForm,
     paymentsForm,

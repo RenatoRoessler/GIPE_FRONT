@@ -15,7 +15,47 @@ export const Secao = styled.section`
   background-color: ${({ theme }) => theme.colors.surface};
 `;
 
-export const SecaoCabecalho = styled.div`
+// Realce só decorativo: o significado está no título e no texto, nunca só na cor.
+// `primary` é só preenchimento (tokens.test.ts); a borda usa `accent`.
+export const SecaoTeste = styled(Secao)`
+  border-color: ${({ theme }) => theme.colors.accent};
+  background-color: ${({ theme }) => theme.colors.primarySoft};
+`;
+
+export const FraseTeste = styled.p`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+`;
+
+export const Garantias = styled.ul`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[1]}px ${({ theme }) => theme.space[3]}px;
+  margin: ${({ theme }) => theme.space[1]}px 0 0;
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+`;
+
+export const Garantia = styled.li`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[1]}px;
+  min-height: ${({ theme }) => theme.layout.touchTarget};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+
+  svg {
+    flex: none;
+    color: ${({ theme }) => theme.colors.success};
+  }
+`;
+
+export const SecaoCabecalho =styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;

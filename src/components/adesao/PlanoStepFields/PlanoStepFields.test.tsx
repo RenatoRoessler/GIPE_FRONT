@@ -4,13 +4,37 @@ import { renderWithTheme } from "@/test/render";
 import { PlanoStepFields } from "./PlanoStepFields";
 
 describe("PlanoStepFields", () => {
-  it("mostra os quatro planos na ordem, sem nenhum selecionado", () => {
+  it("mostra o teste grátis e os quatro planos na ordem, sem nenhum selecionado", () => {
     renderWithTheme(<PlanoStepFields plano={undefined} onChange={() => {}} />);
     const radios = screen.getAllByRole("radio");
 
-    expect(radios).toHaveLength(4);
-    expect(radios.map((radio) => radio.getAttribute("value"))).toEqual(["1", "2", "3", "4"]);
+    expect(radios).toHaveLength(5);
+    expect(radios.map((radio) => radio.getAttribute("value"))).toEqual(["0", "1", "2", "3", "4"]);
     radios.forEach((radio) => expect(radio).not.toBeChecked());
+  });
+
+  it("o teste grátis diz as condições e não mostra valor", () => {
+    renderWithTheme(<PlanoStepFields plano={undefined} onChange={() => {}} />);
+    const teste = screen.getByRole("radio", { name: /Teste grátis/ });
+
+    expect(teste).toHaveAccessibleName(expect.stringContaining("30 dias"));
+    expect(teste).toHaveAccessibleName(
+      expect.stringContaining("Todas as funcionalidades, sem cartão de crédito e sem compromisso."),
+    );
+    expect(teste).not.toHaveAccessibleName(expect.stringContaining("R$"));
+    expect(teste).not.toHaveAccessibleName(expect.stringContaining("Mais econômico"));
+  });
+
+  it("escolher o teste grátis avisa com o tipo 0", () => {
+    const onChange = vi.fn();
+    renderWithTheme(<PlanoStepFields plano={undefined} onChange={onChange} />);
+    fireEvent.click(screen.getByRole("radio", { name: /Teste grátis/ }));
+    expect(onChange).toHaveBeenCalledWith(0);
+  });
+
+  it("marca o teste grátis quando o plano recebido é 0", () => {
+    renderWithTheme(<PlanoStepFields plano={0} onChange={() => {}} />);
+    expect(screen.getByRole("radio", { name: /Teste grátis/ })).toBeChecked();
   });
 
   it("mostra valor por mês, total e economia de cada plano", () => {
