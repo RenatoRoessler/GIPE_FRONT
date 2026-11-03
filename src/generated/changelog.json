@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.339",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "adiciona o teste grátis de 30 dias ao cadastro",
+      "description": "Quem chega pelo teste grátis do site conclui o cadastro sem escolher\nplano nem ver preço: o fluxo tem quatro etapas (Empresa, Horários,\nTitular e Conferir) e a conferência mostra o resumo do teste, com as\ncondições de todas as funcionalidades, sem cartão e sem compromisso.\n\nQuem faz o cadastro pelo fluxo normal também pode escolher \"Teste\ngrátis\" na etapa de plano, e volta a ela pelo \"Editar\" da conferência\npara trocar por um plano pago. O cadastro do teste é enviado ao\nsistema como teste grátis, sem nenhum dado de cobrança.",
+      "date": "2026-11-03T20:17:46-03:00"
+    },
+    {
       "version": "1.0.336",
       "type": "feat",
       "scope": "adesao",
