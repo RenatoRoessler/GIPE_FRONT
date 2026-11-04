@@ -11,13 +11,15 @@ interface HarnessProps {
   ativo: boolean;
   onPlaca?: (placa: string) => void;
   tempoLimiteMs?: number;
+  continuo?: boolean;
 }
 
-function Harness({ ativo, onPlaca = () => {}, tempoLimiteMs }: HarnessProps) {
+function Harness({ ativo, onPlaca = () => {}, tempoLimiteMs, continuo }: HarnessProps) {
   const { videoRef, estado, contextoSeguro, iniciar } = useLeitorPlaca({
     ativo,
     onPlaca,
     tempoLimiteMs,
+    continuo,
     intervaloMs: 5,
   });
   return (
@@ -169,5 +171,45 @@ describe("useLeitorPlaca", () => {
     await act(async () => liberar(fakeStream()));
     expect(stopTrack).toHaveBeenCalledTimes(1);
     expect(encerrar).toHaveBeenCalledTimes(1);
+  });
+
+  describe("modo contínuo", () => {
+    it("segue lendo depois da primeira placa, com a câmera ligada", async () => {
+      reconhecer.mockResolvedValue("ABC1D23\n");
+      const onPlaca = vi.fn();
+      render(<Harness ativo continuo onPlaca={onPlaca} />);
+
+      await waitFor(() => expect(onPlaca.mock.calls.length).toBeGreaterThanOrEqual(2));
+      expect(onPlaca).toHaveBeenCalledWith("ABC1D23");
+      expect(estado()).toBe("lendo");
+      expect(stopTrack).not.toHaveBeenCalled();
+    });
+
+    it("cada placa lida recomeça o tempo limite; sem placas, a câmera desiste", async () => {
+      reconhecer.mockResolvedValue("ABC1D23\n");
+      const onPlaca = vi.fn();
+      render(<Harness ativo continuo onPlaca={onPlaca} tempoLimiteMs={120} />);
+
+      // Lê placas por mais tempo que o limite sem desistir.
+      await waitFor(() => expect(onPlaca.mock.calls.length).toBeGreaterThanOrEqual(2));
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      expect(estado()).toBe("lendo");
+
+      // Sem mais placas, passado o limite, para e libera a câmera.
+      reconhecer.mockResolvedValue("");
+      await waitFor(() => expect(estado()).toBe("sem-leitura"), { timeout: 1000 });
+      expect(stopTrack).toHaveBeenCalled();
+    });
+
+    it("sem a opção, para na primeira placa (comportamento padrão)", async () => {
+      reconhecer.mockResolvedValue("ABC1D23\n");
+      const onPlaca = vi.fn();
+      render(<Harness ativo onPlaca={onPlaca} />);
+
+      await waitFor(() => expect(onPlaca).toHaveBeenCalledTimes(1));
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      expect(onPlaca).toHaveBeenCalledTimes(1);
+      expect(stopTrack).toHaveBeenCalled();
+    });
   });
 });

@@ -11,8 +11,10 @@ export interface UseLeitorPlacaOptions {
   ativo: boolean;
   // Placa válida, lida de forma consistente em quadros seguidos.
   onPlaca: (placa: string) => void;
-  // Tempo sem placa válida até desistir.
+  // Tempo sem placa válida até desistir. No modo contínuo, conta a partir da última placa lida.
   tempoLimiteMs?: number;
+  // Segue lendo depois de cada placa (a câmera só para ao desistir, ao desativar ou ao desmontar), para conferir vários carros em sequência.
+  continuo?: boolean;
   // Intervalo mínimo entre leituras, para não saturar a CPU.
   intervaloMs?: number;
 }
@@ -33,6 +35,7 @@ export function useLeitorPlaca({
   onPlaca,
   tempoLimiteMs = TEMPO_LIMITE_MS,
   intervaloMs = INTERVALO_MS,
+  continuo = false,
 }: UseLeitorPlacaOptions): UseLeitorPlaca {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [estado, setEstado] = useState<LeitorPlacaEstado>("ocioso");
@@ -40,6 +43,7 @@ export function useLeitorPlaca({
 
   const onPlacaRef = useRef(onPlaca);
   const ativoRef = useRef(ativo);
+  const continuoRef = useRef(continuo);
   const streamRef = useRef<MediaStream | null>(null);
   const reconhecedorRef = useRef<ReconhecedorPlaca | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -51,6 +55,7 @@ export function useLeitorPlaca({
   useEffect(() => {
     onPlacaRef.current = onPlaca;
     ativoRef.current = ativo;
+    continuoRef.current = continuo;
   });
 
   const parar = useCallback(() => {
@@ -125,15 +130,22 @@ export function useLeitorPlaca({
     }
 
     function varrer(video: HTMLVideoElement, reconhecedor: ReconhecedorPlaca, atual: number) {
-      const consenso = criarConsenso();
+      let consenso = criarConsenso();
 
-      limiteRef.current = setTimeout(() => {
-        if (atual !== sessaoRef.current) {
-          return;
+      function armarLimite() {
+        if (limiteRef.current) {
+          clearTimeout(limiteRef.current);
         }
-        parar();
-        setEstado("sem-leitura");
-      }, tempoLimiteMs);
+        limiteRef.current = setTimeout(() => {
+          if (atual !== sessaoRef.current) {
+            return;
+          }
+          parar();
+          setEstado("sem-leitura");
+        }, tempoLimiteMs);
+      }
+
+      armarLimite();
 
       async function passo() {
         if (atual !== sessaoRef.current) {
@@ -151,9 +163,15 @@ export function useLeitorPlaca({
               if (navigator.vibrate) {
                 navigator.vibrate(80);
               }
-              parar();
+              if (!continuoRef.current) {
+                parar();
+                onPlacaRef.current(placa);
+                return;
+              }
+              // Contínuo: a câmera segue ligada, a próxima placa começa um consenso novo e o limite recomeça.
+              consenso = criarConsenso();
+              armarLimite();
               onPlacaRef.current(placa);
-              return;
             }
           }
         } catch {
