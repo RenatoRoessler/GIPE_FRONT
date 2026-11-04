@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.347",
+      "type": "feat",
+      "scope": "conveniada",
+      "title": "adiciona o pátio da conveniada",
+      "description": "Nova tela \"Pátio\" para a empresa conveniada ver os veículos que carimbou e\nque ainda estão nos estacionamentos com convênio, do carimbo mais recente\npara o mais antigo. Cada veículo mostra a permanência, o estacionamento, a\nentrada, o carimbo, quem carimbou e a tabela de convênio.\n\nDá para buscar pela placa e, com mais de um estacionamento, filtrar por\nestacionamento. A lista se atualiza sozinha e logo após cada carimbo.",
+      "date": "2026-11-04T18:06:52-03:00"
+    },
+    {
       "version": "1.0.344",
       "type": "feat",
       "scope": "conferencia",
