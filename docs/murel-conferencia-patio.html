@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Murel · Conferência de pátio (protótipo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+<!--
+  ============================================================
+  MUREL · CONFERÊNCIA DE PÁTIO · PROTÓTIPO FUNCIONAL
+  ============================================================
+  Referência para o front (React). Tudo neste arquivo: CSS, HTML e JS.
+
+  Fluxo:
+    Menu Mais → Conferência de pátio (início)
+      → Conferindo (câmera ou lista)
+      → Divergências
+      → Resumo → Finalizar
+    Menu Mais → Relatórios (só GERENTE e ADMIN)
+      → Conferências de pátio (indicadores + lista) → Detalhe da conferência
+
+  Regras de negócio:
+    - Ao iniciar, o back-end tira uma "foto" dos veículos em aberto no pátio.
+    - Cada placa conferida é salva na hora (sem botão Pausar). Ao reabrir,
+      o app busca a conferência aberta e continua de onde parou.
+    - Entradas e saídas continuam funcionando durante a conferência.
+    - Divergências:
+        1. No sistema, mas não está no pátio → Procurar de novo | Dar saída (com motivo)
+        2. No pátio, sem entrada (placa lida não existe no sistema) → Registrar entrada
+        3. Chave fora do lugar → Atualizar posição da chave
+    - Todo ajuste fica registrado (placa, ação, horário) e aparece no resumo.
+
+  A camada `api` abaixo é SIMULADA (dados em memória + localStorage).
+  Os endpoints sugeridos estão no comentário de cada função.
+  A leitura da câmera também é simulada: no app real, ligar o
+  leitor de placas (fast-plate-ocr) em `leitor.onPlacaLida(placa)`.
+  ============================================================
+-->
+<style>
+:root{
+  --asfalto:#0e1729; --faixa:#ffc20e; --on-faixa:#0e1729;
+  --fundo:#0e1729; --superficie:#16223a; --superficie-alta:#22304b;
+  --linha:#3a4c6b; --borda-controle:#6b80a4;
+  --texto:#f4f1e8; --texto-suave:#9aa3b5;
+  --avulso:#4c8dff; --mensal:#19c2b5; --conveniado:#f07a3a; --on-categoria:#0e1729;
+  --confirmado:#3ccb7f; --atencao:#ff5a5f; --foco:#ffc20e;
+  --raio-sm:10px; --raio-md:14px; --raio-lg:18px; --raio-pill:999px;
+  --sans:"Plus Jakarta Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#060c18}
+body{font-family:var(--sans);color:var(--texto);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--foco);outline-offset:3px}
+
+.app{max-width:430px;min-height:100%;margin:0 auto;background:var(--fundo);display:flex;flex-direction:column;position:relative}
+.tela{flex:1;display:flex;flex-direction:column;gap:14px;padding:16px 16px 24px}
+.tela.com-rodape{padding-bottom:110px}
+
+/* Cabeçalho */
+.topo{display:flex;align-items:center;gap:8px;min-height:44px}
+.topo .titulos{display:flex;flex-direction:column;flex:1;min-width:0}
+.titulo{font-size:22px;line-height:28px;font-weight:700;margin:0}
+.rotulo{font-family:var(--mono);font-size:12px;line-height:16px;letter-spacing:.12em;color:var(--texto-suave);text-transform:uppercase}
+.btn-icone{width:44px;height:44px;border:0;border-radius:var(--raio-md);background:var(--superficie);color:var(--texto);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* Botões */
+.btn{min-height:44px;border-radius:var(--raio-md);font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 14px}
+.btn-principal{width:100%;min-height:52px;border:0;background:var(--faixa);color:var(--on-faixa);font-size:15px}
+.btn-sec{border:1.5px solid var(--borda-controle);background:transparent;color:var(--texto)}
+.btn-texto{border:0;background:transparent;color:var(--texto-suave);font-size:13px;font-weight:700;min-height:36px;padding:0 4px;text-decoration:underline;text-underline-offset:3px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.grade-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.rodape-fixo{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:430px;background:var(--fundo);border-top:1px solid var(--linha);padding:12px 16px calc(20px + env(safe-area-inset-bottom))}
+
+/* Cartões */
+.cartao{background:var(--superficie);border-radius:var(--raio-lg);padding:20px;display:flex;flex-direction:column;gap:14px}
+.item{background:var(--superficie);border-radius:var(--raio-md);padding:12px;display:flex;flex-direction:column;gap:10px}
+.item-linha{display:flex;gap:12px;align-items:center}
+.item-info{display:flex;flex-direction:column;flex:1;min-width:0}
+.item-nome{font-size:15px;font-weight:800}
+.item-meta{font-family:var(--mono);font-size:12px;color:var(--texto-suave)}
+.tracejado{border-top:1.5px dashed var(--linha)}
+.aviso{display:flex;gap:10px;background:var(--superficie-alta);border-radius:var(--raio-md);padding:12px 14px;font-size:13px;line-height:18px;color:var(--texto-suave)}
+.aviso svg{flex-shrink:0;margin-top:1px}
+.vazio{text-align:center;color:var(--texto-suave);font-size:14px;padding:32px 16px}
+
+/* Placa */
+.placa{width:104px;background:#fff;border:2px solid var(--asfalto);border-radius:6px;overflow:hidden;flex-shrink:0}
+.placa-faixa{background:#1f4fb3;color:#fff;font:800 7px/10px var(--sans);letter-spacing:.24em;text-align:center;height:10px}
+.placa-num{font:600 18px/26px var(--mono);letter-spacing:.06em;color:var(--asfalto);text-align:center}
+.placa.antiga{background:#c9ccd1}
+.placa.antiga .placa-faixa{background:transparent;color:var(--asfalto);letter-spacing:.12em}
+.placa.grande{width:140px}
+.placa.grande .placa-num{font-size:23px;line-height:34px}
+
+/* Tipo de cliente */
+.tipo{width:26px;height:26px;border-radius:var(--raio-pill);color:var(--on-categoria);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.tipo-P{background:var(--avulso)} .tipo-M{background:var(--mensal)} .tipo-C{background:var(--conveniado)}
+.chips-tipo{display:flex;gap:4px;flex-wrap:nowrap;margin:0 -6px}
+.chip-tipo{display:flex;align-items:center;gap:4px;background:var(--superficie-alta);border-radius:var(--raio-pill);padding:4px 6px 4px 4px;font-size:12px;font-weight:700;white-space:nowrap;letter-spacing:-.01em}
+@media (max-width:380px){.chip-tipo{font-size:11px;gap:3px;padding-right:5px}.chip-tipo .tipo{width:18px;height:18px;font-size:10px}.chips-tipo{gap:3px;margin:0 -10px}}
+.chip-tipo .tipo{width:20px;height:20px;font-size:11px}
+
+/* Filtros */
+.filtros{display:flex;gap:8px;flex-wrap:wrap}
+.filtro{min-height:40px;padding:0 14px;border:1.5px solid var(--borda-controle);border-radius:var(--raio-pill);background:transparent;color:var(--texto);font-size:13px;font-weight:700}
+.filtro[aria-pressed="true"]{background:var(--texto);color:var(--asfalto);border-color:var(--texto);font-weight:800}
+.filtro.alerta{border-color:var(--atencao);color:var(--atencao)}
+
+/* Progresso */
+.barra{height:8px;border-radius:var(--raio-pill);background:var(--superficie-alta);overflow:hidden}
+.barra > div{height:100%;background:var(--confirmado);border-radius:var(--raio-pill);transition:width .3s}
+
+/* Visor da câmera */
+.visor{position:relative;height:150px;border-radius:var(--raio-lg);background:#06101f;border:1.5px solid var(--linha);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden}
+.visor .canto{position:absolute;width:26px;height:26px;border:3px solid var(--faixa)}
+.visor .c1{top:14px;left:14px;border-right:0;border-bottom:0;border-radius:6px 0 0 0}
+.visor .c2{top:14px;right:14px;border-left:0;border-bottom:0;border-radius:0 6px 0 0}
+.visor .c3{bottom:14px;left:14px;border-right:0;border-top:0;border-radius:0 0 0 6px}
+.visor .c4{bottom:14px;right:14px;border-left:0;border-top:0;border-radius:0 0 6px 0}
+.leitura{display:flex;align-items:center;gap:6px;background:var(--superficie);border-radius:var(--raio-pill);padding:6px 12px;font-size:13px;font-weight:700}
+.ok{color:var(--confirmado)} .ruim{color:var(--atencao)} .suave{color:var(--texto-suave)}
+
+/* Opções do início */
+.opcao{text-align:left;display:flex;gap:12px;align-items:flex-start;background:var(--superficie);border:1.5px solid var(--borda-controle);border-radius:var(--raio-md);padding:14px;color:var(--texto);width:100%}
+.opcao[aria-checked="true"]{border:2px solid var(--faixa);padding:13.5px}
+.opcao .ic{width:40px;height:40px;border-radius:12px;background:var(--superficie-alta);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--texto-suave)}
+.opcao[aria-checked="true"] .ic{color:var(--faixa)}
+.opcao .txt{display:flex;flex-direction:column;gap:2px;flex:1}
+.opcao .txt b{font-size:15px;font-weight:800}
+.opcao .txt span{font-size:13px;line-height:18px;color:var(--texto-suave)}
+.radio{width:22px;height:22px;border-radius:var(--raio-pill);border:1.5px solid var(--borda-controle);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.opcao[aria-checked="true"] .radio{background:var(--faixa);border-color:var(--faixa);color:var(--on-faixa)}
+
+/* Menu Mais */
+.menu{background:var(--superficie);border-radius:var(--raio-md);display:flex;flex-direction:column}
+.menu-item{display:flex;align-items:center;gap:12px;padding:12px;min-height:44px;background:transparent;border:0;color:var(--texto);text-align:left;width:100%}
+.menu-item + .menu-item{border-top:1px solid var(--linha)}
+.menu-item .ic{width:40px;height:40px;border-radius:12px;background:var(--superficie-alta);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--texto-suave)}
+.menu-item .ic.ativo{color:var(--faixa)}
+.abas{position:sticky;bottom:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--linha);background:var(--superficie);padding:8px 4px calc(16px + env(safe-area-inset-bottom))}
+.aba{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:48px;justify-content:center;color:var(--texto-suave);font-size:12px;font-weight:700;background:transparent;border:0}
+.aba[aria-current="page"]{color:var(--faixa);font-weight:800}
+
+/* Resumo */
+.numeros{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.numero{background:var(--superficie);border-radius:var(--raio-md);padding:12px;display:flex;flex-direction:column;gap:2px}
+.numero b{font-size:28px;line-height:32px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.numero span{font-size:12px;color:var(--texto-suave)}
+.ajuste{display:flex;gap:10px;align-items:flex-start}
+.ajuste .p{font-family:var(--mono);font-size:13px;font-weight:600;min-width:76px}
+.ajuste .t{font-size:13px;line-height:18px;color:var(--texto-suave)}
+
+/* Campos */
+.campo{display:flex;flex-direction:column;gap:6px}
+.campo label{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--texto-suave);text-transform:uppercase}
+.campo input,.campo select,.campo textarea{background:var(--superficie);border:1.5px solid var(--borda-controle);border-radius:var(--raio-sm);padding:12px;min-height:44px;font-size:15px;color:var(--texto);width:100%}
+.campo textarea{resize:none;line-height:20px}
+.campo input.placa-input{font-family:var(--mono);font-size:20px;letter-spacing:.08em;text-transform:uppercase}
+
+/* Folha (bottom sheet) */
+.veu{position:fixed;inset:0;background:rgba(6,12,24,.7);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.veu.aberto{display:flex}
+.folha{width:100%;max-width:430px;background:var(--superficie-alta);border-radius:var(--raio-lg) var(--raio-lg) 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.folha .campo input,.folha .campo select,.folha .campo textarea{background:var(--superficie)}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);background:var(--texto);color:var(--asfalto);font-size:14px;font-weight:800;padding:12px 16px;border-radius:var(--raio-md);opacity:0;pointer-events:none;transition:.25s;z-index:30;max-width:calc(100% - 32px)}
+.toast.visivel{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Relatório */
+.periodos{display:flex;gap:8px;flex-wrap:wrap}
+.destaque{background:var(--superficie);border-radius:var(--raio-lg);padding:18px;display:flex;flex-direction:column;gap:6px}
+.destaque b{font-size:32px;line-height:36px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.destaque p{margin:0;font-size:13px;line-height:18px;color:var(--texto-suave)}
+.grade-ind{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ind{background:var(--superficie);border-radius:var(--raio-md);padding:14px;display:flex;flex-direction:column;gap:2px}
+.ind b{font-size:28px;line-height:32px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.ind span{font-size:12px;line-height:16px;color:var(--texto-suave)}
+.op{display:flex;flex-direction:column;gap:6px}
+.op-linha{display:flex;justify-content:space-between;font-size:13px}
+.op-linha b{font-weight:700}
+.op .barra > div{background:var(--texto-suave)}
+.op.pior .barra > div{background:var(--atencao)}
+.conf{background:var(--superficie);border-radius:var(--raio-md);padding:12px;display:flex;flex-direction:column;gap:8px;border:0;color:var(--texto);text-align:left;width:100%}
+.conf-linha{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tag{font-size:12px;font-weight:800;border-radius:var(--raio-pill);padding:2px 9px;border:1.5px solid currentColor;white-space:nowrap}
+.tag-ruim{background:var(--atencao);border-color:var(--atencao);color:var(--asfalto)}
+.tag-aviso{color:var(--faixa)} .tag-ok{color:var(--confirmado)}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;min-height:44px;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--faixa);margin:0}
+.leit{display:flex;align-items:center;gap:10px;min-height:40px;font-family:var(--mono);font-size:13px}
+.leit + .leit{border-top:1px solid var(--linha)}
+.leit .h{color:var(--texto-suave);min-width:44px} .leit .p{font-weight:600;flex:1} .leit .r{min-width:84px;text-align:right}
+.aj{display:flex;flex-direction:column;gap:4px}
+.aj-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+
+@media print{
+  .app{max-width:none} .tela.com-rodape{padding-bottom:24px} .rodape-fixo,.btn-icone,.periodos,.check,.nao-imprimir{display:none!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="veu" id="veu" aria-hidden="true"><div class="folha" id="folha" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   ÍCONES (traço 2px, pontas arredondadas)
+   ============================================================ */
+const svg = (d, s = 22, w = 2) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const I = {
+  voltar: svg('<path d="M15 18l-6-6 6-6"/>'),
+  seta: svg('<path d="M9 6l6 6-6 6"/>', 18),
+  check: (s = 16) => svg('<path d="M5 12l5 5L20 7"/>', s, 2.5),
+  camera: svg('<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="9" width="10" height="6" rx="1"/>'),
+  lista: svg('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/>'),
+  info: svg('<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/>', 18),
+  alerta: svg('<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>', 16),
+  prancheta: svg('<path d="M9 4H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/><rect x="9" y="2.5" width="6" height="3.5" rx="1"/><path d="M9 13l2 2 4-4"/>'),
+  chave: svg('<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l2 2M15 8l2 2"/>'),
+  calendario: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  predio: svg('<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4"/>'),
+  etiqueta: svg('<path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'),
+  grafico: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+  engrenagem: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'),
+  teclado: svg('<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>', 20),
+  vaga: (ativa) => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v16h12V4"/>${ativa ? '<rect x="9" y="8" width="6" height="9" rx="2" fill="currentColor" stroke="none"/>' : ''}</svg>`,
+};
+
+/* ============================================================
+   UTILITÁRIOS
+   ============================================================ */
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const normPlaca = (p) => String(p || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const ehMercosul = (p) => /^[A-Z]{3}\d[A-Z]\d{2}$/.test(normPlaca(p));
+const placaValida = (p) => /^[A-Z]{3}\d[A-Z0-9]\d{2}$/.test(normPlaca(p));
+const formatarPlaca = (p) => { const n = normPlaca(p); return ehMercosul(n) ? n : `${n.slice(0, 3)}-${n.slice(3)}`; };
+const agora = () => new Date();
+const hhmm = (d) => new Date(d).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const ddmm = (d) => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+const duracao = (de, ate = agora()) => {
+  const min = Math.max(0, Math.round((new Date(ate) - new Date(de)) / 60000));
+  const h = Math.floor(min / 60), m = min % 60;
+  return h ? `${h}h${String(m).padStart(2, '0')}` : `${m} min`;
+};
+const NOME_TIPO = { P: 'Avulso', M: 'Mensal', C: 'Conveniado' };
+
+function placaHTML(placa, opts = {}) {
+  const n = normPlaca(placa);
+  const grande = opts.grande ? ' grande' : '';
+  if (ehMercosul(n)) return `<div class="placa${grande}" role="img" aria-label="Placa ${n}"><div class="placa-faixa">BRASIL</div><div class="placa-num">${n}</div></div>`;
+  return `<div class="placa antiga${grande}" role="img" aria-label="Placa ${formatarPlaca(n)}"><div class="placa-faixa">${esc(opts.cidade || 'BRASIL')}</div><div class="placa-num">${formatarPlaca(n)}</div></div>`;
+}
+const tipoHTML = (t) => `<span class="tipo tipo-${t}" title="${NOME_TIPO[t]}" aria-label="${NOME_TIPO[t]}">${t}</span>`;
+
+/* ============================================================
+   DADOS SIMULADOS (no app real vêm da API)
+   ============================================================ */
+function hojeAs(h, m) { const d = agora(); d.setHours(h, m, 0, 0); return d.toISOString(); }
+const VEICULOS_NO_PATIO = [
+  { id: 101, placa: 'BRA2E19', modelo: 'Onix', cor: 'Prata', tipo: 'P', chave: 'Q-01', entrada: hojeAs(8, 2) },
+  { id: 102, placa: 'RTA2B30', modelo: 'HB20', cor: 'Branco', tipo: 'P', chave: 'Q-07', entrada: hojeAs(9, 14) },
+  { id: 103, placa: 'SPA1203', cidade: 'SP · SÃO PAULO', modelo: 'Corolla', cor: 'Preto', tipo: 'C', chave: 'Q-12', entrada: hojeAs(7, 40) },
+  { id: 104, placa: 'QWE4F56', modelo: 'Compass', cor: 'Cinza', tipo: 'M', chave: null, entrada: hojeAs(11, 2) },
+  { id: 105, placa: 'ABC1D23', modelo: 'Kwid', cor: 'Vermelho', tipo: 'C', chave: 'Q-05', entrada: hojeAs(8, 32) },
+  { id: 106, placa: 'KJH7C88', modelo: 'Gol', cor: 'Prata', tipo: 'P', chave: 'Q-03', entrada: hojeAs(10, 20) },
+  { id: 107, placa: 'MNO3P45', modelo: 'T-Cross', cor: 'Azul', tipo: 'M', chave: 'Q-09', entrada: hojeAs(6, 55) },
+  { id: 108, placa: 'GHI8J90', modelo: 'Strada', cor: 'Branca', tipo: 'P', chave: 'Q-11', entrada: hojeAs(12, 10) },
+  { id: 109, placa: 'LMN5Q12', modelo: 'Renegade', cor: 'Verde', tipo: 'C', chave: 'Q-14', entrada: hojeAs(9, 48) },
+  { id: 110, placa: 'XYZ9K87', modelo: 'Argo', cor: 'Vermelho', tipo: 'P', chave: 'Q-02', entrada: hojeAs(13, 5) },
+];
+const PLACAS_FORA_DO_SISTEMA = ['FMX4A21', 'PQR6S78']; // usadas pela leitura simulada
+const OPERADOR = { id: 7, nome: 'Carlos' };
+/* Perfil de quem está logado: OPERADOR | GERENTE | ADMIN.
+   O item "Relatórios" do menu Mais só aparece para GERENTE e ADMIN.
+   (GERENTE vê a unidade dele; ADMIN vê todas.) */
+const USUARIO = { nome: 'Carlos', perfil: 'GERENTE', unidade: 'Centro' };
+
+/* Valor estimado de uma saída (no app real quem calcula é o back-end, pela tabela de preços) */
+const valorEstimado = (entrada) => { const h = (agora() - new Date(entrada)) / 3600000; return 10 + 5 * Math.max(0, Math.ceil(h - 1)); };
+const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+/* Histórico de conferências já finalizadas (simulado) */
+function diasAtras(d, h, m) { const x = agora(); x.setDate(x.getDate() - d); x.setHours(h, m, 0, 0); return x.toISOString(); }
+function placaFake(k) { const L = 'ABCDEFGHJKLMNPRSTUVWXYZ'; return `${L[k % 23]}${L[(k * 7 + 3) % 23]}${L[(k * 3 + 5) % 23]}${k % 10}${L[(k * 11 + 1) % 23]}${String((k * 37) % 100).padStart(2, '0')}`; }
+function gerarLeituras(inicio, n, manuais) {
+  return Array.from({ length: n }, (_, k) => ({ placa: placaFake(k + n), em: new Date(new Date(inicio).getTime() + (k + 1) * 24000).toISOString(), origem: k < manuais ? 'MANUAL' : 'CAMERA', resultado: 'CONFERIDO' }));
+}
+const HISTORICO_INICIAL = [
+  { id: 4, iniciadaEm: diasAtras(0, 7, 58), finalizadaEm: diasAtras(0, 8, 10), operador: 'Carlos', metodo: 'CAMERA', total: 31, conferidos: 31,
+    ajustes: [], naoEncontrados: [], leituras: gerarLeituras(diasAtras(0, 7, 58), 31, 2), observacao: '' },
+  { id: 3, iniciadaEm: diasAtras(1, 22, 25), finalizadaEm: diasAtras(1, 22, 40), operador: 'Rafael', metodo: 'CAMERA', total: 24, conferidos: 22,
+    ajustes: [
+      { placa: 'DFG2H34', tipo: 'SAIDA', motivo: 'saiu sem baixa', valor: 38, veiculo: 'Mobi branco · avulso', autor: 'Rafael', em: diasAtras(1, 22, 31), texto: 'Saída registrada. Motivo: saiu sem baixa.' },
+      { placa: 'JKL6M78', tipo: 'SAIDA', motivo: 'saiu sem baixa', valor: 54, veiculo: 'Polo preto · avulso', autor: 'Rafael', em: diasAtras(1, 22, 33), texto: 'Saída registrada. Motivo: saiu sem baixa.' },
+      { placa: 'NPQ1R23', tipo: 'ENTRADA', veiculo: 'Fiesta prata · avulso', autor: 'Rafael', em: diasAtras(1, 22, 35), texto: 'Entrada registrada na conferência, sem ticket anterior.' },
+      { placa: 'STU4V56', tipo: 'CHAVE', veiculo: 'Creta branco · mensal', autor: 'Rafael', em: diasAtras(1, 22, 36), texto: 'Chave movida de Q-04 para Q-10.' },
+      { placa: 'WXY7Z89', tipo: 'CHAVE', veiculo: 'Kicks cinza · conveniado', autor: 'Rafael', em: diasAtras(1, 22, 38), texto: 'Chave movida de Q-08 para Q-01.' },
+    ], naoEncontrados: [], leituras: gerarLeituras(diasAtras(1, 22, 25), 25, 4), observacao: 'Dois carros saíram com o portão aberto na troca de turno.' },
+  { id: 2, iniciadaEm: diasAtras(1, 7, 46), finalizadaEm: diasAtras(1, 7, 55), operador: 'Carlos', metodo: 'LISTA', total: 28, conferidos: 27,
+    ajustes: [{ placa: 'BCD5E67', tipo: 'CHAVE', veiculo: 'Uno vermelho · avulso', autor: 'Carlos', em: diasAtras(1, 7, 52), texto: 'Chave movida de Q-02 para Q-06.' }],
+    naoEncontrados: [{ placa: 'HJK3L45', modelo: 'Sandero', cor: 'Cinza', tipo: 'P', entrada: diasAtras(1, 6, 20) }],
+    leituras: gerarLeituras(diasAtras(1, 7, 46), 27, 27), observacao: '' },
+  { id: 1, iniciadaEm: diasAtras(3, 21, 20), finalizadaEm: diasAtras(3, 21, 38), operador: 'Rafael', metodo: 'CAMERA', total: 26, conferidos: 24,
+    ajustes: [
+      { placa: 'EFG8H90', tipo: 'SAIDA', motivo: 'saiu sem baixa', valor: 42, veiculo: 'Onix azul · avulso', autor: 'Rafael', em: diasAtras(3, 21, 29), texto: 'Saída registrada. Motivo: saiu sem baixa.' },
+      { placa: 'MNP2Q34', tipo: 'SAIDA', motivo: 'ticket duplicado', valor: 0, veiculo: 'HR-V preto · mensal', autor: 'Rafael', em: diasAtras(3, 21, 31), texto: 'Saída registrada. Motivo: ticket duplicado.' },
+      { placa: 'RST6U78', tipo: 'CHAVE', veiculo: 'Gol branco · avulso', autor: 'Rafael', em: diasAtras(3, 21, 34), texto: 'Chave movida de Q-11 para Q-13.' },
+    ], naoEncontrados: [], leituras: gerarLeituras(diasAtras(3, 21, 20), 26, 3), observacao: '' },
+];
+
+/* ============================================================
+   API SIMULADA
+   Troque o corpo de cada função por fetch(`${API}/...`) no app real.
+   Base sugerida: https://api.gipepark.com.br/api/v1 (Bearer)
+   ============================================================ */
+const STORAGE_KEY = 'murel.conferencia.v2';
+const store = {
+  ler() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; } },
+  gravar(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch { /* sem storage: segue em memória */ } },
+};
+let db = Object.assign({ aberta: null, historico: HISTORICO_INICIAL }, store.ler());
+Object.defineProperty(db, 'ultima', { get() { return this.historico[0] || null; }, enumerable: false });
+const persistir = () => store.gravar(db);
+const delay = (ms = 120) => new Promise((r) => setTimeout(r, ms));
+
+const api = {
+  /** GET /patio/resumo → { total, porTipo: {P,M,C}, ultimaConferencia } */
+  async resumoPatio() {
+    await delay();
+    const porTipo = { P: 0, M: 0, C: 0 };
+    VEICULOS_NO_PATIO.forEach((v) => porTipo[v.tipo]++);
+    return { total: VEICULOS_NO_PATIO.length, porTipo, ultimaConferencia: db.ultima };
+  },
+  /** GET /patio/conferencias/aberta → conferência em andamento ou 204 */
+  async conferenciaAberta() { await delay(); return db.aberta; },
+  /** POST /patio/conferencias { metodo: 'CAMERA'|'LISTA' }
+      → cria a conferência com a "foto" dos tickets em aberto */
+  async iniciar(metodo) {
+    await delay();
+    db.aberta = {
+      id: Date.now(), metodo, iniciadaEm: agora().toISOString(), operador: OPERADOR.nome,
+      itens: VEICULOS_NO_PATIO.map((v) => ({ ...v, status: 'PENDENTE', conferidoEm: null, origem: null, chaveEncontrada: null })),
+      semEntrada: [], ajustes: [], leituras: [], ultimaLeitura: null,
+    };
+    persistir(); return db.aberta;
+  },
+  /** POST /patio/conferencias/{id}/leituras { placa, origem: 'CAMERA'|'MANUAL' }
+      → { resultado: 'CONFERIDO'|'JA_CONFERIDO'|'SEM_ENTRADA', item? } */
+  async registrarLeitura(placa, origem) {
+    await delay(60);
+    const c = db.aberta, n = normPlaca(placa);
+    const item = c.itens.find((i) => normPlaca(i.placa) === n && i.status !== 'BAIXADO');
+    let resultado;
+    if (item) {
+      if (item.status === 'CONFERIDO') resultado = 'JA_CONFERIDO';
+      else { Object.assign(item, { status: 'CONFERIDO', conferidoEm: agora().toISOString(), origem }); resultado = 'CONFERIDO'; }
+    } else {
+      if (!c.semEntrada.some((s) => s.placa === n)) c.semEntrada.push({ placa: n, lidaEm: agora().toISOString() });
+      resultado = 'SEM_ENTRADA';
+    }
+    c.ultimaLeitura = { placa: n, resultado, modelo: item ? `${item.modelo} ${item.cor.toLowerCase()}` : null };
+    c.leituras.push({ placa: n, em: agora().toISOString(), origem, resultado });
+    persistir(); return { resultado, item };
+  },
+  /** PATCH /patio/conferencias/{id}/itens/{itemId} { status: 'CONFERIDO'|'NAO_ENCONTRADO'|'PENDENTE' } */
+  async marcarItem(itemId, status) {
+    await delay(60);
+    const item = db.aberta.itens.find((i) => i.id === itemId);
+    Object.assign(item, { status, conferidoEm: status === 'CONFERIDO' ? agora().toISOString() : null, origem: status === 'CONFERIDO' ? 'MANUAL' : null });
+    if (status !== 'PENDENTE') db.aberta.leituras.push({ placa: normPlaca(item.placa), em: agora().toISOString(), origem: 'MANUAL', resultado: status === 'CONFERIDO' ? 'CONFERIDO' : 'NAO_ACHADO' });
+    persistir(); return item;
+  },
+  /** PATCH /patio/conferencias/{id}/itens/{itemId} { chaveEncontrada } */
+  async informarChave(itemId, posicao) {
+    await delay(60);
+    const item = db.aberta.itens.find((i) => i.id === itemId);
+    item.chaveEncontrada = posicao; persistir(); return item;
+  },
+  /** POST /patio/conferencias/{id}/itens/{itemId}/dar-saida { motivo }
+      → registra a saída do ticket (no back-end, calcula o valor e lança no caixa/fatura) */
+  async darSaida(itemId, motivo) {
+    await delay();
+    const item = db.aberta.itens.find((i) => i.id === itemId);
+    item.status = 'BAIXADO';
+    db.aberta.ajustes.push({ placa: item.placa, tipo: 'SAIDA', motivo, valor: motivo === 'saiu sem baixa' ? valorEstimado(item.entrada) : 0,
+      veiculo: `${item.modelo} ${item.cor.toLowerCase()} · ${NOME_TIPO[item.tipo].toLowerCase()}`, autor: db.aberta.operador,
+      texto: `Saída registrada às ${hhmm(agora())}. Motivo: ${motivo}.`, em: agora().toISOString() });
+    persistir(); return item;
+  },
+  /** POST /patio/conferencias/{id}/sem-entrada/{placa}/registrar { modelo, cor, tipo }
+      → cria o ticket de entrada a partir da conferência */
+  async registrarEntrada(placa, dados) {
+    await delay();
+    const c = db.aberta;
+    c.semEntrada = c.semEntrada.filter((s) => s.placa !== placa);
+    c.itens.push({ id: Date.now(), placa, ...dados, chave: null, entrada: agora().toISOString(), status: 'CONFERIDO', conferidoEm: agora().toISOString(), origem: 'CONFERENCIA', chaveEncontrada: null });
+    c.ajustes.push({ placa, tipo: 'ENTRADA', veiculo: `${dados.modelo} ${dados.cor.toLowerCase()} · ${NOME_TIPO[dados.tipo].toLowerCase()}`, autor: c.operador,
+      texto: `Entrada registrada às ${hhmm(agora())}, sem ticket anterior.`, em: agora().toISOString() });
+    persistir();
+  },
+  /** DELETE /patio/conferencias/{id}/sem-entrada/{placa} → leitura errada, descarta */
+  async descartarLeitura(placa) {
+    await delay(60);
+    db.aberta.semEntrada = db.aberta.semEntrada.filter((s) => s.placa !== placa); persistir();
+  },
+  /** PATCH /patio/veiculos/{itemId}/chave { posicao } */
+  async atualizarChave(itemId) {
+    await delay();
+    const item = db.aberta.itens.find((i) => i.id === itemId);
+    db.aberta.ajustes.push({ placa: item.placa, tipo: 'CHAVE', veiculo: `${item.modelo} ${item.cor.toLowerCase()} · ${NOME_TIPO[item.tipo].toLowerCase()}`, autor: db.aberta.operador,
+      texto: `Chave movida de ${item.chave || 'sem posição'} para ${item.chaveEncontrada}.`, em: agora().toISOString() });
+    item.chave = item.chaveEncontrada; item.chaveEncontrada = null;
+    persistir(); return item;
+  },
+  /** POST /patio/conferencias/{id}/finalizar { observacao }
+      → pendentes viram NAO_ENCONTRADO; fecha a conferência */
+  async finalizar(observacao) {
+    await delay();
+    const c = db.aberta;
+    c.itens.forEach((i) => { if (i.status === 'PENDENTE') i.status = 'NAO_ENCONTRADO'; });
+    const ativos = c.itens.filter((i) => i.status !== 'BAIXADO');
+    const registro = {
+      id: c.id, iniciadaEm: c.iniciadaEm, finalizadaEm: agora().toISOString(), operador: c.operador, metodo: c.metodo,
+      total: c.itens.length, conferidos: ativos.filter((i) => i.status === 'CONFERIDO').length,
+      ajustes: c.ajustes, naoEncontrados: c.itens.filter((i) => i.status === 'NAO_ENCONTRADO').map(({ placa, modelo, cor, tipo, entrada }) => ({ placa, modelo, cor, tipo, entrada })),
+      semEntrada: c.semEntrada, // placas lidas sem ticket que ficaram sem resolver
+      leituras: c.leituras, observacao,
+    };
+    db.historico.unshift(registro);
+    db.aberta = null; persistir();
+    return registro;
+  },
+
+  /* ---------- RELATÓRIOS (gerente / admin) ---------- */
+
+  /** GET /relatorios/conferencias?inicio&fim&comDivergencia
+      + GET /relatorios/conferencias/indicadores?inicio&fim
+      (aqui as duas respostas vêm juntas) */
+  async relatorio(periodo, soDivergencia) {
+    await delay();
+    const hoje = agora(), ini = new Date(hoje);
+    if (periodo === 'HOJE') ini.setHours(0, 0, 0, 0);
+    if (periodo === '7D') { ini.setDate(ini.getDate() - 6); ini.setHours(0, 0, 0, 0); }
+    if (periodo === 'MES') { ini.setDate(1); ini.setHours(0, 0, 0, 0); }
+    const todas = db.historico.filter((h) => periodo === 'TUDO' || new Date(h.finalizadaEm) >= ini);
+    const semBaixa = todas.flatMap((h) => h.ajustes.filter((a) => a.tipo === 'SAIDA' && a.motivo === 'saiu sem baixa'));
+    const somaTotal = todas.reduce((s, h) => s + h.total, 0), somaConf = todas.reduce((s, h) => s + h.conferidos, 0);
+    const dias = periodo === 'HOJE' ? 1 : periodo === '7D' ? 7 : periodo === 'MES' ? hoje.getDate()
+      : Math.max(1, Math.ceil((hoje - new Date(todas.at(-1)?.iniciadaEm || hoje)) / 86400000));
+    const porOperador = {};
+    todas.forEach((h) => { const o = (porOperador[h.operador] ??= { nome: h.operador, conferencias: 0, divergencias: 0 }); o.conferencias++; o.divergencias += divergenciasDe(h); });
+    const ultima = db.historico[0];
+    return {
+      indicadores: {
+        saidasSemBaixa: { quantidade: semBaixa.length, valor: semBaixa.reduce((s, a) => s + (a.valor || 0), 0) },
+        acerto: somaTotal ? Math.round((somaConf / somaTotal) * 100) : null,
+        entradasSemRegistro: todas.reduce((s, h) => s + h.ajustes.filter((a) => a.tipo === 'ENTRADA').length, 0),
+        chavesForaDoLugar: todas.reduce((s, h) => s + h.ajustes.filter((a) => a.tipo === 'CHAVE').length, 0),
+        conferencias: todas.length, mediaPorDia: todas.length / dias,
+        horasSemConferencia: ultima && !db.aberta ? (hoje - new Date(ultima.finalizadaEm)) / 3600000 : 0,
+        ultimaFinalizadaEm: ultima?.finalizadaEm,
+      },
+      porOperador: Object.values(porOperador).sort((a, b) => b.divergencias - a.divergencias),
+      conferencias: todas.filter((h) => !soDivergencia || divergenciasDe(h) > 0),
+    };
+  },
+  /** GET /relatorios/conferencias/{id} → detalhe, ajustes, não encontrados e leituras */
+  async detalhe(id) { await delay(); return db.historico.find((h) => h.id === id); },
+  /** GET /relatorios/conferencias/exportar?formato=csv&inicio&fim */
+  async exportarCsv(conferencias) {
+    const linhas = [['data', 'inicio', 'fim', 'operador', 'metodo', 'no_sistema', 'conferidos', 'ajustes', 'nao_encontrados', 'sem_entrada', 'saidas_sem_baixa', 'valor_saidas_sem_baixa', 'observacao']];
+    conferencias.forEach((h) => {
+      const sb = h.ajustes.filter((a) => a.tipo === 'SAIDA' && a.motivo === 'saiu sem baixa');
+      linhas.push([ddmm(h.finalizadaEm), hhmm(h.iniciadaEm), hhmm(h.finalizadaEm), h.operador, h.metodo, h.total, h.conferidos, h.ajustes.length, h.naoEncontrados.length, h.semEntrada?.length || 0, sb.length, sb.reduce((s, a) => s + (a.valor || 0), 0).toFixed(2).replace('.', ','), h.observacao || '']);
+    });
+    return '﻿' + linhas.map((l) => l.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n');
+  },
+};
+
+/* ============================================================
+   LEITOR DE PLACAS
+   No app real: abrir a câmera e chamar leitor.onPlacaLida(placa)
+   a cada placa reconhecida pelo OCR.
+   ============================================================ */
+const leitor = {
+  async onPlacaLida(placa, origem = 'CAMERA') {
+    if (!placaValida(placa)) { toast('Placa inválida. Confira e tente de novo.'); return; }
+    const { resultado } = await api.registrarLeitura(placa, origem);
+    if (navigator.vibrate) navigator.vibrate(resultado === 'CONFERIDO' ? 40 : [40, 60, 40]);
+    render();
+    // Carro no pátio sem ticket: oferece a entrada na hora, sem tirar o operador da conferência
+    if (resultado === 'SEM_ENTRADA') folhas.semEntrada(normPlaca(placa));
+  },
+  simular() {
+    const c = db.aberta;
+    const pendentes = c.itens.filter((i) => i.status === 'PENDENTE' || i.status === 'NAO_ENCONTRADO');
+    const fora = PLACAS_FORA_DO_SISTEMA.filter((p) => !c.semEntrada.some((s) => s.placa === p) && !c.itens.some((i) => normPlaca(i.placa) === p));
+    const usarFora = fora.length && (Math.random() < 0.2 || !pendentes.length);
+    if (usarFora) return this.onPlacaLida(fora[0]);
+    if (!pendentes.length) { toast('Todos os carros já foram conferidos.'); return; }
+    this.onPlacaLida(pendentes[Math.floor(Math.random() * pendentes.length)].placa);
+  },
+};
+
+/* ============================================================
+   ESTADO DA INTERFACE
+   ============================================================ */
+const ui = { tela: 'mais', metodo: 'CAMERA', filtro: 'FALTAM', resumoPatio: null, observacao: '',
+  relPeriodo: 'MES', relSoDiv: false, rel: null, relDet: null, relTodasLeituras: false };
+
+function divergenciasDe(h) { return h.ajustes.length + h.naoEncontrados.length + (h.semEntrada?.length || 0); }
+function etiquetaDe(h) {
+  if (h.ajustes.some((a) => a.tipo === 'SAIDA' && a.motivo === 'saiu sem baixa')) return '<span class="tag tag-ruim">Saída sem baixa</span>';
+  if (h.naoEncontrados.length) return '<span class="tag tag-ruim">Não encontrado</span>';
+  if (h.semEntrada?.length) return '<span class="tag tag-ruim">Carro sem entrada</span>';
+  if (h.ajustes.length) return '<span class="tag tag-aviso">Com ajustes</span>';
+  return '<span class="tag tag-ok">Sem divergência</span>';
+}
+
+function contagens(c) {
+  const ativos = c.itens.filter((i) => i.status !== 'BAIXADO');
+  const conferidos = ativos.filter((i) => i.status === 'CONFERIDO').length;
+  const faltam = ativos.filter((i) => i.status === 'PENDENTE').length;
+  const naoEncontrados = c.itens.filter((i) => i.status === 'NAO_ENCONTRADO');
+  const chaves = c.itens.filter((i) => i.chaveEncontrada && i.chaveEncontrada !== i.chave && i.status !== 'BAIXADO');
+  const divergencias = naoEncontrados.length + c.semEntrada.length + chaves.length;
+  return { total: ativos.length, conferidos, faltam, naoEncontrados, chaves, divergencias };
+}
+
+/* ============================================================
+   TELAS
+   ============================================================ */
+function telaMais() {
+  const u = db.ultima, a = db.aberta;
+  const sub = a ? `<span class="item-meta ok">Em andamento · ${contagens(a).conferidos} de ${contagens(a).total}</span>`
+               : `<span class="item-meta">Última: ${u ? `${ddmm(u.finalizadaEm) === ddmm(agora()) ? 'hoje' : ddmm(u.finalizadaEm)} ${hhmm(u.finalizadaEm)} · ${esc(u.operador)}` : 'nenhuma ainda'}</span>`;
+  const item = (ic, titulo, sub, acao, ativo) => `<button class="menu-item" data-acao="${acao}"><span class="ic${ativo ? ' ativo' : ''}">${ic}</span><span class="item-info"><span class="item-nome">${titulo}</span>${sub}</span><span class="suave">${I.seta}</span></button>`;
+  const breve = (t) => `<span style="font-size:12px;color:var(--texto-suave)">${t}</span>`;
+  return `
+  <main class="tela">
+    <div class="topo"><h1 class="titulo">Mais</h1></div>
+    <span class="rotulo">Operação</span>
+    <nav class="menu" aria-label="Operação">
+      ${item(I.prancheta, 'Conferência de pátio', sub, 'abrir-conferencia', true)}
+      ${item(I.chave, 'Quadro de chaves', breve('Posição de cada chave'), 'em-breve')}
+    </nav>
+    <span class="rotulo">Cadastros</span>
+    <nav class="menu" aria-label="Cadastros">
+      ${item(I.calendario, 'Mensalistas', breve('Planos e veículos'), 'em-breve')}
+      ${item(I.predio, 'Conveniadas', breve('Empresas parceiras e faturas'), 'em-breve')}
+      ${item(I.etiqueta, 'Tabela de preços', breve('Faixas por categoria'), 'em-breve')}
+    </nav>
+    <span class="rotulo">Sistema</span>
+    <nav class="menu" aria-label="Sistema">
+      ${USUARIO.perfil !== 'OPERADOR' ? item(I.grafico, 'Relatórios', breve('Conferências de pátio'), 'abrir-relatorio') : ''}
+      ${item(I.engrenagem, 'Configurações', '', 'em-breve')}
+    </nav>
+  </main>
+  <nav class="abas" aria-label="Navegação principal">
+    ${['Pátio', 'Entrada', 'Saída', 'Caixa'].map((t) => `<button class="aba" data-acao="em-breve">${I.vaga(false)}${t}</button>`).join('')}
+    <button class="aba" aria-current="page">${I.vaga(true)}Mais</button>
+  </nav>`;
+}
+
+function telaInicio() {
+  const r = ui.resumoPatio, a = db.aberta, u = db.ultima;
+  if (!r) return `<main class="tela"><div class="vazio">Carregando pátio…</div></main>`;
+  const opcao = (m, ic, titulo, desc) => `
+    <button class="opcao" role="radio" aria-checked="${ui.metodo === m}" data-acao="metodo" data-valor="${m}">
+      <span class="ic">${ic}</span>
+      <span class="txt"><b>${titulo}</b><span>${desc}</span></span>
+      <span class="radio">${ui.metodo === m ? I.check(14) : ''}</span>
+    </button>`;
+  const ca = a && contagens(a);
+  return `
+  <main class="tela com-rodape">
+    <div class="topo">
+      <button class="btn-icone" aria-label="Voltar" data-acao="ir" data-valor="mais">${I.voltar}</button>
+      <div class="titulos"><h1 class="titulo">Conferência de pátio</h1><span class="rotulo">${agora().toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')} ${ddmm(agora())} · ${hhmm(agora())}</span></div>
+    </div>
+    <section class="cartao" aria-label="Pátio agora">
+      <span class="rotulo">No sistema agora</span>
+      <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:48px;line-height:48px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--faixa)">${r.total}</span><span style="color:var(--texto-suave)">veículos no pátio</span></div>
+      <div class="chips-tipo">
+        <span class="chip-tipo">${tipoHTML('P')}${r.porTipo.P} avulsos</span>
+        <span class="chip-tipo">${tipoHTML('M')}${r.porTipo.M} mensais</span>
+        <span class="chip-tipo">${tipoHTML('C')}${r.porTipo.C} conveniados</span>
+      </div>
+      <div class="tracejado"></div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--texto-suave)">
+        <span>Última conferência</span>
+        <span style="color:var(--texto)">${u ? `${ddmm(u.finalizadaEm) === ddmm(agora()) ? 'hoje' : ddmm(u.finalizadaEm)} ${hhmm(u.finalizadaEm)} · ${esc(u.operador)}` : 'nenhuma'}</span>
+      </div>
+    </section>
+    ${a ? `
+      <div class="aviso" style="color:var(--texto)">${I.info}<span>Há uma conferência em andamento, iniciada às ${hhmm(a.iniciadaEm)} por ${esc(a.operador)}: <b>${ca.conferidos} de ${ca.total}</b> conferidos.</span></div>
+    ` : `
+      <span class="rotulo">Como conferir</span>
+      <div role="radiogroup" aria-label="Como conferir" style="display:flex;flex-direction:column;gap:8px">
+        ${opcao('CAMERA', I.camera, 'Ler placas com a câmera', 'Caminhe pelo pátio apontando para as placas. A Murel marca cada carro sozinha.')}
+        ${opcao('LISTA', I.lista, 'Marcar pela lista', 'Para pátio pequeno ou pouca luz. Toque em cada carro que encontrar.')}
+      </div>
+      <div class="aviso">${I.info}<span>Entradas e saídas continuam funcionando durante a conferência. Cada carro conferido fica salvo na hora.</span></div>
+    `}
+  </main>
+  <div class="rodape-fixo">
+    <button class="btn btn-principal" data-acao="${a ? 'continuar' : 'iniciar'}">${a ? 'Continuar conferência' : 'Iniciar conferência'}</button>
+  </div>`;
+}
+
+function cartaoItem(i) {
+  const chaveTxt = i.chaveEncontrada ? `Chave ${esc(i.chave || '—')} → <b style="color:var(--texto)">${esc(i.chaveEncontrada)}</b>` : (i.chave ? `Chave ${esc(i.chave)}` : 'Sem chave');
+  let acoes = '';
+  if (i.status === 'PENDENTE') acoes = `
+    <div class="grade-2">
+      <button class="btn btn-sec" data-acao="marcar" data-id="${i.id}" data-valor="CONFERIDO"><span class="ok">${I.check()}</span>Está no pátio</button>
+      <button class="btn btn-sec" data-acao="marcar" data-id="${i.id}" data-valor="NAO_ENCONTRADO">Não achei</button>
+    </div>`;
+  if (i.status === 'CONFERIDO') acoes = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="item-meta ok" style="display:flex;align-items:center;gap:4px">${I.check(14)}Conferido ${hhmm(i.conferidoEm)}${i.origem === 'CAMERA' ? ' · câmera' : ''}</span>
+      <span style="display:flex;gap:8px">
+        <button class="btn-texto" data-acao="chave" data-id="${i.id}">Chave em outro lugar</button>
+        <button class="btn-texto" data-acao="marcar" data-id="${i.id}" data-valor="PENDENTE">Desfazer</button>
+      </span>
+    </div>`;
+  return `
+  <article class="item">
+    <div class="item-linha">
+      ${placaHTML(i.placa, { cidade: i.cidade })}
+      <div class="item-info"><span class="item-nome">${esc(i.modelo)} · ${esc(i.cor)}</span><span class="item-meta">${chaveTxt} · desde ${hhmm(i.entrada)}</span></div>
+      ${tipoHTML(i.tipo)}
+    </div>
+    ${acoes}
+  </article>`;
+}
+
+function telaConferindo() {
+  const c = db.aberta, k = contagens(c);
+  const pct = k.total ? Math.round((k.conferidos / k.total) * 100) : 0;
+  const lista = c.itens.filter((i) => ui.filtro === 'FALTAM' ? i.status === 'PENDENTE' : i.status === 'CONFERIDO')
+    .sort((a, b) => ui.filtro === 'CONFERIDOS' ? new Date(b.conferidoEm) - new Date(a.conferidoEm) : 0);
+  const ul = c.ultimaLeitura;
+  const leituraTxt = !ul ? '<span class="leitura suave">Aponte a câmera para uma placa</span>'
+    : ul.resultado === 'CONFERIDO' ? `<span class="leitura ok">${I.check()}Conferido · ${esc(ul.modelo)}</span>`
+    : ul.resultado === 'JA_CONFERIDO' ? `<span class="leitura suave">${I.check()}Já conferido antes</span>`
+    : c.semEntrada.some((s) => s.placa === ul.placa)
+      ? `<button class="leitura ruim" style="border:0;min-height:36px" data-acao="registrar-entrada" data-valor="${ul.placa}">${I.alerta}Sem entrada · Registrar agora</button>`
+      : `<span class="leitura ok">${I.check()}Entrada registrada</span>`;
+  const camera = c.metodo === 'CAMERA';
+  return `
+  <main class="tela com-rodape">
+    <div class="topo">
+      <button class="btn-icone" aria-label="Voltar (a conferência fica salva)" data-acao="ir" data-valor="inicio">${I.voltar}</button>
+      <div class="titulos"><h1 class="titulo">Conferindo pátio</h1><span class="rotulo">Salvo a cada placa</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-size:15px;font-weight:800"><span style="font-variant-numeric:tabular-nums">${k.conferidos}</span> de ${k.total} conferidos</span>
+        <span class="item-meta" style="font-size:13px">${pct}%</span>
+      </div>
+      <div class="barra" role="progressbar" aria-valuemin="0" aria-valuemax="${k.total}" aria-valuenow="${k.conferidos}" aria-label="Progresso da conferência"><div style="width:${pct}%"></div></div>
+    </div>
+    ${camera ? `
+      <section class="visor" aria-live="polite" aria-label="Câmera">
+        <span class="canto c1"></span><span class="canto c2"></span><span class="canto c3"></span><span class="canto c4"></span>
+        ${ul ? placaHTML(ul.placa, { grande: true }) : ''}
+        ${leituraTxt}
+      </section>` : ''}
+    <div class="filtros" role="group" aria-label="Filtrar">
+      <button class="filtro" aria-pressed="${ui.filtro === 'FALTAM'}" data-acao="filtro" data-valor="FALTAM">Faltam ${k.faltam}</button>
+      <button class="filtro" aria-pressed="${ui.filtro === 'CONFERIDOS'}" data-acao="filtro" data-valor="CONFERIDOS">Conferidos ${k.conferidos}</button>
+      ${k.divergencias ? `<button class="filtro alerta" data-acao="ir" data-valor="divergencias">Divergências ${k.divergencias}</button>` : ''}
+    </div>
+    <section style="display:flex;flex-direction:column;gap:8px" aria-label="Veículos">
+      ${lista.length ? lista.map(cartaoItem).join('') : `<div class="vazio">${ui.filtro === 'FALTAM' ? 'Nenhum carro faltando. Pode ver o resumo.' : 'Nenhum carro conferido ainda.'}</div>`}
+    </section>
+  </main>
+  <div class="rodape-fixo" style="display:flex;flex-direction:column;gap:8px">
+    ${k.faltam === 0
+      ? `<button class="btn btn-principal" data-acao="ir" data-valor="${k.divergencias ? 'divergencias' : 'resumo'}">${k.divergencias ? 'Resolver divergências' : 'Ver resumo'}</button>`
+      : camera
+        ? `<button class="btn btn-principal" data-acao="simular-leitura">${I.camera}Ler próxima placa</button>`
+        : `<button class="btn btn-principal" data-acao="ir" data-valor="resumo">Ver resumo</button>`}
+    <button class="btn-texto" style="align-self:center;display:flex;align-items:center;gap:6px" data-acao="digitar">${I.teclado}Digitar placa</button>
+  </div>`;
+}
+
+function telaDivergencias() {
+  const c = db.aberta, k = contagens(c);
+  const secao = (titulo, conteudo) => conteudo ? `<span class="rotulo">${titulo}</span>${conteudo}` : '';
+  const naoEnc = k.naoEncontrados.map((i) => `
+    <article class="item">
+      <div class="item-linha">${placaHTML(i.placa, { cidade: i.cidade })}
+        <div class="item-info"><span class="item-nome">${esc(i.modelo)} · ${esc(i.cor)}</span><span class="item-meta">Entrada ${hhmm(i.entrada)} · ${duracao(i.entrada)} no sistema</span></div>${tipoHTML(i.tipo)}</div>
+      ${i.tipo === 'C' ? `<div class="aviso" style="padding:8px 10px;font-size:12px;line-height:16px"><span style="color:var(--conveniado)">${I.alerta}</span><span>Conveniado: o valor da saída vai para a fatura da conveniada. Confira o horário antes de dar baixa.</span></div>` : ''}
+      <div class="grade-2">
+        <button class="btn btn-sec" data-acao="marcar" data-id="${i.id}" data-valor="PENDENTE">Procurar de novo</button>
+        <button class="btn btn-sec" data-acao="dar-saida" data-id="${i.id}">Dar saída</button>
+      </div>
+    </article>`).join('');
+  const semEnt = c.semEntrada.map((s) => `
+    <article class="item">
+      <div class="item-linha">${placaHTML(s.placa)}
+        <div class="item-info"><span class="item-nome ruim">Sem ticket aberto</span><span class="item-meta">Lida às ${hhmm(s.lidaEm)}</span></div></div>
+      <div class="grade-2">
+        <button class="btn btn-sec" data-acao="descartar" data-valor="${s.placa}">Leitura errada</button>
+        <button class="btn btn-sec" data-acao="registrar-entrada" data-valor="${s.placa}">Registrar entrada</button>
+      </div>
+    </article>`).join('');
+  const chaves = k.chaves.map((i) => `
+    <article class="item">
+      <div class="item-linha">${placaHTML(i.placa, { cidade: i.cidade })}
+        <div class="item-info"><span class="item-nome">${esc(i.modelo)} · ${esc(i.cor)}</span><span class="item-meta">Sistema <s>${esc(i.chave || '—')}</s> · achada em <b style="color:var(--texto)">${esc(i.chaveEncontrada)}</b></span></div></div>
+      <button class="btn btn-sec" data-acao="atualizar-chave" data-id="${i.id}">Atualizar para ${esc(i.chaveEncontrada)}</button>
+    </article>`).join('');
+  return `
+  <main class="tela com-rodape">
+    <div class="topo">
+      <button class="btn-icone" aria-label="Voltar para a conferência" data-acao="ir" data-valor="conferindo">${I.voltar}</button>
+      <div class="titulos"><h1 class="titulo">Divergências</h1><span class="rotulo" style="color:${k.divergencias ? 'var(--atencao)' : 'var(--confirmado)'}">${k.divergencias ? `${k.divergencias} para resolver` : 'Tudo resolvido'}</span></div>
+    </div>
+    ${k.divergencias ? '' : '<div class="vazio">Nenhuma divergência. O pátio bate com o sistema.</div>'}
+    ${secao('No sistema, não está no pátio', naoEnc)}
+    ${secao('No pátio, sem entrada', semEnt)}
+    ${secao('Chave fora do lugar', chaves)}
+  </main>
+  <div class="rodape-fixo"><button class="btn btn-principal" data-acao="ir" data-valor="resumo">Ver resumo</button></div>`;
+}
+
+function telaResumo() {
+  const c = db.aberta, k = contagens(c);
+  return `
+  <main class="tela com-rodape">
+    <div class="topo">
+      <button class="btn-icone" aria-label="Voltar para a conferência" data-acao="ir" data-valor="conferindo">${I.voltar}</button>
+      <div class="titulos"><span class="rotulo">Resumo da conferência</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 0 4px;text-align:center">
+      <span style="width:56px;height:56px;border-radius:999px;background:var(--superficie);display:flex;align-items:center;justify-content:center" class="${k.divergencias || k.faltam ? 'ruim' : 'ok'}">${k.divergencias || k.faltam ? svg('<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>', 30, 2.5) : I.check(30)}</span>
+      <h1 class="titulo">${k.divergencias || k.faltam ? 'Quase lá' : 'Pátio conferido'}</h1>
+      <span class="item-meta" style="font-size:13px">${ddmm(c.iniciadaEm)} · ${hhmm(c.iniciadaEm)} às ${hhmm(agora())} · ${duracao(c.iniciadaEm)} · ${esc(c.operador)}</span>
+    </div>
+    <div class="numeros">
+      <div class="numero"><b>${k.total}</b><span>no sistema</span></div>
+      <div class="numero"><b class="ok">${k.conferidos}</b><span>conferidos</span></div>
+      <div class="numero"><b>${c.ajustes.length}</b><span>ajustes feitos</span></div>
+    </div>
+    ${k.faltam ? `<div class="aviso">${I.info}<span>Faltam <b style="color:var(--texto)">${k.faltam}</b> carros. Se finalizar agora, eles ficam como não encontrados.</span></div>` : ''}
+    ${k.divergencias ? `<button class="aviso" style="border:0;text-align:left;width:100%" data-acao="ir" data-valor="divergencias"><span class="ruim">${I.alerta}</span><span><b style="color:var(--texto)">${k.divergencias} divergências</b> sem resolver. Toque para ver.</span></button>` : ''}
+    <section class="cartao" style="padding:16px;gap:12px" aria-label="Ajustes">
+      <span class="rotulo">O que foi ajustado</span>
+      ${c.ajustes.length ? c.ajustes.map((a, n) => `${n ? '<div class="tracejado"></div>' : ''}<div class="ajuste"><span class="p">${formatarPlaca(a.placa)}</span><span class="t">${esc(a.texto)}</span></div>`).join('') : '<span class="item-meta">Nenhum ajuste.</span>'}
+    </section>
+    <div class="campo">
+      <label for="obs">Observação (opcional)</label>
+      <textarea id="obs" rows="3" placeholder="Ex.: Kwid saiu na troca de turno, avisar a gerência." data-campo="observacao">${esc(ui.observacao)}</textarea>
+    </div>
+  </main>
+  <div class="rodape-fixo"><button class="btn btn-principal" data-acao="finalizar">Finalizar conferência</button></div>`;
+}
+
+function telaRelatorio() {
+  const r = ui.rel;
+  const topo = `
+    <div class="topo">
+      <button class="btn-icone" aria-label="Voltar para o menu" data-acao="ir" data-valor="mais">${I.voltar}</button>
+      <div class="titulos"><h1 class="titulo">Conferências de pátio</h1><span class="rotulo">Relatórios · ${esc(USUARIO.unidade)}</span></div>
+      <button class="btn-icone" style="border:1.5px solid var(--borda-controle);background:transparent" aria-label="Exportar CSV" data-acao="exportar-csv">${svg('<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>', 20)}</button>
+    </div>`;
+  const per = (v, t) => `<button class="filtro" aria-pressed="${ui.relPeriodo === v}" data-acao="rel-periodo" data-valor="${v}">${t}</button>`;
+  const periodos = `<div class="periodos" role="group" aria-label="Período">${per('HOJE', 'Hoje')}${per('7D', '7 dias')}${per('MES', agora().toLocaleDateString('pt-BR', { month: 'long' }).replace(/^./, (c) => c.toUpperCase()))}${per('TUDO', 'Tudo')}</div>`;
+  if (!r) return `<main class="tela">${topo}${periodos}<div class="vazio">Carregando relatório…</div></main>`;
+  const k = r.indicadores, sb = k.saidasSemBaixa;
+  const maxDiv = Math.max(1, ...r.porOperador.map((o) => o.divergencias));
+  const media = k.mediaPorDia.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+  return `
+  <main class="tela">
+    ${topo}${periodos}
+    <section class="destaque" aria-label="Saídas sem baixa">
+      <span class="rotulo">Saídas sem baixa</span>
+      <b class="${sb.quantidade ? 'ruim' : 'ok'}">${brl(sb.valor)}</b>
+      <p>${sb.quantidade ? `${sb.quantidade} ${sb.quantidade === 1 ? 'carro saiu' : 'carros saíram'} sem pagar. Valor calculado pela tabela na hora da baixa.` : 'Nenhum carro saiu sem pagar no período.'}</p>
+    </section>
+    <div class="grade-ind">
+      <div class="ind"><b>${k.acerto ?? '—'}${k.acerto != null ? '%' : ''}</b><span>acerto do pátio<br>(conferidos ÷ total)</span></div>
+      <div class="ind"><b>${k.entradasSemRegistro}</b><span>entradas sem registro<br>pegas na conferência</span></div>
+      <div class="ind"><b>${k.conferencias}</b><span>conferências<br>${media} por dia em média</span></div>
+      <div class="ind"><b>${k.chavesForaDoLugar}</b><span>chaves fora<br>do lugar</span></div>
+    </div>
+    ${k.horasSemConferencia >= 6 ? `<div class="aviso"><span style="color:var(--faixa)">${svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', 18)}</span><span><b style="color:var(--texto)">Sem conferência há ${Math.floor(k.horasSemConferencia)} horas.</b> A última foi ${ddmm(k.ultimaFinalizadaEm) === ddmm(agora()) ? 'hoje' : `em ${ddmm(k.ultimaFinalizadaEm)}`} às ${hhmm(k.ultimaFinalizadaEm)}.</span></div>` : ''}
+    ${r.porOperador.length ? `
+    <span class="rotulo">Divergências por operador</span>
+    <section class="item" style="padding:14px;gap:12px" aria-label="Divergências por operador">
+      ${r.porOperador.map((o, n) => `
+        <div class="op${n === 0 && o.divergencias && r.porOperador.length > 1 ? ' pior' : ''}">
+          <div class="op-linha"><b>${esc(o.nome)}</b><span class="item-meta" style="font-size:13px">${o.conferencias} conf. · ${o.divergencias} div.</span></div>
+          <div class="barra"><div style="width:${Math.round((o.divergencias / maxDiv) * 100)}%"></div></div>
+        </div>`).join('')}
+    </section>` : ''}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <span class="rotulo">Conferências</span>
+      <label class="check"><input type="checkbox" data-acao="rel-so-div" ${ui.relSoDiv ? 'checked' : ''}> Só com divergência</label>
+    </div>
+    <section style="display:flex;flex-direction:column;gap:8px" aria-label="Lista de conferências">
+      ${r.conferencias.length ? r.conferencias.map((h) => `
+        <button class="conf" data-acao="abrir-detalhe" data-id="${h.id}">
+          <span class="conf-linha"><span style="font-family:var(--mono);font-size:13px;font-weight:600">${ddmm(h.finalizadaEm)} · ${hhmm(h.iniciadaEm)}</span>${etiquetaDe(h)}</span>
+          <span class="conf-linha"><span style="font-size:14px;font-weight:700">${esc(h.operador)} · ${duracao(h.iniciadaEm, h.finalizadaEm)}</span>
+            <span class="item-meta" style="font-size:13px;display:flex;align-items:center;gap:6px">${h.conferidos}/${h.total} · ${h.ajustes.length} ${h.ajustes.length === 1 ? 'ajuste' : 'ajustes'}${svg('<path d="M9 6l6 6-6 6"/>', 16)}</span></span>
+        </button>`).join('') : '<div class="vazio">Nenhuma conferência neste período.</div>'}
+    </section>
+  </main>`;
+}
+
+function telaRelDetalhe() {
+  const h = ui.relDet;
+  if (!h) return `<main class="tela"><div class="vazio">Carregando…</div></main>`;
+  const camera = h.leituras.filter((l) => l.origem === 'CAMERA').length;
+  const leituras = ui.relTodasLeituras ? h.leituras : h.leituras.slice(0, 6);
+  const RES = { CONFERIDO: ['conferido', 'ok'], JA_CONFERIDO: ['repetida', 'suave'], SEM_ENTRADA: ['sem entrada', 'ruim'], NAO_ACHADO: ['não achou', 'ruim'] };
+  const titulo = (a) => a.tipo === 'SAIDA' ? `Saída registrada · ${esc(a.motivo)}` : a.tipo === 'ENTRADA' ? 'Entrada registrada na conferência' : esc(a.texto.replace(/\.$/, ''));
+  return `
+  <main class="tela com-rodape">
+    <div class="topo">
+      <button class="btn-icone" aria-label="Voltar para o relatório" data-acao="ir" data-valor="relatorio">${I.voltar}</button>
+      <div class="titulos"><h1 class="titulo">Conferência ${ddmm(h.finalizadaEm)}</h1><span class="rotulo">${hhmm(h.iniciadaEm)} às ${hhmm(h.finalizadaEm)} · ${esc(h.operador)} · ${h.metodo === 'CAMERA' ? 'câmera' : 'lista'}</span></div>
+    </div>
+    <div class="numeros">
+      <div class="numero"><b>${h.total}</b><span>no sistema</span></div>
+      <div class="numero"><b class="ok">${h.conferidos}</b><span>conferidos</span></div>
+      <div class="numero"><b>${h.ajustes.length}</b><span>ajustes</span></div>
+    </div>
+    <span class="rotulo">Ajustes feitos</span>
+    <section class="item" style="padding:14px;gap:12px">
+      ${h.ajustes.length ? h.ajustes.map((a, n) => `${n ? '<div class="tracejado"></div>' : ''}
+        <div class="aj">
+          <div class="aj-top"><span style="font-family:var(--mono);font-size:14px;font-weight:600">${formatarPlaca(a.placa)}</span>${a.tipo === 'SAIDA' && a.valor ? `<span class="ruim" style="font-size:14px;font-weight:800">${brl(a.valor)}</span>` : ''}</div>
+          <span style="font-size:14px;font-weight:700">${titulo(a)}</span>
+          <span class="item-meta">${a.veiculo ? `${esc(a.veiculo)} · ` : ''}${esc(a.autor || h.operador)} ${hhmm(a.em)}</span>
+        </div>`).join('') : '<span class="item-meta">Nenhum ajuste.</span>'}
+    </section>
+    ${h.naoEncontrados.length ? `
+      <span class="rotulo">Não encontrados no pátio</span>
+      ${h.naoEncontrados.map((i) => `<article class="item"><div class="item-linha">${placaHTML(i.placa)}<div class="item-info"><span class="item-nome">${esc(i.modelo)} · ${esc(i.cor)}</span><span class="item-meta">Entrada ${ddmm(i.entrada)} ${hhmm(i.entrada)} · ticket continua aberto</span></div>${tipoHTML(i.tipo)}</div></article>`).join('')}` : ''}
+    ${h.semEntrada?.length ? `
+      <span class="rotulo">No pátio, sem entrada (não resolvido)</span>
+      ${h.semEntrada.map((s) => `<article class="item"><div class="item-linha">${placaHTML(s.placa)}<div class="item-info"><span class="item-nome ruim">Sem ticket aberto</span><span class="item-meta">Lida às ${hhmm(s.lidaEm)} · entrada não registrada</span></div></div></article>`).join('')}` : ''}
+    ${h.observacao ? `<span class="rotulo">Observação do operador</span><div class="item" style="padding:14px;font-size:14px;line-height:20px">“${esc(h.observacao)}”</div>` : ''}
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="rotulo">Leituras · ${h.leituras.length}</span>
+      <span class="item-meta">${camera} câmera · ${h.leituras.length - camera} manual</span>
+    </div>
+    <section class="item" style="padding:6px 14px;gap:0">
+      ${leituras.length ? leituras.map((l) => `<div class="leit"><span class="h">${hhmm(l.em)}</span><span class="p">${formatarPlaca(l.placa)}</span><span class="suave">${l.origem === 'CAMERA' ? 'câmera' : 'manual'}</span><span class="r ${RES[l.resultado][1]}">${RES[l.resultado][0]}</span></div>`).join('') : '<div class="leit suave">Nenhuma leitura.</div>'}
+    </section>
+    ${h.leituras.length > 6 ? `<button class="btn btn-sec nao-imprimir" data-acao="rel-leituras">${ui.relTodasLeituras ? 'Mostrar menos' : `Ver todas as ${h.leituras.length} leituras`}</button>` : ''}
+  </main>
+  <div class="rodape-fixo"><button class="btn btn-principal" data-acao="exportar-pdf">${svg('<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>', 20)}Exportar PDF</button></div>`;
+}
+
+/* ============================================================
+   FOLHAS (modais de baixo)
+   ============================================================ */
+function abrirFolha(html, focoSel) {
+  const veu = document.getElementById('veu'), f = document.getElementById('folha');
+  f.innerHTML = html; veu.classList.add('aberto'); veu.setAttribute('aria-hidden', 'false');
+  setTimeout(() => (f.querySelector(focoSel || 'input,select,button') || f).focus(), 30);
+}
+function fecharFolha() { const veu = document.getElementById('veu'); veu.classList.remove('aberto'); veu.setAttribute('aria-hidden', 'true'); }
+const cabFolha = (t) => `<h2 class="titulo" style="font-size:20px">${t}</h2>`;
+const botoesFolha = (acao, rotulo) => `<div class="grade-2"><button class="btn btn-sec" data-acao="fechar-folha">Cancelar</button><button class="btn btn-principal" style="min-height:44px" data-acao="${acao}">${rotulo}</button></div>`;
+
+const folhas = {
+  digitar() {
+    abrirFolha(`${cabFolha('Digitar placa')}
+      <div class="campo"><label for="f-placa">Placa</label><input id="f-placa" class="placa-input" maxlength="8" autocomplete="off" placeholder="BRA2E19"></div>
+      ${botoesFolha('confirmar-digitar', 'Conferir')}`);
+  },
+  chave(item) {
+    abrirFolha(`${cabFolha('Chave em outro lugar')}
+      <p style="margin:0;color:var(--texto-suave);font-size:14px">${formatarPlaca(item.placa)} · no sistema: ${esc(item.chave || 'sem posição')}</p>
+      <div class="campo"><label for="f-chave">Onde a chave está</label><input id="f-chave" autocomplete="off" placeholder="Q-15" style="text-transform:uppercase"></div>
+      <input type="hidden" id="f-id" value="${item.id}">
+      ${botoesFolha('confirmar-chave', 'Informar')}`);
+  },
+  darSaida(item) {
+    abrirFolha(`${cabFolha(`Dar saída · ${formatarPlaca(item.placa)}`)}
+      <p style="margin:0;color:var(--texto-suave);font-size:14px">${esc(item.modelo)} · ${esc(item.cor)} · entrada ${hhmm(item.entrada)} (${duracao(item.entrada)})</p>
+      <div class="campo"><label for="f-motivo">Motivo</label>
+        <select id="f-motivo"><option>Saiu sem baixa</option><option>Ticket duplicado</option><option>Entrada registrada por engano</option><option>Outro</option></select></div>
+      <input type="hidden" id="f-id" value="${item.id}">
+      ${botoesFolha('confirmar-saida', 'Dar saída')}`, '#f-motivo');
+  },
+  semEntrada(placa) {
+    abrirFolha(`${cabFolha('Carro sem entrada')}
+      <div style="display:flex;justify-content:center">${placaHTML(placa, { grande: true })}</div>
+      <p style="margin:0;color:var(--texto-suave);font-size:14px;line-height:20px">Este carro está no pátio, mas não tem ticket aberto no sistema. Registre a entrada agora ou resolva depois em Divergências.</p>
+      <div class="grade-2"><button class="btn btn-sec" data-acao="fechar-folha">Depois</button><button class="btn btn-principal" style="min-height:44px" data-acao="registrar-entrada" data-valor="${placa}">Registrar entrada</button></div>`, '.btn-principal');
+  },
+  registrarEntrada(placa) {
+    abrirFolha(`${cabFolha('Registrar entrada')}
+      <div style="display:flex;justify-content:center">${placaHTML(placa, { grande: true })}</div>
+      <div class="grade-2">
+        <div class="campo"><label for="f-modelo">Modelo</label><input id="f-modelo" autocomplete="off" required></div>
+        <div class="campo"><label for="f-cor">Cor</label><input id="f-cor" autocomplete="off" required></div>
+      </div>
+      <div class="campo"><label for="f-tipo">Tipo de cliente</label>
+        <select id="f-tipo"><option value="P">Avulso</option><option value="M">Mensal</option><option value="C">Conveniado</option></select></div>
+      <input type="hidden" id="f-placa" value="${placa}">
+      ${botoesFolha('confirmar-entrada', 'Registrar')}`, '#f-modelo');
+  },
+};
+
+/* ============================================================
+   RENDER E AÇÕES
+   ============================================================ */
+const app = document.getElementById('app');
+function render() {
+  if (['conferindo', 'divergencias', 'resumo'].includes(ui.tela) && !db.aberta) ui.tela = 'inicio';
+  const telas = { mais: telaMais, inicio: telaInicio, conferindo: telaConferindo, divergencias: telaDivergencias, resumo: telaResumo, relatorio: telaRelatorio, relDetalhe: telaRelDetalhe };
+  app.innerHTML = telas[ui.tela]();
+}
+function ir(tela) { ui.tela = tela; render(); window.scrollTo(0, 0); }
+let toastTimer;
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('visivel'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('visivel'), 2400); }
+const valor = (id) => (document.getElementById(id)?.value || '').trim();
+const itemPorId = (id) => db.aberta.itens.find((i) => i.id === Number(id));
+
+const acoes = {
+  async 'abrir-conferencia'() { ui.resumoPatio = null; ir('inicio'); ui.resumoPatio = await api.resumoPatio(); render(); },
+  ir(el) { ir(el.dataset.valor); },
+  'em-breve'() { toast('Fora do escopo deste protótipo.'); },
+  metodo(el) { ui.metodo = el.dataset.valor; render(); },
+  async iniciar() { await api.iniciar(ui.metodo); ui.filtro = 'FALTAM'; ir('conferindo'); },
+  continuar() { ir('conferindo'); },
+  filtro(el) { ui.filtro = el.dataset.valor; render(); },
+  'simular-leitura'() { leitor.simular(); },
+  digitar() { folhas.digitar(); },
+  async 'confirmar-digitar'() {
+    const p = valor('f-placa');
+    if (!placaValida(p)) { toast('Placa inválida. Use o formato ABC1D23 ou ABC-1234.'); return; }
+    fecharFolha(); await leitor.onPlacaLida(p, 'MANUAL');
+    const r = db.aberta.ultimaLeitura?.resultado;
+    if (r !== 'SEM_ENTRADA') toast(r === 'CONFERIDO' ? `${formatarPlaca(p)} conferido` : `${formatarPlaca(p)} já estava conferido`);
+  },
+  async marcar(el) { await api.marcarItem(Number(el.dataset.id), el.dataset.valor); render(); },
+  chave(el) { folhas.chave(itemPorId(el.dataset.id)); },
+  async 'confirmar-chave'() {
+    const pos = valor('f-chave').toUpperCase();
+    if (!pos) { toast('Informe a posição da chave.'); return; }
+    const item = itemPorId(valor('f-id'));
+    if (pos === item.chave) { fecharFolha(); toast('É a mesma posição do sistema.'); return; }
+    await api.informarChave(item.id, pos); fecharFolha(); render(); toast('Divergência de chave registrada.');
+  },
+  'dar-saida'(el) { folhas.darSaida(itemPorId(el.dataset.id)); },
+  async 'confirmar-saida'() { await api.darSaida(Number(valor('f-id')), valor('f-motivo').toLowerCase()); fecharFolha(); render(); toast('Saída registrada.'); },
+  'registrar-entrada'(el) { folhas.registrarEntrada(el.dataset.valor); },
+  async 'confirmar-entrada'() {
+    const modelo = valor('f-modelo'), cor = valor('f-cor');
+    if (!modelo || !cor) { toast('Placa, modelo e cor são obrigatórios.'); return; }
+    await api.registrarEntrada(valor('f-placa'), { modelo, cor, tipo: valor('f-tipo') }); fecharFolha(); render(); toast('Entrada registrada.');
+  },
+  async descartar(el) { await api.descartarLeitura(el.dataset.valor); render(); toast('Leitura descartada.'); },
+  async 'atualizar-chave'(el) { await api.atualizarChave(Number(el.dataset.id)); render(); toast('Posição da chave atualizada.'); },
+  async finalizar() {
+    const u = await api.finalizar(ui.observacao); ui.observacao = '';
+    ir('mais'); toast(`Conferência finalizada · ${u.conferidos} de ${u.total} conferidos`);
+  },
+  'fechar-folha'() { fecharFolha(); },
+
+  /* Relatórios */
+  async 'abrir-relatorio'() { ui.rel = null; ir('relatorio'); await carregarRelatorio(); },
+  async 'rel-periodo'(el) { ui.relPeriodo = el.dataset.valor; ui.rel = null; render(); await carregarRelatorio(); },
+  async 'rel-so-div'() { ui.relSoDiv = !ui.relSoDiv; await carregarRelatorio(); },
+  async 'abrir-detalhe'(el) { ui.relDet = null; ui.relTodasLeituras = false; ir('relDetalhe'); ui.relDet = await api.detalhe(Number(el.dataset.id)); render(); },
+  'rel-leituras'() { ui.relTodasLeituras = !ui.relTodasLeituras; render(); },
+  async 'exportar-csv'() {
+    if (!ui.rel) return;
+    const csv = await api.exportarCsv(ui.rel.conferencias);
+    try {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+      a.download = `conferencias-patio-${ui.relPeriodo.toLowerCase()}.csv`;
+      document.body.appendChild(a); a.click(); a.remove();
+      toast('CSV exportado.');
+    } catch { toast('Não foi possível exportar aqui.'); }
+  },
+  'exportar-pdf'() { ui.relTodasLeituras = true; render(); setTimeout(() => window.print(), 50); },
+};
+async function carregarRelatorio() { ui.rel = await api.relatorio(ui.relPeriodo, ui.relSoDiv); if (ui.tela === 'relatorio') render(); }
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-acao]');
+  if (el && acoes[el.dataset.acao]) { e.preventDefault(); acoes[el.dataset.acao](el); return; }
+  if (e.target.id === 'veu') fecharFolha();
+});
+document.addEventListener('input', (e) => {
+  if (e.target.dataset.campo === 'observacao') ui.observacao = e.target.value;
+  if (e.target.classList.contains('placa-input')) e.target.value = e.target.value.toUpperCase();
+});
+document.addEventListener('keydown', (e) => {
+  if (!document.getElementById('veu').classList.contains('aberto')) return;
+  if (e.key === 'Escape') fecharFolha();
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') { const b = document.querySelector('#folha .btn-principal'); b && b.click(); }
+});
+
+render();
+</script>
+</body>
+</html>
