@@ -21,7 +21,7 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS.map((item) => item.label).indexOf("Conferência de pátio")).toBe(4);
   });
 
-  it("mantém os quinze itens (um por tela), com Pátio, Entrada, Saída e Caixa primeiro e o Dashboard logo depois", () => {
+  it("mantém os dezesseis itens (um por tela), com Pátio, Entrada, Saída e Caixa primeiro e o Dashboard logo depois", () => {
     expect(NAV_ITEMS.map((item) => item.label)).toEqual([
       "Pátio",
       "Entrada de Veículos",
@@ -29,6 +29,7 @@ describe("NAV_ITEMS", () => {
       "Caixa",
       "Conferência de pátio",
       "Carimbar ticket",
+      "Pátio da conveniada",
       "Dashboard",
       "Gestão de Preços",
       "Gestão de Usuários",
@@ -41,13 +42,13 @@ describe("NAV_ITEMS", () => {
     ]);
   });
 
-  it("Entrada e Saída são ações (abrem modal); os outros treze são links", () => {
+  it("Entrada e Saída são ações (abrem modal); os outros catorze são links", () => {
     const acoes = NAV_ITEMS.filter(isNavAction);
     expect(acoes.map((item) => [item.label, item.acao, item.icon])).toEqual([
       ["Entrada de Veículos", "entrada", "vehicleIn"],
       ["Saída de Veículos", "saida", "vehicleOut"],
     ]);
-    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(13);
+    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(14);
   });
 
   it("não repete chave nem ícone", () => {
@@ -135,9 +136,10 @@ describe("Financeiro no menu", () => {
 describe("navItemsPermitidos", () => {
   const rotulos = (perfil: Parameters<typeof navItemsPermitidos>[0]) => navItemsPermitidos(perfil).map((item) => item.label);
 
-  it("o Administrador vê tudo, menos o Carimbo, que é da conveniada", () => {
-    expect(navItemsPermitidos(1)).toEqual(NAV_ITEMS.filter((item) => item.label !== "Carimbar ticket"));
+  it("o Administrador vê tudo, menos o Carimbo e o pátio da conveniada, que são da conveniada", () => {
+    expect(navItemsPermitidos(1)).toEqual(NAV_ITEMS.filter((item) => item.label !== "Carimbar ticket" && item.label !== "Pátio da conveniada"));
     expect(rotulos(1)).not.toContain("Carimbar ticket");
+    expect(rotulos(1)).not.toContain("Pátio da conveniada");
   });
 
   it("o Gerente não vê usuários nem a empresa", () => {
@@ -167,12 +169,12 @@ describe("navItemsPermitidos", () => {
   });
 
   it("o Administrador da conveniada vê o início e a gestão de usuários", () => {
-    expect(rotulos(5)).toEqual(["Carimbar ticket", "Dashboard", "Gestão de Usuários"]);
+    expect(rotulos(5)).toEqual(["Carimbar ticket", "Pátio da conveniada", "Dashboard", "Gestão de Usuários"]);
   });
 
-  it("o Gerente e o Usuário da conveniada vêem o carimbo e o início", () => {
-    expect(rotulos(6)).toEqual(["Carimbar ticket", "Dashboard"]);
-    expect(rotulos(7)).toEqual(["Carimbar ticket", "Dashboard"]);
+  it("o Gerente e o Usuário da conveniada vêem o carimbo, o pátio da conveniada e o início", () => {
+    expect(rotulos(6)).toEqual(["Carimbar ticket", "Pátio da conveniada", "Dashboard"]);
+    expect(rotulos(7)).toEqual(["Carimbar ticket", "Pátio da conveniada", "Dashboard"]);
   });
 
   it("sem perfil conhecido só o Início", () => {
@@ -208,7 +210,7 @@ describe("navItemsPorPrioridade", () => {
   });
 
   it("tem os mesmos itens do menu, só em outra ordem", () => {
-    const doMenu = NAV_ITEMS.filter((item) => item.label !== "Carimbar ticket");
+    const doMenu = NAV_ITEMS.filter((item) => item.label !== "Carimbar ticket" && item.label !== "Pátio da conveniada");
     expect(navItemsPorPrioridade(1)).toHaveLength(doMenu.length);
     expect(new Set(navItemsPorPrioridade(1).map(navItemKey))).toEqual(new Set(doMenu.map(navItemKey)));
   });

@@ -1,7 +1,7 @@
 import { AREA, podeAcessar, type Area } from "@/lib/permissoes";
 import type { PerfilUsuario } from "@/types/usuario";
 
-export type NavIconId = "dashboard" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "company" | "invoice" | "finance" | "keys" | "agreement" | "stamp" | "checklist";
+export type NavIconId = "dashboard" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "company" | "invoice" | "finance" | "keys" | "agreement" | "stamp" | "checklist" | "stampedYard";
 
 // Ações do menu que abrem um modal por cima da tela atual, em vez de levar a uma página.
 export type NavAction = "entrada" | "saida";
@@ -41,6 +41,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Caixa", shortLabel: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa },
   { label: "Conferência de pátio", shortLabel: "Conferência", href: "/conferencia-patio", icon: "checklist", area: AREA.Patio },
   { label: "Carimbar ticket", shortLabel: "Carimbo", href: "/carimbo", icon: "stamp", area: AREA.Carimbo },
+  { label: "Pátio da conveniada", shortLabel: "Pátio", href: "/patio-conveniada", icon: "stampedYard", area: AREA.PatioConveniada },
   { label: "Dashboard", shortLabel: "Dashboard", href: "/dashboard", icon: "dashboard", area: AREA.Inicio },
   { label: "Gestão de Preços", shortLabel: "Preços", href: "/precos", icon: "pricing", area: AREA.Precos },
   { label: "Gestão de Usuários", shortLabel: "Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios },

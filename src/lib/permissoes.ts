@@ -21,6 +21,8 @@ export const AREA = {
   QuadroChaves: "quadros-chaves",
   // Carimbo do ticket de entrada pela empresa conveniada, lendo o QR Code do cliente.
   Carimbo: "carimbo",
+  // Veículos carimbados pela conveniada que ainda estão no pátio dos estacionamentos com convênio.
+  PatioConveniada: "patio-conveniada",
 } as const;
 export type Area = (typeof AREA)[keyof typeof AREA];
 
@@ -49,6 +51,7 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.Usuarios]: [Administrador, AdministradorConveniada],
   [AREA.QuadroChaves]: [Administrador, Gerente],
   [AREA.Carimbo]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
+  [AREA.PatioConveniada]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
 };
 
 // Sem perfil conhecido, só o acesso mínimo: o Início (e, fora das áreas, a troca da própria senha e o sair).
@@ -77,6 +80,7 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/usuarios", AREA.Usuarios],
   ["/quadros-chaves", AREA.QuadroChaves],
   ["/carimbo", AREA.Carimbo],
+  ["/patio-conveniada", AREA.PatioConveniada],
 ];
 
 // Rotas da área logada abertas a qualquer usuário autenticado.

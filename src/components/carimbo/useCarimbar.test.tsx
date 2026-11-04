@@ -23,6 +23,38 @@ beforeEach(() => {
 });
 
 describe("useCarimbar", () => {
+  it("no sucesso, invalida a lista do pátio da conveniada", async () => {
+    carimbar.mockResolvedValue(CARIMBO);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const invalidar = vi.spyOn(client, "invalidateQueries");
+    const { result } = renderHook(() => useCarimbar(), {
+      wrapper: ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>,
+    });
+
+    act(() => {
+      result.current.carimbar("58BMTFRW");
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ["patio-conveniada"] });
+  });
+
+  it("numa falha, não invalida a lista", async () => {
+    carimbar.mockRejectedValue(new ApiError("validation", "Já carimbado.", 400));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const invalidar = vi.spyOn(client, "invalidateQueries");
+    const { result } = renderHook(() => useCarimbar(), {
+      wrapper: ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>,
+    });
+
+    act(() => {
+      result.current.carimbar("58BMTFRW");
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(invalidar).not.toHaveBeenCalled();
+  });
+
   it("carimba o token lido e guarda o resultado", async () => {
     carimbar.mockResolvedValue(CARIMBO);
     const { result } = renderHook(() => useCarimbar(), { wrapper });

@@ -1,7 +1,8 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
+import { PATIO_CONVENIADA_KEY } from "@/components/patio-conveniada/patioConveniadaKeys";
 import { carimbarTicket } from "@/lib/api/services/carimbo";
 
 // Depois de uma tentativa que falhou, o mesmo QR ainda diante da câmera não dispara outra chamada por este tempo.
@@ -9,6 +10,7 @@ export const REPETICAO_TOKEN_MS = 5000;
 
 // Carimba o ticket lido. Uma chamada por vez: enquanto uma está em andamento, novas leituras são ignoradas.
 export function useCarimbar() {
+  const queryClient = useQueryClient();
   const ultimaFalha = useRef<{ token: string; em: number } | null>(null);
   const ultimoToken = useRef<string | null>(null);
 
@@ -22,6 +24,8 @@ export function useCarimbar() {
     },
     onSuccess: () => {
       ultimaFalha.current = null;
+      // O veículo carimbado passa a fazer parte do pátio da conveniada.
+      void queryClient.invalidateQueries({ queryKey: PATIO_CONVENIADA_KEY });
     },
   });
 

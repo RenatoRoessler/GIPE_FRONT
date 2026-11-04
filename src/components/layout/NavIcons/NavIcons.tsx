@@ -161,6 +161,16 @@ function ChecklistIcon(props: IconProps) {
   );
 }
 
+// Pátio da conveniada: o "P" do pátio com a marca do carimbo embaixo.
+function StampedYardIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <rect x="4" y="3" width="16" height="13" rx="3" />
+      <path d="M10 13V6h3a2 2 0 0 1 0 4h-3M5 20h14" />
+    </IconBase>
+  );
+}
+
 const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   dashboard: DashboardIcon,
   pricing: PricingIcon,
@@ -177,6 +187,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   agreement: AgreementIcon,
   stamp: StampIcon,
   checklist: ChecklistIcon,
+  stampedYard: StampedYardIcon,
 };
 
 export function NavIcon({ id, ...props }: { id: NavIconId } & IconProps) {
