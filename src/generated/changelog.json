@@ -2,6 +2,30 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.344",
+      "type": "feat",
+      "scope": "conferencia",
+      "title": "adiciona a conferência de pátio",
+      "description": "Nova tela para conferir os veículos do pátio contra o sistema: escolha entre\ncâmera e lista, leitura de placas em sequência, divergências, resumo com\nobservação e finalização. Veículos que não foram achados podem ter a saída\nregistrada informando só o motivo, e placas sem entrada podem ganhar entrada.\nInclui o item \"Conferência de pátio\" no menu.",
+      "date": "2026-11-04T17:19:54-03:00"
+    },
+    {
+      "version": "1.0.343",
+      "type": "feat",
+      "scope": "veiculos",
+      "title": "permite leitura contínua de placas pela câmera",
+      "description": "O leitor ganha o modo contínuo, que segue lendo placas sem fechar a câmera\na cada leitura, para conferir vários veículos em sequência.",
+      "date": "2026-11-04T17:19:54-03:00"
+    },
+    {
+      "version": "1.0.342",
+      "type": "feat",
+      "scope": "ui",
+      "title": "adiciona ProgressBar e TipoClienteBadge ao design system",
+      "description": "Barra de progresso acessível e selo de tipo de cliente (avulso, mensalista,\nconveniado), usados na conferência de pátio.",
+      "date": "2026-11-04T17:19:54-03:00"
+    },
+    {
       "version": "1.0.339",
       "type": "feat",
       "scope": "adesao",
