@@ -34,6 +34,7 @@ describe("SideNav", () => {
       "Entrada de Veículos",
       "Saída de Veículos",
       "Caixa",
+      "Conferência de pátio",
       "Dashboard",
       "Gestão de Preços",
       "Gestão de Usuários",

@@ -64,6 +64,7 @@ export function podeAcessar(perfil: PerfilUsuario | null | undefined, area: Area
 const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/dashboard", AREA.Inicio],
   ["/patio", AREA.Patio],
+  ["/conferencia-patio", AREA.Patio],
   ["/caixa", AREA.Caixa],
   // Histórico de caixas fechados e extrato: só Administrador e Gerente, ao contrário do restante do caixa.
   ["/caixa/historico", AREA.CaixaHistorico],

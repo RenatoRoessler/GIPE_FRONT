@@ -1,0 +1,1 @@
+export { ConferenciaResumo } from "./ConferenciaResumo";

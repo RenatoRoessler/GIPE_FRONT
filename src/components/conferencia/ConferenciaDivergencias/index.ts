@@ -1,0 +1,1 @@
+export { ConferenciaDivergencias } from "./ConferenciaDivergencias";

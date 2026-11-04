@@ -54,6 +54,8 @@ describe("areaDaRota", () => {
   it("mapeia a rota e as rotas filhas", () => {
     expect(areaDaRota("/dashboard")).toBe(AREA.Inicio);
     expect(areaDaRota("/precos")).toBe(AREA.Precos);
+    expect(areaDaRota("/conferencia-patio")).toBe(AREA.Patio);
+    expect(areaDaRota("/conferencia-patio/resumo")).toBe(AREA.Patio);
     expect(areaDaRota("/precos/novo")).toBe(AREA.Precos);
     expect(areaDaRota("/precos/123/editar")).toBe(AREA.Precos);
     expect(areaDaRota("/minha-empresa")).toBe(AREA.Empresa);

@@ -4,6 +4,7 @@ import type { ComprovanteCliente, EntradaPayload, EntradaRegistrada, ReciboClien
 import type { SaidaBusca, SaidaBuscaTipo, SaidaConsulta, SaidaPayload, SaidaRegistrada } from "@/types/saida";
 import { api } from "../client";
 import { ApiError } from "../errors";
+import { toNumber, toText } from "./mapperUtils";
 
 // Responde 200 ou 201; os erros (sem caixa aberto, veículo já no pátio, ticket em uso) sobem como ApiError.
 export async function registrarEntrada(payload: EntradaPayload): Promise<EntradaRegistrada> {
@@ -88,15 +89,6 @@ export async function registrarSaida(patioId: number, payload: SaidaPayload): Pr
     }
     throw error;
   }
-}
-
-function toNumber(value: unknown): number | null {
-  const number = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
-  return typeof number === "number" && Number.isFinite(number) ? number : null;
-}
-
-function toText(value: unknown): string | null {
-  return typeof value === "string" && value.trim() !== "" ? value : null;
 }
 
 // "A2" ou "Recepção · A2": o nome do quadro é opcional e a posição é linha (letras) mais coluna (número).
