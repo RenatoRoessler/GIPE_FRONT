@@ -12,6 +12,7 @@ import { formatPhone } from "@/lib/phone";
 import { lightTheme } from "@/styles/theme";
 import { corDoVeiculo } from "../patio";
 import { DE_TICKET, hrefDoTicketComQuery, PARAM_DE } from "../patioUrl";
+import { linkDoTicket } from "../ticketLink";
 import { useComprovanteTicket } from "../useComprovanteTicket";
 import { usePatioVeiculo } from "../usePatioVeiculo";
 import {
@@ -131,7 +132,7 @@ function Conteudo({ patioId }: ComprovanteDigitalProps) {
     );
   }
 
-  const link = `${window.location.origin}/comprovante/${encodeURIComponent(token)}`;
+  const link = linkDoTicket(token);
   const ticket = veiculo.codigoTicket !== null ? `Ticket ${veiculo.codigoTicket}` : `Seq. ${veiculo.sequencial}`;
   const cor = corDoVeiculo(veiculo.cor).texto;
 

@@ -304,3 +304,27 @@ describe("TicketView: popup", () => {
     expect(within(dialogo).getByText("FLP3C88")).toBeInTheDocument();
   });
 });
+
+describe("TicketView: enviar ao cliente", () => {
+  it("abre o popup de envio com a placa e avisa depois de enviar", async () => {
+    vi.spyOn(window, "open").mockReturnValue(null);
+    abrir();
+    await userEvent.click(await screen.findByRole("button", { name: "Enviar ao cliente" }));
+
+    const popup = await screen.findByRole("dialog", { name: "Enviar ticket ao cliente" });
+    expect(within(popup).getByText("FLP3C88")).toBeInTheDocument();
+    await userEvent.type(within(popup).getByLabelText("WhatsApp do cliente"), "11912345678");
+    await userEvent.click(within(popup).getByRole("button", { name: "Abrir WhatsApp" }));
+
+    expect(await screen.findByText("Mensagem aberta no WhatsApp. Confirme o envio por lá.")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Enviar ticket ao cliente" })).not.toBeInTheDocument();
+  });
+
+  it("sem token o botão fica desabilitado e ligado ao aviso", async () => {
+    abrir([veiculo({ token: null })]);
+
+    const botao = await screen.findByRole("button", { name: "Enviar ao cliente" });
+    expect(botao).toBeDisabled();
+    expect(botao).toHaveAccessibleDescription("Comprovante indisponível para este veículo.");
+  });
+});
