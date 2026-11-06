@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.349",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "adota o plano único de R$ 69,90 no lançamento",
+      "description": "O cadastro passa a oferecer só o teste grátis e o plano Mensal, no mesmo\nmodelo do site: R$ 69,90 por mês nos primeiros 12 meses para quem assinar\naté 30/06/2027 e R$ 99,90 por mês depois.\n\n- Substitui os quatro planos por PLANO_MENSAL e remove total e economia.\n- Mostra o selo de lançamento e a regra dos 12 meses no passo Plano, na\n  conferência e na credencial.\n- Depois de 30/06/2027 exibe só o preço de tabela, sem selo.\n- Aceita só os tipos 0 e 1 no schema e em tipoPlanoAdesao na URL.\n- Mantém os valores 2 a 4 em TipoPlanoAdesao pelo contrato com o backend.",
+      "date": "2026-11-06T16:27:56-03:00"
+    },
+    {
       "version": "1.0.347",
       "type": "feat",
       "scope": "conveniada",
