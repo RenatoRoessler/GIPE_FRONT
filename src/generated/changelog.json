@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.355",
+      "type": "feat",
+      "scope": "ticket",
+      "title": "permite enviar o link do ticket ao WhatsApp ou e-mail do cliente",
+      "description": "O operador agora pode mandar o ticket digital ao cliente sem imprimir. O\nbotão \"Enviar ao cliente\" aparece no comprovante de entrada e no detalhe\ndo ticket do pátio; ele abre um popup para escolher WhatsApp ou e-mail e\ninformar o contato, com validação e prévia da mensagem.\n\nAo confirmar, o WhatsApp ou o aplicativo de e-mail abre com a mensagem\npronta e o link do ticket, e o operador conclui o envio por lá. O contato\ninformado não é salvo.\n\nTambém centraliza a montagem do link do ticket em um único helper.",
+      "date": "2026-11-06T18:25:48-03:00"
+    },
+    {
       "version": "1.0.351",
       "type": "feat",
       "scope": "adesao",
