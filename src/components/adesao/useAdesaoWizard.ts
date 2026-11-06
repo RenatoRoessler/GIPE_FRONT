@@ -8,9 +8,18 @@ import { useAppForm, zodFieldErrors } from "@/components/form";
 import { AlvoErro, atribuirErro } from "@/lib/api/adesaoErrors";
 import { saveAdesao } from "@/lib/api/services/adesao";
 import { ehTesteGratisNaUrl, lerPlanoDaUrl } from "@/lib/planos";
-import { adminUserSchema, businessHoursSchema, companySchema, paymentsSchema, planoSchema } from "@/lib/schemas/adesao";
 import {
+  aceiteSchema,
+  adminUserSchema,
+  businessHoursSchema,
+  companySchema,
+  paymentsSchema,
+  planoSchema,
+} from "@/lib/schemas/adesao";
+import {
+  AceiteData,
   CompanyData,
+  EMPTY_ACEITE_DATA,
   EMPTY_ADMIN_USER_DATA,
   EMPTY_BUSINESS_HOURS_DATA,
   EMPTY_COMPANY_DATA,
@@ -81,6 +90,9 @@ export function useAdesaoWizard() {
   const [faltam, setFaltam] = useState(0);
   // Depois de "Editar" na conferência, validar a etapa corrigida já leva de volta à conferência.
   const [retornoConferencia, setRetornoConferencia] = useState(false);
+  // Os aceites da conferência ficam aqui (e não em um formulário) porque são só dois booleanos; sobrevivem à troca de etapa.
+  const [aceite, setAceite] = useState<AceiteData>(EMPTY_ACEITE_DATA);
+  const [erroAceite, setErroAceite] = useState<Partial<Record<keyof AceiteData, string>>>({});
   const tituloRef = useRef<HTMLHeadingElement>(null);
   const etapaAnterior = useRef(etapa);
 
@@ -270,6 +282,26 @@ export function useAdesaoWizard() {
     if (destino === ETAPA.Empresa && bloco) setBlocosAbertos([bloco]);
   }
 
+  function aceitar(documento: keyof AceiteData, aceito: boolean) {
+    setAceite((atual) => ({ ...atual, [documento]: aceito }));
+    setErroAceite((atual) => ({ ...atual, [documento]: undefined }));
+  }
+
+  // Sem os dois aceites não há envio: mostra o que falta junto de cada caixa e leva o foco à primeira pendente.
+  function validarAceite(): boolean {
+    const result = aceiteSchema.safeParse(aceite);
+    if (result.success) {
+      setErroAceite({});
+      return true;
+    }
+
+    const erros: Partial<Record<keyof AceiteData, string>> = {};
+    for (const issue of result.error.issues) erros[issue.path[0] as keyof AceiteData] = issue.message;
+    setErroAceite(erros);
+    focarPrimeiroInvalido();
+    return false;
+  }
+
   async function enviar() {
     // No fluxo pago a etapa Plano é obrigatória; sem plano não há o que enviar, então volta a ela.
     if (planoEnviado === undefined) {
@@ -277,8 +309,10 @@ export function useAdesaoWizard() {
       return;
     }
 
+    if (!validarAceite()) return;
+
     try {
-      await mutation.mutateAsync({ plano: planoEnviado, company, hours, payments, adminUser });
+      await mutation.mutateAsync({ plano: planoEnviado, company, hours, payments, adminUser, aceite });
     } catch {
       // O erro fica em `mutation.error` e é mostrado no topo da conferência.
     }
@@ -289,8 +323,11 @@ export function useAdesaoWizard() {
   // Leva o usuário ao campo que o backend recusou, mantendo tudo o que já foi preenchido.
   function corrigir(alvo: AlvoErro) {
     mutation.reset();
-    setRetornoConferencia(true);
-    setEtapa(alvo.etapa);
+    // Os aceites ficam na própria conferência: não há etapa para onde voltar.
+    if (alvo.etapa !== ETAPA.Conferir) {
+      setRetornoConferencia(true);
+      setEtapa(alvo.etapa);
+    }
     if (alvo.etapa === ETAPA.Empresa) setBlocosAbertos(["identificacao"]);
     aposRender(() => document.querySelector<HTMLElement>(`[name="${alvo.campo}"]`)?.focus());
   }
@@ -307,6 +344,9 @@ export function useAdesaoWizard() {
     hoursForm,
     adminUserForm,
     dados: { plano, company, hours, payments, adminUser },
+    aceite,
+    erroAceite,
+    aceitar,
     escolherPlano,
     erroPlano,
     credencial,

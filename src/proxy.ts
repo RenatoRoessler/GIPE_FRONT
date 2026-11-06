@@ -31,6 +31,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // Todas as rotas, exceto o proxy da API em desenvolvimento (/api-proxy), arquivos estáticos e os arquivos do PWA (manifest, service worker, ícones, favicon e página
-  // offline) e do OCR da placa (public/ocr), que o navegador busca sem cookie.
-  matcher: ["/((?!api-proxy|_next/static|_next/image|icons|favicon.ico|icon.png|icon.svg|ocr|manifest.webmanifest|sw.js|offline.html).*)"],
+  // offline) e do OCR da placa (public/ocr) e dos documentos legais da adesão (public/legal), que o navegador busca sem cookie.
+  matcher: ["/((?!api-proxy|_next/static|_next/image|icons|favicon.ico|icon.png|icon.svg|ocr|legal|manifest.webmanifest|sw.js|offline.html).*)"],
 };

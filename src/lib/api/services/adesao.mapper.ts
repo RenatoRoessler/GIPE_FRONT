@@ -1,6 +1,8 @@
 import { onlyDigits } from "@/lib/digits";
 import { formatCEP } from "@/lib/cep";
+import { VERSAO_TERMOS } from "@/lib/termos";
 import {
+  AceiteData,
   AdminUserData,
   BusinessHoursData,
   CompanyData,
@@ -48,6 +50,10 @@ export interface AdesaoPayload {
     celular: string;
     senha: string;
   };
+  aceiteTermos: {
+    aceito: boolean;
+    versaoTermos: string;
+  };
 }
 
 export interface AdesaoInput {
@@ -56,6 +62,7 @@ export interface AdesaoInput {
   hours: BusinessHoursData;
   payments: PaymentsData;
   adminUser: AdminUserData;
+  aceite: AceiteData;
 }
 
 export type EnderecoPayload = AdesaoPayload["empresa"]["endereco"];
@@ -105,7 +112,7 @@ export function toHorariosPayload(
 
 // Único ponto que traduz o formulário para o contrato do backend.
 // Formatos seguem o exemplo recebido: documentos/telefones só com dígitos, CEP com hífen.
-export function toAdesaoPayload({ plano, company, hours, payments, adminUser }: AdesaoInput): AdesaoPayload {
+export function toAdesaoPayload({ plano, company, hours, payments, adminUser, aceite }: AdesaoInput): AdesaoPayload {
   return {
     tipoPlanoAdesao: plano,
     empresa: {
@@ -127,5 +134,7 @@ export function toAdesaoPayload({ plano, company, hours, payments, adminUser }: 
       celular: onlyDigits(adminUser.celular),
       senha: adminUser.senha,
     },
+    // O backend tem um único aceite: só vale quando os dois documentos foram aceitos.
+    aceiteTermos: { aceito: aceite.termos && aceite.privacidade, versaoTermos: VERSAO_TERMOS },
   };
 }

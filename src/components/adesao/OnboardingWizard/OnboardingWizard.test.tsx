@@ -89,6 +89,12 @@ async function irAtePlano(user: User) {
   await titulo("Escolha o seu plano");
 }
 
+// Os dois aceites da conferência são obrigatórios para criar a conta.
+async function aceitarTermos(user: User) {
+  await user.click(screen.getByRole("checkbox", { name: "Li e aceito os Termos de Uso" }));
+  await user.click(screen.getByRole("checkbox", { name: "Li e aceito a Política de Privacidade" }));
+}
+
 async function irAteConferencia(user: User) {
   await irAtePlano(user);
   await user.click(proximo());
@@ -300,6 +306,7 @@ describe("OnboardingWizard: envio", () => {
     await titulo("Escolha o seu plano");
     await user.click(proximo());
     await titulo("Confira os dados");
+    await aceitarTermos(user);
     await user.click(criarConta());
 
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
@@ -319,6 +326,7 @@ describe("OnboardingWizard: envio", () => {
     renderWizard();
     await irAteConferencia(user);
 
+    await aceitarTermos(user);
     await user.click(criarConta());
     const botao = await screen.findByRole("button", { name: "Criando conta…" });
     expect(botao).toBeDisabled();
@@ -331,6 +339,7 @@ describe("OnboardingWizard: envio", () => {
     vi.mocked(saveAdesao).mockRejectedValue(new ApiError("validation", "CNPJ já cadastrado.", 400));
     renderWizard();
     await irAteConferencia(user);
+    await aceitarTermos(user);
     await user.click(criarConta());
 
     expect(await screen.findByRole("alert")).toHaveTextContent("CNPJ já cadastrado.");
@@ -347,6 +356,7 @@ describe("OnboardingWizard: envio", () => {
     vi.mocked(saveAdesao).mockRejectedValueOnce(new ApiError("network"));
     renderWizard();
     await irAteConferencia(user);
+    await aceitarTermos(user);
     await user.click(criarConta());
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível conectar ao servidor.");
@@ -359,6 +369,88 @@ describe("OnboardingWizard: envio", () => {
 });
 
 const plano = (nome: RegExp) => screen.getByRole("radio", { name: nome });
+
+describe("OnboardingWizard: aceite dos termos", () => {
+  it("sem nenhum aceite não envia, mostra os dois erros e foca a primeira caixa", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await irAteConferencia(user);
+    await user.click(criarConta());
+
+    expect(saveAdesao).not.toHaveBeenCalled();
+    expect(screen.getByText("Aceite os Termos de Uso para continuar.")).toBeInTheDocument();
+    expect(screen.getByText("Aceite a Política de Privacidade para continuar.")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("checkbox", { name: /Li e aceito os Termos de Uso/ })).toHaveFocus());
+  });
+
+  it("com só um aceite mantém o erro do outro e não envia", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await irAteConferencia(user);
+    await user.click(screen.getByRole("checkbox", { name: "Li e aceito os Termos de Uso" }));
+    await user.click(criarConta());
+
+    expect(saveAdesao).not.toHaveBeenCalled();
+    expect(screen.queryByText("Aceite os Termos de Uso para continuar.")).not.toBeInTheDocument();
+    expect(screen.getByText("Aceite a Política de Privacidade para continuar.")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole("checkbox", { name: /Li e aceito a Política de Privacidade/ })).toHaveFocus(),
+    );
+  });
+
+  it("marcar a caixa tira o erro dela", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await irAteConferencia(user);
+    await user.click(criarConta());
+    await user.click(screen.getByRole("checkbox", { name: /Li e aceito os Termos de Uso/ }));
+
+    expect(screen.queryByText("Aceite os Termos de Uso para continuar.")).not.toBeInTheDocument();
+    expect(screen.getByText("Aceite a Política de Privacidade para continuar.")).toBeInTheDocument();
+  });
+
+  it("com os dois aceites envia o aceite confirmado", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await irAteConferencia(user);
+    await aceitarTermos(user);
+    await user.click(criarConta());
+
+    await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].aceite).toEqual({ termos: true, privacidade: true });
+  });
+
+  it("os aceites continuam marcados ao voltar e retornar à conferência", async () => {
+    const user = userEvent.setup();
+    renderWizard();
+    await irAteConferencia(user);
+    await aceitarTermos(user);
+    await user.click(screen.getByRole("button", { name: "Voltar" }));
+    await titulo("Escolha o seu plano");
+    await user.click(proximo());
+    await titulo("Confira os dados");
+
+    expect(screen.getByRole("checkbox", { name: "Li e aceito os Termos de Uso" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Li e aceito a Política de Privacidade" })).toBeChecked();
+  });
+
+  it("recusa do backend sobre o aceite leva à caixa, sem sair da conferência", async () => {
+    const user = userEvent.setup();
+    vi.mocked(saveAdesao).mockRejectedValue(new ApiError("validation", "É necessário aceitar os termos de uso.", 400));
+    renderWizard();
+    await irAteConferencia(user);
+    await aceitarTermos(user);
+    await user.click(criarConta());
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("É necessário aceitar os termos de uso.");
+    await user.click(screen.getByRole("button", { name: "Corrigir Termos de Uso" }));
+
+    await titulo("Confira os dados");
+    await waitFor(() => expect(screen.getByRole("checkbox", { name: "Li e aceito os Termos de Uso" })).toHaveFocus());
+    expect(screen.getByRole("checkbox", { name: "Li e aceito os Termos de Uso" })).toBeChecked();
+    expect(criarConta()).toHaveTextContent("Criar conta");
+  });
+});
 
 describe("OnboardingWizard: plano", () => {
   it.each([
@@ -456,6 +548,7 @@ describe("OnboardingWizard: plano", () => {
     const user = userEvent.setup();
     renderWizard("tipoPlanoAdesao=1");
     await irAteConferencia(user);
+    await aceitarTermos(user);
     await user.click(criarConta());
 
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
@@ -475,6 +568,7 @@ describe("OnboardingWizard: plano", () => {
     await titulo("Confira os dados");
 
     expect(screen.getByRole("region", { name: "Teste grátis por 30 dias" })).toBeInTheDocument();
+    await aceitarTermos(user);
     await user.click(criarConta());
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
     expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(0);
@@ -568,6 +662,7 @@ describe("OnboardingWizard: teste grátis", () => {
     const user = userEvent.setup();
     renderWizard(TESTE_GRATIS);
     await irAteConferenciaDoTeste(user);
+    await aceitarTermos(user);
     await user.click(criarConta());
 
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
@@ -641,6 +736,7 @@ describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
     expect(within(resumo).getByRole("button", { name: "Editar Plano" })).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Plano" })).not.toBeInTheDocument();
 
+    await aceitarTermos(user);
     await user.click(criarConta());
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
     expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(0);
@@ -661,6 +757,7 @@ describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
     await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
     await titulo("Confira os dados");
 
+    await aceitarTermos(user);
     await user.click(criarConta());
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
     expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(1);

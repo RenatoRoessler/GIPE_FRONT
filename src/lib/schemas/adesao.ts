@@ -179,3 +179,13 @@ export const planoSchema = z.object({
 });
 
 export type PlanoValues = z.infer<typeof planoSchema>;
+
+export const TERMOS_OBRIGATORIO_MESSAGE = "Aceite os Termos de Uso para continuar.";
+export const PRIVACIDADE_OBRIGATORIA_MESSAGE = "Aceite a Política de Privacidade para continuar.";
+
+export const aceiteSchema = z.object({
+  termos: z.literal(true, { message: TERMOS_OBRIGATORIO_MESSAGE }),
+  privacidade: z.literal(true, { message: PRIVACIDADE_OBRIGATORIA_MESSAGE }),
+});
+
+export type AceiteValues = z.infer<typeof aceiteSchema>;

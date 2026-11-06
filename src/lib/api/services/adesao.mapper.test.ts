@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  type AceiteData,
   EMPTY_ADMIN_USER_DATA,
   EMPTY_BUSINESS_HOURS_DATA,
   EMPTY_PAYMENTS_DATA,
@@ -24,6 +25,8 @@ const company: CompanyData = {
   quantidadeVagasMoto: "10",
   quantidadeVagasCarro: "50",
 };
+
+const aceite: AceiteData = { termos: true, privacidade: true };
 
 const adminUser = {
   ...EMPTY_ADMIN_USER_DATA,
@@ -54,17 +57,18 @@ describe("toAdesaoPayload: meios de pagamento", () => {
       hours: EMPTY_BUSINESS_HOURS_DATA,
       payments: { dinheiro: true, pix: true, cartaoCredito: false, cartaoDebito: true },
       adminUser,
+      aceite,
     });
     expect(payload.empresa).toMatchObject({ dinheiro: true, pix: true, cartaoCredito: false, cartaoDebito: true });
   });
 
   it("com o padrão da adesão envia só dinheiro ligado", () => {
-    const payload = toAdesaoPayload({ plano: TipoPlanoAdesao.Mensal, company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser });
+    const payload = toAdesaoPayload({ plano: TipoPlanoAdesao.Mensal, company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser, aceite });
     expect(payload.empresa).toMatchObject({ dinheiro: true, pix: false, cartaoCredito: false, cartaoDebito: false });
   });
 
   it("não muda o restante do payload", () => {
-    const payload = toAdesaoPayload({ plano: TipoPlanoAdesao.Mensal, company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser });
+    const payload = toAdesaoPayload({ plano: TipoPlanoAdesao.Mensal, company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser, aceite });
     expect(payload.empresa.cnpj).toBe("11222333000181");
     expect(payload.empresa.quantidadeVagasMoto).toBe(10);
     expect(payload.horarios).toHaveLength(7);
@@ -80,7 +84,7 @@ describe("toAdesaoPayload: plano", () => {
     [TipoPlanoAdesao.Semestral, 3],
     [TipoPlanoAdesao.Anual, 4],
   ])("envia tipoPlanoAdesao %s como %i", (plano, esperado) => {
-    const payload = toAdesaoPayload({ plano, company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser });
+    const payload = toAdesaoPayload({ plano, company, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA, adminUser, aceite });
     expect(payload.tipoPlanoAdesao).toBe(esperado);
   });
 
@@ -91,9 +95,34 @@ describe("toAdesaoPayload: plano", () => {
       hours: EMPTY_BUSINESS_HOURS_DATA,
       payments: EMPTY_PAYMENTS_DATA,
       adminUser,
+      aceite,
     });
     expect(payload.tipoPlanoAdesao).toBe(0);
-    expect(Object.keys(payload).sort()).toEqual(["empresa", "horarios", "tipoPlanoAdesao", "usuario"]);
+    expect(Object.keys(payload).sort()).toEqual(["aceiteTermos", "empresa", "horarios", "tipoPlanoAdesao", "usuario"]);
     expect(JSON.stringify(payload)).not.toMatch(/cobran|assinatura|valor|preco|preço/i);
+  });
+});
+
+describe("toAdesaoPayload: aceite dos termos", () => {
+  const montar = (aceiteDado: AceiteData) =>
+    toAdesaoPayload({
+      plano: TipoPlanoAdesao.Mensal,
+      company,
+      hours: EMPTY_BUSINESS_HOURS_DATA,
+      payments: EMPTY_PAYMENTS_DATA,
+      adminUser,
+      aceite: aceiteDado,
+    });
+
+  it("envia aceito e a versão vigente quando os dois foram aceitos", () => {
+    expect(montar({ termos: true, privacidade: true }).aceiteTermos).toEqual({ aceito: true, versaoTermos: "v1.0" });
+  });
+
+  it.each<AceiteData>([
+    { termos: true, privacidade: false },
+    { termos: false, privacidade: true },
+    { termos: false, privacidade: false },
+  ])("não marca aceito se faltar um dos dois (%o)", (parcial) => {
+    expect(montar(parcial).aceiteTermos.aceito).toBe(false);
   });
 });

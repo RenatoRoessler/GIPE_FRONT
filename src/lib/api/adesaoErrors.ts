@@ -1,10 +1,10 @@
 import { ETAPA } from "@/components/adesao/etapas";
 import { ApiError } from "./errors";
 
-export type CampoAdesao = "cnpj" | "cpf" | "email";
+export type CampoAdesao = "cnpj" | "cpf" | "email" | "aceiteTermos" | "aceitePrivacidade";
 
 export interface AlvoErro {
-  etapa: typeof ETAPA.Empresa | typeof ETAPA.Titular;
+  etapa: typeof ETAPA.Empresa | typeof ETAPA.Titular | typeof ETAPA.Conferir;
   campo: CampoAdesao;
   rotulo: string;
 }
@@ -18,12 +18,17 @@ const ALVOS: Record<CampoAdesao, AlvoErro> = {
   cnpj: { etapa: ETAPA.Empresa, campo: "cnpj", rotulo: "CNPJ" },
   cpf: { etapa: ETAPA.Titular, campo: "cpf", rotulo: "CPF" },
   email: { etapa: ETAPA.Titular, campo: "email", rotulo: "e-mail" },
+  aceiteTermos: { etapa: ETAPA.Conferir, campo: "aceiteTermos", rotulo: "Termos de Uso" },
+  aceitePrivacidade: { etapa: ETAPA.Conferir, campo: "aceitePrivacidade", rotulo: "Política de Privacidade" },
 };
 
 const PALAVRAS_CHAVE: { campo: CampoAdesao; padrao: RegExp }[] = [
   { campo: "cnpj", padrao: /cnpj/i },
   { campo: "cpf", padrao: /\bcpf\b/i },
   { campo: "email", padrao: /e-?mail/i },
+  // O backend tem um único aceite; "privacidade" vem antes para não cair no genérico de termos/aceite.
+  { campo: "aceitePrivacidade", padrao: /privacidade/i },
+  { campo: "aceiteTermos", padrao: /termos|aceite/i },
 ];
 
 // O formato de erro do backend ainda é pouco conhecido: a atribuição é por palavra-chave e isolada aqui, para

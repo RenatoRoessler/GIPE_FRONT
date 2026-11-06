@@ -110,3 +110,30 @@ export const Detalhe = styled.dd`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
 `;
+
+// Texto de apoio e link do documento: empilhados no celular, lado a lado quando há espaço.
+export const LinhaAceite = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[1]}px;
+  margin-bottom: ${({ theme }) => theme.space[2]}px;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: ${({ theme }) => theme.layout.touchTarget};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: ${({ theme }) => theme.space[1]}px ${({ theme }) => theme.space[3]}px;
+  }
+`;
+
+export const Apoio = styled.p`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textMuted};
+`;

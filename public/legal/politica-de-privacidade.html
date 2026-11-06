@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Política de Privacidade · Murel</title>
+<meta name="description" content="Como a Murel coleta, usa, compartilha e protege dados pessoais, conforme a LGPD.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0E1729; --navy2:#16223A; --slate:#3A4C6B; --steel:#6B80A4; --mute:#9AA3B5;
+    --cream:#F4F1E8; --yellow:#FFC20E; --line:rgba(154,163,181,.18);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{ background:var(--navy); color:var(--cream); font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui,sans-serif; font-size:16px; line-height:1.7; -webkit-font-smoothing:antialiased; }
+  a{ color:var(--yellow); text-underline-offset:3px; }
+
+  header{ position:sticky; top:0; z-index:10; background:rgba(14,23,41,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .bar{ max-width:1120px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
+  .logo{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; color:var(--cream); }
+  .logo svg{ width:36px; height:24px; }
+  .logo span{ font-weight:800; font-size:22px; letter-spacing:-0.04em; line-height:1; }
+  .btn{ background:var(--yellow); color:var(--navy); font-weight:700; font-size:14px; padding:10px 18px; border-radius:999px; text-decoration:none; }
+
+  .hero{ max-width:1120px; margin:0 auto; padding:64px 24px 40px; }
+  .kicker{ font-family:"JetBrains Mono",monospace; font-size:13px; color:var(--yellow); letter-spacing:.06em; text-transform:uppercase; }
+  h1{ font-size:clamp(36px,6vw,56px); font-weight:800; letter-spacing:-0.035em; line-height:1.05; margin:12px 0 16px; }
+  h1 em{ font-style:normal; color:var(--yellow); }
+  .hero p{ color:var(--mute); max-width:720px; font-size:17px; }
+  .meta{ margin-top:20px; display:flex; flex-wrap:wrap; gap:8px 24px; font-size:14px; color:var(--mute); }
+  .meta b{ color:var(--cream); font-weight:600; }
+
+  .layout{ max-width:1120px; margin:0 auto; padding:0 24px 96px; display:grid; grid-template-columns:260px 1fr; gap:56px; }
+  nav.toc{ position:sticky; top:84px; align-self:start; font-size:14px; }
+  nav.toc .t{ font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--steel); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; }
+  nav.toc ol{ list-style:none; counter-reset:toc; border-left:1px solid var(--line); }
+  nav.toc li{ counter-increment:toc; }
+  nav.toc a{ display:block; padding:5px 0 5px 14px; color:var(--mute); text-decoration:none; margin-left:-1px; border-left:2px solid transparent; }
+  nav.toc a::before{ content:counter(toc, decimal-leading-zero) "  "; font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--steel); }
+  nav.toc a:hover{ color:var(--cream); border-left-color:var(--yellow); }
+
+  main{ max-width:760px; }
+  .summary{ background:var(--navy2); border:1px solid var(--line); border-radius:16px; padding:24px 28px; margin-bottom:48px; }
+  .summary h2{ font-size:18px; margin:0 0 12px; }
+  .summary ul{ list-style:none; display:grid; gap:10px; }
+  .summary li{ position:relative; padding-left:22px; color:var(--cream); font-size:15px; }
+  .summary li::before{ content:""; position:absolute; left:0; top:.6em; width:9px; height:9px; border-radius:3px; background:var(--yellow); }
+  .summary small{ display:block; margin-top:14px; color:var(--mute); font-size:13px; }
+
+  section{ padding-top:16px; margin-bottom:40px; scroll-margin-top:84px; }
+  section h2{ font-size:24px; font-weight:800; letter-spacing:-0.02em; line-height:1.25; margin-bottom:14px; display:flex; gap:12px; align-items:baseline; }
+  section h2 .n{ font-family:"JetBrains Mono",monospace; font-size:13px; font-weight:500; color:var(--navy); background:var(--yellow); border-radius:6px; padding:2px 8px; flex:none; position:relative; top:-3px; }
+  section p, section li{ color:#D9D6CC; }
+  section p{ margin-bottom:12px; }
+  .cl{ display:grid; grid-template-columns:52px 1fr; gap:0 6px; margin-bottom:12px; }
+  .cl > span{ font-family:"JetBrains Mono",monospace; font-size:13px; color:var(--steel); padding-top:3px; }
+  .cl ul{ margin:6px 0 0 18px; }
+  .cl li{ margin-bottom:4px; }
+  .callout{ border-left:3px solid var(--yellow); background:rgba(255,194,14,.07); padding:14px 18px; border-radius:0 10px 10px 0; margin:14px 0; font-size:15px; color:var(--cream); }
+  table{ width:100%; border-collapse:collapse; font-size:14.5px; margin:10px 0 16px; }
+  th{ text-align:left; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); font-weight:700; padding:10px 12px; border-bottom:1px solid var(--line); }
+  td{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; color:#D9D6CC; }
+  .ph{ background:rgba(255,194,14,.18); color:var(--yellow); padding:0 4px; border-radius:4px; font-weight:600; }
+
+  footer{ border-top:1px solid var(--line); }
+  footer .bar{ padding:28px 24px; font-size:14px; color:var(--mute); flex-wrap:wrap; gap:12px; }
+
+  @media (max-width:900px){
+    .layout{ grid-template-columns:1fr; gap:24px; }
+    nav.toc{ position:static; }
+    .cl{ grid-template-columns:44px 1fr; }
+  }
+  @media print{
+    body{ background:#fff; color:#0E1729; }
+    header, nav.toc, .btn{ display:none; }
+    .layout{ grid-template-columns:1fr; }
+    section p, section li, td, .summary li, .callout{ color:#0E1729; }
+    .summary{ background:#F4F1E8; }
+    .hero p, .meta{ color:#3A4C6B; }
+    .meta b{ color:#0E1729; }
+    a{ color:#0E1729; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <a class="logo" href="/" aria-label="Murel, página inicial">
+      <svg viewBox="0 0 240 160" role="img" aria-label="Símbolo Murel" overflow="visible">
+        <mask id="mlogo" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="160"><rect width="240" height="160" fill="#fff"/><path d="M108 87H132L129.5 76Q120 72.5 110.5 76Z" fill="#000" stroke="#000" stroke-width="3" stroke-linejoin="round"/><path d="M110 112H130L128 119Q120 121 112 119Z" fill="#000" stroke="#000" stroke-width="2" stroke-linejoin="round"/></mask>
+        <path d="M20 140V24H220V140M82 24V140M158 24V140" fill="none" stroke="#FFC20E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="102" y="62" width="36" height="66" rx="12" fill="#FFC20E" mask="url(#mlogo)"/>
+      </svg>
+      <span>murel</span>
+    </a>
+    <a class="btn" href="/">Testar grátis</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="kicker">Documento legal</div>
+  <h1>Política de <em>Privacidade.</em></h1>
+  <p>Aqui explicamos quais dados pessoais a Murel trata, para quê, com quem compartilha, por quanto tempo guarda e como você exerce seus direitos, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).</p>
+  <div class="meta">
+    <span><b>Versão:</b> 1.0</span>
+    <span><b>Última atualização:</b> <span class="ph">[DD/MM/AAAA]</span></span>
+    <span><b>Veja também:</b> <a href="/termos">Termos de Uso</a></span>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="toc" aria-label="Sumário">
+    <div class="t">Sumário</div>
+    <ol>
+      <li><a href="#quem">Quem somos e a quem se aplica</a></li>
+      <li><a href="#papeis">Nosso papel em cada tipo de dado</a></li>
+      <li><a href="#coleta">Dados que tratamos</a></li>
+      <li><a href="#finalidades">Para que usamos e bases legais</a></li>
+      <li><a href="#motoristas">Dados dos motoristas</a></li>
+      <li><a href="#compartilhamento">Com quem compartilhamos</a></li>
+      <li><a href="#internacional">Transferência internacional</a></li>
+      <li><a href="#cookies">Cookies e armazenamento local</a></li>
+      <li><a href="#retencao">Por quanto tempo guardamos</a></li>
+      <li><a href="#seguranca">Segurança</a></li>
+      <li><a href="#direitos">Seus direitos</a></li>
+      <li><a href="#comunicacoes">Comunicações e marketing</a></li>
+      <li><a href="#menores">Menores de idade</a></li>
+      <li><a href="#alteracoes">Alterações desta política</a></li>
+      <li><a href="#contato">Encarregado e contato</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <div class="summary">
+      <h2>Resumo em linguagem simples</h2>
+      <ul>
+        <li>Não vendemos dados pessoais. Nunca.</li>
+        <li>Os dados dos motoristas registrados no pátio pertencem ao estacionamento. A Murel só os trata para prestar o serviço.</li>
+        <li>Coletamos do estacionamento e da equipe dele apenas o necessário para a conta, a cobrança e o suporte.</li>
+        <li>Usamos fornecedores confiáveis para hospedagem, pagamentos e mensagens, sob contrato.</li>
+        <li>Você pode pedir acesso, correção ou exclusão dos seus dados a qualquer momento.</li>
+      </ul>
+      <small>Este resumo ajuda na leitura, mas não substitui as seções abaixo.</small>
+    </div>
+
+    <!-- 1 -->
+    <section id="quem">
+      <h2><span class="n">01</span>Quem somos e a quem se aplica</h2>
+      <div class="cl"><span>1.1</span><p>A Murel é operada por <span class="ph">[RAZÃO SOCIAL]</span>, inscrita no CNPJ sob o nº <span class="ph">[00.000.000/0001-00]</span>, com sede em <span class="ph">[ENDEREÇO COMPLETO]</span> ("Murel", "nós").</p></div>
+      <div class="cl"><span>1.2</span><div><p>Esta Política se aplica a:</p>
+        <ul>
+          <li><b>visitantes</b> do site murel.com.br;</li>
+          <li><b>interessados</b> que pedem contato, demonstração ou proposta;</li>
+          <li><b>Clientes</b> (estacionamentos, valets e lava-rápidos) e seus <b>Usuários</b> (sócios, gerentes, operadores e manobristas);</li>
+          <li><b>motoristas</b> e demais pessoas atendidas pelos Clientes ("Clientes Finais"), na forma da seção 5.</li>
+        </ul></div></div>
+      <div class="cl"><span>1.3</span><p>Os termos com inicial maiúscula têm o significado definido nos <a href="/termos">Termos de Uso</a>.</p></div>
+    </section>
+
+    <!-- 2 -->
+    <section id="papeis">
+      <h2><span class="n">02</span>Nosso papel em cada tipo de dado</h2>
+      <p>A LGPD diferencia quem decide sobre o uso dos dados (controlador) de quem os trata em nome de outro (operador). Na Murel, os papéis são estes:</p>
+      <table>
+        <tr><th>Dados</th><th>Papel da Murel</th><th>Quem decide</th></tr>
+        <tr><td>Visitantes do site, interessados, Clientes e Usuários (cadastro, conta, cobrança, suporte)</td><td><b>Controladora</b></td><td>A Murel, conforme esta Política</td></tr>
+        <tr><td>Motoristas e veículos registrados no pátio (placa, modelo, cor, horários, contato, mensalidade)</td><td><b>Operadora</b></td><td>O Cliente (estacionamento, valet ou lava-rápido)</td></tr>
+      </table>
+    </section>
+
+    <!-- 3 -->
+    <section id="coleta">
+      <h2><span class="n">03</span>Dados que tratamos</h2>
+      <table>
+        <tr><th>Categoria</th><th>Exemplos</th><th>Origem</th></tr>
+        <tr><td>Contato e cadastro</td><td>Nome, e-mail, telefone/WhatsApp, cargo, razão social, CNPJ ou CPF, endereço do estabelecimento</td><td>Informados por você no site, no cadastro ou por um vendedor</td></tr>
+        <tr><td>Conta e acesso</td><td>Login, senha (guardada de forma criptografada), perfil de acesso, estabelecimentos vinculados</td><td>Cadastro do Cliente e dos Usuários</td></tr>
+        <tr><td>Cobrança</td><td>Plano contratado, histórico de pagamentos, notas fiscais. Dados de cartão são tratados pelo processador de pagamento e não ficam guardados na Murel</td><td>Contratação e meios de pagamento</td></tr>
+        <tr><td>Uso da Plataforma</td><td>Registros de acesso (IP, data e hora), ações realizadas, dispositivo, navegador, erros</td><td>Gerados automaticamente pelo uso</td></tr>
+        <tr><td>Suporte e comunicação</td><td>Mensagens, e-mails, áudios e anexos enviados ao suporte</td><td>Contato com a Murel</td></tr>
+        <tr><td>Dados operacionais do pátio</td><td>Placa, modelo e cor do veículo, entradas e saídas, valores, dados de mensalistas e conveniados, imagens capturadas para leitura de placa</td><td>Registrados pelo Cliente e seus Usuários (ver seção 5)</td></tr>
+      </table>
+      <div class="callout">A câmera usada na leitura automática de placas captura a imagem apenas no momento da leitura, para identificar os caracteres. <span class="ph">[Confirmar se a imagem é descartada após a leitura ou guardada, e por quanto tempo.]</span></div>
+    </section>
+
+    <!-- 4 -->
+    <section id="finalidades">
+      <h2><span class="n">04</span>Para que usamos e bases legais</h2>
+      <p>Como controladora, a Murel trata dados para as finalidades abaixo, cada uma com uma base legal do art. 7º da LGPD:</p>
+      <table>
+        <tr><th>Finalidade</th><th>Base legal</th></tr>
+        <tr><td>Criar e manter a conta, prestar o serviço contratado e o teste grátis</td><td>Execução de contrato e procedimentos preliminares</td></tr>
+        <tr><td>Cobrar, emitir nota fiscal e cumprir obrigações fiscais e contábeis</td><td>Execução de contrato e cumprimento de obrigação legal</td></tr>
+        <tr><td>Guardar registros de acesso à aplicação</td><td>Cumprimento de obrigação legal (Marco Civil da Internet, art. 15)</td></tr>
+        <tr><td>Prestar suporte e enviar avisos sobre o serviço (cobrança, manutenção, mudanças nos Termos)</td><td>Execução de contrato</td></tr>
+        <tr><td>Garantir a segurança, prevenir fraudes e uso indevido</td><td>Legítimo interesse</td></tr>
+        <tr><td>Melhorar o produto com estatísticas de uso agregadas e anonimizadas</td><td>Legítimo interesse</td></tr>
+        <tr><td>Responder a quem pediu contato e fazer contato comercial com empresas do setor</td><td>Legítimo interesse, com opção de não receber mais contatos</td></tr>
+        <tr><td>Enviar novidades e conteúdos de marketing por e-mail ou WhatsApp</td><td>Consentimento ou legítimo interesse, sempre com opção de descadastro</td></tr>
+        <tr><td>Defender direitos em processos judiciais, administrativos ou arbitrais</td><td>Exercício regular de direitos</td></tr>
+      </table>
+    </section>
+
+    <!-- 5 -->
+    <section id="motoristas">
+      <h2><span class="n">05</span>Dados dos motoristas</h2>
+      <div class="cl"><span>5.1</span><p>Quando um estacionamento registra seu veículo na Murel, quem decide sobre esses dados é o estacionamento (controlador). A Murel trata esses dados apenas como operadora, para que o estacionamento faça o controle do pátio, do caixa, de mensalistas e de convênios.</p></div>
+      <div class="cl"><span>5.2</span><p>A Murel não usa os dados dos motoristas para marketing próprio, não os vende e não os cruza com dados de outros estacionamentos para identificar pessoas.</p></div>
+      <div class="cl"><span>5.3</span><p>Se você é motorista e quer acessar, corrigir ou excluir seus dados, fale primeiro com o estacionamento onde o veículo foi registrado. Se nos procurar diretamente, encaminharemos o pedido ao estacionamento e ajudaremos no que for necessário.</p></div>
+      <div class="cl"><span>5.4</span><p>Os prazos de guarda desses dados são definidos pelo estacionamento, dentro dos limites dos Termos de Uso. Após o fim da assinatura, esses dados ficam disponíveis para o estacionamento exportar por 30 dias e depois são excluídos, exceto o que a lei obrigar a guardar.</p></div>
+    </section>
+
+    <!-- 6 -->
+    <section id="compartilhamento">
+      <h2><span class="n">06</span>Com quem compartilhamos</h2>
+      <p>Compartilhamos dados apenas quando necessário e com fornecedores que se comprometem a protegê-los:</p>
+      <table>
+        <tr><th>Quem</th><th>Para quê</th></tr>
+        <tr><td>Provedores de hospedagem e infraestrutura em nuvem <span class="ph">[ex.: Hostinger]</span></td><td>Armazenar e processar os dados da Plataforma</td></tr>
+        <tr><td>Processadores de pagamento e emissão de nota fiscal <span class="ph">[ex.: Asaas, Pagar.me]</span></td><td>Cobrar assinaturas e emitir documentos fiscais</td></tr>
+        <tr><td>Serviços de mensagens e e-mail <span class="ph">[ex.: WhatsApp/Meta, provedor de e-mail]</span></td><td>Suporte, avisos de serviço e envio de ticket digital</td></tr>
+        <tr><td>Contabilidade e assessoria jurídica</td><td>Cumprir obrigações legais e defender direitos</td></tr>
+        <tr><td>Autoridades públicas</td><td>Quando houver obrigação legal ou ordem judicial</td></tr>
+      </table>
+      <p>Em caso de fusão, aquisição ou venda da Murel, os dados podem ser transferidos ao sucessor, que continuará obrigado por esta Política.</p>
+    </section>
+
+    <!-- 7 -->
+    <section id="internacional">
+      <h2><span class="n">07</span>Transferência internacional</h2>
+      <div class="cl"><span>7.1</span><p>Damos preferência a servidores localizados no Brasil. Alguns fornecedores, como serviços de e-mail e mensagens, podem processar dados em outros países.</p></div>
+      <div class="cl"><span>7.2</span><p>Nesses casos, a transferência segue o art. 33 da LGPD e a regulamentação da ANPD, com cláusulas contratuais ou outras garantias adequadas de proteção.</p></div>
+    </section>
+
+    <!-- 8 -->
+    <section id="cookies">
+      <h2><span class="n">08</span>Cookies e armazenamento local</h2>
+      <div class="cl"><span>8.1</span><p><b>Na Plataforma:</b> usamos cookies e armazenamento local do navegador apenas para manter você conectado, guardar preferências (como o tema claro ou escuro) e permitir o funcionamento offline do aplicativo. Sem eles, a Plataforma não funciona.</p></div>
+      <div class="cl"><span>8.2</span><p><b>No site:</b> <span class="ph">[Informar se o site usa ferramentas de análise ou anúncios, como Google Analytics ou Meta Pixel. Se usar, descrever e oferecer a opção de recusar; se não usar, manter: "o site não usa cookies de análise ou publicidade".]</span></p></div>
+      <div class="cl"><span>8.3</span><p>Você pode apagar ou bloquear cookies nas configurações do navegador. Isso pode impedir o login na Plataforma.</p></div>
+    </section>
+
+    <!-- 9 -->
+    <section id="retencao">
+      <h2><span class="n">09</span>Por quanto tempo guardamos</h2>
+      <table>
+        <tr><th>Dados</th><th>Prazo</th></tr>
+        <tr><td>Conta, cadastro e dados do serviço</td><td>Enquanto a assinatura estiver ativa, mais 30 dias para exportação após o cancelamento</td></tr>
+        <tr><td>Conta em teste grátis não convertida</td><td>30 dias após o fim do teste</td></tr>
+        <tr><td>Registros de acesso à aplicação</td><td>6 meses, conforme o Marco Civil da Internet</td></tr>
+        <tr><td>Dados fiscais e de cobrança</td><td>5 anos, conforme a legislação tributária</td></tr>
+        <tr><td>Contatos comerciais (interessados que não contrataram)</td><td>Até 2 anos sem interação, ou até o pedido de exclusão</td></tr>
+        <tr><td>Mensagens de suporte</td><td>Enquanto a conta estiver ativa, mais 1 ano</td></tr>
+      </table>
+      <p>Depois desses prazos, os dados são excluídos ou anonimizados. Podemos guardá-los por mais tempo se for necessário para cumprir uma obrigação legal ou defender direitos.</p>
+    </section>
+
+    <!-- 10 -->
+    <section id="seguranca">
+      <h2><span class="n">10</span>Segurança</h2>
+      <div class="cl"><span>10.1</span><div><p>Adotamos medidas técnicas e administrativas para proteger os dados, entre elas:</p>
+        <ul>
+          <li>comunicação criptografada (HTTPS) entre o aplicativo e os servidores;</li>
+          <li>senhas guardadas com criptografia (hash), nunca em texto aberto;</li>
+          <li>controle de acesso por perfil, para que cada Usuário veja apenas o que precisa;</li>
+          <li>separação dos dados de cada Cliente;</li>
+          <li>backups periódicos e monitoramento dos servidores.</li>
+        </ul></div></div>
+      <div class="cl"><span>10.2</span><p>Nenhum sistema é totalmente imune a falhas. Se houver um incidente de segurança com risco relevante aos titulares, comunicaremos os Clientes afetados, os titulares e a ANPD, conforme a LGPD.</p></div>
+    </section>
+
+    <!-- 11 -->
+    <section id="direitos">
+      <h2><span class="n">11</span>Seus direitos</h2>
+      <div class="cl"><span>11.1</span><div><p>Pelo art. 18 da LGPD, você pode pedir:</p>
+        <ul>
+          <li>confirmação de que tratamos seus dados e acesso a eles;</li>
+          <li>correção de dados incompletos, inexatos ou desatualizados;</li>
+          <li>anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desacordo com a lei;</li>
+          <li>portabilidade dos dados a outro fornecedor;</li>
+          <li>eliminação de dados tratados com base no seu consentimento, e revogação desse consentimento;</li>
+          <li>informação sobre com quem compartilhamos seus dados;</li>
+          <li>revisão de decisões tomadas apenas com base em tratamento automatizado.</li>
+        </ul></div></div>
+      <div class="cl"><span>11.2</span><p>Para exercer seus direitos, escreva para o Encarregado (seção 15). Podemos pedir informações para confirmar sua identidade. Respondemos em até 15 dias.</p></div>
+      <div class="cl"><span>11.3</span><p>Alguns pedidos podem não ser atendidos por completo, por exemplo quando a lei exige que certos dados sejam guardados. Nesses casos, explicaremos o motivo.</p></div>
+      <div class="cl"><span>11.4</span><p>Você também pode apresentar reclamação à Autoridade Nacional de Proteção de Dados (ANPD), pelo site <a href="https://www.gov.br/anpd">gov.br/anpd</a>.</p></div>
+    </section>
+
+    <!-- 12 -->
+    <section id="comunicacoes">
+      <h2><span class="n">12</span>Comunicações e marketing</h2>
+      <div class="cl"><span>12.1</span><p>Avisos sobre o serviço, como cobrança, segurança, manutenção e mudanças nos Termos, são enviados a todos os Clientes e não podem ser desativados enquanto a conta estiver ativa.</p></div>
+      <div class="cl"><span>12.2</span><p>Novidades e conteúdos de marketing podem ser recusados a qualquer momento: pelo link de descadastro no e-mail, respondendo "SAIR" no WhatsApp ou falando com a gente.</p></div>
+    </section>
+
+    <!-- 13 -->
+    <section id="menores">
+      <h2><span class="n">13</span>Menores de idade</h2>
+      <div class="cl"><span>13.1</span><p>A Murel é um serviço profissional para empresas e não é destinada a menores de 18 anos. Não coletamos intencionalmente dados de crianças e adolescentes para fins próprios.</p></div>
+    </section>
+
+    <!-- 14 -->
+    <section id="alteracoes">
+      <h2><span class="n">14</span>Alterações desta política</h2>
+      <div class="cl"><span>14.1</span><p>Podemos atualizar esta Política para refletir mudanças no serviço ou na lei. Mudanças relevantes serão avisadas por e-mail ou pela Plataforma antes de entrarem em vigor.</p></div>
+      <div class="cl"><span>14.2</span><p>A versão vigente fica sempre nesta página, com a data da última atualização.</p></div>
+    </section>
+
+    <!-- 15 -->
+    <section id="contato">
+      <h2><span class="n">15</span>Encarregado e contato</h2>
+      <table>
+        <tr><th>Encarregado (DPO)</th><th>Contato</th></tr>
+        <tr><td><span class="ph">[NOME DO ENCARREGADO]</span></td><td><a href="mailto:privacidade@murel.com.br">privacidade@murel.com.br</a> <span class="ph">[confirmar]</span></td></tr>
+      </table>
+      <p>Para outros assuntos: <a href="mailto:contato@murel.com.br">contato@murel.com.br</a> <span class="ph">[confirmar]</span> · WhatsApp <span class="ph">[(00) 00000-0000]</span> · <span class="ph">[ENDEREÇO COMPLETO]</span>.</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="bar">
+    <span>© <span class="ph">[ANO]</span> Murel · <span class="ph">[RAZÃO SOCIAL]</span> · CNPJ <span class="ph">[00.000.000/0001-00]</span></span>
+    <span><a href="/termos">Termos de Uso</a> · <a href="#">Voltar ao topo</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

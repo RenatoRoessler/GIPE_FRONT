@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  EMPTY_ACEITE_DATA,
   EMPTY_ADMIN_USER_DATA,
   EMPTY_BUSINESS_HOURS_DATA,
   EMPTY_COMPANY_DATA,
@@ -43,6 +44,7 @@ describe("serviços de empresa e adesão: meios de pagamento", () => {
       hours: EMPTY_BUSINESS_HOURS_DATA,
       payments: EMPTY_PAYMENTS_DATA,
       adminUser: EMPTY_ADMIN_USER_DATA,
+      aceite: EMPTY_ACEITE_DATA,
     });
     const [url, body] = vi.mocked(api.post).mock.calls[0];
     expect(url).toBe("/Adesao");

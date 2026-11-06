@@ -1,9 +1,12 @@
 "use client";
 
 import { Fragment, ReactNode } from "react";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Link } from "@/components/ui/Link";
 import { formatCEP } from "@/lib/cep";
 import { descreverCondicao, formatarReais, PLANO_MENSAL, valorPorMes } from "@/lib/planos";
 import {
+  AceiteData,
   AdminUserData,
   BusinessHoursData,
   CompanyData,
@@ -12,16 +15,19 @@ import {
   PaymentsData,
   TIPO_EMPRESA_LABEL,
 } from "@/types/adesao";
+import { DOCUMENTOS_ACEITE } from "@/lib/termos";
 import { TipoPlanoAdesao } from "@/types/plano";
 import type { GrupoEmpresa } from "../CompanyStepFields";
 import { ETAPA, type EtapaEditavel } from "../etapas";
 import {
+  Apoio,
   Detalhe,
   Editar,
   FraseTeste,
   Garantia,
   Garantias,
   Lista,
+  LinhaAceite,
   Secao,
   SecaoCabecalho,
   SecaoTeste,
@@ -41,6 +47,12 @@ export interface ConferirStepProps {
   adminUser: AdminUserData;
   // Leva o usuário de volta à etapa (e, na empresa, ao bloco) para corrigir; nada é perdido.
   onEditar: (etapa: EtapaEditavel, bloco?: GrupoEmpresa) => void;
+  aceite: AceiteData;
+  // Mensagem de cada aceite pendente, mostrada junto da caixa.
+  erroAceite?: Partial<Record<keyof AceiteData, string>>;
+  onAceitar: (documento: keyof AceiteData, aceito: boolean) => void;
+  // Durante o envio as caixas não mudam.
+  desabilitado?: boolean;
 }
 
 // A senha nunca é exibida: só o tamanho fixo de uma máscara.
@@ -108,6 +120,55 @@ function ResumoTeste({ onEditar }: { onEditar?: () => void }) {
   );
 }
 
+const APOIO_ACEITE: Record<keyof AceiteData, string> = {
+  termos: "As regras para usar o Murel.",
+  privacidade: "Como cuidamos dos dados da sua empresa e dos seus clientes.",
+};
+
+const NOME_ACEITE: Record<keyof AceiteData, string> = {
+  termos: "aceiteTermos",
+  privacidade: "aceitePrivacidade",
+};
+
+// O link fica fora do rótulo da caixa: clicar nele abre o documento sem marcar o aceite.
+function BlocoAceite({
+  documento,
+  aceito,
+  erro,
+  desabilitado,
+  onAceitar,
+}: {
+  documento: keyof AceiteData;
+  aceito: boolean;
+  erro?: string;
+  desabilitado: boolean;
+  onAceitar: (aceito: boolean) => void;
+}) {
+  const { titulo, url } = DOCUMENTOS_ACEITE[documento];
+
+  return (
+    <Secao aria-label={titulo}>
+      <SecaoCabecalho>
+        <SecaoTitulo>{titulo}</SecaoTitulo>
+      </SecaoCabecalho>
+      <LinhaAceite>
+        <Apoio>{APOIO_ACEITE[documento]}</Apoio>
+        <Link href={url} target="_blank" rel="noopener noreferrer" prefetch={false}>
+          Ler {titulo} (abre em nova aba)
+        </Link>
+      </LinhaAceite>
+      <Checkbox
+        name={NOME_ACEITE[documento]}
+        label={`Li e aceito ${documento === "termos" ? "os Termos de Uso" : "a Política de Privacidade"}`}
+        checked={aceito}
+        onCheckedChange={onAceitar}
+        error={erro}
+        disabled={desabilitado}
+      />
+    </Secao>
+  );
+}
+
 function Linha({ termo, valor }: { termo: string; valor: string }) {
   return (
     <Fragment>
@@ -125,6 +186,10 @@ export function ConferirStep({
   payments,
   adminUser,
   onEditar,
+  aceite,
+  erroAceite = {},
+  onAceitar,
+  desabilitado = false,
 }: ConferirStepProps) {
   const meios = MEIOS_PAGAMENTO.filter(({ key }) => payments[key]).map(({ label }) => label);
 
@@ -179,6 +244,17 @@ export function ConferirStep({
       ) : (
         <ResumoTeste onEditar={planoEditavel ? () => onEditar(ETAPA.Plano) : undefined} />
       )}
+
+      {(["termos", "privacidade"] as const).map((documento) => (
+        <BlocoAceite
+          key={documento}
+          documento={documento}
+          aceito={aceite[documento]}
+          erro={erroAceite[documento]}
+          desabilitado={desabilitado}
+          onAceitar={(aceito) => onAceitar(documento, aceito)}
+        />
+      ))}
     </Secoes>
   );
 }

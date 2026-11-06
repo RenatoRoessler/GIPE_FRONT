@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { zodFieldErrors } from "@/components/form/zodFieldErrors";
 import { EMPTY_PAYMENTS_DATA, MEIOS_PAGAMENTO, type PaymentsData } from "@/types/adesao";
-import { adminUserSchema, PAGAMENTOS_MINIMO_MESSAGE, PLANO_OBRIGATORIO_MESSAGE, paymentsSchema, planoSchema } from "./adesao";
+import {
+  aceiteSchema,
+  adminUserSchema,
+  PAGAMENTOS_MINIMO_MESSAGE,
+  PLANO_OBRIGATORIO_MESSAGE,
+  PRIVACIDADE_OBRIGATORIA_MESSAGE,
+  paymentsSchema,
+  planoSchema,
+  TERMOS_OBRIGATORIO_MESSAGE,
+} from "./adesao";
 
 const NENHUM: PaymentsData = { dinheiro: false, pix: false, cartaoCredito: false, cartaoDebito: false };
 
@@ -99,5 +108,26 @@ describe("planoSchema", () => {
     const resultado = planoSchema.safeParse({ plano });
     expect(resultado.success).toBe(false);
     expect(resultado.error?.issues[0].message).toBe(PLANO_OBRIGATORIO_MESSAGE);
+  });
+});
+
+describe("aceiteSchema", () => {
+  it("aceita quando os dois estão marcados", () => {
+    expect(aceiteSchema.safeParse({ termos: true, privacidade: true }).success).toBe(true);
+  });
+
+  it("recusa os dois desmarcados, com uma mensagem para cada", () => {
+    const resultado = aceiteSchema.safeParse({ termos: false, privacidade: false });
+    expect(resultado.success).toBe(false);
+    expect(resultado.error?.issues.map((issue) => [issue.path[0], issue.message])).toEqual([
+      ["termos", TERMOS_OBRIGATORIO_MESSAGE],
+      ["privacidade", PRIVACIDADE_OBRIGATORIA_MESSAGE],
+    ]);
+  });
+
+  it("recusa só o que falta", () => {
+    const resultado = aceiteSchema.safeParse({ termos: true, privacidade: false });
+    expect(resultado.error?.issues).toHaveLength(1);
+    expect(resultado.error?.issues[0].path[0]).toBe("privacidade");
   });
 });

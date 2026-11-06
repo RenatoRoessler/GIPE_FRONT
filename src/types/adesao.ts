@@ -136,3 +136,14 @@ export const EMPTY_ADMIN_USER_DATA: AdminUserData = {
   senha: "",
   repetirSenha: "",
 };
+
+// Os dois aceites da conferência, dados separadamente; nenhum vem marcado.
+export interface AceiteData {
+  termos: boolean;
+  privacidade: boolean;
+}
+
+export const EMPTY_ACEITE_DATA: AceiteData = {
+  termos: false,
+  privacidade: false,
+};

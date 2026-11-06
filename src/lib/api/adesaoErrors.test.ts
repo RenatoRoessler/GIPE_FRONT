@@ -21,6 +21,21 @@ describe("atribuirErro", () => {
     expect(atribuirErro(erro).alvo).toEqual({ etapa: 3, campo: "email", rotulo: "e-mail" });
   });
 
+  it("leva o erro de aceite dos termos para a conferência", () => {
+    const erro = new ApiError("validation", "Dados inválidos.", 400, { AceiteTermos: ["É necessário aceitar os termos."] });
+    expect(atribuirErro(erro).alvo).toEqual({ etapa: 5, campo: "aceiteTermos", rotulo: "Termos de Uso" });
+  });
+
+  it("leva o erro de privacidade para o aceite da política", () => {
+    const erro = new ApiError("validation", "Aceite a política de privacidade.", 400);
+    expect(atribuirErro(erro).alvo).toEqual({ etapa: 5, campo: "aceitePrivacidade", rotulo: "Política de Privacidade" });
+  });
+
+  it("não deixa o aceite roubar os erros de CNPJ, CPF e e-mail", () => {
+    const erro = new ApiError("validation", "Dados inválidos.", 400, { Cnpj: ["Já existe."], AceiteTermos: ["Obrigatório."] });
+    expect(atribuirErro(erro).alvo?.campo).toBe("cnpj");
+  });
+
   it("devolve só a mensagem quando não reconhece o campo", () => {
     const erro = new ApiError("validation", "Dados inválidos.", 400);
     expect(atribuirErro(erro)).toEqual({ mensagem: "Dados inválidos.", alvo: undefined });

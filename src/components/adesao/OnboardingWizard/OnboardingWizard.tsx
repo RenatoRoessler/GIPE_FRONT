@@ -149,6 +149,10 @@ export function OnboardingWizard() {
             plano={planoConferido}
             planoEditavel={modo === MODO_ADESAO.Plano}
             onEditar={wizard.editar}
+            aceite={wizard.aceite}
+            erroAceite={wizard.erroAceite}
+            onAceitar={wizard.aceitar}
+            desabilitado={enviando}
           />
         )}
       </>

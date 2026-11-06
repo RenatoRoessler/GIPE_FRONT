@@ -152,7 +152,7 @@ describe("proxy: arquivos que o navegador busca sem cookie", () => {
   // O matcher decide por quais caminhos o proxy roda; o que ele exclui nunca é redirecionado ao login.
   const passaPeloProxy = (caminho: string) => new RegExp(`^${config.matcher[0]}$`).test(caminho);
 
-  it.each(["/manifest.webmanifest", "/sw.js", "/offline.html", "/icon.svg", "/icon.png", "/favicon.ico", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/ocr/modelos/placa.onnx"])(
+  it.each(["/manifest.webmanifest", "/sw.js", "/offline.html", "/icon.svg", "/icon.png", "/favicon.ico", "/icons/icon-192.png", "/icons/apple-touch-icon.png", "/ocr/modelos/placa.onnx", "/legal/termos-de-uso.html", "/legal/politica-de-privacidade.html"])(
     "%s não passa pelo proxy",
     (caminho) => {
       expect(passaPeloProxy(caminho)).toBe(false);

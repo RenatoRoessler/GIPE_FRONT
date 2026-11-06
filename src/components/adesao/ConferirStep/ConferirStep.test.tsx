@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithTheme } from "@/test/render";
 import {
+  type AceiteData,
+  EMPTY_ACEITE_DATA,
   EMPTY_ADMIN_USER_DATA,
   EMPTY_BUSINESS_HOURS_DATA,
   EMPTY_COMPANY_DATA,
@@ -39,7 +41,19 @@ const adminUser = {
   repetirSenha: "SenhaSecreta#1",
 };
 
-function renderar(onEditar = vi.fn(), plano: TipoPlanoAdesao = TipoPlanoAdesao.Mensal, planoEditavel = true) {
+interface OpcoesAceite {
+  aceite?: AceiteData;
+  erroAceite?: Partial<Record<keyof AceiteData, string>>;
+  onAceitar?: (documento: keyof AceiteData, aceito: boolean) => void;
+  desabilitado?: boolean;
+}
+
+function renderar(
+  onEditar = vi.fn(),
+  plano: TipoPlanoAdesao = TipoPlanoAdesao.Mensal,
+  planoEditavel = true,
+  { aceite = EMPTY_ACEITE_DATA, erroAceite, onAceitar = vi.fn(), desabilitado }: OpcoesAceite = {},
+) {
   renderWithTheme(
     <ConferirStep
       plano={plano}
@@ -49,6 +63,10 @@ function renderar(onEditar = vi.fn(), plano: TipoPlanoAdesao = TipoPlanoAdesao.M
       payments={{ ...EMPTY_PAYMENTS_DATA, pix: true }}
       adminUser={adminUser}
       onEditar={onEditar}
+      aceite={aceite}
+      erroAceite={erroAceite}
+      onAceitar={onAceitar}
+      desabilitado={desabilitado}
     />,
   );
   return onEditar;
@@ -148,5 +166,66 @@ describe("ConferirStep", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Editar Titular" }));
     expect(onEditar).toHaveBeenLastCalledWith(3);
+  });
+
+  describe("aceite dos termos", () => {
+    it.each([
+      ["plano", TipoPlanoAdesao.Mensal],
+      ["teste grátis", TipoPlanoAdesao.Trial],
+    ])("mostra os dois blocos desmarcados no modo %s", (_modo, plano) => {
+      renderar(vi.fn(), plano);
+      expect(within(screen.getByRole("region", { name: "Termos de Uso" })).getByRole("checkbox")).not.toBeChecked();
+      expect(within(screen.getByRole("region", { name: "Política de Privacidade" })).getByRole("checkbox")).not.toBeChecked();
+    });
+
+    it("liga cada link ao documento, em nova aba, sem marcar a caixa", async () => {
+      const onAceitar = vi.fn();
+      renderar(vi.fn(), TipoPlanoAdesao.Mensal, true, { onAceitar });
+      const link = screen.getByRole("link", { name: /Ler Termos de Uso/ });
+      expect(link).toHaveAttribute("href", "/legal/termos-de-uso.html");
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+      expect(screen.getByRole("link", { name: /Ler Política de Privacidade/ })).toHaveAttribute(
+        "href",
+        "/legal/politica-de-privacidade.html",
+      );
+      link.addEventListener("click", (event) => event.preventDefault());
+      await userEvent.click(link);
+      expect(onAceitar).not.toHaveBeenCalled();
+    });
+
+    it("avisa qual documento foi aceito ao marcar a caixa", async () => {
+      const onAceitar = vi.fn();
+      renderar(vi.fn(), TipoPlanoAdesao.Mensal, true, { onAceitar });
+      await userEvent.click(screen.getByRole("checkbox", { name: "Li e aceito a Política de Privacidade" }));
+      expect(onAceitar).toHaveBeenCalledWith("privacidade", true);
+    });
+
+    it("mostra as caixas marcadas conforme o aceite recebido", () => {
+      renderar(vi.fn(), TipoPlanoAdesao.Mensal, true, { aceite: { termos: true, privacidade: false } });
+      expect(screen.getByRole("checkbox", { name: "Li e aceito os Termos de Uso" })).toBeChecked();
+      expect(screen.getByRole("checkbox", { name: "Li e aceito a Política de Privacidade" })).not.toBeChecked();
+    });
+
+    it("mostra o erro junto da caixa pendente", () => {
+      renderar(vi.fn(), TipoPlanoAdesao.Mensal, true, {
+        erroAceite: { privacidade: "Aceite a Política de Privacidade para continuar." },
+      });
+      // A mensagem fica dentro do rótulo do Checkbox, então o nome acessível a inclui.
+      const caixa = screen.getByRole("checkbox", { name: /Li e aceito a Política de Privacidade/ });
+      expect(caixa).toBeInvalid();
+      expect(caixa).toHaveAccessibleDescription("Aceite a Política de Privacidade para continuar.");
+      expect(screen.getByRole("checkbox", { name: "Li e aceito os Termos de Uso" })).toBeValid();
+    });
+
+    it("desabilita as caixas durante o envio", () => {
+      renderar(vi.fn(), TipoPlanoAdesao.Mensal, true, { desabilitado: true });
+      for (const caixa of screen.getAllByRole("checkbox")) expect(caixa).toBeDisabled();
+    });
+
+    it("não oferece Editar nos blocos de aceite", () => {
+      renderar();
+      expect(screen.queryByRole("button", { name: /Editar (Termos|Política)/ })).not.toBeInTheDocument();
+    });
   });
 });

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Termos de Uso · Murel</title>
+<meta name="description" content="Termos de Uso da plataforma Murel, sistema de gestão para estacionamentos, valets e lava-rápidos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0E1729; --navy2:#16223A; --slate:#3A4C6B; --steel:#6B80A4; --mute:#9AA3B5;
+    --cream:#F4F1E8; --yellow:#FFC20E; --line:rgba(154,163,181,.18);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{ background:var(--navy); color:var(--cream); font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui,sans-serif; font-size:16px; line-height:1.7; -webkit-font-smoothing:antialiased; }
+  a{ color:var(--yellow); text-underline-offset:3px; }
+
+  header{ position:sticky; top:0; z-index:10; background:rgba(14,23,41,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .bar{ max-width:1120px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
+  .logo{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; color:var(--cream); }
+  .logo svg{ width:36px; height:24px; }
+  .logo span{ font-weight:800; font-size:22px; letter-spacing:-0.04em; line-height:1; }
+  .btn{ background:var(--yellow); color:var(--navy); font-weight:700; font-size:14px; padding:10px 18px; border-radius:999px; text-decoration:none; }
+
+  .hero{ max-width:1120px; margin:0 auto; padding:64px 24px 40px; }
+  .kicker{ font-family:"JetBrains Mono",monospace; font-size:13px; color:var(--yellow); letter-spacing:.06em; text-transform:uppercase; }
+  h1{ font-size:clamp(36px,6vw,56px); font-weight:800; letter-spacing:-0.035em; line-height:1.05; margin:12px 0 16px; }
+  h1 em{ font-style:normal; color:var(--yellow); }
+  .hero p{ color:var(--mute); max-width:720px; font-size:17px; }
+  .meta{ margin-top:20px; display:flex; flex-wrap:wrap; gap:8px 24px; font-size:14px; color:var(--mute); }
+  .meta b{ color:var(--cream); font-weight:600; }
+
+  .layout{ max-width:1120px; margin:0 auto; padding:0 24px 96px; display:grid; grid-template-columns:260px 1fr; gap:56px; }
+  nav.toc{ position:sticky; top:84px; align-self:start; font-size:14px; }
+  nav.toc .t{ font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--steel); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; }
+  nav.toc ol{ list-style:none; counter-reset:toc; border-left:1px solid var(--line); }
+  nav.toc li{ counter-increment:toc; }
+  nav.toc a{ display:block; padding:5px 0 5px 14px; color:var(--mute); text-decoration:none; margin-left:-1px; border-left:2px solid transparent; }
+  nav.toc a::before{ content:counter(toc, decimal-leading-zero) "  "; font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--steel); }
+  nav.toc a:hover{ color:var(--cream); border-left-color:var(--yellow); }
+
+  main{ max-width:760px; }
+  .summary{ background:var(--navy2); border:1px solid var(--line); border-radius:16px; padding:24px 28px; margin-bottom:48px; }
+  .summary h2{ font-size:18px; margin:0 0 12px; }
+  .summary ul{ list-style:none; display:grid; gap:10px; }
+  .summary li{ position:relative; padding-left:22px; color:var(--cream); font-size:15px; }
+  .summary li::before{ content:""; position:absolute; left:0; top:.6em; width:9px; height:9px; border-radius:3px; background:var(--yellow); }
+  .summary small{ display:block; margin-top:14px; color:var(--mute); font-size:13px; }
+
+  section{ padding-top:16px; margin-bottom:40px; scroll-margin-top:84px; }
+  section h2{ font-size:24px; font-weight:800; letter-spacing:-0.02em; line-height:1.25; margin-bottom:14px; display:flex; gap:12px; align-items:baseline; }
+  section h2 .n{ font-family:"JetBrains Mono",monospace; font-size:13px; font-weight:500; color:var(--navy); background:var(--yellow); border-radius:6px; padding:2px 8px; flex:none; position:relative; top:-3px; }
+  section p, section li{ color:#D9D6CC; }
+  section p{ margin-bottom:12px; }
+  .cl{ display:grid; grid-template-columns:52px 1fr; gap:0 6px; margin-bottom:12px; }
+  .cl > span{ font-family:"JetBrains Mono",monospace; font-size:13px; color:var(--steel); padding-top:3px; }
+  .cl ul{ margin:6px 0 0 18px; }
+  .cl li{ margin-bottom:4px; }
+  .callout{ border-left:3px solid var(--yellow); background:rgba(255,194,14,.07); padding:14px 18px; border-radius:0 10px 10px 0; margin:14px 0; font-size:15px; color:var(--cream); }
+  table{ width:100%; border-collapse:collapse; font-size:14.5px; margin:10px 0 16px; }
+  th{ text-align:left; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); font-weight:700; padding:10px 12px; border-bottom:1px solid var(--line); }
+  td{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; color:#D9D6CC; }
+  .ph{ background:rgba(255,194,14,.18); color:var(--yellow); padding:0 4px; border-radius:4px; font-weight:600; }
+
+  footer{ border-top:1px solid var(--line); }
+  footer .bar{ padding:28px 24px; font-size:14px; color:var(--mute); flex-wrap:wrap; gap:12px; }
+
+  @media (max-width:900px){
+    .layout{ grid-template-columns:1fr; gap:24px; }
+    nav.toc{ position:static; }
+    .cl{ grid-template-columns:44px 1fr; }
+  }
+  @media print{
+    body{ background:#fff; color:#0E1729; }
+    header, nav.toc, .btn{ display:none; }
+    .layout{ grid-template-columns:1fr; }
+    section p, section li, td, .summary li, .callout{ color:#0E1729; }
+    .summary{ background:#F4F1E8; }
+    .hero p, .meta{ color:#3A4C6B; }
+    .meta b{ color:#0E1729; }
+    a{ color:#0E1729; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <a class="logo" href="/" aria-label="Murel, página inicial">
+      <svg viewBox="0 0 240 160" role="img" aria-label="Símbolo Murel" overflow="visible">
+        <mask id="mlogo" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="160"><rect width="240" height="160" fill="#fff"/><path d="M108 87H132L129.5 76Q120 72.5 110.5 76Z" fill="#000" stroke="#000" stroke-width="3" stroke-linejoin="round"/><path d="M110 112H130L128 119Q120 121 112 119Z" fill="#000" stroke="#000" stroke-width="2" stroke-linejoin="round"/></mask>
+        <path d="M20 140V24H220V140M82 24V140M158 24V140" fill="none" stroke="#FFC20E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="102" y="62" width="36" height="66" rx="12" fill="#FFC20E" mask="url(#mlogo)"/>
+      </svg>
+      <span>murel</span>
+    </a>
+    <a class="btn" href="/">Testar grátis</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="kicker">Documento legal</div>
+  <h1>Termos de <em>Uso.</em></h1>
+  <p>Estas são as regras para usar a Murel, o sistema de gestão para estacionamentos, valets e lava-rápidos. Escrevemos da forma mais clara possível. Leia com atenção antes de contratar.</p>
+  <div class="meta">
+    <span><b>Versão:</b> 1.0</span>
+    <span><b>Última atualização:</b> <span class="ph">[DD/MM/AAAA]</span></span>
+    <span><b>Vigência:</b> a partir da data de aceite</span>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="toc" aria-label="Sumário">
+    <div class="t">Sumário</div>
+    <ol>
+      <li><a href="#aceite">Aceite e definições</a></li>
+      <li><a href="#servico">O serviço</a></li>
+      <li><a href="#cadastro">Cadastro e acessos</a></li>
+      <li><a href="#teste">Teste grátis</a></li>
+      <li><a href="#precos">Planos, preços e pagamento</a></li>
+      <li><a href="#promocoes">Preço de lançamento e condições especiais</a></li>
+      <li><a href="#cancelamento">Fidelidade e cancelamento</a></li>
+      <li><a href="#reajuste">Reajuste de preços</a></li>
+      <li><a href="#inadimplencia">Atraso e suspensão</a></li>
+      <li><a href="#obrigacoes">Obrigações do cliente</a></li>
+      <li><a href="#responsabilidade">Responsabilidades e limites</a></li>
+      <li><a href="#dados">Dados pessoais (LGPD)</a></li>
+      <li><a href="#propriedade">Propriedade intelectual</a></li>
+      <li><a href="#suporte">Suporte e disponibilidade</a></li>
+      <li><a href="#alteracoes">Alterações destes termos</a></li>
+      <li><a href="#gerais">Disposições gerais e foro</a></li>
+      <li><a href="#contato">Contato</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <div class="summary">
+      <h2>Resumo em linguagem simples</h2>
+      <ul>
+        <li>Teste grátis por 30 dias, com todas as funcionalidades e sem cartão de crédito.</li>
+        <li>No plano mensal não há fidelidade: você cancela quando quiser, com 30 dias de aviso.</li>
+        <li>Preços de lançamento e promoções valem pelo prazo informado na contratação.</li>
+        <li>Os valores são reajustados uma vez por ano pelo IPCA.</li>
+        <li>Os dados do seu pátio são seus. A Murel trata esses dados só para prestar o serviço.</li>
+        <li>A Murel é a ferramenta de gestão; a operação do estacionamento e a guarda dos veículos são responsabilidade sua.</li>
+      </ul>
+      <small>Este resumo ajuda na leitura, mas não substitui as cláusulas abaixo.</small>
+    </div>
+
+    <!-- 1 -->
+    <section id="aceite">
+      <h2><span class="n">01</span>Aceite e definições</h2>
+      <div class="cl"><span>1.1</span><p>Estes Termos de Uso regulam o acesso e o uso da plataforma Murel, oferecida por <span class="ph">[RAZÃO SOCIAL]</span>, inscrita no CNPJ sob o nº <span class="ph">[00.000.000/0001-00]</span>, com sede em <span class="ph">[ENDEREÇO COMPLETO]</span> ("Murel").</p></div>
+      <div class="cl"><span>1.2</span><p>Ao criar uma conta, iniciar o teste grátis ou contratar uma assinatura, o Cliente declara que leu, entendeu e aceita estes Termos e a <a href="/privacidade">Política de Privacidade</a>. Quem aceita em nome de uma empresa declara ter poderes para isso.</p></div>
+      <div class="cl"><span>1.3</span><div><p>Para estes Termos:</p>
+        <ul>
+          <li><b>Plataforma:</b> o sistema Murel, acessado pelo navegador, como aplicativo instalável (PWA) ou aplicativo móvel.</li>
+          <li><b>Cliente:</b> a pessoa jurídica ou o profissional que contrata a Murel para gerir estacionamento, valet ou lava-rápido.</li>
+          <li><b>Usuários:</b> as pessoas que o Cliente autoriza a usar a Plataforma, como sócios, gerentes, operadores e manobristas.</li>
+          <li><b>Clientes Finais:</b> os motoristas e demais pessoas atendidas pelo Cliente, cujos veículos e dados são registrados na Plataforma.</li>
+          <li><b>Assinatura:</b> o plano contratado, com seu valor, periodicidade e condições.</li>
+        </ul></div></div>
+      <div class="cl"><span>1.4</span><p>A Murel é um serviço entre empresas (B2B), destinado ao uso profissional na atividade do Cliente.</p></div>
+    </section>
+
+    <!-- 2 -->
+    <section id="servico">
+      <h2><span class="n">02</span>O serviço</h2>
+      <div class="cl"><span>2.1</span><p>A Murel oferece um sistema em nuvem para gestão de pátio. Entre as funcionalidades estão: registro de entrada e saída de veículos, leitura de placa pela câmera, controle de caixa, tabelas de preço, mensalistas, empresas conveniadas, quadro de chaves e ticket digital.</p></div>
+      <div class="cl"><span>2.2</span><p>Salvo disposição diferente na contratação, todas as funcionalidades disponíveis estão incluídas em qualquer plano.</p></div>
+      <div class="cl"><span>2.3</span><p>A Murel pode melhorar, alterar ou substituir funcionalidades para evoluir o produto. Se uma mudança retirar uma funcionalidade essencial que o Cliente usa, avisaremos com pelo menos 30 dias de antecedência.</p></div>
+      <div class="cl"><span>2.4</span><p>A leitura automática de placas é um recurso de apoio e pode apresentar erros, por exemplo com pouca luz ou placa danificada. O operador deve conferir os dados antes de confirmar a entrada.</p></div>
+    </section>
+
+    <!-- 3 -->
+    <section id="cadastro">
+      <h2><span class="n">03</span>Cadastro e acessos</h2>
+      <div class="cl"><span>3.1</span><p>O Cliente deve fornecer dados verdadeiros e atualizados no cadastro, incluindo razão social ou nome, CNPJ ou CPF, endereço e contato.</p></div>
+      <div class="cl"><span>3.2</span><p>O Cliente cria e gerencia os acessos dos seus Usuários e define o que cada um pode fazer. Ele responde pelos atos praticados com esses acessos.</p></div>
+      <div class="cl"><span>3.3</span><p>Senhas são pessoais e não devem ser compartilhadas. Em caso de suspeita de uso indevido, o Cliente deve trocar as senhas e avisar a Murel imediatamente.</p></div>
+    </section>
+
+    <!-- 4 -->
+    <section id="teste">
+      <h2><span class="n">04</span>Teste grátis</h2>
+      <div class="cl"><span>4.1</span><p>Novos Clientes podem testar a Murel por 30 dias, sem custo, sem compromisso e sem informar cartão de crédito, com acesso a todas as funcionalidades.</p></div>
+      <div class="cl"><span>4.2</span><p>Ao fim do teste, se o Cliente não contratar uma Assinatura, o acesso é suspenso. Os dados ficam guardados por 30 dias para o caso de contratação; depois desse prazo, podem ser excluídos.</p></div>
+      <div class="cl"><span>4.3</span><p>O teste grátis é oferecido uma vez por Cliente e por estabelecimento.</p></div>
+    </section>
+
+    <!-- 5 -->
+    <section id="precos">
+      <h2><span class="n">05</span>Planos, preços e pagamento</h2>
+      <div class="cl"><span>5.1</span><p>Os planos, valores e condições vigentes são os informados na página de preços, na proposta comercial ou no momento da contratação. Prevalece o que foi aceito pelo Cliente.</p></div>
+      <div class="cl"><span>5.2</span><p>A cobrança é antecipada e recorrente, de acordo com a periodicidade do plano. Os meios de pagamento aceitos são informados na contratação, e podem incluir cartão de crédito, Pix e boleto.</p></div>
+      <div class="cl"><span>5.3</span><p>Planos com período mínimo podem ser pagos à vista ou parcelados, conforme as opções oferecidas. O parcelamento não altera o período mínimo contratado.</p></div>
+      <div class="cl"><span>5.4</span><p>A Murel emite nota fiscal dos valores recebidos. Os preços já incluem os tributos devidos pela Murel, salvo indicação diferente.</p></div>
+      <div class="cl"><span>5.5</span><p>As taxas das maquininhas, dos meios de pagamento e dos serviços de terceiros que o Cliente usa na própria operação não fazem parte da Assinatura.</p></div>
+    </section>
+
+    <!-- 6 -->
+    <section id="promocoes">
+      <h2><span class="n">06</span>Preço de lançamento e condições especiais</h2>
+      <div class="cl"><span>6.1</span><p>A Murel pode oferecer preço de lançamento, condição de Cliente Fundador, descontos por indicação ou outras condições especiais. Cada condição informa seu valor, prazo de validade e, quando houver, o número limite de Clientes.</p></div>
+      <div class="cl"><span>6.2</span><p>O Cliente que contratar dentro da validade da condição mantém o valor especial pelo período informado na contratação. Terminado esse período, passa a pagar o preço de tabela vigente, com aviso prévio de pelo menos 60 dias.</p></div>
+      <div class="cl"><span>6.3</span><p>Quando a condição prever a manutenção do valor especial enquanto a Assinatura estiver ativa, o valor continua sujeito apenas ao reajuste anual da cláusula 8.</p></div>
+      <div class="cl"><span>6.4</span><p>Encerrada a validade de uma condição, novos Clientes contratam pelo preço de tabela vigente. Isso não altera as condições de quem já contratou.</p></div>
+      <div class="cl"><span>6.5</span><p>Condições especiais são pessoais, não podem ser transferidas e se encerram se a Assinatura for cancelada. Se o Cliente voltar depois de cancelar, contrata pelas condições vigentes naquele momento.</p></div>
+    </section>
+
+    <!-- 7 -->
+    <section id="cancelamento">
+      <h2><span class="n">07</span>Fidelidade e cancelamento</h2>
+      <div class="cl"><span>7.1</span><p><b>Plano mensal, sem fidelidade:</b> o Cliente pode cancelar a qualquer momento, pela Plataforma ou pelos canais de contato. O cancelamento produz efeito 30 dias após o pedido. A mensalidade desse período é devida, e não há devolução de valores do mês em curso.</p></div>
+      <div class="cl"><span>7.2</span><div><p><b>Planos com período mínimo</b> (por exemplo, semestral ou anual), quando oferecidos: se o Cliente cancelar antes do fim do período, deve devolver o desconto que recebeu nos meses já usados.</p>
+        <div class="callout">Multa = (preço de tabela do plano mensal − valor mensal pago no plano com desconto) × número de meses já usados.<br>Exemplo: plano anual a R$ 79,90/mês, mensal de tabela a R$ 119,90, cancelado no 5º mês: 5 × R$ 40,00 = R$ 200,00.</div></div></div>
+      <div class="cl"><span>7.3</span><p>Se o plano com período mínimo foi pago à vista, a Murel devolve o valor proporcional aos meses não usados, descontada a multa da cláusula 7.2, em até 30 dias.</p></div>
+      <div class="cl"><span>7.4</span><p>Ao fim do período mínimo, a Assinatura é renovada automaticamente pelo mesmo período e nas condições vigentes, salvo se o Cliente pedir o cancelamento da renovação com pelo menos 30 dias de antecedência.</p></div>
+      <div class="cl"><span>7.5</span><p>A Murel pode encerrar a Assinatura sem multa para o Cliente, com aviso de 60 dias, devolvendo valores pagos antecipadamente por períodos não usados.</p></div>
+      <div class="cl"><span>7.6</span><p>Após o cancelamento, o Cliente pode exportar seus dados por 30 dias. Depois desse prazo, os dados podem ser excluídos, exceto o que a lei obrigar a guardar.</p></div>
+    </section>
+
+    <!-- 8 -->
+    <section id="reajuste">
+      <h2><span class="n">08</span>Reajuste de preços</h2>
+      <div class="cl"><span>8.1</span><p>Os valores das Assinaturas, inclusive os de preço de lançamento e de condições especiais, são reajustados a cada 12 meses, contados da contratação, pela variação acumulada do IPCA/IBGE. Se o IPCA deixar de existir, será usado o índice oficial que o substituir.</p></div>
+      <div class="cl"><span>8.2</span><p>Se a condição de Cliente Fundador prever isenção de reajuste, a isenção vale pelo prazo informado nessa condição.</p></div>
+      <div class="cl"><span>8.3</span><p>Mudanças no preço de tabela, além do reajuste, só se aplicam a Clientes atuais com aviso prévio de pelo menos 60 dias. O Cliente que não concordar pode cancelar sem multa antes da nova cobrança.</p></div>
+    </section>
+
+    <!-- 9 -->
+    <section id="inadimplencia">
+      <h2><span class="n">09</span>Atraso e suspensão</h2>
+      <div class="cl"><span>9.1</span><p>Pagamentos em atraso têm multa de 2% e juros de 1% ao mês, proporcionais aos dias de atraso.</p></div>
+      <div class="cl"><span>9.2</span><p>Com 10 dias de atraso, depois de aviso por e-mail ou WhatsApp, a Murel pode suspender o acesso até a regularização. A suspensão não interrompe a contagem do período mínimo do plano.</p></div>
+      <div class="cl"><span>9.3</span><p>Com 60 dias de atraso, a Murel pode cancelar a Assinatura, aplicando as regras da cláusula 7.</p></div>
+    </section>
+
+    <!-- 10 -->
+    <section id="obrigacoes">
+      <h2><span class="n">10</span>Obrigações do cliente</h2>
+      <div class="cl"><span>10.1</span><div><p>O Cliente se compromete a:</p>
+        <ul>
+          <li>usar a Plataforma de forma lícita e de acordo com estes Termos;</li>
+          <li>configurar corretamente suas tabelas de preço, tolerâncias, convênios e mensalidades, e conferir os valores cobrados;</li>
+          <li>manter internet e dispositivos (celulares, tablets, impressoras, maquininhas) adequados ao uso;</li>
+          <li>cumprir suas obrigações fiscais, trabalhistas, municipais e de defesa do consumidor, inclusive a emissão de documentos fiscais aos Clientes Finais;</li>
+          <li>informar aos Clientes Finais como os dados deles são tratados, conforme a cláusula 12;</li>
+          <li>não copiar, revender, sublicenciar, fazer engenharia reversa ou tentar acessar áreas não autorizadas da Plataforma.</li>
+        </ul></div></div>
+    </section>
+
+    <!-- 11 -->
+    <section id="responsabilidade">
+      <h2><span class="n">11</span>Responsabilidades e limites</h2>
+      <div class="cl"><span>11.1</span><p>A Murel é uma ferramenta de gestão. Ela não opera o estacionamento, o valet ou o lava-rápido e não tem a guarda dos veículos.</p></div>
+      <div class="cl"><span>11.2</span><div><p>A Murel não responde por:</p>
+        <ul>
+          <li>danos, furtos, roubos ou avarias de veículos e objetos sob a guarda do Cliente;</li>
+          <li>valores cobrados conforme tabelas e regras configuradas pelo Cliente ou por seus Usuários;</li>
+          <li>falhas de internet, energia, dispositivos ou serviços de terceiros contratados pelo Cliente;</li>
+          <li>uso indevido da Plataforma pelos Usuários do Cliente;</li>
+          <li>lucros cessantes ou danos indiretos.</li>
+        </ul></div></div>
+      <div class="cl"><span>11.3</span><p>A responsabilidade total da Murel em relação a estes Termos, quando existir, fica limitada ao valor pago pelo Cliente nos 12 meses anteriores ao fato, salvo nos casos em que a lei não permita essa limitação.</p></div>
+    </section>
+
+    <!-- 12 -->
+    <section id="dados">
+      <h2><span class="n">12</span>Dados pessoais (LGPD)</h2>
+      <div class="cl"><span>12.1</span><p>Os dados dos Clientes Finais e dos Usuários registrados pelo Cliente, como placa, modelo e cor do veículo, nome, telefone, e-mail e horários, pertencem ao Cliente. Para esses dados, o Cliente é o <b>controlador</b> e a Murel é a <b>operadora</b>, nos termos da Lei nº 13.709/2018 (LGPD).</p></div>
+      <div class="cl"><span>12.2</span><p>Como operadora, a Murel trata esses dados apenas para prestar o serviço e seguindo as instruções do Cliente. A Murel não vende esses dados e não os usa para outros fins.</p></div>
+      <div class="cl"><span>12.3</span><p>Cabe ao Cliente ter base legal para o tratamento e informar os Clientes Finais, por exemplo por aviso no local ou no ticket digital.</p></div>
+      <div class="cl"><span>12.4</span><p>A Murel adota medidas de segurança adequadas, como acesso por senha, comunicação criptografada e backups. Em caso de incidente de segurança que afete esses dados, a Murel avisará o Cliente sem demora indevida.</p></div>
+      <div class="cl"><span>12.5</span><p>A Murel pode usar fornecedores para hospedagem, envio de mensagens e processamento de pagamentos. Esses fornecedores ficam sujeitos a obrigações de proteção de dados compatíveis com estes Termos.</p></div>
+      <div class="cl"><span>12.6</span><p>Os dados cadastrais do próprio Cliente e de seus Usuários, usados para a conta, a cobrança e o suporte, são tratados pela Murel como controladora, conforme a <a href="/privacidade">Política de Privacidade</a>.</p></div>
+      <div class="cl"><span>12.7</span><p>A Murel pode usar dados agregados e anonimizados, sem identificar Clientes, Usuários ou Clientes Finais, para melhorar o produto e gerar estatísticas.</p></div>
+    </section>
+
+    <!-- 13 -->
+    <section id="propriedade">
+      <h2><span class="n">13</span>Propriedade intelectual</h2>
+      <div class="cl"><span>13.1</span><p>A Plataforma, a marca Murel, o software, o design e os conteúdos são de propriedade da Murel ou de seus licenciantes. A Assinatura dá ao Cliente uma licença de uso não exclusiva, intransferível e válida enquanto estiver ativa.</p></div>
+      <div class="cl"><span>13.2</span><p>Sugestões de melhoria enviadas pelo Cliente podem ser usadas pela Murel livremente, sem obrigação de pagamento.</p></div>
+    </section>
+
+    <!-- 14 -->
+    <section id="suporte">
+      <h2><span class="n">14</span>Suporte e disponibilidade</h2>
+      <div class="cl"><span>14.1</span><p>O suporte é prestado pelos canais indicados na cláusula 17, em <span class="ph">[dias e horário de atendimento]</span>.</p></div>
+      <div class="cl"><span>14.2</span><p>A Murel se esforça para manter a Plataforma disponível 24 horas por dia, mas não garante funcionamento ininterrupto. Manutenções programadas serão feitas, sempre que possível, em horários de menor movimento e com aviso prévio.</p></div>
+    </section>
+
+    <!-- 15 -->
+    <section id="alteracoes">
+      <h2><span class="n">15</span>Alterações destes termos</h2>
+      <div class="cl"><span>15.1</span><p>A Murel pode atualizar estes Termos. Mudanças relevantes serão avisadas por e-mail ou pela Plataforma com pelo menos 30 dias de antecedência. Se o Cliente não concordar, pode cancelar sem multa antes da entrada em vigor.</p></div>
+      <div class="cl"><span>15.2</span><p>A versão vigente fica sempre disponível nesta página, com a data da última atualização.</p></div>
+    </section>
+
+    <!-- 16 -->
+    <section id="gerais">
+      <h2><span class="n">16</span>Disposições gerais e foro</h2>
+      <div class="cl"><span>16.1</span><p>Se alguma cláusula for considerada inválida, as demais continuam valendo.</p></div>
+      <div class="cl"><span>16.2</span><p>A tolerância com o descumprimento de alguma regra não significa renúncia ao direito de exigi-la depois.</p></div>
+      <div class="cl"><span>16.3</span><p>Estes Termos são regidos pelas leis brasileiras. Fica eleito o foro da comarca de <span class="ph">[CIDADE/UF]</span> para resolver qualquer controvérsia, com renúncia a qualquer outro.</p></div>
+    </section>
+
+    <!-- 17 -->
+    <section id="contato">
+      <h2><span class="n">17</span>Contato</h2>
+      <table>
+        <tr><th>Canal</th><th>Para quê</th></tr>
+        <tr><td><a href="mailto:contato@murel.com.br">contato@murel.com.br</a> <span class="ph">[confirmar]</span></td><td>Dúvidas, suporte, cancelamento e solicitações sobre dados</td></tr>
+        <tr><td>WhatsApp <span class="ph">[(00) 00000-0000]</span></td><td>Suporte e atendimento comercial</td></tr>
+        <tr><td>Site <a href="https://murel.com.br">murel.com.br</a></td><td>Informações, preços e versão atual destes Termos</td></tr>
+      </table>
+      <p>Encarregado pelo tratamento de dados pessoais (DPO): <span class="ph">[NOME]</span>, <span class="ph">[E-MAIL]</span>.</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="bar">
+    <span>© <span class="ph">[ANO]</span> Murel · <span class="ph">[RAZÃO SOCIAL]</span> · CNPJ <span class="ph">[00.000.000/0001-00]</span></span>
+    <span><a href="/privacidade">Política de Privacidade</a> · <a href="#">Voltar ao topo</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
