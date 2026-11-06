@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.351",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "exige aceite dos Termos de Uso e da Política de Privacidade",
+      "description": "Na conferência final da adesão, o responsável pela empresa agora vê dois\nblocos separados, um para os Termos de Uso e outro para a Política de\nPrivacidade. Cada um tem o link para ler o documento em nova aba e uma\ncaixa de aceite, e as duas são obrigatórias para criar a conta (nos modos\ncom plano e de teste grátis).\n\n- O cadastro envia aceiteTermos com o aceite e a versão vigente (v1.0).\n- Sem os dois aceites o envio é bloqueado, o erro aparece junto da caixa\n  pendente e o foco vai para a primeira; os aceites são mantidos ao\n  navegar entre as etapas.\n- Recusa do backend sobre o aceite leva de volta à caixa correspondente.\n- Os documentos ficam em public/legal e abrem sem login.",
+      "date": "2026-11-06T16:59:11-03:00"
+    },
+    {
       "version": "1.0.349",
       "type": "feat",
       "scope": "adesao",
