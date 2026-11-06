@@ -19,15 +19,6 @@ export const Unidade = styled.span`
   color: ${({ theme }) => theme.colors.textMuted};
 `;
 
-// A economia é texto; o ícone só reforça e fica escondido dos leitores de tela.
-export const Economia = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.space[1]}px;
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
-  color: ${({ theme }) => theme.colors.success};
-`;
-
 export const Raiz = styled.div`
   display: flex;
   flex-direction: column;

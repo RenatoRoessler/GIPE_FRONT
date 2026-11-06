@@ -30,7 +30,7 @@ const DESCRICOES = [
   "Conte para a gente sobre a sua empresa.",
   "Defina os dias e horários de atendimento.",
   "Agora crie o usuário titular da conta.",
-  "Todas as funcionalidades valem em todos os planos. O que muda é o tempo e o valor.",
+  "Um plano, todas as funcionalidades, sem fidelidade.",
   "Revise antes de criar a conta. Dá para corrigir qualquer seção.",
 ];
 

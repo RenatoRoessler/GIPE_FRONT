@@ -1,14 +1,23 @@
 import { Plano, PlanoVendido, TipoPlanoAdesao } from "@/types/plano";
 
 // Mesma tabela do site (murel-site); mudar um valor exige mudar nos dois lugares.
-export const PLANOS: readonly Plano[] = [
-  { tipo: TipoPlanoAdesao.Mensal, nome: "Mensal", meses: 1, centavosPorMes: 14990 },
-  { tipo: TipoPlanoAdesao.Trimestral, nome: "Trimestral", meses: 3, centavosPorMes: 13490 },
-  { tipo: TipoPlanoAdesao.Semestral, nome: "Semestral", meses: 6, centavosPorMes: 11990 },
-  { tipo: TipoPlanoAdesao.Anual, nome: "Anual", meses: 12, centavosPorMes: 7990, recomendado: true },
-];
+export const PLANO_MENSAL: Plano = {
+  tipo: TipoPlanoAdesao.Mensal,
+  nome: "Mensal",
+  centavosPorMes: 9990,
+  centavosLancamento: 6990,
+  mesesDeLancamento: 12,
+};
 
-const PLANO_MENSAL = PLANOS[0];
+export const PLANOS: readonly Plano[] = [PLANO_MENSAL];
+
+// 1º de julho de 2027, 00:00 em Brasília: "assine até 30/06/2027" vale o dia 30 inteiro.
+export const FIM_DO_LANCAMENTO = new Date("2027-07-01T00:00:00-03:00");
+export const ROTULO_FIM_DO_LANCAMENTO = "30/06/2027";
+
+export function lancamentoVigente(agora: number = Date.now(), fim: Date = FIM_DO_LANCAMENTO): boolean {
+  return agora < fim.getTime();
+}
 
 const reais = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -17,40 +26,16 @@ export function formatarReais(centavos: number): string {
   return reais.format(centavos / 100).replace(/ /g, " ");
 }
 
-export interface CondicoesPlano {
-  totalCentavos: number;
-  economiaCentavos: number;
-  economiaPercentual: number;
+export function valorPorMes(plano: Plano, agora: number = Date.now()): number {
+  return lancamentoVigente(agora) ? plano.centavosLancamento : plano.centavosPorMes;
 }
 
-export function calcularCondicoes(plano: Plano): CondicoesPlano {
-  const totalCentavos = plano.centavosPorMes * plano.meses;
-  const semDesconto = PLANO_MENSAL.centavosPorMes * plano.meses;
-  const economiaCentavos = semDesconto - totalCentavos;
+export function descreverCondicao(plano: Plano, agora: number = Date.now()): string {
+  if (!lancamentoVigente(agora)) return "Cobrado todo mês";
 
-  return {
-    totalCentavos,
-    economiaCentavos,
-    economiaPercentual: Math.round((economiaCentavos / semDesconto) * 100),
-  };
-}
-
-export function descreverTotal(plano: Plano): string {
-  if (plano.meses === 1) return "Cobrado todo mês";
-
-  const { totalCentavos } = calcularCondicoes(plano);
-  const total = formatarReais(totalCentavos);
-  return plano.meses === 12 ? `${total} em uma cobrança única` : `${total} por ${plano.meses} meses`;
-}
-
-export function descreverEconomia(plano: Plano): string | undefined {
-  const { economiaCentavos, economiaPercentual } = calcularCondicoes(plano);
-  if (economiaCentavos <= 0) return undefined;
-  return `Economia de ${formatarReais(economiaCentavos)} (${economiaPercentual}%)`;
-}
-
-export function buscarPlano(tipo: PlanoVendido): Plano {
-  return PLANOS.find((plano) => plano.tipo === tipo) ?? PLANO_MENSAL;
+  const lancamento = formatarReais(plano.centavosLancamento);
+  const tabela = formatarReais(plano.centavosPorMes);
+  return `${lancamento}/mês nos primeiros ${plano.mesesDeLancamento} meses; depois, ${tabela}/mês.`;
 }
 
 // Só o texto exato "0" abre o teste grátis; os demais valores seguem a regra de lerPlanoDaUrl.
@@ -62,8 +47,7 @@ export function descricaoDoTeste(): string {
   return "Teste grátis · 30 dias";
 }
 
-// Só os textos exatos "1" a "4" valem; qualquer outra coisa é ignorada, sem erro.
+// Só o texto exato "1" vale; qualquer outra coisa é ignorada, sem erro.
 export function lerPlanoDaUrl(valor: string | null): PlanoVendido | undefined {
-  if (valor === null || !/^[1-4]$/.test(valor)) return undefined;
-  return Number(valor) as PlanoVendido;
+  return valor === "1" ? TipoPlanoAdesao.Mensal : undefined;
 }

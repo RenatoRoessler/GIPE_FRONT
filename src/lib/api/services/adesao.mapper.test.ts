@@ -6,7 +6,7 @@ import {
   TipoEmpresa,
   type CompanyData,
 } from "@/types/adesao";
-import { TipoPlanoAdesao, type PlanoVendido } from "@/types/plano";
+import { TipoPlanoAdesao } from "@/types/plano";
 import { toAdesaoPayload, toPaymentsPayload } from "./adesao.mapper";
 
 const company: CompanyData = {
@@ -74,7 +74,7 @@ describe("toAdesaoPayload: meios de pagamento", () => {
 });
 
 describe("toAdesaoPayload: plano", () => {
-  it.each<[PlanoVendido, number]>([
+  it.each<[TipoPlanoAdesao, number]>([
     [TipoPlanoAdesao.Mensal, 1],
     [TipoPlanoAdesao.Trimestral, 2],
     [TipoPlanoAdesao.Semestral, 3],

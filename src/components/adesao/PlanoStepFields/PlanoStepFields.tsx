@@ -1,15 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { OptionGroup } from "@/components/ui/OptionGroup";
 import { AREAS_DO_SISTEMA } from "@/lib/areasDoSistema";
-import { descreverEconomia, descreverTotal, formatarReais, PLANOS } from "@/lib/planos";
+import {
+  descreverCondicao,
+  formatarReais,
+  lancamentoVigente,
+  PLANOS,
+  ROTULO_FIM_DO_LANCAMENTO,
+  valorPorMes,
+} from "@/lib/planos";
 import { TipoPlanoAdesao } from "@/types/plano";
 import {
   Area,
   AreaDescricao,
   Areas,
   AreaTitulo,
-  Economia,
   Funcionalidades,
   FuncionalidadesTitulo,
   Raiz,
@@ -31,38 +38,25 @@ const OPCAO_TESTE = {
   detail: <span>Todas as funcionalidades, sem cartão de crédito e sem compromisso.</span>,
 };
 
-const OPCOES_PAGAS = PLANOS.map((plano) => {
-  const economia = descreverEconomia(plano);
-
-  return {
+function opcoesPagas(agora: number) {
+  return PLANOS.map((plano) => ({
     value: String(plano.tipo),
     label: plano.nome,
     aside: (
       <Valor>
-        {formatarReais(plano.centavosPorMes)}
+        {formatarReais(valorPorMes(plano, agora))}
         <Unidade>/mês</Unidade>
       </Valor>
     ),
-    detail: (
-      <>
-        <span>{descreverTotal(plano)}</span>
-        {economia && (
-          <Economia>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
-              <path d="M5 12.5l4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {economia}
-          </Economia>
-        )}
-      </>
-    ),
-    badge: plano.recomendado ? "Mais econômico" : undefined,
-  };
-});
-
-const OPCOES = [OPCAO_TESTE, ...OPCOES_PAGAS];
+    detail: <span>{descreverCondicao(plano, agora)}</span>,
+    badge: lancamentoVigente(agora) ? `Preço de lançamento · assine até ${ROTULO_FIM_DO_LANCAMENTO}` : undefined,
+  }));
+}
 
 export function PlanoStepFields({ plano, onChange, error }: PlanoStepFieldsProps) {
+  const [agora] = useState(() => Date.now());
+  const OPCOES = [OPCAO_TESTE, ...opcoesPagas(agora)];
+
   return (
     <Raiz>
       <OptionGroup
@@ -74,7 +68,7 @@ export function PlanoStepFields({ plano, onChange, error }: PlanoStepFieldsProps
         error={error}
       />
       <Funcionalidades aria-labelledby="funcionalidades-titulo">
-        <FuncionalidadesTitulo id="funcionalidades-titulo">Tudo isso em todos os planos</FuncionalidadesTitulo>
+        <FuncionalidadesTitulo id="funcionalidades-titulo">Tudo isso incluso no plano</FuncionalidadesTitulo>
         <Areas>
           {AREAS_DO_SISTEMA.map((area) => (
             <Area key={area.titulo}>

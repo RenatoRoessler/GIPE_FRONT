@@ -1,4 +1,4 @@
-import { buscarPlano, descricaoDoTeste, formatarReais } from "@/lib/planos";
+import { descricaoDoTeste, formatarReais, PLANO_MENSAL, valorPorMes } from "@/lib/planos";
 import { TipoPlanoAdesao } from "@/types/plano";
 import { BusinessHoursData, CompanyData, DIAS_SEMANA, MEIOS_PAGAMENTO, PaymentsData, TIPO_EMPRESA_LABEL } from "@/types/adesao";
 
@@ -34,8 +34,8 @@ function numeroOuUndefined(valor: string): number | undefined {
 function descricaoDoPlano(tipo: TipoPlanoAdesao): string {
   if (tipo === TipoPlanoAdesao.Trial) return descricaoDoTeste();
 
-  const plano = buscarPlano(tipo);
-  return `${plano.nome} · ${formatarReais(plano.centavosPorMes)}/mês`;
+  const plano = PLANO_MENSAL;
+  return `${plano.nome} · ${formatarReais(valorPorMes(plano))}/mês`;
 }
 
 export function buildCredencial(input: {

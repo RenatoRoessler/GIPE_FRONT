@@ -39,7 +39,7 @@ const adminUser = {
   repetirSenha: "SenhaSecreta#1",
 };
 
-function renderar(onEditar = vi.fn(), plano: TipoPlanoAdesao = TipoPlanoAdesao.Anual, planoEditavel = true) {
+function renderar(onEditar = vi.fn(), plano: TipoPlanoAdesao = TipoPlanoAdesao.Mensal, planoEditavel = true) {
   renderWithTheme(
     <ConferirStep
       plano={plano}
@@ -68,12 +68,12 @@ describe("ConferirStep", () => {
     expect(screen.getByText("Segunda-feira").nextSibling).toHaveTextContent("08:00 às 18:00");
   });
 
-  it("mostra o plano escolhido com valor por mês e total", () => {
+  it("mostra o plano escolhido com valor por mês e condição", () => {
     renderar();
     const secao = screen.getByRole("region", { name: "Plano" });
-    expect(secao).toHaveTextContent("Anual");
-    expect(secao).toHaveTextContent("R$ 79,90");
-    expect(secao).toHaveTextContent("R$ 958,80 em uma cobrança única");
+    expect(secao).toHaveTextContent("Mensal");
+    expect(secao).toHaveTextContent("R$ 69,90");
+    expect(secao).toHaveTextContent("R$ 69,90/mês nos primeiros 12 meses; depois, R$ 99,90/mês.");
   });
 
   it("Editar Plano leva à etapa do plano", async () => {
@@ -87,7 +87,7 @@ describe("ConferirStep", () => {
       renderar(vi.fn(), TipoPlanoAdesao.Trial);
       const secao = screen.getByRole("region", { name: "Teste grátis por 30 dias" });
       expect(secao).toHaveTextContent("Use o sistema completo por 30 dias.");
-      expect(secao).toHaveTextContent("No fim do teste, você escolhe o plano que fizer mais sentido.");
+      expect(secao).toHaveTextContent("No fim do teste, você decide se quer assinar.");
       expect(screen.queryByRole("region", { name: "Plano" })).not.toBeInTheDocument();
     });
 
@@ -101,11 +101,11 @@ describe("ConferirStep", () => {
       ]);
     });
 
-    it("sem etapa Plano no fluxo não tem Editar, valor por mês, total nem preço", () => {
+    it("sem etapa Plano no fluxo não tem Editar, valor por mês, condição nem preço", () => {
       renderar(vi.fn(), TipoPlanoAdesao.Trial, false);
       expect(screen.queryByRole("button", { name: "Editar Plano" })).not.toBeInTheDocument();
       expect(screen.queryByText("Valor por mês")).not.toBeInTheDocument();
-      expect(screen.queryByText("Total")).not.toBeInTheDocument();
+      expect(screen.queryByText("Condição")).not.toBeInTheDocument();
       expect(document.body.textContent).not.toContain("R$");
     });
 

@@ -20,8 +20,8 @@ import { OnboardingWizard } from "./OnboardingWizard";
 type User = ReturnType<typeof userEvent.setup>;
 
 // O Logo da tela lê o modo de tema do provider da aplicação.
-// Por padrão a adesão abre como se viesse do site com o plano Anual escolhido.
-const renderWizard = (query = "tipoPlanoAdesao=4") => {
+// Por padrão a adesão abre como se viesse do site com o plano Mensal escolhido.
+const renderWizard = (query = "tipoPlanoAdesao=1") => {
   consulta.atual = query;
   return renderWithProviders(
     <ThemeModeProvider>
@@ -309,7 +309,7 @@ describe("OnboardingWizard: envio", () => {
       cartaoCredito: false,
       cartaoDebito: true,
     });
-    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(4);
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(1);
     await waitFor(() => expect(push).toHaveBeenCalledWith("/login?cadastro=sucesso"));
   });
 
@@ -363,9 +363,6 @@ const plano = (nome: RegExp) => screen.getByRole("radio", { name: nome });
 describe("OnboardingWizard: plano", () => {
   it.each([
     ["1", /Mensal/],
-    ["2", /Trimestral/],
-    ["3", /Semestral/],
-    ["4", /Anual/],
   ])("tipoPlanoAdesao=%s chega à etapa do plano já selecionado", async (valor, nome) => {
     const user = userEvent.setup();
     renderWizard(`tipoPlanoAdesao=${valor}`);
@@ -414,7 +411,7 @@ describe("OnboardingWizard: plano", () => {
     renderWizard("");
     await irAtePlano(user);
     await user.click(proximo());
-    await user.click(plano(/Trimestral/));
+    await user.click(plano(/Mensal/));
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     await user.click(proximo());
@@ -438,16 +435,16 @@ describe("OnboardingWizard: plano", () => {
     renderWizard();
     await irAtePlano(user);
 
-    expect(screen.getByRole("region", { name: "Tudo isso em todos os planos" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Tudo isso incluso no plano" })).toBeInTheDocument();
   });
 
   it("a credencial mostra o plano vindo da URL", () => {
-    renderWizard("tipoPlanoAdesao=2");
+    renderWizard("tipoPlanoAdesao=1");
     const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
-    expect(within(credencial).getByText("Plano: Trimestral · R$ 134,90/mês")).toBeInTheDocument();
+    expect(within(credencial).getByText("Plano: Mensal · R$ 69,90/mês")).toBeInTheDocument();
   });
 
-  it.each(["1", "2", "3", "4"])("tipoPlanoAdesao=%s mantém as cinco etapas e a etapa do plano", (valor) => {
+  it.each(["1"])("tipoPlanoAdesao=%s mantém as cinco etapas e a etapa do plano", (valor) => {
     renderWizard(`tipoPlanoAdesao=${valor}`);
     const lista = screen.getByRole("list", { name: "Progresso do cadastro" });
     expect(within(lista).getAllByRole("listitem")).toHaveLength(5);
@@ -457,15 +454,15 @@ describe("OnboardingWizard: plano", () => {
 
   it("no fluxo pago nunca envia o teste grátis", async () => {
     const user = userEvent.setup();
-    renderWizard("tipoPlanoAdesao=2");
+    renderWizard("tipoPlanoAdesao=1");
     await irAteConferencia(user);
     await user.click(criarConta());
 
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(2);
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(1);
   });
 
-  it("Editar Plano na conferência troca o plano e volta direto para a conferência", async () => {
+  it("Editar Plano na conferência troca para o teste grátis e volta direto para a conferência", async () => {
     const user = userEvent.setup();
     renderWizard();
     await irAteConferencia(user);
@@ -473,14 +470,14 @@ describe("OnboardingWizard: plano", () => {
     await user.click(screen.getByRole("button", { name: "Editar Plano" }));
     await titulo("Escolha o seu plano");
     expect(screen.getByRole("button", { name: "Voltar para a conferência" })).toBeInTheDocument();
-    await user.click(plano(/Semestral/));
+    await user.click(plano(/Teste grátis/));
     await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
     await titulo("Confira os dados");
 
-    expect(within(screen.getByRole("region", { name: "Plano" })).getByText("Semestral")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Teste grátis por 30 dias" })).toBeInTheDocument();
     await user.click(criarConta());
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(3);
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(0);
   });
 });
 
@@ -628,7 +625,7 @@ describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
     const teste = plano(/Teste grátis/);
     expect(teste).not.toBeChecked();
     expect(teste).not.toHaveAccessibleName(expect.stringContaining("R$"));
-    expect(screen.getAllByRole("radio")).toHaveLength(5);
+    expect(screen.getAllByRole("radio")).toHaveLength(2);
   });
 
   it("mantém as cinco etapas, mostra o resumo do teste com Editar e envia 0", async () => {
@@ -660,13 +657,13 @@ describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
     await user.click(screen.getByRole("button", { name: "Editar Plano" }));
     await titulo("Escolha o seu plano");
     expect(plano(/Teste grátis/)).toBeChecked();
-    await user.click(plano(/Anual/));
+    await user.click(plano(/Mensal/));
     await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
     await titulo("Confira os dados");
 
     await user.click(criarConta());
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(4);
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(1);
   });
 
   it("a credencial mostra o teste assim que ele é escolhido", async () => {

@@ -4,12 +4,12 @@ import { renderWithTheme } from "@/test/render";
 import { PlanoStepFields } from "./PlanoStepFields";
 
 describe("PlanoStepFields", () => {
-  it("mostra o teste grátis e os quatro planos na ordem, sem nenhum selecionado", () => {
+  it("mostra o teste grátis e o plano Mensal na ordem, sem nenhum selecionado", () => {
     renderWithTheme(<PlanoStepFields plano={undefined} onChange={() => {}} />);
     const radios = screen.getAllByRole("radio");
 
-    expect(radios).toHaveLength(5);
-    expect(radios.map((radio) => radio.getAttribute("value"))).toEqual(["0", "1", "2", "3", "4"]);
+    expect(radios).toHaveLength(2);
+    expect(radios.map((radio) => radio.getAttribute("value"))).toEqual(["0", "1"]);
     radios.forEach((radio) => expect(radio).not.toBeChecked());
   });
 
@@ -22,7 +22,6 @@ describe("PlanoStepFields", () => {
       expect.stringContaining("Todas as funcionalidades, sem cartão de crédito e sem compromisso."),
     );
     expect(teste).not.toHaveAccessibleName(expect.stringContaining("R$"));
-    expect(teste).not.toHaveAccessibleName(expect.stringContaining("Mais econômico"));
   });
 
   it("escolher o teste grátis avisa com o tipo 0", () => {
@@ -37,46 +36,44 @@ describe("PlanoStepFields", () => {
     expect(screen.getByRole("radio", { name: /Teste grátis/ })).toBeChecked();
   });
 
-  it("mostra valor por mês, total e economia de cada plano", () => {
+  it("mostra o preço de lançamento, a regra dos 12 meses e o selo com a data", () => {
     renderWithTheme(<PlanoStepFields plano={undefined} onChange={() => {}} />);
+    const mensal = screen.getByRole("radio", { name: /Mensal/ });
 
-    expect(screen.getByRole("radio", { name: /Mensal/ })).toHaveAccessibleName(
-      expect.stringContaining("R$ 149,90"),
+    expect(mensal).toHaveAccessibleName(expect.stringContaining("R$ 69,90"));
+    expect(mensal).toHaveAccessibleName(
+      expect.stringContaining("R$ 69,90/mês nos primeiros 12 meses; depois, R$ 99,90/mês."),
     );
-    expect(screen.getByRole("radio", { name: /Trimestral/ })).toHaveAccessibleName(
-      expect.stringContaining("R$ 404,70 por 3 meses"),
-    );
-    expect(screen.getByRole("radio", { name: /Semestral/ })).toHaveAccessibleName(
-      expect.stringContaining("Economia de R$ 180,00 (20%)"),
-    );
-    expect(screen.getByRole("radio", { name: /Anual/ })).toHaveAccessibleName(
-      expect.stringContaining("R$ 958,80 em uma cobrança única"),
-    );
+    expect(mensal).toHaveAccessibleName(expect.stringContaining("assine até 30/06/2027"));
   });
 
-  it("não mostra economia no Mensal", () => {
-    renderWithTheme(<PlanoStepFields plano={undefined} onChange={() => {}} />);
-    expect(screen.getByRole("radio", { name: /Mensal/ })).not.toHaveAccessibleName(
-      expect.stringContaining("Economia"),
-    );
-    expect(screen.getAllByText(/^Economia de/)).toHaveLength(3);
+  it("depois do prazo mostra só o preço de tabela, sem selo", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2027-07-01T00:00:00-03:00"));
+    try {
+      renderWithTheme(<PlanoStepFields plano={undefined} onChange={() => {}} />);
+      const mensal = screen.getByRole("radio", { name: /Mensal/ });
+
+      expect(mensal).toHaveAccessibleName(expect.stringContaining("R$ 99,90"));
+      expect(mensal).not.toHaveAccessibleName(expect.stringContaining("R$ 69,90"));
+      expect(mensal).not.toHaveAccessibleName(expect.stringContaining("lançamento"));
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
-  it("mostra o selo só no Anual", () => {
+  it("não mostra os planos longos nem economia", () => {
     renderWithTheme(<PlanoStepFields plano={undefined} onChange={() => {}} />);
-    expect(screen.getAllByText("Mais econômico")).toHaveLength(1);
-    expect(screen.getByRole("radio", { name: /Anual/ })).toHaveAccessibleName(
-      expect.stringContaining("Mais econômico"),
-    );
+    expect(screen.queryByText(/Trimestral|Semestral|Anual|Economia/)).not.toBeInTheDocument();
   });
 
   it("marca o plano recebido e avisa a escolha com o tipo numérico", () => {
     const onChange = vi.fn();
-    renderWithTheme(<PlanoStepFields plano={3} onChange={onChange} />);
+    renderWithTheme(<PlanoStepFields plano={1} onChange={onChange} />);
 
-    expect(screen.getByRole("radio", { name: /Semestral/ })).toBeChecked();
-    fireEvent.click(screen.getByRole("radio", { name: /Anual/ }));
-    expect(onChange).toHaveBeenCalledWith(4);
+    expect(screen.getByRole("radio", { name: /Mensal/ })).toBeChecked();
+    fireEvent.click(screen.getByRole("radio", { name: /Teste grátis/ }));
+    expect(onChange).toHaveBeenCalledWith(0);
   });
 
   it("mostra o erro em role alert", () => {
@@ -84,9 +81,9 @@ describe("PlanoStepFields", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Escolha um plano para continuar.");
   });
 
-  it("lista as 13 áreas do sistema como valendo em todos os planos", () => {
+  it("lista as 13 áreas do sistema como incluídas no plano", () => {
     renderWithTheme(<PlanoStepFields plano={undefined} onChange={() => {}} />);
-    const bloco = screen.getByRole("region", { name: "Tudo isso em todos os planos" });
+    const bloco = screen.getByRole("region", { name: "Tudo isso incluso no plano" });
 
     expect(within(bloco).getAllByRole("listitem")).toHaveLength(13);
     expect(within(bloco).getByText("Quadro de chaves")).toBeInTheDocument();

@@ -2,7 +2,7 @@
 
 import { Fragment, ReactNode } from "react";
 import { formatCEP } from "@/lib/cep";
-import { buscarPlano, descreverTotal, formatarReais } from "@/lib/planos";
+import { descreverCondicao, formatarReais, PLANO_MENSAL, valorPorMes } from "@/lib/planos";
 import {
   AdminUserData,
   BusinessHoursData,
@@ -92,7 +92,7 @@ function ResumoTeste({ onEditar }: { onEditar?: () => void }) {
         )}
       </SecaoCabecalho>
       <FraseTeste>
-        Use o sistema completo por 30 dias. No fim do teste, você escolhe o plano que fizer mais sentido.
+        Use o sistema completo por 30 dias. No fim do teste, você decide se quer assinar.
       </FraseTeste>
       <Garantias>
         {GARANTIAS_DO_TESTE.map((garantia) => (
@@ -128,7 +128,7 @@ export function ConferirStep({
 }: ConferirStepProps) {
   const meios = MEIOS_PAGAMENTO.filter(({ key }) => payments[key]).map(({ label }) => label);
 
-  const dadosDoPlano = plano === TipoPlanoAdesao.Trial ? undefined : buscarPlano(plano);
+  const dadosDoPlano = plano === TipoPlanoAdesao.Trial ? undefined : PLANO_MENSAL;
 
   return (
     <Secoes>
@@ -173,8 +173,8 @@ export function ConferirStep({
       {dadosDoPlano ? (
         <Bloco titulo="Plano" onEditar={() => onEditar(ETAPA.Plano)}>
           <Linha termo="Plano" valor={dadosDoPlano.nome} />
-          <Linha termo="Valor por mês" valor={formatarReais(dadosDoPlano.centavosPorMes)} />
-          <Linha termo="Total" valor={descreverTotal(dadosDoPlano)} />
+          <Linha termo="Valor por mês" valor={formatarReais(valorPorMes(dadosDoPlano))} />
+          <Linha termo="Condição" valor={descreverCondicao(dadosDoPlano)} />
         </Bloco>
       ) : (
         <ResumoTeste onEditar={planoEditavel ? () => onEditar(ETAPA.Plano) : undefined} />

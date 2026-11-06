@@ -1,3 +1,4 @@
+// Os valores 2 a 4 continuam no contrato com o backend; o sistema só vende o Mensal.
 export enum TipoPlanoAdesao {
   Trial = 0,
   Mensal = 1,
@@ -7,15 +8,15 @@ export enum TipoPlanoAdesao {
 }
 
 // Trial existe no backend, mas não é oferecido na adesão.
-export type PlanoVendido = Exclude<TipoPlanoAdesao, TipoPlanoAdesao.Trial>;
+export type PlanoVendido = TipoPlanoAdesao.Mensal;
 
 export interface Plano {
   tipo: PlanoVendido;
   nome: string;
-  meses: 1 | 3 | 6 | 12;
-  // Centavos inteiros: total e economia saem exatos, sem erro de ponto flutuante.
+  // Centavos inteiros: evita erro de ponto flutuante.
   centavosPorMes: number;
-  recomendado?: boolean;
+  centavosLancamento: number;
+  mesesDeLancamento: number;
 }
 
 export interface AreaDoSistema {
