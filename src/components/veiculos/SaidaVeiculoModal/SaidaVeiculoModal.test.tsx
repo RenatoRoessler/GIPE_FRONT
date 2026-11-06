@@ -113,9 +113,10 @@ describe("SaidaVeiculoModal: fase de pesquisa", () => {
     renderModal();
     expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();
     expect(visor()).toBeInTheDocument();
-    expect(screen.getByLabelText("Placa")).toBeEnabled();
-    expect(screen.getByLabelText("Token")).toBeEnabled();
-    expect(screen.getByLabelText("Sequencial")).toBeEnabled();
+    expect(screen.getByLabelText("Placa do veículo")).toBeEnabled();
+    expect(screen.getByRole("radio", { name: "Placa" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Token" })).toBeEnabled();
+    expect(screen.getByRole("radio", { name: "Sequencial" })).toBeEnabled();
     expect(leitor.options?.ativo).toBe(true);
   });
 
@@ -160,19 +161,19 @@ describe("SaidaVeiculoModal: fase de pesquisa", () => {
     api.consultarSaida.mockRejectedValueOnce(new ApiError("not_found", "Nenhum veículo no pátio com essa placa.", 404));
     const user = userEvent.setup();
     renderModal();
-    await user.type(screen.getByLabelText("Placa"), "bra2e19");
+    await user.type(screen.getByLabelText("Placa do veículo"), "bra2e19");
     expect(await screen.findByText("Nenhum veículo no pátio com essa placa.")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();
 
-    await user.clear(screen.getByLabelText("Placa"));
-    await user.type(screen.getByLabelText("Placa"), "bra2e19");
+    await user.clear(screen.getByLabelText("Placa do veículo"));
+    await user.type(screen.getByLabelText("Placa do veículo"), "bra2e19");
     expect(await screen.findByText("ONIX · PRATA")).toBeInTheDocument();
   });
 
   it("placa inválida mostra a orientação ao confirmar com Enter", async () => {
     const user = userEvent.setup();
     renderModal();
-    await user.type(screen.getByLabelText("Placa"), "ABC12{Enter}");
+    await user.type(screen.getByLabelText("Placa do veículo"), "ABC12{Enter}");
     expect(await screen.findByText(/^Placa inválida/)).toBeInTheDocument();
     expect(api.consultarSaida).not.toHaveBeenCalled();
   });
@@ -185,18 +186,25 @@ describe("SaidaVeiculoModal: passagem para o pagamento", () => {
     expect(screen.getByRole("heading", { level: 2, name: "Confirmar saída" })).toBeInTheDocument();
     expect(api.consultarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "BRA2E19" });
     expect(visor()).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Placa")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Token")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Sequencial")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Placa do veículo")).not.toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: "Token" })).not.toBeInTheDocument();
     expect(screen.getByText("Valor a cobrar")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Dinheiro" })).toBeChecked();
     expect(confirmar("20,00")).toBeDisabled();
   });
 
   it.each([
-    ["placa", async (user: ReturnType<typeof userEvent.setup>) => user.type(screen.getByLabelText("Placa"), "bra2e19")],
-    ["token digitado", async (user: ReturnType<typeof userEvent.setup>) => user.type(screen.getByLabelText("Token"), "7K3Q9X")],
-    ["sequencial com Enter", async (user: ReturnType<typeof userEvent.setup>) => user.type(screen.getByLabelText("Sequencial"), "12{Enter}")],
+    ["placa", async (user: ReturnType<typeof userEvent.setup>) => user.type(screen.getByLabelText("Placa do veículo"), "bra2e19")],
+    ["token digitado", async (user: ReturnType<typeof userEvent.setup>) => {
+        await user.click(screen.getByRole("radio", { name: "Token" }));
+        await user.type(screen.getByLabelText("Token do cupom"), "7K3Q9X");
+      },
+    ],
+    ["sequencial com Enter", async (user: ReturnType<typeof userEvent.setup>) => {
+        await user.click(screen.getByRole("radio", { name: "Sequencial" }));
+        await user.type(screen.getByLabelText("Sequencial do veículo"), "12{Enter}");
+      },
+    ],
   ])("a busca por %s também leva à fase de pagamento", async (_nome, buscar) => {
     const user = userEvent.setup();
     renderModal();
@@ -208,7 +216,8 @@ describe("SaidaVeiculoModal: passagem para o pagamento", () => {
   it("o sequencial não busca sem Enter", async () => {
     const user = userEvent.setup();
     renderModal();
-    await user.type(screen.getByLabelText("Sequencial"), "12");
+    await user.click(screen.getByRole("radio", { name: "Sequencial" }));
+    await user.type(screen.getByLabelText("Sequencial do veículo"), "12");
     await new Promise((resolve) => setTimeout(resolve, 600));
     expect(api.consultarSaida).not.toHaveBeenCalled();
     expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();
@@ -410,9 +419,8 @@ describe("SaidaVeiculoModal: voltar para a pesquisa", () => {
     expect(screen.getByRole("heading", { level: 2, name: "Localizar veículo" })).toBeInTheDocument();
     expect(visor()).toBeInTheDocument();
     expect(leitor.options?.ativo).toBe(true);
-    expect(screen.getByLabelText("Placa")).toHaveValue("");
-    expect(screen.getByLabelText("Token")).toHaveValue("");
-    expect(screen.getByLabelText("Sequencial")).toHaveValue("");
+    expect(screen.getByLabelText("Placa do veículo")).toHaveValue("");
+    expect(screen.getByRole("radio", { name: "Placa" })).toBeChecked();
     expect(screen.queryByText("ONIX · PRATA")).not.toBeInTheDocument();
     expect(screen.queryByText("Valor a cobrar")).not.toBeInTheDocument();
   });
@@ -454,7 +462,7 @@ describe("SaidaVeiculoModal: fechar", () => {
   it("na pesquisa, com algo digitado, pede confirmação", async () => {
     const user = userEvent.setup();
     renderModal();
-    await user.type(screen.getByLabelText("Placa"), "BRA");
+    await user.type(screen.getByLabelText("Placa do veículo"), "BRA");
     await user.click(screen.getByRole("button", { name: "Cancelar" }));
     expect(handlers.onClose).not.toHaveBeenCalled();
     expect(screen.getByText("Cancelar a saída?")).toBeInTheDocument();

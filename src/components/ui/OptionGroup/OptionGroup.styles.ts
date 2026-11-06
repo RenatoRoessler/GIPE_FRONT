@@ -20,7 +20,7 @@ export const Legend = styled.legend`
   color: ${({ theme }) => theme.colors.text};
 `;
 
-export const Options = styled.div<{ $withIcon?: boolean; $columns?: number; $card?: boolean }>`
+export const Options = styled.div<{ $withIcon?: boolean; $columns?: number; $card?: boolean; $inline?: boolean }>`
   display: grid;
   grid-template-columns: repeat(${({ $columns, $withIcon, $card }) => $columns ?? ($card ? 1 : $withIcon ? 3 : 2)}, minmax(0, 1fr));
   gap: ${({ theme }) => theme.space[2]}px;
@@ -28,6 +28,16 @@ export const Options = styled.div<{ $withIcon?: boolean; $columns?: number; $car
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: repeat(${({ $columns, $card }) => $columns ?? ($card ? 2 : 3)}, minmax(0, 1fr));
   }
+
+  /* Em linha: rádios simples lado a lado, quebrando linha quando não cabem. */
+  ${({ $inline, theme }) =>
+    $inline &&
+    css`
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: ${theme.space[4]}px;
+      row-gap: ${theme.space[1]}px;
+    `}
 
   /* Cartões com selo sobre a borda precisam de folga acima da primeira linha. */
   ${({ $card, theme }) =>
@@ -45,6 +55,7 @@ export const Tile = styled.label<{
   $withIcon?: boolean;
   $card?: boolean;
   $highlight?: boolean;
+  $inline?: boolean;
 }>`
   position: relative;
   display: flex;
@@ -100,8 +111,19 @@ export const Tile = styled.label<{
       `}
     `}
 
+  /* Em linha: sem caixa, só a marca e o texto (o alvo de toque segue com a altura mínima). */
+  ${({ $inline, $checked }) =>
+    $inline &&
+    css`
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background-color: transparent;
+      font-weight: ${({ theme }) => ($checked ? theme.fontWeights.bold : theme.fontWeights.medium)};
+    `}
+
   &:hover {
-    border-color: ${({ theme, $disabled }) => ($disabled ? undefined : theme.colors.accent)};
+    border-color: ${({ theme, $disabled, $inline }) => ($disabled || $inline ? undefined : theme.colors.accent)};
   }
 
   &:focus-within {

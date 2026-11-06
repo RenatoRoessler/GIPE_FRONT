@@ -37,8 +37,8 @@ export interface OptionGroupProps {
   error?: string;
   // Fixa o número de colunas em qualquer largura (por padrão, 2 ou 3 conforme o ícone e a tela).
   columns?: number;
-  // "card" mostra cada opção como um cartão com mais conteúdo; o padrão são tiles de uma linha.
-  variant?: "tile" | "card";
+  // "card" mostra cada opção como um cartão com mais conteúdo; "inline" só o rádio e o texto, sem caixa; o padrão são tiles de uma linha.
+  variant?: "tile" | "card" | "inline";
 }
 
 // Escolha única em tiles; usa radios nativos, então setas, foco e leitor de tela vêm do navegador.
@@ -54,14 +54,15 @@ export function OptionGroup({
 }: OptionGroupProps) {
   const name = useId();
   const card = variant === "card";
+  const inline = variant === "inline";
 
   return (
     <Fieldset disabled={disabled} aria-invalid={Boolean(error)}>
       <Legend>{legend}</Legend>
-      <Options $withIcon={!card && options.some((option) => Boolean(option.icon))} $columns={columns} $card={card}>
+      <Options $withIcon={!card && options.some((option) => Boolean(option.icon))} $columns={columns} $card={card} $inline={inline}>
         {options.map((option) => {
           const checked = option.value === value;
-          const withIcon = !card && Boolean(option.icon);
+          const withIcon = !card && !inline && Boolean(option.icon);
           return (
             <Tile
               key={option.value}
@@ -70,6 +71,7 @@ export function OptionGroup({
               $hasError={Boolean(error)}
               $withIcon={withIcon}
               $card={card}
+              $inline={inline}
               $highlight={card && Boolean(option.badge)}
             >
               <RadioInput

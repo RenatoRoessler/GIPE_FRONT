@@ -30,56 +30,71 @@ function renderBusca(props: Partial<BuscaManualSaidaProps> = {}) {
   return { onChange, onEnter };
 }
 
-const placa = () => screen.getByLabelText("Placa");
-const token = () => screen.getByLabelText("Token");
-const sequencial = () => screen.getByLabelText("Sequencial");
+const placa = () => screen.getByLabelText("Placa do veículo");
+const token = () => screen.getByLabelText("Token do cupom");
+const sequencial = () => screen.getByLabelText("Sequencial do veículo");
+const escolher = (nome: "Placa" | "Token" | "Sequencial") => userEvent.click(screen.getByRole("radio", { name: nome }));
+
+function stubToque() {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query === MEDIA_TOQUE,
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+}
 
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
 describe("BuscaManualSaida", () => {
-  it("no celular os três campos usam o teclado do Murel, não o do sistema", () => {
-    vi.stubGlobal("matchMedia", (query: string) => ({
-      matches: query === MEDIA_TOQUE,
-      media: query,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    }));
+  it("abre com a placa escolhida e só o campo dela na tela", () => {
     renderBusca();
-
-    expect(placa()).toHaveAttribute("inputmode", "none");
-    expect(token()).toHaveAttribute("inputmode", "none");
-    expect(sequencial()).toHaveAttribute("inputmode", "none");
-  });
-
-  it("no computador o sequencial mantém o teclado numérico do sistema", () => {
-    renderBusca();
-
-    expect(sequencial()).toHaveAttribute("inputmode", "numeric");
-  });
-
-  it("mostra os três campos habilitados quando nenhum está preenchido", () => {
-    renderBusca();
+    expect(screen.getByRole("group", { name: "Buscar por" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Placa" })).toBeChecked();
     expect(placa()).toBeEnabled();
-    expect(token()).toBeEnabled();
-    expect(sequencial()).toBeEnabled();
+    expect(screen.queryByLabelText("Token do cupom")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Sequencial do veículo")).not.toBeInTheDocument();
     expect(screen.getByText("ou informe sem QR Code")).toBeInTheDocument();
   });
 
-  it("desabilita os outros dois campos quando um está preenchido", () => {
-    renderBusca({ values: { ...VAZIO, token: "7K3Q9X" } });
-    expect(token()).toBeEnabled();
-    expect(placa()).toBeDisabled();
-    expect(sequencial()).toBeDisabled();
-    expect(screen.getAllByText("Limpe o campo token para usar outro.")).toHaveLength(2);
+  it("abre no campo que já tem valor", () => {
+    renderBusca({ values: { ...VAZIO, sequencial: "12" } });
+    expect(screen.getByRole("radio", { name: "Sequencial" })).toBeChecked();
+    expect(sequencial()).toHaveValue("12");
   });
 
-  it("libera os campos quando o preenchido é limpo", () => {
-    const { rerender } = renderWithTheme(<BuscaManualSaida values={{ ...VAZIO, sequencial: "7" }} errors={{}} onChange={() => {}} />);
-    expect(placa()).toBeDisabled();
-    rerender(<BuscaManualSaida values={VAZIO} errors={{}} onChange={() => {}} />);
-    expect(placa()).toBeEnabled();
+  it("trocar a opção mostra o outro campo, com foco, e limpa o valor do anterior", async () => {
+    const { onChange } = renderBusca({ values: { ...VAZIO, placa: "ABC1D23" } });
+    await escolher("Token");
+    expect(onChange).toHaveBeenCalledWith("placa", "");
+    expect(token()).toBeEnabled();
+    expect(screen.queryByLabelText("Placa do veículo")).not.toBeInTheDocument();
+    await waitFor(() => expect(token()).toHaveFocus());
+  });
+
+  it("trocar a opção com o campo vazio não limpa nada", async () => {
+    const { onChange } = renderBusca();
+    await escolher("Sequencial");
+    expect(onChange).not.toHaveBeenCalled();
+    expect(sequencial()).toBeInTheDocument();
+  });
+
+  it("no celular o campo escolhido usa o teclado do Murel, não o do sistema", async () => {
+    stubToque();
+    renderBusca();
+    expect(placa()).toHaveAttribute("inputmode", "none");
+    await escolher("Token");
+    expect(token()).toHaveAttribute("inputmode", "none");
+    await escolher("Sequencial");
+    expect(sequencial()).toHaveAttribute("inputmode", "none");
+  });
+
+  it("no computador o sequencial mantém o teclado numérico do sistema", async () => {
+    renderBusca();
+    await escolher("Sequencial");
+    expect(sequencial()).toHaveAttribute("inputmode", "numeric");
   });
 
   it("normaliza a placa digitada", () => {
@@ -88,14 +103,16 @@ describe("BuscaManualSaida", () => {
     expect(onChange).toHaveBeenCalledWith("placa", "BRA2E19");
   });
 
-  it("aceita o token como texto livre", () => {
+  it("aceita o token como texto livre", async () => {
     const { onChange } = renderBusca();
+    await escolher("Token");
     fireEvent.change(token(), { target: { value: "7k3Q9x" } });
     expect(onChange).toHaveBeenCalledWith("token", "7k3Q9x");
   });
 
-  it("aceita só números no sequencial", () => {
+  it("aceita só números no sequencial", async () => {
     const { onChange } = renderBusca();
+    await escolher("Sequencial");
     fireEvent.change(sequencial(), { target: { value: "x7" } });
     expect(onChange).toHaveBeenCalledWith("sequencial", "7");
   });
@@ -116,31 +133,24 @@ describe("BuscaManualSaida", () => {
     expect(screen.getByText("Nenhum ticket aberto para esta placa.")).toBeInTheDocument();
   });
 
-  it("desabilita tudo com disabled", () => {
+  it("desabilita as opções e o campo com disabled", () => {
     renderBusca({ disabled: true });
     expect(placa()).toBeDisabled();
-    expect(token()).toBeDisabled();
-    expect(sequencial()).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "Token" })).toBeDisabled();
   });
 
-  it("orienta a buscar o sequencial com Enter e pede a tecla de busca no teclado", () => {
+  it("orienta a buscar o sequencial com Enter e pede a tecla de busca no teclado", async () => {
     renderBusca();
+    await escolher("Sequencial");
     expect(sequencial()).toHaveAccessibleDescription(SEQUENCIAL_ENTER_HINT);
     expect(sequencial()).toHaveAttribute("enterkeyhint", "search");
   });
 
-  it("não repete a dica de Enter em placa e token", () => {
+  it("não mostra a dica de Enter em placa e token", async () => {
     renderBusca();
     expect(placa()).not.toHaveAccessibleDescription(SEQUENCIAL_ENTER_HINT);
+    await escolher("Token");
     expect(token()).not.toHaveAccessibleDescription(SEQUENCIAL_ENTER_HINT);
-    expect(screen.getAllByText(SEQUENCIAL_ENTER_HINT)).toHaveLength(1);
-  });
-
-  it("com outro campo preenchido, o sequencial mostra o motivo do bloqueio em vez da dica", () => {
-    renderBusca({ values: { ...VAZIO, token: "7K3Q9X" } });
-    expect(sequencial()).toBeDisabled();
-    expect(screen.queryByText(SEQUENCIAL_ENTER_HINT)).not.toBeInTheDocument();
-    expect(sequencial()).toHaveAccessibleDescription("Limpe o campo token para usar outro.");
   });
 
   it("com erro no sequencial mostra o erro e não a dica", () => {
@@ -152,9 +162,11 @@ describe("BuscaManualSaida", () => {
   describe("leitor de placa", () => {
     const camera = () => screen.getByRole("button", { name: "Ler placa pela câmera" });
 
-    it("mostra a câmera só no campo da placa", () => {
+    it("mostra a câmera só quando a opção é a placa", async () => {
       renderBusca();
-      expect(screen.getAllByRole("button", { name: "Ler placa pela câmera" })).toHaveLength(1);
+      expect(camera()).toBeInTheDocument();
+      await escolher("Token");
+      expect(screen.queryByRole("button", { name: "Ler placa pela câmera" })).not.toBeInTheDocument();
     });
 
     it("preenche a placa lida sem disparar a consulta", async () => {
@@ -173,14 +185,8 @@ describe("BuscaManualSaida", () => {
       await waitFor(() => expect(placa()).toHaveFocus());
     });
 
-    it("desabilita a câmera com disabled ou quando outro campo está preenchido", () => {
-      const { unmount } = renderWithTheme(
-        <BuscaManualSaida values={VAZIO} errors={{}} onChange={() => {}} disabled />,
-      );
-      expect(camera()).toBeDisabled();
-      unmount();
-
-      renderWithTheme(<BuscaManualSaida values={{ ...VAZIO, token: "7K3Q9X" }} errors={{}} onChange={() => {}} />);
+    it("desabilita a câmera com disabled", () => {
+      renderWithTheme(<BuscaManualSaida values={VAZIO} errors={{}} onChange={() => {}} disabled />);
       expect(camera()).toBeDisabled();
     });
 

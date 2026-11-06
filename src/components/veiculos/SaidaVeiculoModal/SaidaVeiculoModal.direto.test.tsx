@@ -104,7 +104,7 @@ describe("SaidaVeiculoModal: aberta a partir da lista do pátio", () => {
 
     expect(screen.getByRole("dialog", { name: "Confirmar saída" })).toBeInTheDocument();
     expect(screen.getByText("Procurando o veículo no pátio.")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Placa")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Placa do veículo")).not.toBeInTheDocument();
     expect(visor()).not.toBeInTheDocument();
     // A câmera nunca foi pedida.
     expect(leitor.montagens).toBe(0);
@@ -147,7 +147,7 @@ describe("SaidaVeiculoModal: aberta a partir da lista do pátio", () => {
 
     expect(await screen.findByRole("dialog", { name: "Localizar veículo" })).toBeInTheDocument();
     expect((await screen.findAllByText("Nenhum veículo no pátio com essa placa.")).length).toBeGreaterThan(0);
-    expect(screen.getByLabelText("Placa")).toHaveValue("BRA2E19");
+    expect(screen.getByLabelText("Placa do veículo")).toHaveValue("BRA2E19");
   });
 
   it("Voltar para a pesquisa volta de verdade, sem reabrir a confirmação", async () => {
@@ -157,7 +157,7 @@ describe("SaidaVeiculoModal: aberta a partir da lista do pátio", () => {
     await userEvent.click(screen.getByRole("button", { name: "Voltar para a pesquisa" }));
 
     expect(await screen.findByRole("dialog", { name: "Localizar veículo" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Placa")).toHaveValue("");
+    expect(screen.getByLabelText("Placa do veículo")).toHaveValue("");
     expect(visor()).toBeInTheDocument();
   });
 
@@ -184,6 +184,6 @@ describe("SaidaVeiculoModal: sem veículo escolhido", () => {
     expect(screen.getByRole("dialog", { name: "Localizar veículo" })).toBeInTheDocument();
     expect(visor()).toBeInTheDocument();
     expect(leitor.montagens).toBeGreaterThan(0);
-    expect(screen.getByLabelText("Placa")).toHaveValue("");
+    expect(screen.getByLabelText("Placa do veículo")).toHaveValue("");
   });
 });

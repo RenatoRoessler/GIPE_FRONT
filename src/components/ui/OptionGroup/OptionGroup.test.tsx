@@ -99,3 +99,24 @@ describe("OptionGroup variante card", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Escolha um plano para continuar.");
   });
 });
+
+describe("OptionGroup: variante inline", () => {
+  it("troca a opção como na variante padrão", async () => {
+    const onChange = vi.fn();
+    renderWithTheme(
+      <OptionGroup
+        legend="Buscar por"
+        variant="inline"
+        value="a"
+        onChange={onChange}
+        options={[
+          { value: "a", label: "Placa" },
+          { value: "b", label: "Sequencial" },
+        ]}
+      />,
+    );
+    expect(screen.getByRole("radio", { name: "Placa" })).toBeChecked();
+    await userEvent.click(screen.getByRole("radio", { name: "Sequencial" }));
+    expect(onChange).toHaveBeenCalledWith("b");
+  });
+});
