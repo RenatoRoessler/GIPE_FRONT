@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.357",
+      "type": "feat",
+      "scope": "saida",
+      "title": "escolhe por qual campo buscar o veículo na saída",
+      "description": "Na busca manual da saída, o operador agora marca se quer buscar por\nplaca, token ou sequencial e vê só o campo escolhido, em vez de três\ncampos ao mesmo tempo com dois deles bloqueados. Ao trocar de opção, o\nvalor digitado antes é limpo e o foco vai para o campo novo. A câmera de\nleitura de placa aparece só na opção Placa.\n\nAs opções aparecem como rádios simples, sem aspecto de botão, o que\nevita que o texto \"Sequencial\" ultrapasse a caixa. Para isso o grupo de\nopções ganhou a variante \"inline\".",
+      "date": "2026-11-06T18:41:24-03:00"
+    },
+    {
       "version": "1.0.355",
       "type": "feat",
       "scope": "ticket",
