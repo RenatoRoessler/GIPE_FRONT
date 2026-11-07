@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.364",
+      "type": "feat",
+      "scope": "adesao",
+      "title": "mostra os planos e preços vindos do sistema na escolha do plano",
+      "description": "A etapa de plano da adesão passa a listar o que o servidor informa, em\nvez de uma tabela fixa no código. Mudar preço, promoção ou duração do\nteste grátis não exige mais publicar uma nova versão.\n\n- Plano em promoção mostra o preço de tabela riscado, o preço atual, a\n  data de fim e o selo \"Promoção até DD/MM/AAAA\"; sem promoção mostra só\n  o valor atual.\n- A duração do teste grátis vem do servidor, no lugar do \"30 dias\" fixo.\n- Enquanto os planos carregam, a etapa reserva o espaço dos cartões;\n  se falharem, mostra um aviso com \"Tentar de novo\" e não deixa avançar.\n- A conferência e a credencial mostram o plano escolhido com os valores\n  atuais. O plano escolhido é enviado no cadastro pelo tipo informado\n  pelo servidor.\n- Um tipo de plano na URL só é pré-selecionado se o servidor o devolver.\n- No teste grátis aberto pelo site, a falha ao carregar não bloqueia o\n  cadastro; o texto só omite a duração.\n- OptionGroup ganha ariaLabel por opção, para o leitor de tela ler\n  \"de R$ 99,90 por R$ 69,90\".",
+      "date": "2026-11-07T11:59:53-03:00"
+    },
+    {
       "version": "1.0.361",
       "type": "feat",
       "scope": "conveniada",
