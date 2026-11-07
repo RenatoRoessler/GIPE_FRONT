@@ -75,6 +75,8 @@ describe("proxy: permissão por perfil", () => {
     [FINANCEIRO, "/caixa"],
     [FINANCEIRO, "/precos"],
     [ADMIN_CONVENIADA, "/patio"],
+    [ADMIN_CONVENIADA, "/usuarios"],
+    [ADMIN_CONVENIADA, "/dashboard"],
   ])("perfil %i em %s vai para o acesso negado", (perfil, caminho) => {
     const resposta = chamar(caminho, tokenDoPerfil(String(perfil)));
     expect(resposta.status).toBe(307);
@@ -93,7 +95,6 @@ describe("proxy: permissão por perfil", () => {
     [MANOBRISTA, "/patio"],
     [MANOBRISTA, "/caixa"],
     [FINANCEIRO, "/notas-fiscais"],
-    [ADMIN_CONVENIADA, "/usuarios"],
   ])("perfil %i em %s passa", (perfil, caminho) => {
     expect(chamar(caminho, tokenDoPerfil(String(perfil))).headers.get("location")).toBeNull();
   });

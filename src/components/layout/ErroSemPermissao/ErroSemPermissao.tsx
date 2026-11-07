@@ -13,7 +13,7 @@ export function ErroSemPermissao({ message = "Você não tem permissão para ace
   return (
     <Area>
       <ErrorBanner role="alert">{message}</ErrorBanner>
-      <Link href="/dashboard">Ir para o início</Link>
+      <Link href="/">Ir para o início</Link>
     </Area>
   );
 }

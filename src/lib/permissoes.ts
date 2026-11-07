@@ -34,10 +34,15 @@ const { Administrador, Gerente, Caixa, Manobrista, Financeiro, AdministradorConv
 
 const TODOS: readonly PerfilUsuario[] = Object.values(PERFIL_USUARIO);
 
+// A conveniada vive no Carimbo e no Pátio da conveniada: não tem Dashboard nem gestão de usuários.
+const SEM_CONVENIADA: readonly PerfilUsuario[] = TODOS.filter(
+  (perfil) => perfil !== AdministradorConveniada && perfil !== GerenteConveniada && perfil !== UsuarioConveniada,
+);
+
 // Regra padrão por perfil, igual à do back-end. Perfis fora da lista não acessam a área.
 // Provisório (não consta no levantamento do back): A consulta de Mensalistas segue Administrador e Gerente.
 export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
-  [AREA.Inicio]: TODOS,
+  [AREA.Inicio]: SEM_CONVENIADA,
   [AREA.Patio]: [Administrador, Gerente, Caixa, Manobrista],
   [AREA.Caixa]: [Administrador, Gerente, Caixa, Manobrista],
   [AREA.CaixaSangria]: [Administrador, Gerente, Caixa],
@@ -48,7 +53,7 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.NotasFiscais]: [Administrador, Gerente, Financeiro],
   [AREA.Financeiro]: [Administrador, Gerente, Financeiro],
   [AREA.Empresa]: [Administrador],
-  [AREA.Usuarios]: [Administrador, AdministradorConveniada],
+  [AREA.Usuarios]: [Administrador],
   [AREA.QuadroChaves]: [Administrador, Gerente],
   [AREA.Carimbo]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
   [AREA.PatioConveniada]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],

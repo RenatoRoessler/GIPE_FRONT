@@ -168,13 +168,13 @@ describe("navItemsPermitidos", () => {
     expect(rotulos(8)).toEqual(["Dashboard", "Notas Fiscais", "Financeiro"]);
   });
 
-  it("o Administrador da conveniada vê o início e a gestão de usuários", () => {
-    expect(rotulos(5)).toEqual(["Carimbar ticket", "Pátio da conveniada", "Dashboard", "Gestão de Usuários"]);
+  it("o Administrador da conveniada vê só o carimbo e o pátio da conveniada", () => {
+    expect(rotulos(5)).toEqual(["Carimbar ticket", "Pátio da conveniada"]);
   });
 
-  it("o Gerente e o Usuário da conveniada vêem o carimbo, o pátio da conveniada e o início", () => {
-    expect(rotulos(6)).toEqual(["Carimbar ticket", "Pátio da conveniada", "Dashboard"]);
-    expect(rotulos(7)).toEqual(["Carimbar ticket", "Pátio da conveniada", "Dashboard"]);
+  it("o Gerente e o Usuário da conveniada vêem só o carimbo e o pátio da conveniada", () => {
+    expect(rotulos(6)).toEqual(["Carimbar ticket", "Pátio da conveniada"]);
+    expect(rotulos(7)).toEqual(["Carimbar ticket", "Pátio da conveniada"]);
   });
 
   it("sem perfil conhecido só o Início", () => {

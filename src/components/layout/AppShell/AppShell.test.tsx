@@ -55,7 +55,7 @@ describe("AppShell", () => {
       </AppShell>,
     );
 
-    expect(screen.getByRole("link", { name: "Murel — ir para o início" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: "Murel — ir para o início" })).toHaveAttribute("href", "/");
     expect(screen.getByText("Olá, Maria")).toBeInTheDocument();
     expect(screen.getByTestId("user-menu")).toBeInTheDocument();
   });

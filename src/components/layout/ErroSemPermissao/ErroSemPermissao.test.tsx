@@ -8,7 +8,7 @@ describe("ErroSemPermissao", () => {
     renderWithTheme(<ErroSemPermissao />);
 
     expect(screen.getByRole("alert")).toHaveTextContent("Você não tem permissão para acessar esta página.");
-    expect(screen.getByRole("link", { name: "Ir para o início" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: "Ir para o início" })).toHaveAttribute("href", "/");
     expect(screen.queryByRole("button", { name: /tentar novamente/i })).not.toBeInTheDocument();
   });
 

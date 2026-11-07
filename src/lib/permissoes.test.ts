@@ -10,7 +10,7 @@ const { Administrador, Gerente, Caixa, Manobrista, Financeiro, AdministradorConv
 const TODOS: PerfilUsuario[] = [Administrador, Gerente, Caixa, Manobrista, Financeiro, AdministradorConveniada, GerenteConveniada, UsuarioConveniada];
 
 const PERMITIDOS: Record<Area, PerfilUsuario[]> = {
-  [AREA.Inicio]: TODOS,
+  [AREA.Inicio]: [Administrador, Gerente, Caixa, Manobrista, Financeiro],
   [AREA.Patio]: [Administrador, Gerente, Caixa, Manobrista],
   [AREA.Caixa]: [Administrador, Gerente, Caixa, Manobrista],
   [AREA.CaixaSangria]: [Administrador, Gerente, Caixa],
@@ -21,7 +21,7 @@ const PERMITIDOS: Record<Area, PerfilUsuario[]> = {
   [AREA.NotasFiscais]: [Administrador, Gerente, Financeiro],
   [AREA.Financeiro]: [Administrador, Gerente, Financeiro],
   [AREA.Empresa]: [Administrador],
-  [AREA.Usuarios]: [Administrador, AdministradorConveniada],
+  [AREA.Usuarios]: [Administrador],
   [AREA.QuadroChaves]: [Administrador, Gerente],
   [AREA.Carimbo]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
   [AREA.PatioConveniada]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],

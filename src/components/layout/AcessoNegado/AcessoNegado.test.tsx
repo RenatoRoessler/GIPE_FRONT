@@ -34,6 +34,6 @@ describe("AcessoNegado", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Ir para o início" }));
 
-    expect(push).toHaveBeenCalledWith("/dashboard");
+    expect(push).toHaveBeenCalledWith("/");
   });
 });

@@ -21,7 +21,7 @@ export function AcessoNegado() {
         Você não tem acesso a esta área
       </Titulo>
       <Text variant="muted">Seu perfil não permite abrir esta tela. Se precisar dela, fale com o administrador da empresa.</Text>
-      <Button type="button" onClick={() => router.push("/dashboard")}>
+      <Button type="button" onClick={() => router.push("/")}>
         Ir para o início
       </Button>
     </Wrapper>
