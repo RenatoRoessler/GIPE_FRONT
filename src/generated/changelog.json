@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.361",
+      "type": "feat",
+      "scope": "conveniada",
+      "title": "remove Dashboard e gestão de usuários do perfil conveniada",
+      "description": "Os perfis de conveniada (Administrador, Gerente e Usuário) deixam de\nacessar o Dashboard e a gestão de usuários, que passa a ser só do\nAdministrador. A conveniada usa apenas o Carimbo e o Pátio da conveniada.\n\nOs links \"Ir para o início\" (logo do cabeçalho, acesso negado e erro sem\npermissão) passam a apontar para a raiz, que leva cada perfil à sua tela\ninicial, evitando um loop de acesso negado para a conveniada.",
+      "date": "2026-11-07T10:26:59-03:00"
+    },
+    {
       "version": "1.0.359",
       "type": "feat",
       "scope": "ticket",
