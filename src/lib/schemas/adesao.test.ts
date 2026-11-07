@@ -4,11 +4,11 @@ import { EMPTY_PAYMENTS_DATA, MEIOS_PAGAMENTO, type PaymentsData } from "@/types
 import {
   aceiteSchema,
   adminUserSchema,
+  criarPlanoSchema,
   PAGAMENTOS_MINIMO_MESSAGE,
   PLANO_OBRIGATORIO_MESSAGE,
   PRIVACIDADE_OBRIGATORIA_MESSAGE,
   paymentsSchema,
-  planoSchema,
   TERMOS_OBRIGATORIO_MESSAGE,
 } from "./adesao";
 
@@ -99,15 +99,25 @@ describe("adminUserSchema: senha com a mesma regra da redefinição", () => {
   });
 });
 
-describe("planoSchema", () => {
-  it.each([0, 1])("aceita o plano %i (0 é o teste grátis)", (plano) => {
-    expect(planoSchema.safeParse({ plano }).success).toBe(true);
+describe("criarPlanoSchema", () => {
+  const schema = criarPlanoSchema([0, 1]);
+
+  it.each([0, 1])("aceita o tipo %i, que está na lista (0 é o teste grátis)", (plano) => {
+    expect(schema.safeParse({ plano }).success).toBe(true);
   });
 
-  it.each([undefined, -1, 2, 3, 4, 5])("recusa %s com a mensagem de plano obrigatório", (plano) => {
-    const resultado = planoSchema.safeParse({ plano });
+  it.each([undefined, -1, 2, 4, 5])("recusa %s com a mensagem de plano obrigatório", (plano) => {
+    const resultado = schema.safeParse({ plano });
     expect(resultado.success).toBe(false);
     expect(resultado.error?.issues[0].message).toBe(PLANO_OBRIGATORIO_MESSAGE);
+  });
+
+  it("aceita um tipo novo quando o back-end o devolve", () => {
+    expect(criarPlanoSchema([0, 1, 4]).safeParse({ plano: 4 }).success).toBe(true);
+  });
+
+  it("recusa tudo quando nenhum plano foi carregado", () => {
+    expect(criarPlanoSchema([]).safeParse({ plano: 1 }).success).toBe(false);
   });
 });
 

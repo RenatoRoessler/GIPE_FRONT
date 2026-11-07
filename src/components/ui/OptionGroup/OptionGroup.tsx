@@ -26,6 +26,8 @@ export interface OptionGroupOption {
   aside?: ReactNode;
   detail?: ReactNode;
   badge?: string;
+  // Nome acessível completo da opção. Substitui o texto do cartão para leitores de tela, então deve repetir tudo o que ele mostra.
+  ariaLabel?: string;
 }
 
 export interface OptionGroupProps {
@@ -79,6 +81,7 @@ export function OptionGroup({
                 name={name}
                 value={option.value}
                 checked={checked}
+                aria-label={option.ariaLabel}
                 onChange={() => onChange(option.value)}
               />
               <Mark $checked={checked} $withIcon={withIcon} $card={card} aria-hidden="true" />

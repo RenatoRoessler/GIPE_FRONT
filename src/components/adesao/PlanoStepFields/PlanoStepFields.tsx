@@ -1,17 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { OptionGroup } from "@/components/ui/OptionGroup";
 import { AREAS_DO_SISTEMA } from "@/lib/areasDoSistema";
 import {
+  CONDICOES_DO_TESTE,
   descreverCondicao,
+  descreverDuracao,
+  descreverParaLeitor,
   formatarReais,
-  lancamentoVigente,
-  PLANOS,
-  ROTULO_FIM_DO_LANCAMENTO,
-  valorPorMes,
+  rotuloDoSelo,
 } from "@/lib/planos";
-import { TipoPlanoAdesao } from "@/types/plano";
+import { PlanoAdesao, TipoPlanoAdesao } from "@/types/plano";
 import {
   Area,
   AreaDescricao,
@@ -19,54 +18,75 @@ import {
   AreaTitulo,
   Funcionalidades,
   FuncionalidadesTitulo,
+  PrecoRiscado,
   Raiz,
   Unidade,
   Valor,
 } from "./PlanoStepFields.styles";
+import { PlanosCarregando } from "./PlanosCarregando";
+import { PlanosErro } from "./PlanosErro";
+
+// O que a etapa precisa da consulta dos planos (o hook do wizard devolve exatamente isto).
+export interface ConsultaPlanos {
+  status: "pending" | "error" | "success";
+  dados?: PlanoAdesao[];
+  refazer: () => void;
+  refazendo: boolean;
+}
 
 export interface PlanoStepFieldsProps {
-  plano: TipoPlanoAdesao | undefined;
-  onChange: (plano: TipoPlanoAdesao) => void;
+  planos: ConsultaPlanos;
+  plano: number | undefined;
+  onChange: (plano: number) => void;
   error?: string;
 }
 
-// Sem valor nem total: o teste não cobra nada; as condições são as mesmas que o site promete.
-const OPCAO_TESTE = {
-  value: String(TipoPlanoAdesao.Trial),
-  label: "Teste grátis",
-  aside: <Valor>30 dias</Valor>,
-  detail: <span>Todas as funcionalidades, sem cartão de crédito e sem compromisso.</span>,
-};
+function opcaoDoPlano(plano: PlanoAdesao) {
+  const teste = plano.tipo === TipoPlanoAdesao.Trial;
 
-function opcoesPagas(agora: number) {
-  return PLANOS.map((plano) => ({
+  return {
     value: String(plano.tipo),
     label: plano.nome,
-    aside: (
-      <Valor>
-        {formatarReais(valorPorMes(plano, agora))}
-        <Unidade>/mês</Unidade>
-      </Valor>
+    ariaLabel: descreverParaLeitor(plano),
+    // O teste mostra a duração no lugar do valor: não cobra nada.
+    aside: teste ? (
+      <Valor>{descreverDuracao(plano.meses)}</Valor>
+    ) : (
+      <>
+        {plano.emPromocao && <PrecoRiscado aria-hidden="true">{formatarReais(plano.centavosTabela)}</PrecoRiscado>}
+        <Valor>
+          {formatarReais(plano.centavosAtual)}
+          <Unidade>/mês</Unidade>
+        </Valor>
+      </>
     ),
-    detail: <span>{descreverCondicao(plano, agora)}</span>,
-    badge: lancamentoVigente(agora) ? `Preço de lançamento · assine até ${ROTULO_FIM_DO_LANCAMENTO}` : undefined,
-  }));
+    detail: <span>{teste ? CONDICOES_DO_TESTE : descreverCondicao(plano)}</span>,
+    badge: rotuloDoSelo(plano),
+  };
 }
 
-export function PlanoStepFields({ plano, onChange, error }: PlanoStepFieldsProps) {
-  const [agora] = useState(() => Date.now());
-  const OPCOES = [OPCAO_TESTE, ...opcoesPagas(agora)];
-
-  return (
-    <Raiz>
+export function PlanoStepFields({ planos, plano, onChange, error }: PlanoStepFieldsProps) {
+  let escolha;
+  if (planos.status === "pending") {
+    escolha = <PlanosCarregando />;
+  } else if (planos.status === "error" || !planos.dados) {
+    escolha = <PlanosErro onRetry={planos.refazer} refazendo={planos.refazendo} />;
+  } else {
+    escolha = (
       <OptionGroup
         legend="Plano"
         variant="card"
-        options={OPCOES}
+        options={planos.dados.map(opcaoDoPlano)}
         value={plano === undefined ? "" : String(plano)}
-        onChange={(value) => onChange(Number(value) as TipoPlanoAdesao)}
+        onChange={(value) => onChange(Number(value))}
         error={error}
       />
+    );
+  }
+
+  return (
+    <Raiz>
+      {escolha}
       <Funcionalidades aria-labelledby="funcionalidades-titulo">
         <FuncionalidadesTitulo id="funcionalidades-titulo">Tudo isso incluso no plano</FuncionalidadesTitulo>
         <Areas>

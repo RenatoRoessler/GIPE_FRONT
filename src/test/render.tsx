@@ -14,7 +14,7 @@ export function renderWithTheme(ui: ReactElement, options?: Omit<RenderOptions, 
 
 // Para componentes com React Query: cliente novo por teste e sem tentativas automáticas.
 export function renderWithProviders(ui: ReactElement, options?: Omit<RenderOptions, "wrapper">) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } });
   function Wrapper({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>

@@ -74,6 +74,21 @@ describe("OptionGroup variante card", () => {
     );
   });
 
+  it("usa o ariaLabel como nome acessível da opção", () => {
+    const comRiscado = [
+      {
+        value: "1",
+        label: "Mensal",
+        aside: "R$ 99,90 R$ 69,90",
+        ariaLabel: "Mensal, de R$ 99,90 por R$ 69,90 por mês",
+      },
+      { value: "2", label: "Anual", aside: "R$ 79,90" },
+    ];
+    renderWithTheme(<OptionGroup legend="Plano" options={comRiscado} value="" onChange={() => {}} variant="card" />);
+    expect(screen.getByRole("radio", { name: "Mensal, de R$ 99,90 por R$ 69,90 por mês" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /Anual/ })).toHaveAccessibleName(expect.stringContaining("R$ 79,90"));
+  });
+
   it("seleciona por clique e por setas", async () => {
     const onChange = vi.fn();
     renderWithTheme(<OptionGroup legend="Plano" options={cartoes} value="1" onChange={onChange} variant="card" />);

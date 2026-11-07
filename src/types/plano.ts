@@ -1,4 +1,4 @@
-// Os valores 2 a 4 continuam no contrato com o backend; o sistema só vende o Mensal.
+// Valores do contrato com o backend. Quais planos existem de fato vem de `GET /Plano`; o código só nomeia o Trial.
 export enum TipoPlanoAdesao {
   Trial = 0,
   Mensal = 1,
@@ -7,16 +7,19 @@ export enum TipoPlanoAdesao {
   Anual = 4,
 }
 
-// Trial existe no backend, mas não é oferecido na adesão.
-export type PlanoVendido = TipoPlanoAdesao.Mensal;
-
-export interface Plano {
-  tipo: PlanoVendido;
+// Plano devolvido por `GET /Plano`, já pronto para exibir.
+export interface PlanoAdesao {
+  id: number;
+  // `tipoPeriodoPlano`: é o valor enviado em `tipoPlanoAdesao` no cadastro.
+  tipo: number;
   nome: string;
+  meses: number;
   // Centavos inteiros: evita erro de ponto flutuante.
-  centavosPorMes: number;
-  centavosLancamento: number;
-  mesesDeLancamento: number;
+  centavosTabela: number;
+  centavosAtual: number;
+  emPromocao: boolean;
+  // Só a data ("AAAA-MM-DD") do fim da promoção, como o back-end informa.
+  promocaoAte?: string;
 }
 
 export interface AreaDoSistema {

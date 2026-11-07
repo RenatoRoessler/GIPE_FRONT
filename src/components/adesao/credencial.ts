@@ -1,5 +1,3 @@
-import { descricaoDoTeste, formatarReais, PLANO_MENSAL, valorPorMes } from "@/lib/planos";
-import { TipoPlanoAdesao } from "@/types/plano";
 import { BusinessHoursData, CompanyData, DIAS_SEMANA, MEIOS_PAGAMENTO, PaymentsData, TIPO_EMPRESA_LABEL } from "@/types/adesao";
 
 export type EstadoDia = "aberto" | "24h" | "fechado";
@@ -31,18 +29,12 @@ function numeroOuUndefined(valor: string): number | undefined {
   return /^\d+$/.test(valor.trim()) ? Number(valor) : undefined;
 }
 
-function descricaoDoPlano(tipo: TipoPlanoAdesao): string {
-  if (tipo === TipoPlanoAdesao.Trial) return descricaoDoTeste();
-
-  const plano = PLANO_MENSAL;
-  return `${plano.nome} · ${formatarReais(valorPorMes(plano))}/mês`;
-}
-
 export function buildCredencial(input: {
   company: CompanyData;
   hours: BusinessHoursData;
   payments: PaymentsData;
-  plano?: TipoPlanoAdesao;
+  // Já formatado (ver `descricaoNaCredencial`): a credencial só repassa.
+  plano?: string;
 }):DadosCredencial {
   const { company, hours, payments, plano } = input;
 
@@ -58,6 +50,6 @@ export function buildCredencial(input: {
       return { sigla: dia.label.charAt(0), nome: dia.label, estado };
     }),
     pagamentos: MEIOS_PAGAMENTO.filter(({ key }) => payments[key]).map(({ curto }) => curto),
-    plano: plano === undefined ? undefined : descricaoDoPlano(plano),
+    plano,
   };
 }

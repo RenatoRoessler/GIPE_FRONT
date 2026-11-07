@@ -11,7 +11,7 @@ import {
   EMPTY_PAYMENTS_DATA,
   TipoEmpresa,
 } from "@/types/adesao";
-import { TipoPlanoAdesao } from "@/types/plano";
+import { type PlanoAdesao, TipoPlanoAdesao } from "@/types/plano";
 import { ConferirStep } from "./ConferirStep";
 
 const company = {
@@ -41,22 +41,56 @@ const adminUser = {
   repetirSenha: "SenhaSecreta#1",
 };
 
+const MENSAL_PROMO: PlanoAdesao = {
+  id: 2,
+  tipo: 1,
+  nome: "Mensal",
+  meses: 1,
+  centavosTabela: 9990,
+  centavosAtual: 6990,
+  emPromocao: true,
+  promocaoAte: "2027-06-30",
+};
+
+const TRIAL: PlanoAdesao = {
+  id: 1,
+  tipo: 0,
+  nome: "Teste gratuito",
+  meses: 1,
+  centavosTabela: 0,
+  centavosAtual: 0,
+  emPromocao: false,
+};
+
 interface OpcoesAceite {
   aceite?: AceiteData;
   erroAceite?: Partial<Record<keyof AceiteData, string>>;
   onAceitar?: (documento: keyof AceiteData, aceito: boolean) => void;
   desabilitado?: boolean;
+  // `null` simula a falta de dados do back-end (`undefined` cai no valor padrão).
+  dadosDoPlano?: PlanoAdesao | null;
+  planoTeste?: PlanoAdesao | null;
 }
 
 function renderar(
   onEditar = vi.fn(),
   plano: TipoPlanoAdesao = TipoPlanoAdesao.Mensal,
   planoEditavel = true,
-  { aceite = EMPTY_ACEITE_DATA, erroAceite, onAceitar = vi.fn(), desabilitado }: OpcoesAceite = {},
+  {
+    aceite = EMPTY_ACEITE_DATA,
+    erroAceite,
+    onAceitar = vi.fn(),
+    desabilitado,
+    // Por padrão, o plano pago recebe os dados do Mensal e o teste, os do Trial (como o wizard faz).
+    dadosDoPlano = plano === TipoPlanoAdesao.Trial ? undefined : MENSAL_PROMO,
+    planoTeste = TRIAL,
+  }: OpcoesAceite = {},
 ) {
   renderWithTheme(
     <ConferirStep
       plano={plano}
+      dadosDoPlano={dadosDoPlano ?? undefined}
+      planoTeste={planoTeste ?? undefined}
       planoEditavel={planoEditavel}
       company={company}
       hours={EMPTY_BUSINESS_HOURS_DATA}
@@ -86,12 +120,44 @@ describe("ConferirStep", () => {
     expect(screen.getByText("Segunda-feira").nextSibling).toHaveTextContent("08:00 às 18:00");
   });
 
-  it("mostra o plano escolhido com valor por mês e condição", () => {
+  it("mostra o plano escolhido com valor por mês e condição do back-end", () => {
     renderar();
     const secao = screen.getByRole("region", { name: "Plano" });
     expect(secao).toHaveTextContent("Mensal");
     expect(secao).toHaveTextContent("R$ 69,90");
-    expect(secao).toHaveTextContent("R$ 69,90/mês nos primeiros 12 meses; depois, R$ 99,90/mês.");
+    expect(secao).toHaveTextContent("R$ 69,90/mês até 30/06/2027; depois, R$ 99,90/mês.");
+    expect(secao).not.toHaveTextContent("12 meses");
+  });
+
+  it("em promoção risca a tabela e o leitor de tela ouve de ... por ...", () => {
+    renderar();
+    const secao = screen.getByRole("region", { name: "Plano" });
+    const riscado = within(secao).getByText("R$ 99,90", { selector: "s" });
+    expect(riscado).toHaveAttribute("aria-hidden", "true");
+    expect(within(secao).getByText("Valor por mês").nextSibling).toHaveTextContent("de R$ 99,90 por R$ 69,90");
+  });
+
+  it("sem promoção mostra só o valor atual, sem riscado", () => {
+    renderar(vi.fn(), TipoPlanoAdesao.Mensal, true, {
+      dadosDoPlano: { ...MENSAL_PROMO, centavosAtual: 9990, emPromocao: false, promocaoAte: undefined },
+    });
+    const secao = screen.getByRole("region", { name: "Plano" });
+    expect(secao.querySelector("s")).toBeNull();
+    expect(secao).toHaveTextContent("R$ 99,90");
+    expect(secao).toHaveTextContent("Cobrado todo mês");
+  });
+
+  it("em promoção sem data não cita data", () => {
+    renderar(vi.fn(), TipoPlanoAdesao.Mensal, true, { dadosDoPlano: { ...MENSAL_PROMO, promocaoAte: undefined } });
+    const secao = screen.getByRole("region", { name: "Plano" });
+    expect(secao).toHaveTextContent("R$ 69,90/mês em promoção.");
+    expect(secao.textContent).not.toMatch(/\d{2}\/\d{2}\/\d{4}/);
+  });
+
+  it("sem os dados do plano pago não mostra o bloco do plano", () => {
+    renderar(vi.fn(), TipoPlanoAdesao.Mensal, true, { dadosDoPlano: null });
+    expect(screen.queryByRole("region", { name: "Plano" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Editar Plano" })).not.toBeInTheDocument();
   });
 
   it("Editar Plano leva à etapa do plano", async () => {
@@ -101,17 +167,32 @@ describe("ConferirStep", () => {
   });
 
   describe("no teste grátis", () => {
-    it("mostra o resumo do teste no lugar do plano", () => {
+    it("mostra o resumo do teste no lugar do plano, com a duração do back-end", () => {
       renderar(vi.fn(), TipoPlanoAdesao.Trial);
-      const secao = screen.getByRole("region", { name: "Teste grátis por 30 dias" });
-      expect(secao).toHaveTextContent("Use o sistema completo por 30 dias.");
+      const secao = screen.getByRole("region", { name: "Teste grátis por 1 mês" });
+      expect(secao).toHaveTextContent("Use o sistema completo por 1 mês.");
       expect(secao).toHaveTextContent("No fim do teste, você decide se quer assinar.");
       expect(screen.queryByRole("region", { name: "Plano" })).not.toBeInTheDocument();
     });
 
+    it("a duração acompanha o número do back-end", () => {
+      renderar(vi.fn(), TipoPlanoAdesao.Trial, true, { planoTeste: { ...TRIAL, meses: 2 } });
+      expect(screen.getByRole("region", { name: "Teste grátis por 2 meses" })).toHaveTextContent(
+        "Use o sistema completo por 2 meses.",
+      );
+    });
+
+    it("sem os dados do teste não cita número nem prazo", () => {
+      renderar(vi.fn(), TipoPlanoAdesao.Trial, true, { planoTeste: null });
+      const secao = screen.getByRole("region", { name: "Teste grátis" });
+      expect(secao).toHaveTextContent("Use o sistema completo durante o teste.");
+      expect(secao).toHaveTextContent("No fim do teste, você decide se quer assinar.");
+      expect(secao.textContent).not.toMatch(/\d/);
+    });
+
     it("lista as três garantias numa lista real", () => {
       renderar(vi.fn(), TipoPlanoAdesao.Trial);
-      const itens = within(screen.getByRole("region", { name: "Teste grátis por 30 dias" })).getAllByRole("listitem");
+      const itens = within(screen.getByRole("region", { name: "Teste grátis por 1 mês" })).getAllByRole("listitem");
       expect(itens.map((item) => item.textContent)).toEqual([
         "Todas as funcionalidades",
         "Sem cartão de crédito",

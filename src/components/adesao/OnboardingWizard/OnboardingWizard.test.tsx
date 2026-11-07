@@ -13,11 +13,35 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/lib/api/services/adesao", () => ({ saveAdesao: vi.fn() }));
 vi.mock("@/lib/api/services/cep", () => ({ fetchAddressByCep: vi.fn().mockResolvedValue(null) }));
+vi.mock("@/lib/api/services/plano", () => ({ listPlanos: vi.fn() }));
 
 import { saveAdesao } from "@/lib/api/services/adesao";
+import { listPlanos } from "@/lib/api/services/plano";
+import type { PlanoAdesao } from "@/types/plano";
 import { OnboardingWizard } from "./OnboardingWizard";
 
 type User = ReturnType<typeof userEvent.setup>;
+
+// O que o back-end devolve hoje: o teste grátis e o Mensal em promoção.
+const TRIAL: PlanoAdesao = {
+  id: 1,
+  tipo: 0,
+  nome: "Teste gratuito",
+  meses: 1,
+  centavosTabela: 0,
+  centavosAtual: 0,
+  emPromocao: false,
+};
+const MENSAL: PlanoAdesao = {
+  id: 2,
+  tipo: 1,
+  nome: "Mensal",
+  meses: 1,
+  centavosTabela: 9990,
+  centavosAtual: 6990,
+  emPromocao: true,
+  promocaoAte: "2027-06-30",
+};
 
 // O Logo da tela lê o modo de tema do provider da aplicação.
 // Por padrão a adesão abre como se viesse do site com o plano Mensal escolhido.
@@ -107,6 +131,7 @@ vi.setConfig({ testTimeout: 30_000 });
 beforeEach(() => {
   push.mockReset();
   vi.mocked(saveAdesao).mockReset().mockResolvedValue(undefined);
+  vi.mocked(listPlanos).mockReset().mockResolvedValue([TRIAL, MENSAL]);
 });
 
 describe("OnboardingWizard: estrutura", () => {
@@ -464,7 +489,17 @@ describe("OnboardingWizard: plano", () => {
     expect(screen.getAllByRole("radio").filter((radio) => (radio as HTMLInputElement).checked)).toHaveLength(1);
   });
 
-  it.each(["", "tipoPlanoAdesao=9", "tipoPlanoAdesao=abc", "tipoPlanoAdesao=00", "outro=2"])(
+  it.each([
+    "",
+    "tipoPlanoAdesao=2",
+    "tipoPlanoAdesao=4",
+    "tipoPlanoAdesao=9",
+    "tipoPlanoAdesao=-1",
+    "tipoPlanoAdesao=1.5",
+    "tipoPlanoAdesao=abc",
+    "tipoPlanoAdesao=00",
+    "outro=2",
+  ])(
     "chega à etapa do plano sem seleção e sem erro com %j",
     async (query) => {
       const user = userEvent.setup();
@@ -475,6 +510,28 @@ describe("OnboardingWizard: plano", () => {
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     },
   );
+
+  it("mostra as duas opções do back-end, com o Mensal em promoção", async () => {
+    const user = userEvent.setup();
+    renderWizard("");
+    await irAtePlano(user);
+
+    expect(screen.getAllByRole("radio").map((radio) => radio.getAttribute("value"))).toEqual(["0", "1"]);
+    expect(plano(/Mensal/)).toHaveAccessibleName("Mensal, de R$ 99,90 por R$ 69,90 por mês, promoção até 30/06/2027");
+    expect(screen.getByText("Promoção até 30/06/2027")).toBeInTheDocument();
+    expect(screen.getByText("R$ 69,90/mês até 30/06/2027; depois, R$ 99,90/mês.")).toBeInTheDocument();
+  });
+
+  it("a conferência mostra o plano com os valores do back-end", async () => {
+    const user = userEvent.setup();
+    renderWizard("tipoPlanoAdesao=1");
+    await irAteConferencia(user);
+
+    const secao = screen.getByRole("region", { name: "Plano" });
+    expect(secao).toHaveTextContent("Mensal");
+    expect(secao).toHaveTextContent("R$ 69,90/mês até 30/06/2027; depois, R$ 99,90/mês.");
+    expect(within(secao).getByText("R$ 99,90", { selector: "s" })).toBeInTheDocument();
+  });
 
   it("o plano vem depois do titular e antes da conferência", async () => {
     const user = userEvent.setup();
@@ -495,7 +552,7 @@ describe("OnboardingWizard: plano", () => {
       expect.arrayContaining(["Escolha um plano para continuar."]),
     );
     expect(screen.getByRole("heading", { level: 1, name: "Escolha o seu plano" })).toBeInTheDocument();
-    await waitFor(() => expect(plano(/Teste grátis/)).toHaveFocus());
+    await waitFor(() => expect(plano(/Teste gratuito/)).toHaveFocus());
   });
 
   it("escolher um plano tira o erro e permite avançar", async () => {
@@ -530,10 +587,10 @@ describe("OnboardingWizard: plano", () => {
     expect(screen.getByRole("region", { name: "Tudo isso incluso no plano" })).toBeInTheDocument();
   });
 
-  it("a credencial mostra o plano vindo da URL", () => {
+  it("a credencial mostra o plano vindo da URL, com o valor atual do back-end", async () => {
     renderWizard("tipoPlanoAdesao=1");
     const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
-    expect(within(credencial).getByText("Plano: Mensal · R$ 69,90/mês")).toBeInTheDocument();
+    expect(await within(credencial).findByText("Plano: Mensal · R$ 69,90/mês")).toBeInTheDocument();
   });
 
   it.each(["1"])("tipoPlanoAdesao=%s mantém as cinco etapas e a etapa do plano", (valor) => {
@@ -555,6 +612,31 @@ describe("OnboardingWizard: plano", () => {
     expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(1);
   });
 
+  it("envia o tipo do plano escolhido, inclusive um tipo novo que o back-end passe a devolver", async () => {
+    const trimestral: PlanoAdesao = {
+      ...MENSAL,
+      id: 3,
+      tipo: 2,
+      nome: "Trimestral",
+      meses: 3,
+      emPromocao: false,
+      centavosAtual: 9990,
+      promocaoAte: undefined,
+    };
+    vi.mocked(listPlanos).mockResolvedValue([TRIAL, MENSAL, trimestral]);
+    const user = userEvent.setup();
+    renderWizard("tipoPlanoAdesao=2");
+    await irAtePlano(user);
+
+    expect(plano(/Trimestral/)).toBeChecked();
+    await user.click(proximo());
+    await titulo("Confira os dados");
+    await aceitarTermos(user);
+    await user.click(criarConta());
+    await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(2);
+  });
+
   it("Editar Plano na conferência troca para o teste grátis e volta direto para a conferência", async () => {
     const user = userEvent.setup();
     renderWizard();
@@ -563,11 +645,11 @@ describe("OnboardingWizard: plano", () => {
     await user.click(screen.getByRole("button", { name: "Editar Plano" }));
     await titulo("Escolha o seu plano");
     expect(screen.getByRole("button", { name: "Voltar para a conferência" })).toBeInTheDocument();
-    await user.click(plano(/Teste grátis/));
+    await user.click(plano(/Teste gratuito/));
     await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
     await titulo("Confira os dados");
 
-    expect(screen.getByRole("region", { name: "Teste grátis por 30 dias" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Teste grátis por 1 mês" })).toBeInTheDocument();
     await aceitarTermos(user);
     await user.click(criarConta());
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
@@ -642,7 +724,7 @@ describe("OnboardingWizard: teste grátis", () => {
     renderWizard(TESTE_GRATIS);
     await irAteConferenciaDoTeste(user);
 
-    const resumo = screen.getByRole("region", { name: "Teste grátis por 30 dias" });
+    const resumo = screen.getByRole("region", { name: "Teste grátis por 1 mês" });
     expect(within(resumo).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
       "Todas as funcionalidades",
       "Sem cartão de crédito",
@@ -652,10 +734,10 @@ describe("OnboardingWizard: teste grátis", () => {
     expect(screen.queryByRole("button", { name: /Editar Teste/ })).not.toBeInTheDocument();
   });
 
-  it("a credencial mostra o teste desde a primeira etapa", () => {
+  it("a credencial mostra o teste desde a primeira etapa", async () => {
     renderWizard(TESTE_GRATIS);
     const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
-    expect(within(credencial).getByText("Plano: Teste grátis · 30 dias")).toBeInTheDocument();
+    expect(await within(credencial).findByText("Plano: Teste grátis · 1 mês")).toBeInTheDocument();
   });
 
   it("envia o cadastro com tipoPlanoAdesao 0 e vai para o login", async () => {
@@ -681,7 +763,7 @@ describe("OnboardingWizard: teste grátis", () => {
 
     await user.click(proximo());
     await titulo("Confira os dados");
-    expect(screen.getByRole("region", { name: "Teste grátis por 30 dias" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Teste grátis por 1 mês" })).toBeInTheDocument();
   });
 
   it("etapas concluídas do indicador voltam para a etapa certa", async () => {
@@ -707,7 +789,7 @@ describe("OnboardingWizard: teste grátis", () => {
     await titulo("Usuário titular");
     await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
     await titulo("Confira os dados");
-    expect(screen.getByRole("region", { name: "Teste grátis por 30 dias" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Teste grátis por 1 mês" })).toBeInTheDocument();
   });
 });
 
@@ -717,7 +799,7 @@ describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
     renderWizard("");
     await irAtePlano(user);
 
-    const teste = plano(/Teste grátis/);
+    const teste = plano(/Teste gratuito/);
     expect(teste).not.toBeChecked();
     expect(teste).not.toHaveAccessibleName(expect.stringContaining("R$"));
     expect(screen.getAllByRole("radio")).toHaveLength(2);
@@ -727,12 +809,12 @@ describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
     const user = userEvent.setup();
     renderWizard("");
     await irAtePlano(user);
-    await user.click(plano(/Teste grátis/));
+    await user.click(plano(/Teste gratuito/));
     await user.click(proximo());
     await titulo("Confira os dados");
 
     expect(screen.getByText(/Etapa 5 de 5/)).toBeInTheDocument();
-    const resumo = screen.getByRole("region", { name: "Teste grátis por 30 dias" });
+    const resumo = screen.getByRole("region", { name: "Teste grátis por 1 mês" });
     expect(within(resumo).getByRole("button", { name: "Editar Plano" })).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Plano" })).not.toBeInTheDocument();
 
@@ -746,13 +828,13 @@ describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
     const user = userEvent.setup();
     renderWizard("");
     await irAtePlano(user);
-    await user.click(plano(/Teste grátis/));
+    await user.click(plano(/Teste gratuito/));
     await user.click(proximo());
     await titulo("Confira os dados");
 
     await user.click(screen.getByRole("button", { name: "Editar Plano" }));
     await titulo("Escolha o seu plano");
-    expect(plano(/Teste grátis/)).toBeChecked();
+    expect(plano(/Teste gratuito/)).toBeChecked();
     await user.click(plano(/Mensal/));
     await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
     await titulo("Confira os dados");
@@ -767,9 +849,92 @@ describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
     const user = userEvent.setup();
     renderWizard("");
     await irAtePlano(user);
-    await user.click(plano(/Teste grátis/));
+    await user.click(plano(/Teste gratuito/));
 
     const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
-    expect(within(credencial).getByText("Plano: Teste grátis · 30 dias")).toBeInTheDocument();
+    expect(await within(credencial).findByText("Plano: Teste grátis · 1 mês")).toBeInTheDocument();
+  });
+});
+
+describe("OnboardingWizard: planos indisponíveis", () => {
+  it("enquanto carrega mostra o estado de carregamento e não deixa avançar", async () => {
+    vi.mocked(listPlanos).mockReturnValue(new Promise(() => {}));
+    const user = userEvent.setup();
+    renderWizard("");
+    await irAtePlano(user);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Carregando planos…");
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
+    expect(proximo()).toBeDisabled();
+    expect(screen.getByRole("region", { name: "Tudo isso incluso no plano" })).toBeInTheDocument();
+  });
+
+  it("com o back-end fora do ar mostra o aviso, nenhum preço e não deixa avançar", async () => {
+    vi.mocked(listPlanos).mockRejectedValue(new ApiError("network"));
+    const user = userEvent.setup();
+    renderWizard("tipoPlanoAdesao=1");
+    await irAtePlano(user);
+
+    expect(await screen.findByText("Não conseguimos carregar os planos")).toBeInTheDocument();
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
+    expect(document.body.textContent).not.toContain("R$");
+    expect(proximo()).toBeDisabled();
+    // O que já foi preenchido continua lá.
+    await user.click(screen.getByRole("button", { name: "Voltar" }));
+    await titulo("Usuário titular");
+    expect(screen.getByLabelText(/^Nome completo/)).toHaveValue("Ana Souza");
+  });
+
+  it("lista inutilizável cai no mesmo aviso, com a ação de tentar de novo", async () => {
+    vi.mocked(listPlanos).mockRejectedValue(new ApiError("unknown"));
+    const user = userEvent.setup();
+    renderWizard("");
+    await irAtePlano(user);
+
+    expect(await screen.findByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
+  });
+
+  it("Tentar de novo carrega os planos, mantém a URL pré-selecionada e libera o avanço", async () => {
+    vi.mocked(listPlanos).mockRejectedValueOnce(new ApiError("network")).mockRejectedValueOnce(new ApiError("network"));
+    const user = userEvent.setup();
+    renderWizard("tipoPlanoAdesao=1");
+    await irAtePlano(user);
+    await user.click(await screen.findByRole("button", { name: "Tentar de novo" }));
+
+    expect(await screen.findAllByRole("radio")).toHaveLength(2);
+    expect(plano(/Mensal/)).toBeChecked();
+    expect(proximo()).toBeEnabled();
+    await user.click(proximo());
+    await titulo("Confira os dados");
+  });
+
+  it("no teste grátis a falha da lista não bloqueia: o texto fica sem duração e envia 0", async () => {
+    vi.mocked(listPlanos).mockRejectedValue(new ApiError("network"));
+    const user = userEvent.setup();
+    renderWizard(TESTE_GRATIS);
+    await irAteConferenciaDoTeste(user);
+
+    const resumo = screen.getByRole("region", { name: "Teste grátis" });
+    expect(resumo.textContent).not.toMatch(/\d/);
+    const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
+    expect(within(credencial).getByText("Plano: Teste grátis")).toBeInTheDocument();
+
+    await aceitarTermos(user);
+    await user.click(criarConta());
+    await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(saveAdesao).mock.calls[0][0].plano).toBe(0);
+  });
+
+  it("um plano que some da lista depois de escolhido não é enviado: volta à etapa do plano", async () => {
+    const user = userEvent.setup();
+    const { queryClient } = renderWizard("tipoPlanoAdesao=1");
+    await irAteConferencia(user);
+    await aceitarTermos(user);
+
+    queryClient.setQueryData(["planos"], [TRIAL]);
+    await user.click(criarConta());
+
+    await titulo("Escolha o seu plano");
+    expect(saveAdesao).not.toHaveBeenCalled();
   });
 });

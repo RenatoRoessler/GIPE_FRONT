@@ -78,7 +78,7 @@ describe("toAdesaoPayload: meios de pagamento", () => {
 });
 
 describe("toAdesaoPayload: plano", () => {
-  it.each<[TipoPlanoAdesao, number]>([
+  it.each<[number, number]>([
     [TipoPlanoAdesao.Mensal, 1],
     [TipoPlanoAdesao.Trimestral, 2],
     [TipoPlanoAdesao.Semestral, 3],

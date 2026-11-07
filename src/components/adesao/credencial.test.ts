@@ -5,6 +5,8 @@ import {
   EMPTY_PAYMENTS_DATA,
   TipoEmpresa,
 } from "@/types/adesao";
+import { descricaoNaCredencial } from "@/lib/planos";
+import type { PlanoAdesao } from "@/types/plano";
 import { buildCredencial } from "./credencial";
 
 describe("buildCredencial", () => {
@@ -68,16 +70,35 @@ describe("buildCredencial", () => {
     expect(dados.dias).toHaveLength(7);
   });
 
-  it("descreve o plano escolhido e deixa vazio quando não há", () => {
+  describe("plano", () => {
     const base = { company: EMPTY_COMPANY_DATA, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA };
+    const mensal: PlanoAdesao = {
+      id: 2,
+      tipo: 1,
+      nome: "Mensal",
+      meses: 1,
+      centavosTabela: 9990,
+      centavosAtual: 6990,
+      emPromocao: true,
+      promocaoAte: "2027-06-30",
+    };
+    const teste: PlanoAdesao = { ...mensal, id: 1, tipo: 0, nome: "Teste gratuito", centavosTabela: 0, centavosAtual: 0, emPromocao: false };
 
-    expect(buildCredencial(base).plano).toBeUndefined();
-    expect(buildCredencial({ ...base, plano: 1 }).plano).toBe("Mensal · R$ 69,90/mês");
-  });
+    it("deixa o traço (undefined) quando não há plano", () => {
+      expect(buildCredencial(base).plano).toBeUndefined();
+      expect(buildCredencial({ ...base, plano: descricaoNaCredencial(undefined, undefined) }).plano).toBeUndefined();
+    });
 
-  it("descreve o teste grátis sem valor", () => {
-    const base = { company: EMPTY_COMPANY_DATA, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA };
+    it("repassa o plano pago com o valor atual", () => {
+      expect(buildCredencial({ ...base, plano: descricaoNaCredencial(mensal, 1) }).plano).toBe("Mensal · R$ 69,90/mês");
+    });
 
-    expect(buildCredencial({ ...base, plano: 0 }).plano).toBe("Teste grátis · 30 dias");
+    it("repassa o teste com a duração do back-end", () => {
+      expect(buildCredencial({ ...base, plano: descricaoNaCredencial(teste, 0) }).plano).toBe("Teste grátis · 1 mês");
+    });
+
+    it("repassa o teste sem duração quando os dados não chegaram", () => {
+      expect(buildCredencial({ ...base, plano: descricaoNaCredencial(undefined, 0) }).plano).toBe("Teste grátis");
+    });
   });
 });

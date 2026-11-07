@@ -137,3 +137,22 @@ export const Apoio = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textMuted};
 `;
+
+// Preço de tabela riscado ao lado do atual; o leitor de tela ouve o "de ... por ..." do `Oculto`.
+export const Riscado = styled.s`
+  margin-right: ${({ theme }) => theme.space[2]}px;
+  font-weight: ${({ theme }) => theme.fontWeights.regular};
+  color: ${({ theme }) => theme.colors.textMuted};
+`;
+
+export const Oculto = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+`;

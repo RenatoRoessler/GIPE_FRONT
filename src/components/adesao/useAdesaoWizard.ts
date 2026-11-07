@@ -7,14 +7,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { AlvoErro, atribuirErro } from "@/lib/api/adesaoErrors";
 import { saveAdesao } from "@/lib/api/services/adesao";
-import { ehTesteGratisNaUrl, lerPlanoDaUrl } from "@/lib/planos";
+import { descricaoNaCredencial, ehTesteGratisNaUrl, lerPlanoDaUrl, planoDoTipo } from "@/lib/planos";
 import {
   aceiteSchema,
   adminUserSchema,
   businessHoursSchema,
   companySchema,
+  criarPlanoSchema,
   paymentsSchema,
-  planoSchema,
 } from "@/lib/schemas/adesao";
 import {
   AceiteData,
@@ -40,6 +40,7 @@ import {
   type EtapaEditavel,
   type ModoAdesao,
 } from "./etapas";
+import { usePlanos } from "./usePlanos";
 
 export { ETAPA };
 export type { Etapa };
@@ -81,9 +82,17 @@ export function useAdesaoWizard() {
   const [modo] = useState<ModoAdesao>(() =>
     ehTesteGratisNaUrl(parametroPlano) ? MODO_ADESAO.Teste : MODO_ADESAO.Plano,
   );
-  const [plano, setPlano] = useState<TipoPlanoAdesao | undefined>(() => lerPlanoDaUrl(parametroPlano));
+  // Começa a buscar já na abertura: quando o usuário chega à etapa Plano a lista normalmente está pronta.
+  const consultaPlanos = usePlanos();
+  const planos = consultaPlanos.data;
+  // Tipo escolhido (ou vindo da URL). Pode ainda não existir na lista; por isso a seleção de fato é derivada abaixo.
+  const [plano, setPlano] = useState<number | undefined>(() => lerPlanoDaUrl(parametroPlano));
+  // Tipo da URL que o back-end não devolve fica sem seleção, sem erro.
+  const planoSelecionado = planoDoTipo(planos, plano);
   // No teste grátis o que vale é o Trial; o plano pago só existe no outro modo.
-  const planoEnviado = modo === MODO_ADESAO.Teste ? TipoPlanoAdesao.Trial : plano;
+  const planoEnviado = modo === MODO_ADESAO.Teste ? TipoPlanoAdesao.Trial : planoSelecionado?.tipo;
+  // Dados do que será enviado, para mostrar valor/duração. No teste, sem a lista fica sem número, mas não bloqueia.
+  const planoEscolhido = planoDoTipo(planos, planoEnviado);
   const [erroPlano, setErroPlano] = useState<string>();
   const [blocosAbertos, setBlocosAbertos] = useState<GrupoEmpresa[]>(["identificacao"]);
   const [blocosConcluidos, setBlocosConcluidos] = useState<GrupoEmpresa[]>([]);
@@ -158,8 +167,8 @@ export function useAdesaoWizard() {
   const adminUser = useSelector(adminUserForm.store, (state) => state.values);
 
   const credencial = useMemo(
-    () => buildCredencial({ company, hours, payments, plano: planoEnviado }),
-    [company, hours, payments, planoEnviado],
+    () => buildCredencial({ company, hours, payments, plano: descricaoNaCredencial(planoEscolhido, planoEnviado) }),
+    [company, hours, payments, planoEscolhido, planoEnviado],
   );
 
   // Campos inválidos da empresa por bloco, direto do schema (não depende de o campo ter sido tocado).
@@ -204,7 +213,7 @@ export function useAdesaoWizard() {
     setBlocosAbertos((abertos) => (aberto ? [...abertos, grupo] : abertos.filter((item) => item !== grupo)));
   }
 
-  function escolherPlano(tipo: TipoPlanoAdesao) {
+  function escolherPlano(tipo: number) {
     setPlano(tipo);
     setErroPlano(undefined);
     setFaltam(0);
@@ -214,7 +223,10 @@ export function useAdesaoWizard() {
     setFaltam(0);
 
     if (etapa === ETAPA.Plano) {
-      const result = planoSchema.safeParse({ plano });
+      // Sem a lista carregada não há o que validar nem o que enviar; a própria etapa mostra o estado.
+      if (consultaPlanos.status !== "success") return false;
+
+      const result = criarPlanoSchema(consultaPlanos.data.map((item) => item.tipo)).safeParse({ plano: planoSelecionado?.tipo });
       if (result.success) return true;
 
       setErroPlano(result.error.issues[0].message);
@@ -343,7 +355,16 @@ export function useAdesaoWizard() {
     paymentsForm,
     hoursForm,
     adminUserForm,
-    dados: { plano, company, hours, payments, adminUser },
+    // `plano` é a seleção de fato (existe na lista), não o tipo cru da URL.
+    dados: { plano: planoSelecionado?.tipo, company, hours, payments, adminUser },
+    planos: {
+      status: consultaPlanos.status,
+      dados: planos,
+      refazer: () => void consultaPlanos.refetch(),
+      refazendo: consultaPlanos.isRefetching,
+    },
+    planoEscolhido,
+    planoTeste: planoDoTipo(planos, TipoPlanoAdesao.Trial),
     aceite,
     erroAceite,
     aceitar,

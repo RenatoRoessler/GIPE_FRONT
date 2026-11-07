@@ -46,6 +46,8 @@ export function OnboardingWizard() {
   // Pelo número interno da etapa: no teste grátis há uma etapa visível a menos que o número da Conferir.
   const ultima = etapa === ETAPA.Conferir;
   const planoConferido = modo === MODO_ADESAO.Teste ? TipoPlanoAdesao.Trial : dados.plano;
+  // Sem a lista dos planos a etapa Plano só mostra carregamento ou erro: não há o que confirmar.
+  const aguardandoPlanos = etapa === ETAPA.Plano && wizard.planos.status !== "success";
 
   function resumoBloco(grupo: GrupoEmpresa): string | undefined {
     if (!wizard.blocosConcluidos.includes(grupo)) return undefined;
@@ -87,7 +89,12 @@ export function OnboardingWizard() {
     conteudo = (
       <>
         {faltamAviso}
-        <PlanoStepFields plano={dados.plano} onChange={wizard.escolherPlano} error={wizard.erroPlano} />
+        <PlanoStepFields
+          planos={wizard.planos}
+          plano={dados.plano}
+          onChange={wizard.escolherPlano}
+          error={wizard.erroPlano}
+        />
       </>
     );
   } else if (etapa === ETAPA.Empresa) {
@@ -147,6 +154,8 @@ export function OnboardingWizard() {
           <ConferirStep
             {...dados}
             plano={planoConferido}
+            dadosDoPlano={wizard.planoEscolhido}
+            planoTeste={wizard.planoTeste}
             planoEditavel={modo === MODO_ADESAO.Plano}
             onEditar={wizard.editar}
             aceite={wizard.aceite}
@@ -182,7 +191,7 @@ export function OnboardingWizard() {
         ) : undefined
       }
       principal={
-        <Button type="submit" form={FORM_ID} disabled={enviando}>
+        <Button type="submit" form={FORM_ID} disabled={enviando || aguardandoPlanos}>
           {rotuloPrincipal}
         </Button>
       }

@@ -4,7 +4,7 @@ import { Fragment, ReactNode } from "react";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Link } from "@/components/ui/Link";
 import { formatCEP } from "@/lib/cep";
-import { descreverCondicao, formatarReais, PLANO_MENSAL, valorPorMes } from "@/lib/planos";
+import { descreverCondicao, descreverDuracao, formatarReais } from "@/lib/planos";
 import {
   AceiteData,
   AdminUserData,
@@ -16,7 +16,7 @@ import {
   TIPO_EMPRESA_LABEL,
 } from "@/types/adesao";
 import { DOCUMENTOS_ACEITE } from "@/lib/termos";
-import { TipoPlanoAdesao } from "@/types/plano";
+import { PlanoAdesao, TipoPlanoAdesao } from "@/types/plano";
 import type { GrupoEmpresa } from "../CompanyStepFields";
 import { ETAPA, type EtapaEditavel } from "../etapas";
 import {
@@ -28,6 +28,8 @@ import {
   Garantias,
   Lista,
   LinhaAceite,
+  Oculto,
+  Riscado,
   Secao,
   SecaoCabecalho,
   SecaoTeste,
@@ -37,8 +39,12 @@ import {
 } from "./ConferirStep.styles";
 
 export interface ConferirStepProps {
-  // Trial mostra o resumo do teste grátis no lugar do plano pago.
-  plano: TipoPlanoAdesao;
+  // Tipo do plano enviado. Trial mostra o resumo do teste grátis no lugar do plano pago.
+  plano: number;
+  // Dados do plano pago escolhido (vêm do back-end); sem eles o bloco do plano não aparece.
+  dadosDoPlano?: PlanoAdesao;
+  // Dados do teste, só para a duração; sem eles o texto fica sem número.
+  planoTeste?: PlanoAdesao;
   // Falso quando a etapa Plano não existe no fluxo (teste grátis vindo do site): não há para onde voltar.
   planoEditavel?: boolean;
   company: CompanyData;
@@ -86,17 +92,18 @@ function Bloco({
   );
 }
 
-const TITULO_TESTE = "Teste grátis por 30 dias";
-
 // As mesmas condições que o site promete; nada de preço, cartão como exigência ou retenção de dados.
 const GARANTIAS_DO_TESTE = ["Todas as funcionalidades", "Sem cartão de crédito", "Sem compromisso"];
 
 // Só tem "Editar" quando o teste foi escolhido na etapa Plano; vindo do site (etapa Plano oculta) não há o que corrigir.
-function ResumoTeste({ onEditar }: { onEditar?: () => void }) {
+// A duração é a do back-end; sem ela o texto não cita número.
+function ResumoTeste({ duracao, onEditar }: { duracao?: string; onEditar?: () => void }) {
+  const titulo = duracao ? `Teste grátis por ${duracao}` : "Teste grátis";
+
   return (
-    <SecaoTeste aria-label={TITULO_TESTE}>
+    <SecaoTeste aria-label={titulo}>
       <SecaoCabecalho>
-        <SecaoTitulo>{TITULO_TESTE}</SecaoTitulo>
+        <SecaoTitulo>{titulo}</SecaoTitulo>
         {onEditar && (
           <Editar type="button" aria-label="Editar Plano" onClick={onEditar}>
             Editar
@@ -104,7 +111,8 @@ function ResumoTeste({ onEditar }: { onEditar?: () => void }) {
         )}
       </SecaoCabecalho>
       <FraseTeste>
-        Use o sistema completo por 30 dias. No fim do teste, você decide se quer assinar.
+        {duracao ? `Use o sistema completo por ${duracao}.` : "Use o sistema completo durante o teste."} No fim do
+        teste, você decide se quer assinar.
       </FraseTeste>
       <Garantias>
         {GARANTIAS_DO_TESTE.map((garantia) => (
@@ -169,7 +177,7 @@ function BlocoAceite({
   );
 }
 
-function Linha({ termo, valor }: { termo: string; valor: string }) {
+function Linha({ termo, valor }: { termo: string; valor: ReactNode }) {
   return (
     <Fragment>
       <Termo>{termo}</Termo>
@@ -178,8 +186,25 @@ function Linha({ termo, valor }: { termo: string; valor: string }) {
   );
 }
 
+// Em promoção o riscado é só visual; quem usa leitor de tela ouve "de ... por ...".
+function ValorPorMes({ plano }: { plano: PlanoAdesao }) {
+  const atual = formatarReais(plano.centavosAtual);
+  if (!plano.emPromocao) return atual;
+
+  const tabela = formatarReais(plano.centavosTabela);
+  return (
+    <>
+      <Riscado aria-hidden="true">{tabela}</Riscado>
+      <Oculto>de {tabela} por </Oculto>
+      {atual}
+    </>
+  );
+}
+
 export function ConferirStep({
   plano,
+  dadosDoPlano,
+  planoTeste,
   planoEditavel = true,
   company,
   hours,
@@ -193,7 +218,7 @@ export function ConferirStep({
 }: ConferirStepProps) {
   const meios = MEIOS_PAGAMENTO.filter(({ key }) => payments[key]).map(({ label }) => label);
 
-  const dadosDoPlano = plano === TipoPlanoAdesao.Trial ? undefined : PLANO_MENSAL;
+  const teste = plano === TipoPlanoAdesao.Trial;
 
   return (
     <Secoes>
@@ -235,14 +260,19 @@ export function ConferirStep({
         <Linha termo="Senha" valor={SENHA_MASCARADA} />
       </Bloco>
 
-      {dadosDoPlano ? (
-        <Bloco titulo="Plano" onEditar={() => onEditar(ETAPA.Plano)}>
-          <Linha termo="Plano" valor={dadosDoPlano.nome} />
-          <Linha termo="Valor por mês" valor={formatarReais(valorPorMes(dadosDoPlano))} />
-          <Linha termo="Condição" valor={descreverCondicao(dadosDoPlano)} />
-        </Bloco>
+      {teste ? (
+        <ResumoTeste
+          duracao={planoTeste ? descreverDuracao(planoTeste.meses) : undefined}
+          onEditar={planoEditavel ? () => onEditar(ETAPA.Plano) : undefined}
+        />
       ) : (
-        <ResumoTeste onEditar={planoEditavel ? () => onEditar(ETAPA.Plano) : undefined} />
+        dadosDoPlano && (
+          <Bloco titulo="Plano" onEditar={() => onEditar(ETAPA.Plano)}>
+            <Linha termo="Plano" valor={dadosDoPlano.nome} />
+            <Linha termo="Valor por mês" valor={<ValorPorMes plano={dadosDoPlano} />} />
+            <Linha termo="Condição" valor={descreverCondicao(dadosDoPlano)} />
+          </Bloco>
+        )
       )}
 
       {(["termos", "privacidade"] as const).map((documento) => (

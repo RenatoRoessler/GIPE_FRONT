@@ -7,7 +7,6 @@ import { SIGLAS_ESTADOS } from "@/lib/estados";
 import { isValidCelular, isValidPhone } from "@/lib/phone";
 import { getMissingPasswordRules } from "@/lib/password";
 import { TipoEmpresa } from "@/types/adesao";
-import { TipoPlanoAdesao } from "@/types/plano";
 
 function vagasSchema(requiredMessage: string) {
   return z
@@ -168,17 +167,19 @@ export type AdminUserValues = z.infer<typeof adminUserSchema>;
 
 export const PLANO_OBRIGATORIO_MESSAGE = "Escolha um plano para continuar.";
 
-// A etapa oferece o teste grátis (0) e o plano Mensal (1).
-export const planoSchema = z.object({
-  plano: z
-    .number()
-    .optional()
-    .refine((value) => value === TipoPlanoAdesao.Trial || value === TipoPlanoAdesao.Mensal, {
-      message: PLANO_OBRIGATORIO_MESSAGE,
-    }),
-});
+// A etapa oferece os planos que o back-end devolveu: só um desses tipos é uma escolha válida.
+export function criarPlanoSchema(tiposValidos: readonly number[]) {
+  return z.object({
+    plano: z
+      .number()
+      .optional()
+      .refine((value) => value !== undefined && tiposValidos.includes(value), {
+        message: PLANO_OBRIGATORIO_MESSAGE,
+      }),
+  });
+}
 
-export type PlanoValues = z.infer<typeof planoSchema>;
+export type PlanoValues = z.infer<ReturnType<typeof criarPlanoSchema>>;
 
 export const TERMOS_OBRIGATORIO_MESSAGE = "Aceite os Termos de Uso para continuar.";
 export const PRIVACIDADE_OBRIGATORIA_MESSAGE = "Aceite a Política de Privacidade para continuar.";
