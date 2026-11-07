@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.359",
+      "type": "feat",
+      "scope": "ticket",
+      "title": "remove o envio do ticket ao cliente por WhatsApp ou e-mail",
+      "description": "Retira o botão \"Enviar ao cliente\" e o popup de envio do ticket de\nentrada no pátio e do recibo de entrada, além do módulo de montagem\nda mensagem e dos testes correspondentes. O QR do ticket e a impressão\ncontinuam disponíveis.",
+      "date": "2026-11-07T10:19:00-03:00"
+    },
+    {
       "version": "1.0.357",
       "type": "feat",
       "scope": "saida",
