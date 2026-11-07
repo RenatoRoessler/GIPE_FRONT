@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ListError } from "@/components/mensalistas/ListError";
-import { EnviarTicketModal } from "../EnviarTicketModal";
 import { GuardarChaveModal } from "@/components/quadros/GuardarChaveModal";
 import { rotuloGancho } from "@/components/quadros/gancho";
 import { useQuadros } from "@/components/quadros/useQuadros";
@@ -39,11 +38,6 @@ import {
 export const QR_BOTAO_ID = "ticket-qr-botao";
 const SEM_LINK_ID = "ticket-sem-link";
 
-const AVISO_ENVIO = {
-  whatsapp: "Mensagem aberta no WhatsApp. Confirme o envio por lá.",
-  email: "Mensagem aberta no aplicativo de e-mail. Confirme o envio por lá.",
-};
-
 export interface TicketViewProps {
   patioId: number;
 }
@@ -64,10 +58,9 @@ export function TicketView({ patioId }: TicketViewProps) {
   // Com um modal aberto (a saída, a chave) a lista não se atualiza sozinha: o ticket não pode mudar debaixo do operador.
   const [saida, setSaida] = useState<PatioVeiculo | null>(null);
   const [chaveDe, setChaveDe] = useState<PatioVeiculo | null>(null);
-  const [envioDe, setEnvioDe] = useState<PatioVeiculo | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
 
-  const { veiculo, carregando, ausente, erro, atualizando, recarregar } = usePatioVeiculo(patioId, { pausado: saida !== null || chaveDe !== null || envioDe !== null });
+  const { veiculo, carregando, ausente, erro, atualizando, recarregar } = usePatioVeiculo(patioId, { pausado: saida !== null || chaveDe !== null });
   const { data: quadros } = useQuadros();
   const comQuadros = (quadros?.length ?? 0) > 0;
   const comprovante = useComprovanteTicket(veiculo?.token ?? null);
@@ -105,15 +98,6 @@ export function TicketView({ patioId }: TicketViewProps) {
             setChaveDe(null);
             setAviso(`Chave guardada no ${rotuloGancho(guardada.linha, guardada.coluna)}.`);
           }}
-        />
-      )}
-      {envioDe && (
-        <EnviarTicketModal
-          placa={envioDe.placa}
-          token={envioDe.token}
-          estacionamento={comprovante.data?.razaoSocial}
-          onClose={() => setEnvioDe(null)}
-          onEnviado={(canal) => setAviso(AVISO_ENVIO[canal])}
         />
       )}
       {aviso && <Toast message={aviso} variant="success" onDismiss={() => setAviso(null)} />}
@@ -206,15 +190,6 @@ export function TicketView({ patioId }: TicketViewProps) {
               Mostrar QR do ticket ao cliente
             </QrBotao>
           )}
-          <QrBotao
-            type="button"
-            variant="secondary"
-            disabled={semToken}
-            aria-describedby={semToken ? SEM_LINK_ID : undefined}
-            onClick={() => setEnvioDe(veiculo)}
-          >
-            Enviar ao cliente
-          </QrBotao>
           <SaidaBotao type="button" onClick={() => setSaida(veiculo)}>
             {cobrando ? `Registrar saída · ${formatBRL(valor)}` : "Registrar saída"}
           </SaidaBotao>

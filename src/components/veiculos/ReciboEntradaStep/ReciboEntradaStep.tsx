@@ -1,13 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { createPortal } from "react-dom";
-import { EnviarTicketModal } from "@/components/patio/EnviarTicketModal";
 import { linkDoTicket } from "@/components/patio/ticketLink";
 import { EMPRESA_QUERY_KEY } from "@/components/empresa/MinhaEmpresa/EmpresaForm";
 import { Button } from "@/components/ui/Button";
-import { Toast } from "@/components/ui/Toast";
 import { getEmpresa } from "@/lib/api/services/empresa";
 import { formatCNPJ } from "@/lib/cnpj";
 import { formatPhone } from "@/lib/phone";
@@ -20,15 +17,7 @@ export interface ReciboEntradaStepProps {
   onConcluir: () => void;
 }
 
-const AVISO_ENVIO = {
-  whatsapp: "Mensagem aberta no WhatsApp. Confirme o envio por lá.",
-  email: "Mensagem aberta no aplicativo de e-mail. Confirme o envio por lá.",
-};
-
 export function ReciboEntradaStep({ entrada, onConcluir }: ReciboEntradaStepProps) {
-  const [enviando, setEnviando] = useState(false);
-  const [aviso, setAviso] = useState<string | null>(null);
-
   // Mesma consulta do recibo de saída (cacheada). Se falhar, o comprovante sai sem os dados da empresa.
   const { data: empresa } = useQuery({
     queryKey: EMPRESA_QUERY_KEY,
@@ -78,25 +67,10 @@ export function ReciboEntradaStep({ entrada, onConcluir }: ReciboEntradaStepProp
         <Button type="button" variant="secondary" onClick={onConcluir}>
           Concluir
         </Button>
-        {data.link && (
-          <Button type="button" variant="secondary" onClick={() => setEnviando(true)}>
-            Enviar ao cliente
-          </Button>
-        )}
         <Button type="button" onClick={() => window.print()}>
           Imprimir
         </Button>
       </Actions>
-      {enviando && (
-        <EnviarTicketModal
-          placa={entrada.placa}
-          token={entrada.token}
-          estacionamento={data.empresaNome}
-          onClose={() => setEnviando(false)}
-          onEnviado={(canal) => setAviso(AVISO_ENVIO[canal])}
-        />
-      )}
-      {aviso && <Toast message={aviso} variant="success" onDismiss={() => setAviso(null)} />}
       <PrintStyles />
       {createPortal(
         <div id="recibo-print-root">
