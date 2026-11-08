@@ -2,7 +2,7 @@
 
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { formatDataBr } from "@/components/financeiro/format";
 import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
 import { Button } from "@/components/ui/Button";
@@ -12,16 +12,23 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/Table";
 import { Text } from "@/components/ui/Text";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 import { isForbiddenError } from "@/lib/api/errors";
 import { formatBRL } from "@/lib/money";
+import { formatDataInput } from "@/lib/periodo";
 import type { FaturaFiltros } from "@/types/fatura";
+import { FaturaCard } from "../FaturaCard";
 import { EmptyState, ErrorArea, NumeroLink, Primary, SkeletonRows, TableArea, Valor } from "../Faturas.styles";
+import { ListaCartoes } from "../FaturasMobile.styles";
 import { numeroFatura } from "../format";
 import { rotuloSituacao, tomSituacao } from "../situacao";
 import { faturaUrl } from "../url";
 import { useFaturas } from "../useFaturas";
 
 const SKELETON_ROWS = 6;
+const SKELETON_CARDS = 4;
+// Altura aproximada de um cartão de fatura, para o esqueleto não pular quando a lista chega.
+const ALTURA_CARTAO = "112px";
 
 export interface FaturasListaProps {
   filtros: FaturaFiltros;
@@ -32,6 +39,9 @@ export interface FaturasListaProps {
 
 export function FaturasLista({ filtros, onPaginaChange, onEmitir, onLimparFiltros }: FaturasListaProps) {
   const router = useRouter();
+  const celular = useIsMobile();
+  // Hoje (AAAA-MM-DD) calculado uma vez; os cartões comparam o vencimento com ele.
+  const [hoje] = useState(() => formatDataInput(new Date()));
   const { data, isPending, isError, error, refetch, isFetching, isPlaceholderData } = useFaturas(filtros);
   const comFiltro = filtros.empresaConveniadaId !== null || filtros.situacao !== null;
 
@@ -41,6 +51,14 @@ export function FaturasLista({ filtros, onPaginaChange, onEmitir, onLimparFiltro
       return;
     }
     router.push(faturaUrl(id));
+  }
+
+  // No celular a nova página começa pelo topo da lista, e não por onde o botão de paginação foi tocado.
+  function mudarPagina(pagina: number) {
+    onPaginaChange(pagina);
+    if (celular) {
+      window.scrollTo({ top: 0 });
+    }
   }
 
   if (isError) {
@@ -59,6 +77,15 @@ export function FaturasLista({ filtros, onPaginaChange, onEmitir, onLimparFiltro
   }
 
   if (isPending) {
+    if (celular) {
+      return (
+        <ListaCartoes as="div" role="status" aria-label="Carregando faturas">
+          {Array.from({ length: SKELETON_CARDS }, (_, index) => (
+            <Skeleton key={index} height={ALTURA_CARTAO} />
+          ))}
+        </ListaCartoes>
+      );
+    }
     return (
       <TableArea $refreshing={false} role="status" aria-label="Carregando faturas">
         <SkeletonRows>
@@ -88,6 +115,23 @@ export function FaturasLista({ filtros, onPaginaChange, onEmitir, onLimparFiltro
           Emitir fatura
         </Button>
       </EmptyState>
+    );
+  }
+
+  const paginacao = (
+    <Pagination page={data.page} totalPages={data.totalPages} totalRecords={data.totalRecords} pageSize={data.pageSize} onPageChange={mudarPagina} />
+  );
+
+  if (celular) {
+    return (
+      <>
+        <ListaCartoes $refreshing={isPlaceholderData} aria-busy={isPlaceholderData}>
+          {data.items.map((fatura) => (
+            <FaturaCard key={fatura.convenioFaturaId} fatura={fatura} hoje={hoje} />
+          ))}
+        </ListaCartoes>
+        {paginacao}
+      </>
     );
   }
 
@@ -141,13 +185,7 @@ export function FaturasLista({ filtros, onPaginaChange, onEmitir, onLimparFiltro
           </TableBody>
         </Table>
       </TableArea>
-      <Pagination
-        page={data.page}
-        totalPages={data.totalPages}
-        totalRecords={data.totalRecords}
-        pageSize={data.pageSize}
-        onPageChange={onPaginaChange}
-      />
+      {paginacao}
     </>
   );
 }

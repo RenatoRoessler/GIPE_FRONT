@@ -9,11 +9,15 @@ import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { Modal } from "@/components/ui/Modal";
+import { OptionGroup } from "@/components/ui/OptionGroup";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 import { formatDataInput } from "@/lib/periodo";
 import { createEmitirFaturaSchema, OBSERVACAO_FATURA_MAX } from "@/lib/schemas/fatura";
 import type { EmitirFaturaValues, FaturaDetalhe } from "@/types/fatura";
 import { Form } from "../Faturas.styles";
 import { useFaturaMutations } from "../useFaturaMutations";
+import { useRolarAteAviso } from "../useRolarAteAviso";
+import { ATALHOS_VENCIMENTO_DIAS, atalhoSelecionado, vencimentoEm } from "../vencimento";
 
 // Prazo sugerido para o vencimento; o usuário pode mudar.
 const PRAZO_PADRAO_DIAS = 30;
@@ -36,7 +40,10 @@ export function EmitirFaturaModal({ onClose, onEmitida }: EmitirFaturaModalProps
     return { hoje: formatDataInput(agora), vencimentoInicial: vencimentoSugerido(agora) };
   });
   const conveniadas = useConveniadas("todos");
+  const celular = useIsMobile();
   const { emitir } = useFaturaMutations();
+  // O erro fica no topo do corpo rolável do modal: ao aparecer, vem para a vista.
+  const erroRef = useRolarAteAviso(emitir.isError);
   const schema = createEmitirFaturaSchema({ hoje });
 
   const initialValues: EmitirFaturaValues = { empresaConveniadaId: "", vencimento: vencimentoInicial, observacao: "" };
@@ -84,7 +91,11 @@ export function EmitirFaturaModal({ onClose, onEmitida }: EmitirFaturaModalProps
         </>
       }
     >
-      {emitir.isError && <ErrorBanner role="alert">{emitir.error.message}</ErrorBanner>}
+      {emitir.isError && (
+        <div ref={erroRef}>
+          <ErrorBanner role="alert">{emitir.error.message}</ErrorBanner>
+        </div>
+      )}
       {conveniadas.isError && <ErrorBanner role="alert">Não foi possível carregar as conveniadas. {conveniadas.error.message}</ErrorBanner>}
       <Form
         id={formId}
@@ -110,6 +121,20 @@ export function EmitirFaturaModal({ onClose, onEmitida }: EmitirFaturaModalProps
         <form.AppField name="vencimento" listeners={{ onChange: () => emitir.reset() }}>
           {(field) => <field.TextField label="Vencimento" type="date" min={hoje} disabled={isSending} />}
         </form.AppField>
+        {celular && (
+          // Atalhos só preenchem o campo acima; a marcação vem do valor dele, então digitar outra data a desmarca.
+          <OptionGroup
+            legend="Prazo"
+            columns={ATALHOS_VENCIMENTO_DIAS.length}
+            options={ATALHOS_VENCIMENTO_DIAS.map((dias) => ({ value: String(dias), label: `${dias} dias` }))}
+            value={atalhoSelecionado(values.vencimento, hoje)}
+            disabled={isSending}
+            onChange={(dias) => {
+              form.setFieldValue("vencimento", vencimentoEm(hoje, Number(dias)));
+              emitir.reset();
+            }}
+          />
+        )}
         <form.AppField name="observacao" listeners={{ onChange: () => emitir.reset() }}>
           {(field) => <field.TextareaField label="Observação (opcional)" limite={OBSERVACAO_FATURA_MAX} disabled={isSending} />}
         </form.AppField>

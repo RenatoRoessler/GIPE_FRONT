@@ -63,6 +63,8 @@ const shared = {
     keyboardKeyHeight: "52px",
     keyboardZIndex: 50,
     keyboardMaxWidth: "560px",
+    // Folga no fim do conteúdo, no celular, para o botão flutuante não cobrir o último item.
+    fabClearance: "88px",
   },
   breakpoints: {
     sm: "480px",

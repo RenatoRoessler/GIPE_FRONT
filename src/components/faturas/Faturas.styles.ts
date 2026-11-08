@@ -22,12 +22,13 @@ export const Header = styled.div`
   }
 `;
 
+// Os filtros só ficam lado a lado a partir de `lg`: antes disso a situação precisa da largura toda para os quatro rótulos caberem.
 export const Filtros = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
 
-  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+  @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
     flex-direction: row;
     align-items: flex-end;
 

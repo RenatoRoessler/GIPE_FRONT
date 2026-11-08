@@ -20,9 +20,9 @@ export const Legend = styled.legend`
   color: ${({ theme }) => theme.colors.text};
 `;
 
-export const Options = styled.div<{ $withIcon?: boolean; $columns?: number; $card?: boolean; $inline?: boolean }>`
+export const Options = styled.div<{ $withIcon?: boolean; $columns?: number; $mobileColumns?: number; $card?: boolean; $inline?: boolean }>`
   display: grid;
-  grid-template-columns: repeat(${({ $columns, $withIcon, $card }) => $columns ?? ($card ? 1 : $withIcon ? 3 : 2)}, minmax(0, 1fr));
+  grid-template-columns: repeat(${({ $columns, $mobileColumns, $withIcon, $card }) => $mobileColumns ?? $columns ?? ($card ? 1 : $withIcon ? 3 : 2)}, minmax(0, 1fr));
   gap: ${({ theme }) => theme.space[2]}px;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {

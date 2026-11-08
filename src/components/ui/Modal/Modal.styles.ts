@@ -131,6 +131,8 @@ export const Footer = styled.div`
   flex-direction: column-reverse;
   gap: ${({ theme }) => theme.space[2]}px;
   padding: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[4]}px;
+  /* Em celulares com indicador na base, o botão não fica sob ele (sem área segura o valor é o mesmo de antes). */
+  padding-bottom: calc(${({ theme }) => theme.space[3]}px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid ${({ theme }) => theme.colors.border};
 
   @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {

@@ -1,6 +1,6 @@
 "use client";
 
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 export const Field = styled.div`
   display: flex;
@@ -9,10 +9,22 @@ export const Field = styled.div`
   width: 100%;
 `;
 
-export const Label = styled.label`
+export const Label = styled.label<{ $hidden: boolean }>`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   color: ${({ theme }) => theme.colors.text};
+
+  /* Oculto só para quem vê: o rótulo continua ligado ao campo para leitores de tela. */
+  ${({ $hidden }) =>
+    $hidden &&
+    css`
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    `}
 `;
 
 export const SelectWrapper = styled.div`

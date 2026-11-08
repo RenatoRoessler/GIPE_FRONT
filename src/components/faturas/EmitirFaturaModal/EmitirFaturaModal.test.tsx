@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { formatDataInput } from "@/lib/periodo";
 import { renderWithProviders } from "@/test/render";
@@ -12,6 +12,7 @@ vi.mock("@/lib/api/services/conveniada", () => ({ listConveniadas: vi.fn() }));
 
 import { listConveniadas } from "@/lib/api/services/conveniada";
 import { emitirFatura } from "@/lib/api/services/fatura";
+import { vencimentoEm } from "../vencimento";
 import { EmitirFaturaModal } from "./EmitirFaturaModal";
 
 // jsdom não implementa <dialog>.
@@ -161,5 +162,80 @@ describe("EmitirFaturaModal", () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(emitirFatura).not.toHaveBeenCalled();
+  });
+});
+
+describe("EmitirFaturaModal no celular", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn((query: string) => ({ matches: true, media: query, addEventListener: () => {}, removeEventListener: () => {} })),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("oferece os prazos de 7, 15 e 30 dias, com 30 marcado no início", () => {
+    renderizar();
+
+    expect(screen.getByRole("radio", { name: "7 dias" })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: "15 dias" })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: "30 dias" })).toBeChecked();
+  });
+
+  it("escolher um prazo preenche o vencimento", async () => {
+    const user = userEvent.setup();
+    renderizar();
+
+    await user.click(screen.getByRole("radio", { name: "7 dias" }));
+    expect(screen.getByLabelText("Vencimento")).toHaveValue(vencimentoEm(HOJE, 7));
+    expect(screen.getByRole("radio", { name: "7 dias" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "30 dias" })).not.toBeChecked();
+  });
+
+  it("digitar outra data desmarca o prazo", () => {
+    renderizar();
+
+    fireEvent.change(screen.getByLabelText("Vencimento"), { target: { value: vencimentoEm(HOJE, 20) } });
+    expect(screen.queryByRole("radio", { checked: true })).not.toBeInTheDocument();
+  });
+
+  it("emite com o vencimento do prazo escolhido", async () => {
+    vi.mocked(emitirFatura).mockResolvedValue(detalhe);
+    const user = userEvent.setup();
+    renderizar();
+
+    await escolherConveniada("Auto Peças");
+    await user.click(screen.getByRole("radio", { name: "15 dias" }));
+    await user.click(screen.getByRole("button", { name: "Emitir fatura" }));
+
+    await waitFor(() => expect(onEmitida).toHaveBeenCalledWith(detalhe));
+    expect(vi.mocked(emitirFatura).mock.calls[0][0]).toMatchObject({ empresaConveniadaId: "53", vencimento: vencimentoEm(HOJE, 15) });
+  });
+
+  it("erro do back (sem saídas) rola até a vista e o modal continua aberto", async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    vi.mocked(emitirFatura).mockRejectedValue(new ApiError("validation", "Não há saídas em aberto para esta conveniada."));
+    const user = userEvent.setup();
+    renderizar();
+
+    await escolherConveniada("Auto Peças");
+    await user.click(screen.getByRole("button", { name: "Emitir fatura" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não há saídas em aberto para esta conveniada.");
+    expect(scrollIntoView).toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Conveniada")).toHaveValue("53");
+  });
+});
+
+describe("EmitirFaturaModal no computador", () => {
+  it("não oferece os atalhos de prazo", () => {
+    renderizar();
+
+    expect(screen.queryByRole("radio", { name: "7 dias" })).not.toBeInTheDocument();
   });
 });

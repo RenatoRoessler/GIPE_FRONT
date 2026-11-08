@@ -39,6 +39,8 @@ export interface OptionGroupProps {
   error?: string;
   // Fixa o número de colunas em qualquer largura (por padrão, 2 ou 3 conforme o ícone e a tela).
   columns?: number;
+  // Colunas abaixo de `md`, quando os rótulos não cabem em `columns` numa tela estreita (de `md` em diante vale `columns`).
+  mobileColumns?: number;
   // "card" mostra cada opção como um cartão com mais conteúdo; "inline" só o rádio e o texto, sem caixa; o padrão são tiles de uma linha.
   variant?: "tile" | "card" | "inline";
 }
@@ -52,6 +54,7 @@ export function OptionGroup({
   disabled = false,
   error,
   columns,
+  mobileColumns,
   variant = "tile",
 }: OptionGroupProps) {
   const name = useId();
@@ -61,7 +64,7 @@ export function OptionGroup({
   return (
     <Fieldset disabled={disabled} aria-invalid={Boolean(error)}>
       <Legend>{legend}</Legend>
-      <Options $withIcon={!card && options.some((option) => Boolean(option.icon))} $columns={columns} $card={card} $inline={inline}>
+      <Options $withIcon={!card && options.some((option) => Boolean(option.icon))} $columns={columns} $mobileColumns={mobileColumns} $card={card} $inline={inline}>
         {options.map((option) => {
           const checked = option.value === value;
           const withIcon = !card && !inline && Boolean(option.icon);

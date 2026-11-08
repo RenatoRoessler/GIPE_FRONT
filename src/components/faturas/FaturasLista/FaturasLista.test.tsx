@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import type { Paginado } from "@/lib/api/types";
 import { renderWithProviders } from "@/test/render";
@@ -150,5 +150,71 @@ describe("FaturasLista", () => {
     await waitFor(() => expect(screen.queryByRole("status", { name: "Carregando faturas" })).not.toBeInTheDocument());
     expect(screen.queryByRole("button", { name: "Tentar novamente" })).not.toBeInTheDocument();
     expect(screen.getByText(/permiss/i)).toBeInTheDocument();
+  });
+});
+
+describe("FaturasLista no celular", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn((query: string) => ({ matches: true, media: query, addEventListener: () => {}, removeEventListener: () => {} })),
+    );
+    window.scrollTo = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("enquanto carrega mostra o estado de carregamento em cartões", () => {
+    listar.mockReturnValue(new Promise(() => undefined));
+    renderizar();
+
+    expect(screen.getByRole("status", { name: "Carregando faturas" })).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
+
+  it("troca a tabela por cartões, com os dados e o link de cada fatura", async () => {
+    listar.mockResolvedValue(pagina([aberta, paga, cancelada]));
+    renderizar();
+
+    const itens = await screen.findAllByRole("listitem");
+    expect(itens).toHaveLength(3);
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(within(itens[0]).getByText("Auto Peças Sul")).toBeInTheDocument();
+    expect(within(itens[0]).getByText("R$ 1.250,00")).toBeInTheDocument();
+    expect(within(itens[0]).getByText("Aberta")).toBeInTheDocument();
+    expect(within(itens[0]).getByRole("link", { name: /Fatura 12, Auto Peças Sul/ })).toHaveAttribute("href", "/faturas/12");
+    expect(within(itens[1]).getByText("Paga")).toBeInTheDocument();
+    expect(within(itens[2]).getByText("Cancelada")).toBeInTheDocument();
+  });
+
+  it("pagina e volta ao topo ao trocar de página", async () => {
+    listar.mockResolvedValue(pagina([aberta], { page: 1, totalPages: 3, totalRecords: 45 }));
+    const user = userEvent.setup();
+    renderizar();
+
+    await screen.findByText("Auto Peças Sul");
+    await user.click(screen.getByRole("button", { name: "Próxima" }));
+    expect(onPaginaChange).toHaveBeenCalledWith(2);
+    expect(window.scrollTo).toHaveBeenCalledWith({ top: 0 });
+  });
+
+  it("mantém os estados vazios, com e sem filtro", async () => {
+    listar.mockResolvedValue(pagina([]));
+    const { unmount } = renderizar();
+    expect(await screen.findByText("Nenhuma fatura emitida ainda.")).toBeInTheDocument();
+    unmount();
+
+    renderizar({ ...SEM_FILTROS, situacao: SITUACAO_FATURA.Paga });
+    expect(await screen.findByText("Nenhuma fatura encontrada com esses filtros.")).toBeInTheDocument();
+  });
+
+  it("mantém o erro com a opção de tentar de novo", async () => {
+    listar.mockRejectedValue(new ApiError("server", "Falha no servidor."));
+    renderizar();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar as faturas. Falha no servidor.");
+    expect(screen.getByRole("button", { name: "Tentar novamente" })).toBeInTheDocument();
   });
 });

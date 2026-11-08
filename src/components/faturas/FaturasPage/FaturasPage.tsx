@@ -2,27 +2,27 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { nomeExibido } from "@/components/conveniadas/format";
 import { useConveniadas } from "@/components/conveniadas/useConveniadas";
 import { Button } from "@/components/ui/Button";
-import { OptionGroup } from "@/components/ui/OptionGroup";
-import { Select } from "@/components/ui/Select";
 import { Text } from "@/components/ui/Text";
-import type { FaturaFiltros, SituacaoFatura } from "@/types/fatura";
+import { useIsMobile } from "@/hooks/useMediaQuery";
+import type { FaturaFiltros } from "@/types/fatura";
 import { EmitirFaturaModal } from "../EmitirFaturaModal";
-import { Filtros, Header, Page } from "../Faturas.styles";
+import { Header, Page } from "../Faturas.styles";
+import { EmitirFlutuante, PaginaComFab } from "../FaturasMobile.styles";
 import { FaturasLista } from "../FaturasLista";
-import { SITUACOES_FATURA } from "../situacao";
+import { FiltrosFaturas } from "../FiltrosFaturas";
 import { faturaUrl, filtrosUrl, parseFiltros, SEM_FILTROS } from "../url";
-
-// "" representa "Todas" nos grupos de opção, que trabalham com texto.
-const TODAS = "";
+import { useFaturas } from "../useFaturas";
 
 export function FaturasPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const celular = useIsMobile();
   const filtros = useMemo(() => parseFiltros(searchParams), [searchParams]);
   const conveniadas = useConveniadas("todos");
+  // Mesma consulta da lista (mesma chave): só para saber se o estado vazio já oferece o botão de emitir.
+  const faturas = useFaturas(filtros);
   const [emitindo, setEmitindo] = useState(false);
 
   // Trocar um filtro volta à primeira página.
@@ -30,50 +30,36 @@ export function FaturasPage() {
     router.replace(filtrosUrl(proximo), { scroll: false });
   }
 
-  function mudarConveniada(valor: string) {
-    aplicar({ ...filtros, empresaConveniadaId: valor === TODAS ? null : Number(valor), pagina: 1 });
-  }
-
-  function mudarSituacao(valor: string) {
-    aplicar({ ...filtros, situacao: valor === TODAS ? null : (Number(valor) as SituacaoFatura), pagina: 1 });
-  }
-
-  const opcoesSituacao = SITUACOES_FATURA.map((opcao) => ({ value: opcao.value === null ? TODAS : String(opcao.value), label: opcao.label }));
+  const semFiltro = filtros.empresaConveniadaId === null && filtros.situacao === null;
+  const vazioSemFiltro = semFiltro && faturas.data?.items.length === 0;
+  // No celular o botão flutua; no estado vazio sem filtro o próprio aviso já traz o botão.
+  const comFlutuante = celular && !vazioSemFiltro;
+  const Container = comFlutuante ? PaginaComFab : Page;
 
   return (
-    <Page>
+    <Container>
       <Header>
         <Text variant="heading" as="h1">
           Faturas
         </Text>
-        <Button type="button" onClick={() => setEmitindo(true)}>
-          Emitir fatura
-        </Button>
+        {!celular && (
+          <Button type="button" onClick={() => setEmitindo(true)}>
+            Emitir fatura
+          </Button>
+        )}
       </Header>
-      <Filtros>
-        <Select label="Conveniada" value={filtros.empresaConveniadaId === null ? TODAS : String(filtros.empresaConveniadaId)} onChange={(evento) => mudarConveniada(evento.target.value)}>
-          <option value={TODAS}>Todas</option>
-          {(conveniadas.data ?? []).map((conveniada) => (
-            <option key={conveniada.empresaConveniadaId} value={conveniada.empresaConveniadaId}>
-              {nomeExibido(conveniada)}
-              {conveniada.ativo ? "" : " (encerrado)"}
-            </option>
-          ))}
-        </Select>
-        <OptionGroup
-          legend="Situação"
-          options={opcoesSituacao}
-          value={filtros.situacao === null ? TODAS : String(filtros.situacao)}
-          onChange={mudarSituacao}
-          columns={SITUACOES_FATURA.length}
-        />
-      </Filtros>
+      <FiltrosFaturas filtros={filtros} conveniadas={conveniadas.data ?? []} onChange={aplicar} />
       <FaturasLista
         filtros={filtros}
         onPaginaChange={(pagina) => aplicar({ ...filtros, pagina })}
         onEmitir={() => setEmitindo(true)}
         onLimparFiltros={() => aplicar(SEM_FILTROS)}
       />
+      {comFlutuante && (
+        <EmitirFlutuante type="button" onClick={() => setEmitindo(true)}>
+          Emitir fatura
+        </EmitirFlutuante>
+      )}
       {emitindo && (
         <EmitirFaturaModal
           onClose={() => setEmitindo(false)}
@@ -81,6 +67,6 @@ export function FaturasPage() {
           onEmitida={(detalhe) => router.push(faturaUrl(detalhe.fatura.convenioFaturaId, true))}
         />
       )}
-    </Page>
+    </Container>
   );
 }

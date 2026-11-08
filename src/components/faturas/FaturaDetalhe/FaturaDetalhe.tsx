@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { formatDataBr } from "@/components/financeiro/format";
 import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
+import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { BackButton } from "@/components/ui/BackButton";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
@@ -12,19 +13,25 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useToast } from "@/hooks/useToast";
 import { ApiError, isForbiddenError } from "@/lib/api/errors";
 import { formatBRL } from "@/lib/money";
+import { formatDataInput } from "@/lib/periodo";
 import { SITUACAO_FATURA } from "@/types/fatura";
+import { AcoesFatura } from "../AcoesFatura";
 import { CancelarFaturaDialog } from "../CancelarFaturaDialog";
 import { CicloFatura } from "../CicloFatura";
-import { Acoes, Apoio, Cartao, CartaoTitulo, DetalheGrid, ErrorArea, Page, SkeletonRows, TituloLinha, ValorHeroi } from "../Faturas.styles";
-import { MENSAGEM_CANCELAMENTO, MENSAGEM_PAGAMENTO, mensagemEmissao, numeroFatura, quantidadeSaidas } from "../format";
+import { Apoio, Cartao, CartaoTitulo, DetalheGrid, ErrorArea, Page, SkeletonRows, TituloLinha, ValorHeroi } from "../Faturas.styles";
+import { MENSAGEM_CANCELAMENTO, MENSAGEM_PAGAMENTO, mensagemEmissao, numeroFatura, quantidadeSaidas, resumoCiclo } from "../format";
 import { ItensFatura } from "../ItensFatura";
+import { ObservacaoFatura } from "../ObservacaoFatura";
 import { PagarFaturaModal } from "../PagarFaturaModal";
-import { podeCancelar, podePagar, rotuloSituacao, tomSituacao } from "../situacao";
+import { rotuloSituacao, tomSituacao } from "../situacao";
 import { EMITIDA_PARAM, faturaUrl, LISTA_URL } from "../url";
 import { useFatura } from "../useFatura";
+import { VencimentoAviso } from "../VencimentoAviso";
+import { avisoVencimento } from "../vencimento";
 
 export interface FaturaDetalheProps {
   id: number;
@@ -38,6 +45,10 @@ export function FaturaDetalhe({ id }: FaturaDetalheProps) {
   const emitida = searchParams.get(EMITIDA_PARAM) === "1";
   const { data, isPending, isError, error, refetch, isFetching } = useFatura(id);
   const [modal, setModal] = useState<Modal>(null);
+  const celular = useIsMobile();
+  // Hoje (AAAA-MM-DD) calculado uma vez, para o destaque de vencimento.
+  const [hoje] = useState(() => formatDataInput(new Date()));
+  const [cicloAberto, setCicloAberto] = useState(false);
   const { toast, showToast, dismissToast } = useToast();
 
   // Vindo da emissão: mostra o aviso uma vez, com os números da própria fatura, e limpa a marca da URL.
@@ -113,47 +124,63 @@ export function FaturaDetalhe({ id }: FaturaDetalheProps) {
 
   const { fatura, itens } = data;
   const cancelada = fatura.situacao === SITUACAO_FATURA.Cancelada;
-  const apoio = [quantidadeSaidas(fatura.quantidadeSaidas), fatura.situacao === SITUACAO_FATURA.Paga ? null : `vence em ${formatDataBr(fatura.vencimento)}`].filter(Boolean).join(" · ");
+  const paga = fatura.situacao === SITUACAO_FATURA.Paga;
+  const aviso = avisoVencimento(fatura, hoje);
+  const apoio = [quantidadeSaidas(fatura.quantidadeSaidas), paga ? null : `vence em ${formatDataBr(fatura.vencimento)}`].filter(Boolean).join(" · ");
+  const acoes = { fatura, onPagar: () => setModal("pagar"), onCancelar: () => setModal("cancelar") };
+
+  const heroi = (
+    <Cartao aria-labelledby="fatura-titulo">
+      <TituloLinha>
+        <Text variant="heading" as="h1" id="fatura-titulo">
+          Fatura {numeroFatura(fatura)}
+        </Text>
+        <StatusBadge tone={tomSituacao(fatura.situacao)}>{rotuloSituacao(fatura.situacao)}</StatusBadge>
+      </TituloLinha>
+      <Text>{fatura.conveniada}</Text>
+      <ValorHeroi $cancelada={cancelada}>{formatBRL(fatura.valorTotal)}</ValorHeroi>
+      {celular ? (
+        <>
+          {/* O vencimento só importa enquanto a fatura está aberta; paga diz quando foi paga e cancelada não diz nada. */}
+          {aviso && <VencimentoAviso aviso={aviso} />}
+          {aviso && (aviso.tipo === "vencida" || aviso.tipo === "hoje") && <Apoio>Vencimento {formatDataBr(fatura.vencimento)}</Apoio>}
+          {paga && fatura.dataPagamento && <Apoio>Paga em {formatDataBr(fatura.dataPagamento.slice(0, 10))}</Apoio>}
+          <Apoio>{quantidadeSaidas(fatura.quantidadeSaidas)}</Apoio>
+        </>
+      ) : (
+        <Apoio>{apoio}</Apoio>
+      )}
+      <ObservacaoFatura observacao={fatura.observacao} />
+      {!celular && <AcoesFatura {...acoes} lugar="heroi" />}
+    </Cartao>
+  );
 
   return (
     <Page>
       {botaoVoltar}
-      <DetalheGrid>
-        <Cartao aria-labelledby="fatura-titulo">
-          <TituloLinha>
-            <Text variant="heading" as="h1" id="fatura-titulo">
-              Fatura {numeroFatura(fatura)}
-            </Text>
-            <StatusBadge tone={tomSituacao(fatura.situacao)}>{rotuloSituacao(fatura.situacao)}</StatusBadge>
-          </TituloLinha>
-          <Text>{fatura.conveniada}</Text>
-          <ValorHeroi $cancelada={cancelada}>{formatBRL(fatura.valorTotal)}</ValorHeroi>
-          <Apoio>{apoio}</Apoio>
-          {fatura.observacao && <Apoio>Obs.: {fatura.observacao}</Apoio>}
-          {(podePagar(fatura) || podeCancelar(fatura)) && (
-            <Acoes>
-              {podePagar(fatura) && (
-                <Button type="button" onClick={() => setModal("pagar")}>
-                  Registrar pagamento
-                </Button>
-              )}
-              {podeCancelar(fatura) && (
-                <Button type="button" variant="secondary" onClick={() => setModal("cancelar")}>
-                  Cancelar fatura
-                </Button>
-              )}
-            </Acoes>
-          )}
-        </Cartao>
-        <Cartao aria-labelledby="ciclo-titulo">
-          <CartaoTitulo id="ciclo-titulo">Ciclo da fatura</CartaoTitulo>
-          <CicloFatura fatura={fatura} />
-        </Cartao>
-      </DetalheGrid>
+      {celular ? (
+        <>
+          {heroi}
+          <Accordion>
+            <AccordionItem title="Ciclo da fatura" summary={resumoCiclo(fatura)} open={cicloAberto} onOpenChange={setCicloAberto}>
+              <CicloFatura fatura={fatura} />
+            </AccordionItem>
+          </Accordion>
+        </>
+      ) : (
+        <DetalheGrid>
+          {heroi}
+          <Cartao aria-labelledby="ciclo-titulo">
+            <CartaoTitulo id="ciclo-titulo">Ciclo da fatura</CartaoTitulo>
+            <CicloFatura fatura={fatura} />
+          </Cartao>
+        </DetalheGrid>
+      )}
       <Cartao aria-labelledby="saidas-titulo">
         <CartaoTitulo id="saidas-titulo">Saídas desta fatura</CartaoTitulo>
         <ItensFatura fatura={fatura} itens={itens} />
       </Cartao>
+      {celular && <AcoesFatura {...acoes} lugar="barra" />}
       {modal === "pagar" && (
         <PagarFaturaModal
           fatura={fatura}

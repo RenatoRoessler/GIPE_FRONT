@@ -1,5 +1,5 @@
 import { screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderWithTheme } from "@/test/render";
 import { SITUACAO_FATURA } from "@/types/fatura";
 import { fatura, item } from "../fixtures";
@@ -57,5 +57,45 @@ describe("ItensFatura", () => {
 
     expect(screen.getByText("Esta fatura não tem saídas listadas.")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
+});
+
+describe("ItensFatura no celular", () => {
+  function celular() {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn((query: string) => ({ matches: true, media: query, addEventListener: () => {}, removeEventListener: () => {} })),
+    );
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("troca a tabela por cartões, com resumo no topo e o total no fim", () => {
+    celular();
+    renderWithTheme(<ItensFatura fatura={fatura({ quantidadeSaidas: 2, valorTotal: 1250 })} itens={[item(), item({ patioConvenioId: 18, placa: "ABC1D23", modelo: null, valorConveniada: 1235 })]} />);
+
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.getByText("YCC3U07")).toBeInTheDocument();
+    expect(screen.getByText("ABC1D23")).toBeInTheDocument();
+    expect(screen.getByText("2 saídas · R$ 1.250,00")).toBeInTheDocument();
+    expect(screen.getByText("Total da fatura R$ 1.250,00")).toBeInTheDocument();
+  });
+
+  it("fatura cancelada mantém o aviso, sem cartões", () => {
+    celular();
+    renderWithTheme(<ItensFatura fatura={fatura({ situacao: SITUACAO_FATURA.Cancelada })} itens={[]} />);
+
+    expect(screen.getByText("As saídas desta fatura voltaram a ficar em aberto e entram na próxima fatura.")).toBeInTheDocument();
+    expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
+  });
+
+  it("sem saídas listadas mantém o aviso", () => {
+    celular();
+    renderWithTheme(<ItensFatura fatura={fatura()} itens={[]} />);
+
+    expect(screen.getByText("Esta fatura não tem saídas listadas.")).toBeInTheDocument();
   });
 });

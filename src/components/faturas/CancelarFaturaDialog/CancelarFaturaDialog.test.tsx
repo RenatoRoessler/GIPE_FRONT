@@ -105,3 +105,16 @@ describe("CancelarFaturaDialog", () => {
     await waitFor(() => expect(onCancelada).toHaveBeenCalledTimes(1));
   });
 });
+
+describe("CancelarFaturaDialog em telas estreitas", () => {
+  it("o botão de perigo é empurrado para baixo de Manter fatura", () => {
+    renderizar();
+
+    // O rodapé empilha em ordem inversa; o jsdom não aplica media queries, então confere-se a regra gerada.
+    const css = Array.from(document.querySelectorAll("style"))
+      .map((estilo) => estilo.textContent)
+      .join("");
+    expect(css).toContain("@media (max-width: calc(480px - 1px)){");
+    expect(css).toContain("{order:-1;}");
+  });
+});

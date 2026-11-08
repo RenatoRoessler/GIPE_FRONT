@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import type { Conveniada } from "@/types/conveniada";
 
@@ -21,6 +21,7 @@ vi.mock("@/lib/api/services/conveniada", () => ({ listConveniadas: vi.fn() }));
 
 import { listConveniadas } from "@/lib/api/services/conveniada";
 import { emitirFatura, listFaturas } from "@/lib/api/services/fatura";
+import { fatura } from "../fixtures";
 import { FaturasPage } from "./FaturasPage";
 
 // jsdom não implementa <dialog>.
@@ -115,5 +116,59 @@ describe("FaturasPage", () => {
     await user.click(within(modal).getByRole("button", { name: "Emitir fatura" }));
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/faturas/12?emitida=1"));
+  });
+});
+
+const VAZIO = { items: [], page: 1, pageSize: 20, totalRecords: 0, totalPages: 0 };
+
+function celular() {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query: string) => ({ matches: true, media: query, addEventListener: () => {}, removeEventListener: () => {} })),
+  );
+}
+
+describe("FaturasPage no celular", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.mocked(listFaturas).mockResolvedValue(VAZIO);
+  });
+
+  it("tira o botão do cabeçalho e mostra o botão flutuante quando há faturas", async () => {
+    celular();
+    vi.mocked(listFaturas).mockResolvedValue({ items: [fatura()], page: 1, pageSize: 20, totalRecords: 1, totalPages: 1 });
+    renderWithProviders(<FaturasPage />);
+
+    await screen.findByText("#12");
+    expect(screen.getAllByRole("button", { name: "Emitir fatura" })).toHaveLength(1);
+    expect(screen.getByLabelText("Conveniada")).toHaveDisplayValue("Todas as conveniadas");
+  });
+
+  it("o botão flutuante abre o modal de emissão", async () => {
+    celular();
+    vi.mocked(listFaturas).mockResolvedValue({ items: [fatura()], page: 1, pageSize: 20, totalRecords: 1, totalPages: 1 });
+    const user = userEvent.setup();
+    renderWithProviders(<FaturasPage />);
+
+    await screen.findByText("#12");
+    await user.click(screen.getByRole("button", { name: "Emitir fatura" }));
+    expect(screen.getByRole("dialog", { name: "Emitir fatura" })).toBeInTheDocument();
+  });
+
+  it("no vazio sem filtro só o aviso traz o botão de emitir", async () => {
+    celular();
+    renderWithProviders(<FaturasPage />);
+
+    await screen.findByText("Nenhuma fatura emitida ainda.");
+    expect(screen.getAllByRole("button", { name: "Emitir fatura" })).toHaveLength(1);
+  });
+
+  it("no vazio com filtro o botão flutuante continua disponível", async () => {
+    celular();
+    params = { situacao: "paga" };
+    renderWithProviders(<FaturasPage />);
+
+    await screen.findByText("Nenhuma fatura encontrada com esses filtros.");
+    expect(screen.getByRole("button", { name: "Emitir fatura" })).toBeInTheDocument();
   });
 });

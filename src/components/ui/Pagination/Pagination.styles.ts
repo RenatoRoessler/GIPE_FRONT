@@ -18,6 +18,13 @@ export const Controls = styled.div`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.space[2]}px;
+
+  /* Em telas de toque os botões têm o alvo mínimo de 44 px. */
+  @media (pointer: coarse) {
+    & > button {
+      min-height: ${({ theme }) => theme.layout.touchTarget};
+    }
+  }
 `;
 
 export const PageIndicator = styled.span`

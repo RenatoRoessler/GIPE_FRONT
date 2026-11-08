@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Modal } from "@/components/ui/Modal";
 import { Text } from "@/components/ui/Text";
 import { ApiError } from "@/lib/api/errors";
 import type { Fatura } from "@/types/fatura";
+import { BotaoPerigoEmbaixo, BotaoRodape } from "../FaturasMobile.styles";
 import { numeroFatura } from "../format";
 import { useFaturaMutations } from "../useFaturaMutations";
 
@@ -40,12 +40,12 @@ export function CancelarFaturaDialog({ fatura, onClose, onCancelada }: CancelarF
       fullScreenOnMobile={false}
       footer={
         <>
-          <Button type="button" variant="secondary" onClick={onClose} disabled={cancelar.isPending} autoFocus>
+          <BotaoRodape type="button" variant="secondary" onClick={onClose} disabled={cancelar.isPending} autoFocus>
             Manter fatura
-          </Button>
-          <Button type="button" variant="danger" onClick={confirmar} disabled={cancelar.isPending || recusado}>
+          </BotaoRodape>
+          <BotaoPerigoEmbaixo type="button" variant="danger" onClick={confirmar} disabled={cancelar.isPending || recusado}>
             {cancelar.isPending ? "Cancelando…" : "Cancelar fatura"}
-          </Button>
+          </BotaoPerigoEmbaixo>
         </>
       }
     >

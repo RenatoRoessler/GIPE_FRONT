@@ -3,7 +3,7 @@
 import { OptionGroup, type OptionGroupProps } from "@/components/ui/OptionGroup";
 import { useFieldContext } from "./context";
 
-export type OptionFieldProps = Pick<OptionGroupProps, "legend" | "options" | "disabled">;
+export type OptionFieldProps = Pick<OptionGroupProps, "legend" | "options" | "disabled" | "columns">;
 
 export function OptionField(props: OptionFieldProps) {
   const field = useFieldContext<string>();

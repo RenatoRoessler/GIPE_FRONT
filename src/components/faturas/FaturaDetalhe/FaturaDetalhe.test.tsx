@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
 import { SITUACAO_FATURA } from "@/types/fatura";
@@ -222,5 +222,103 @@ describe("FaturaDetalhe: pagar e cancelar", () => {
 
     expect(cancelarFatura).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog", { name: "Cancelar fatura #12?" })).not.toBeInTheDocument();
+  });
+});
+
+describe("FaturaDetalhe no celular", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn((query: string) => ({ matches: true, media: query, addEventListener: () => {}, removeEventListener: () => {} })),
+    );
+    // Só o relógio é falso: o destaque de vencimento depende de "hoje".
+    vi.useFakeTimers({ toFake: ["Date"], now: new Date(2026, 10, 8, 12, 0, 0) });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("fatura aberta: ações na barra (não no herói), vencimento e ciclo recolhido com resumo", async () => {
+    vi.mocked(getFatura).mockResolvedValue(detalhe());
+    renderizar();
+
+    await screen.findByRole("heading", { level: 1, name: /Fatura #12/ });
+    // O painel recolhido do ciclo também diz quando vence, então o herói é consultado à parte.
+    const heroi = within(screen.getByRole("region", { name: /Fatura #12/ }));
+    expect(heroi.getByText("Vence em 08/12/2026")).toBeInTheDocument();
+    expect(heroi.getByText("2 saídas")).toBeInTheDocument();
+    expect(heroi.queryByRole("button", { name: "Registrar pagamento" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Registrar pagamento" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Cancelar fatura" })).toHaveLength(1);
+
+    // As saídas viram cartões, e o ciclo fica recolhido.
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    const ciclo = screen.getByRole("button", { name: /Ciclo da fatura/ });
+    expect(ciclo).toHaveAttribute("aria-expanded", "false");
+    expect(ciclo).toHaveTextContent("Emitida em 08/11 por Renato Rossler");
+    expect(screen.queryByRole("list", { name: "Ciclo da fatura" })).not.toBeInTheDocument();
+  });
+
+  it("tocar no ciclo mostra a linha do tempo", async () => {
+    vi.mocked(getFatura).mockResolvedValue(detalhe());
+    const user = userEvent.setup({ advanceTimers: () => undefined });
+    renderizar();
+
+    await user.click(await screen.findByRole("button", { name: /Ciclo da fatura/ }));
+    expect(screen.getByRole("list", { name: "Ciclo da fatura" })).toBeInTheDocument();
+  });
+
+  it("fatura vencida destaca o vencimento", async () => {
+    vi.mocked(getFatura).mockResolvedValue(detalhe({ vencimento: "2026-11-05" }));
+    renderizar();
+
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.getByText("Vencida há 3 dias")).toBeInTheDocument();
+    expect(screen.getByText("Vencimento 05/11/2026")).toBeInTheDocument();
+  });
+
+  it("os botões da barra abrem o pagamento e o cancelamento", async () => {
+    vi.mocked(getFatura).mockResolvedValue(detalhe());
+    const user = userEvent.setup({ advanceTimers: () => undefined });
+    renderizar();
+
+    await user.click(await screen.findByRole("button", { name: "Registrar pagamento" }));
+    expect(screen.getByRole("dialog", { name: /Registrar pagamento/ })).toBeInTheDocument();
+  });
+
+  it("fatura paga: sem barra, com a data do pagamento no herói e o resumo no ciclo", async () => {
+    vi.mocked(getFatura).mockResolvedValue(
+      detalhe({ situacao: SITUACAO_FATURA.Paga, dataPagamento: "2026-11-12T09:00:00", usuarioPagamento: "Ana", formaPagamento: 2, valorPago: 1250 }),
+    );
+    renderizar();
+
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.getByText("Paga em 12/11/2026")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Ciclo da fatura/ })).toHaveTextContent("Paga em 12/11");
+    expect(screen.queryByRole("button", { name: "Registrar pagamento" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cancelar fatura" })).not.toBeInTheDocument();
+  });
+
+  it("fatura cancelada: sem barra, sem vencimento e com o aviso no lugar das saídas", async () => {
+    vi.mocked(getFatura).mockResolvedValue(
+      detalhe({ situacao: SITUACAO_FATURA.Cancelada, dataCancelamento: "2026-11-13T15:30:00", usuarioCancelamento: "Beto" }, []),
+    );
+    renderizar();
+
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.queryByRole("button", { name: "Registrar pagamento" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Vence/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Ciclo da fatura/ })).toHaveTextContent("Cancelada em 13/11 por Beto");
+    expect(screen.getByText("As saídas desta fatura voltaram a ficar em aberto e entram na próxima fatura.")).toBeInTheDocument();
+  });
+
+  it("observação longa vem limitada, com Ver mais", async () => {
+    vi.mocked(getFatura).mockResolvedValue(detalhe({ observacao: "fechamento de outubro com ajustes combinados ".repeat(4) }));
+    renderizar();
+
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.getByRole("button", { name: "Ver mais" })).toBeInTheDocument();
   });
 });

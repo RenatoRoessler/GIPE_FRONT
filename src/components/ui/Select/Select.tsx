@@ -12,17 +12,21 @@ import {
 
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string;
+  // Esconde o rótulo só visualmente (quando o próprio controle já diz o que filtra); leitores de tela ainda o leem.
+  hideLabel?: boolean;
   error?: string;
   children: ReactNode;
 }
 
-export function Select({ label, error, id, children, ...props }: SelectProps) {
+export function Select({ label, hideLabel = false, error, id, children, ...props }: SelectProps) {
   const generatedId = useId();
   const selectId = id ?? generatedId;
 
   return (
     <Field>
-      <Label htmlFor={selectId}>{label}</Label>
+      <Label htmlFor={selectId} $hidden={hideLabel}>
+        {label}
+      </Label>
       <SelectWrapper>
         <StyledSelect
           id={selectId}
