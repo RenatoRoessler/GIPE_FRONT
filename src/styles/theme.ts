@@ -1,6 +1,10 @@
 const FONT_SANS = 'var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif';
 const FONT_MONO = 'var(--font-jetbrains), ui-monospace, Menlo, monospace';
 
+// Barra de navegação inferior: altura da barra e quanto o botão de Entrada sobressai acima dela.
+const BOTTOM_NAV_HEIGHT = 64;
+const BOTTOM_NAV_OVERHANG = 20;
+
 const shared = {
   space: [0, 4, 8, 16, 24, 32, 48, 64],
   fontFamilies: {
@@ -32,7 +36,13 @@ const shared = {
   },
   layout: {
     // Altura da barra de navegação inferior, sem a área segura do aparelho.
-    bottomNavHeight: "64px",
+    bottomNavHeight: `${BOTTOM_NAV_HEIGHT}px`,
+    // Quanto o botão de Entrada sobressai acima da barra, seu diâmetro e a largura máxima dos itens da barra em tablets.
+    bottomNavOverhang: `${BOTTOM_NAV_OVERHANG}px`,
+    entradaButtonSize: "56px",
+    bottomNavMaxWidth: "560px",
+    // Espaço que a barra ocupa na tela, incluindo o botão que sobressai: é o que o conteúdo e os elementos fixos reservam.
+    bottomNavReserved: `${BOTTOM_NAV_HEIGHT + BOTTOM_NAV_OVERHANG}px`,
     // Largura máxima do conteúdo da barra inferior e do menu estendido em telas grandes.
     contentMaxWidth: "1120px",
     // Menu lateral das telas grandes: recolhido (só ícones) e expandido (com os nomes).
@@ -87,6 +97,9 @@ type ThemeColors = {
   surface: string;
   // Trilhos de barra e estado pressionado de cartões: um degrau acima de `surface`.
   surfaceMuted: string;
+  // Fundo da barra de navegação inferior e da pílula da aba atual.
+  navBar: string;
+  navActive: string;
   text: string;
   textMuted: string;
   // Divisórias e bordas decorativas.
@@ -155,6 +168,8 @@ export const lightTheme: AppTheme = {
     background: "#F4F1E8",
     surface: "#FFFFFF",
     surfaceMuted: "#ECE8DA",
+    navBar: "#ECE8DA",
+    navActive: "#DCD6C5",
     text: "#0E1729",
     textMuted: "#5A6478",
     border: "#D9D4C5",
@@ -192,6 +207,8 @@ export const darkTheme: AppTheme = {
     background: "#0E1729",
     surface: "#16223A",
     surfaceMuted: "#22304B",
+    navBar: "#16223A",
+    navActive: "#2C3B58",
     text: "#F4F1E8",
     textMuted: "#9AA3B5",
     border: "#3A4C6B",

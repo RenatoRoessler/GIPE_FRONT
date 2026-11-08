@@ -52,38 +52,52 @@ async function abrir() {
   return { user, ...view };
 }
 
+const nomesDaBarra = () => Array.from(screen.getByRole("navigation", { name: "Navegação principal" }).querySelectorAll("a, button")).map((item) => item.textContent);
+const TODOS_DO_PAINEL = ["Conferência de pátio", "Dashboard", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Empresas conveniadas", "Notas Fiscais", "Financeiro", "Minha Empresa", "Quadros de Chaves"];
+
 describe("BottomNav: itens da barra", () => {
-  it("em tela estreita mostra os itens prioritários e o Mais", () => {
+  it("perfil operacional: Pátio, Caixa, Entrada, Saída e Mais, com a Entrada no centro", () => {
     renderWithTheme(<BottomNav />);
 
-    const nomes = Array.from(screen.getByRole("navigation", { name: "Navegação principal" }).querySelectorAll("a, button")).map((item) => item.textContent);
-    expect(nomes).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Mais"]);
+    expect(nomesDaBarra()).toEqual(["Pátio", "Caixa", "Entrada", "Saída", "Mais"]);
   });
 
-  it("quando todos os itens cabem, mostra todos e não oferece o Mais", () => {
+  it("a ordem e as cinco posições são as mesmas em tela larga: o resto vai para o Mais", () => {
     barra.capacidade = 14;
     renderWithTheme(<BottomNav />);
 
-    expect(screen.getAllByRole("link")).toHaveLength(12);
-    expect(screen.getByRole("button", { name: "Entrada" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Saída" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
-    expect(itensDoPainel()).toEqual([]);
+    expect(nomesDaBarra()).toEqual(["Pátio", "Caixa", "Entrada", "Saída", "Mais"]);
+    expect(itensDoPainel()).toEqual(TODOS_DO_PAINEL);
   });
 
-  it("nunca usa menos de cinco espaços: Pátio, Entrada, Saída, Caixa e Mais, mesmo com a barra mais estreita", () => {
+  it("a ordem é a mesma mesmo com a barra mais estreita que cinco espaços", () => {
     barra.capacidade = 0;
     renderWithTheme(<BottomNav />);
 
-    const nomes = Array.from(screen.getByRole("navigation", { name: "Navegação principal" }).querySelectorAll("a, button")).map((item) => item.textContent);
-    expect(nomes).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Mais"]);
+    expect(nomesDaBarra()).toEqual(["Pátio", "Caixa", "Entrada", "Saída", "Mais"]);
   });
 
-  it("enquanto a largura não foi medida, mostra só espaços reservados", () => {
+  it("a barra de cinco posições não espera a medição da largura", () => {
     barra.capacidade = null;
     renderWithTheme(<BottomNav />);
 
-    expect(screen.getByRole("navigation", { name: "Navegação principal" }).querySelectorAll("a, button")).toHaveLength(0);
+    expect(nomesDaBarra()).toEqual(["Pátio", "Caixa", "Entrada", "Saída", "Mais"]);
+  });
+
+  it("perfil sem o pátio mantém a barra adaptativa e espera a medição da largura", () => {
+    sessao.atual = { user: { name: "Ana", perfil: 8 }, isLoading: false };
+    barra.capacidade = null;
+    renderWithTheme(<BottomNav />);
+
+    expect(nomesDaBarra()).toEqual([]);
+  });
+
+  it("perfil da conveniada usa a barra adaptativa, sem o botão de Entrada", () => {
+    sessao.atual = { user: { name: "Lia", perfil: 5 }, isLoading: false };
+    renderWithTheme(<BottomNav />);
+
+    expect(screen.queryByRole("button", { name: "Entrada" })).not.toBeInTheDocument();
+    expect(nomesDaBarra()).not.toContain("Caixa");
   });
 
   it("enquanto o perfil não é conhecido, não mostra nenhum atalho nem o Mais", () => {
@@ -203,25 +217,14 @@ describe("BottomNav: menu estendido", () => {
     expect(painel()).not.toHaveAttribute("open");
   });
 
-  it("continua aberto, só com menos itens, quando a barra passa a comportar mais um item", async () => {
+  it("continua aberto, com os mesmos itens, quando a largura da barra muda", async () => {
     const { rerender } = await abrir();
 
     barra.capacidade = 9;
     rerender(<BottomNav />);
 
     expect(painel()).toHaveAttribute("open");
-    expect(itensDoPainel()).toEqual(["Mensalistas", "Empresas conveniadas", "Notas Fiscais", "Financeiro", "Minha Empresa", "Quadros de Chaves"]);
-  });
-
-  it("fecha quando a tela cresce e tudo passa a caber na barra, e o foco vai para a barra", async () => {
-    const { rerender } = await abrir();
-
-    barra.capacidade = 14;
-    rerender(<BottomNav />);
-
-    expect(painel()).not.toHaveAttribute("open");
-    expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Pátio" })).toHaveFocus();
+    expect(itensDoPainel()).toEqual(TODOS_DO_PAINEL);
   });
 });
 
@@ -249,12 +252,11 @@ describe("BottomNav: Mais destacado", () => {
     expect(maisButton()).toHaveStyle({ color: lightTheme.colors.text });
   });
 
-  it("some junto com o botão quando tudo cabe, e a tela atual fica destacada na própria barra", () => {
-    barra.capacidade = 14;
+  it("a tela atual fica destacada na própria barra", () => {
     pathname = "/caixa";
     renderWithTheme(<BottomNav />);
 
-    expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Caixa" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Pátio" })).not.toHaveAttribute("aria-current");
   });
 });

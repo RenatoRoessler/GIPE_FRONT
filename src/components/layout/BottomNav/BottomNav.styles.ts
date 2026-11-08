@@ -15,7 +15,7 @@ export const Bar = styled.nav`
   padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
   /* Filete em sombra, e não em borda: a borda somaria 1px à altura e cobriria o fim da página. */
   box-shadow: 0 -1px 0 ${({ theme }) => theme.colors.border};
-  background-color: ${({ theme }) => theme.colors.surface};
+  background-color: ${({ theme }) => theme.colors.navBar};
 
   /* Em telas grandes quem navega é o menu lateral. */
   @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
@@ -23,11 +23,12 @@ export const Bar = styled.nav`
   }
 `;
 
-export const BarInner = styled.div<{ $slots: number }>`
+// Com `$fixa` (cinco posições, Entrada no centro) a largura dos itens é menor, para não ficarem distantes em tablets.
+export const BarInner = styled.div<{ $slots: number; $fixa?: boolean }>`
   display: grid;
   grid-template-columns: repeat(${({ $slots }) => $slots}, minmax(0, 1fr));
   align-items: stretch;
-  max-width: ${({ theme }) => theme.layout.contentMaxWidth};
+  max-width: ${({ theme, $fixa }) => ($fixa ? theme.layout.bottomNavMaxWidth : theme.layout.contentMaxWidth)};
   height: ${({ theme }) => theme.layout.bottomNavHeight};
   margin: 0 auto;
 `;
@@ -64,25 +65,11 @@ const itemStyles = css<{ $active: boolean }>`
 
   @media (hover: hover) {
     &:hover {
-      background-color: ${({ theme }) => theme.colors.primarySoft};
+      background-color: ${({ theme }) => theme.colors.navActive};
     }
   }
 
-  /* A "faixa de vaga" no topo da aba ativa: o único amarelo da barra. */
-  ${({ $active, theme }) =>
-    $active &&
-    css`
-      &::before {
-        content: "";
-        position: absolute;
-        top: -1px;
-        left: 22%;
-        right: 22%;
-        height: 3px;
-        border-radius: 0 0 3px 3px;
-        background-color: ${theme.colors.primary};
-      }
-    `}
+  /* O amarelo da barra é só do botão de Entrada: a aba ativa se destaca pelo peso e pela pílula. */
 `;
 
 export const TabLink = styled.a<{ $active: boolean }>`
@@ -110,8 +97,58 @@ export const IconPill = styled.span<{ $active: boolean }>`
   max-width: 100%;
   height: 30px;
   border-radius: 15px;
-  background-color: ${({ theme, $active }) => ($active ? theme.colors.primarySoft : "transparent")};
+  background-color: ${({ theme, $active }) => ($active ? theme.colors.navActive : "transparent")};
   color: ${({ theme, $active }) => ($active ? theme.colors.accent : "inherit")};
+`;
+
+// Botão de Entrada: círculo amarelo que sobressai acima da barra, sobre o espaço da pílula das outras abas.
+// No tema claro o contorno em `accent` (azul-marinho) o destaca; no escuro `accent` é o próprio amarelo e some.
+export const EntradaCircle = styled.span`
+  position: absolute;
+  top: calc(-1 * ${({ theme }) => theme.layout.bottomNavOverhang});
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: ${({ theme }) => theme.layout.entradaButtonSize};
+  height: ${({ theme }) => theme.layout.entradaButtonSize};
+  border: 2px solid ${({ theme }) => theme.colors.accent};
+  border-radius: ${({ theme }) => theme.radii.full};
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+  transform: translateX(-50%);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: transform 0.12s ease-out;
+  }
+`;
+
+// A área de toque é a coluna inteira, incluindo a parte do círculo que sobressai e o nome.
+export const EntradaTab = styled(TabButton)`
+  color: ${({ theme }) => theme.colors.accent};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+
+  /* O anel de foco fica no círculo, que é o que se vê; o fundo do hover não se aplica a este botão. */
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible ${EntradaCircle} {
+    outline: 2px solid ${({ theme }) => theme.colors.focus};
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &:active ${EntradaCircle} {
+      transform: translateX(-50%) scale(0.96);
+    }
+  }
 `;
 
 // Menu estendido: sobe da base no celular; a partir de `md` fica centralizado logo acima da barra.
@@ -149,9 +186,9 @@ export const Sheet = styled.dialog`
   }
 
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    inset: auto 0 calc(${({ theme }) => theme.layout.bottomNavHeight} + env(safe-area-inset-bottom, 0px) + ${({ theme }) => theme.space[2]}px) 0;
+    inset: auto 0 calc(${({ theme }) => theme.layout.bottomNavReserved} + env(safe-area-inset-bottom, 0px) + ${({ theme }) => theme.space[2]}px) 0;
     width: min(480px, 100%);
-    max-height: min(82dvh, calc(100dvh - ${({ theme }) => theme.layout.bottomNavHeight} - env(safe-area-inset-bottom, 0px) - ${({ theme }) => theme.space[5]}px));
+    max-height: min(82dvh, calc(100dvh - ${({ theme }) => theme.layout.bottomNavReserved} - env(safe-area-inset-bottom, 0px) - ${({ theme }) => theme.space[5]}px));
     margin: 0 auto;
     padding-bottom: ${({ theme }) => theme.space[3]}px;
     border-radius: ${({ theme }) => theme.radii.xl};

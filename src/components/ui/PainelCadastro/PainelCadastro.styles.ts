@@ -24,7 +24,7 @@ export const Corpo = styled.div`
 export const Painel = styled.aside`
   position: sticky;
   bottom: calc(
-    ${({ theme }) => theme.layout.bottomNavHeight} + env(safe-area-inset-bottom, 0px) +
+    ${({ theme }) => theme.layout.bottomNavReserved} + env(safe-area-inset-bottom, 0px) +
       ${({ theme }) => theme.space[2]}px
   );
   z-index: 10;

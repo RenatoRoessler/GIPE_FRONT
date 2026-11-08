@@ -27,7 +27,7 @@ export const NovoFlutuante = styled(Button)`
   position: fixed;
   right: max(${({ theme }) => theme.space[3]}px, env(safe-area-inset-right, 0px));
   /* Acima da barra de navegação inferior (que já inclui a área segura). */
-  bottom: calc(${({ theme }) => theme.space[3]}px + ${({ theme }) => theme.layout.bottomNavHeight} + env(safe-area-inset-bottom, 0px));
+  bottom: calc(${({ theme }) => theme.space[3]}px + ${({ theme }) => theme.layout.bottomNavReserved} + env(safe-area-inset-bottom, 0px));
   z-index: 10;
   min-height: 48px;
   padding-inline: ${({ theme }) => theme.space[4]}px;

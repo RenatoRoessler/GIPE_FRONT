@@ -84,6 +84,23 @@ export function navItemsPorPrioridade(perfil: PerfilUsuario | null | undefined):
     .map(({ item }) => item);
 }
 
+// Barra inferior de cinco posições fixas, na ordem visual: Pátio, Caixa, Entrada (no centro), Saída e Mais.
+// São os mesmos itens de BAR_PRIORITY, só que na ordem da barra.
+export const BARRA_FIXA = ["/patio", "/caixa", "entrada", "saida"];
+
+// Monta a barra de posições fixas, com os quatro itens e o que sobra para o "Mais" (na ordem do menu).
+// Devolve `null` se o perfil não tem algum dos quatro (conveniadas, por exemplo): ele usa a barra adaptativa.
+export function montarBarraFixa(perfil: PerfilUsuario | null | undefined): { itens: NavItem[]; excedentes: NavItem[] } | null {
+  const permitidos = navItemsPermitidos(perfil);
+  const itens: NavItem[] = [];
+  for (const chave of BARRA_FIXA) {
+    const item = permitidos.find((candidato) => navItemKey(candidato) === chave);
+    if (!item) return null;
+    itens.push(item);
+  }
+  return { itens, excedentes: permitidos.filter((item) => !itens.includes(item)) };
+}
+
 // A barra tem no mínimo cinco espaços (quatro itens e o "Mais"): Pátio, Entrada, Saída e Caixa aparecem até em telas estreitas.
 const MIN_SLOTS = 5;
 

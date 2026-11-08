@@ -11,7 +11,7 @@ export const Layout = styled.div`
 
   /* No celular a barra de navegação inferior é fixa: o fim da página ganha a folga dela (e a do teclado de toque, quando aberto). */
   padding-bottom: calc(
-    ${({ theme }) => theme.layout.bottomNavHeight} + env(safe-area-inset-bottom, 0px) + var(--teclado-altura, 0px)
+    ${({ theme }) => theme.layout.bottomNavReserved} + env(safe-area-inset-bottom, 0px) + var(--teclado-altura, 0px)
   );
 
   /* Em telas grandes a navegação é o menu lateral: o conteúdo abre espaço à esquerda e a folga de baixo some. */

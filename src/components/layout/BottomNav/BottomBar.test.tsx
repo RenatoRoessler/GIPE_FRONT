@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { navItemsPorPrioridade } from "@/lib/nav";
+import { montarBarraFixa, navItemsPorPrioridade } from "@/lib/nav";
 import { lightTheme } from "@/styles/theme";
 import { renderWithTheme } from "@/test/render";
 
@@ -163,5 +163,54 @@ describe("BottomBar", () => {
 
     const grade = screen.getByRole("navigation", { name: "Navegação principal" }).firstElementChild;
     expect(grade).toHaveStyle({ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" });
+  });
+
+  it("enquanto carrega, mostra cinco espaços reservados", () => {
+    renderBar({ carregando: true });
+
+    const grade = screen.getByRole("navigation", { name: "Navegação principal" }).firstElementChild;
+    expect(grade?.children).toHaveLength(5);
+  });
+
+  describe("com a Entrada em destaque", () => {
+    const fixa = montarBarraFixa(1)!;
+
+    it("mostra Pátio, Caixa, Entrada, Saída e Mais, nessa ordem, com a Entrada no centro de cinco colunas", () => {
+      renderBar({ entradaEmDestaque: true, itens: fixa.itens });
+
+      const grade = screen.getByRole("navigation", { name: "Navegação principal" }).firstElementChild!;
+      expect(grade).toHaveStyle({ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" });
+      expect(Array.from(grade.children).map((filho) => filho.textContent)).toEqual(["Pátio", "Caixa", "Entrada", "Saída", "Mais"]);
+    });
+
+    it("a Entrada é um botão que abre o modal, com o nome Entrada, e nunca é a página atual", async () => {
+      pathname = "/patio";
+      const { onAction } = renderBar({ entradaEmDestaque: true, itens: fixa.itens });
+
+      const entrada = screen.getByRole("button", { name: "Entrada" });
+      expect(entrada).toHaveAttribute("aria-haspopup", "dialog");
+      expect(entrada).not.toHaveAttribute("aria-current");
+      expect(entrada.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+      await userEvent.setup().click(entrada);
+      expect(onAction).toHaveBeenCalledWith("entrada");
+    });
+
+    it("sem Mais, uma célula vazia mantém as cinco colunas e a Entrada no centro", () => {
+      renderBar({ entradaEmDestaque: true, itens: fixa.itens, temMais: false });
+
+      const grade = screen.getByRole("navigation", { name: "Navegação principal" }).firstElementChild!;
+      expect(grade).toHaveStyle({ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" });
+      expect(grade.children).toHaveLength(5);
+      expect(grade.children[2]).toHaveTextContent("Entrada");
+      expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
+    });
+
+    it("Saída continua sendo um botão comum e Pátio e Caixa, links", () => {
+      renderBar({ entradaEmDestaque: true, itens: fixa.itens });
+
+      expect(screen.getByRole("button", { name: "Saída" })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Pátio" })).toHaveAttribute("href", "/patio");
+      expect(screen.getByRole("link", { name: "Caixa" })).toHaveAttribute("href", "/caixa");
+    });
   });
 });

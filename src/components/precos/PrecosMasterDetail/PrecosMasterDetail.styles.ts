@@ -37,7 +37,7 @@ export const Moldura = styled.div<{ $detalheAberto: boolean }>`
   /* Tablet: a navegação inferior continua fixa, então ela também sai da altura. */
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
-    height: calc(100dvh - ${CROMO} - ${({ theme }) => theme.layout.bottomNavHeight} - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - ${CROMO} - ${({ theme }) => theme.layout.bottomNavReserved} - env(safe-area-inset-bottom, 0px));
     min-height: 440px;
   }
 

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { useTheme } from "styled-components";
 import { useVeiculoModais } from "@/components/veiculos/VeiculoModais";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
-import { dividirItensDaBarra, isMaisAtivo, navItemsPorPrioridade, ordenarPeloMenu, type NavAction } from "@/lib/nav";
+import { dividirItensDaBarra, isMaisAtivo, montarBarraFixa, navItemsPorPrioridade, ordenarPeloMenu, type NavAction } from "@/lib/nav";
 import { BottomBar } from "./BottomBar";
 import { MenuSheet } from "./MenuSheet";
 import { useBarCapacity } from "./useBarCapacity";
@@ -25,11 +25,15 @@ export function BottomNav() {
   const [isOpen, setIsOpen] = useState(false);
   const sheetId = useId();
 
-  const carregando = isLoading || capacidade === null;
+  // Perfis com Pátio, Caixa, Entrada e Saída têm a barra de cinco posições, com a Entrada no centro, em qualquer largura;
+  // os demais usam a barra adaptativa, que mostra o que cabe na largura medida.
+  const fixa = useMemo(() => montarBarraFixa(user?.perfil), [user?.perfil]);
+  const carregando = isLoading || (!fixa && capacidade === null);
   const { visiveis, excedentes } = useMemo(() => {
+    if (fixa) return { visiveis: fixa.itens, excedentes: fixa.excedentes };
     if (capacidade === null) return { visiveis: [], excedentes: [] };
     return dividirItensDaBarra(navItemsPorPrioridade(user?.perfil), capacidade);
-  }, [capacidade, user?.perfil]);
+  }, [fixa, capacidade, user?.perfil]);
   const itensDoPainel = useMemo(() => ordenarPeloMenu(excedentes), [excedentes]);
   const temMais = excedentes.length > 0;
   const maisAtivo = isOpen || isMaisAtivo(pathname, excedentes);
@@ -75,6 +79,7 @@ export function BottomNav() {
   return (
     <>
       <BottomBar
+        entradaEmDestaque={Boolean(fixa)}
         itens={visiveis}
         temMais={temMais}
         maisAtivo={maisAtivo}

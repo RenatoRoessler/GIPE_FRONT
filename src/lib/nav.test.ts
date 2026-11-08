@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lightTheme, darkTheme } from "@/styles/theme";
-import { dividirItensDaBarra, isMaisAtivo, isNavAction, isNavActive, isNavItemActive, NAV_ITEMS, navItemKey, navItemsPermitidos, navItemsPorPrioridade, ordenarPeloMenu } from "./nav";
+import { BARRA_FIXA, dividirItensDaBarra, isMaisAtivo, isNavAction, isNavActive, isNavItemActive, montarBarraFixa, NAV_ITEMS, navItemKey, navItemsPermitidos, navItemsPorPrioridade, ordenarPeloMenu } from "./nav";
 
 describe("NAV_ITEMS", () => {
   it("o Pátio é o primeiro item, seguido de Entrada, Saída e Caixa", () => {
@@ -311,5 +311,35 @@ describe("ordenarPeloMenu", () => {
   it("recoloca os excedentes da barra na ordem natural do menu", () => {
     const { excedentes } = dividirItensDaBarra(navItemsPorPrioridade(1), 5);
     expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Conferência", "Dashboard", "Preços", "Usuários", "Mensalistas", "Conveniadas", "Notas", "Financeiro", "Empresa", "Chaves"]);
+  });
+});
+
+describe("montarBarraFixa", () => {
+  it("perfil operacional: Pátio, Caixa, Entrada e Saída, com a Entrada no centro de cinco posições com o Mais", () => {
+    const barra = montarBarraFixa(1);
+
+    expect(barra?.itens.map((item) => item.shortLabel)).toEqual(["Pátio", "Caixa", "Entrada", "Saída"]);
+  });
+
+  it("os excedentes não repetem os quatro itens e seguem a ordem do menu", () => {
+    const barra = montarBarraFixa(1);
+    const esperados = navItemsPermitidos(1).filter((item) => !BARRA_FIXA.includes(navItemKey(item)));
+
+    expect(barra?.excedentes).toEqual(esperados);
+    expect(barra?.excedentes.map((item) => item.shortLabel)).toContain("Dashboard");
+    expect(barra?.excedentes.map((item) => item.shortLabel)).not.toContain("Entrada");
+  });
+
+  it("perfil da conveniada, que não tem o pátio, e perfil desconhecido usam a barra adaptativa", () => {
+    expect(montarBarraFixa(5)).toBeNull();
+    expect(montarBarraFixa(7)).toBeNull();
+    expect(montarBarraFixa(null)).toBeNull();
+    expect(montarBarraFixa(undefined)).toBeNull();
+  });
+
+  it("BARRA_FIXA tem as mesmas chaves da prioridade da barra adaptativa", () => {
+    const prioritarios = navItemsPorPrioridade(1).slice(0, BARRA_FIXA.length).map(navItemKey);
+
+    expect([...prioritarios].sort()).toEqual([...BARRA_FIXA].sort());
   });
 });

@@ -60,7 +60,7 @@ export const Numero = styled.span`
 
 export const Rodape = styled.div`
   position: sticky;
-  bottom: calc(${({ theme }) => theme.layout.bottomNavHeight} + env(safe-area-inset-bottom, 0px));
+  bottom: calc(${({ theme }) => theme.layout.bottomNavReserved} + env(safe-area-inset-bottom, 0px));
   z-index: 5;
   display: flex;
   flex-direction: column;
