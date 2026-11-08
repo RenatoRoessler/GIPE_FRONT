@@ -2,6 +2,30 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.376",
+      "type": "feat",
+      "scope": "app",
+      "title": "mantém o aplicativo sempre na vertical",
+      "description": "No celular, o aplicativo instalado deixa de girar a tela e fica sempre\nna orientação vertical.",
+      "date": "2026-11-08T12:53:40-03:00"
+    },
+    {
+      "version": "1.0.374",
+      "type": "feat",
+      "scope": "faturas",
+      "title": "adapta as telas de faturas ao celular",
+      "description": "No celular, a lista de faturas e as saídas de cada fatura aparecem como\ncartões compactos, com o botão de emitir fatura flutuante e os filtros\nmais enxutos (a linha \"Filtrando\" diz o que está ativo e oferece\nlimpar). Os botões de pagar e cancelar e o aviso de vencimento passam a\ncaber na tela, e os botões dos modais respeitam a área segura de\naparelhos com indicador na base.\n\nCorrige os filtros de situação, cujos textos saíam para fora do botão em\ntelas estreitas: no celular ficam em duas colunas, e em tablets os\nfiltros só ficam lado a lado a partir de 1024 px.",
+      "date": "2026-11-08T12:53:40-03:00"
+    },
+    {
+      "version": "1.0.372",
+      "type": "feat",
+      "scope": "menu",
+      "title": "organiza o menu em grupos e renomeia o Dashboard para Visão Geral",
+      "description": "O menu lateral do computador e o painel \"Mais\" do celular passam a\nmostrar as telas em grupos, em vez de uma lista única: a Visão Geral\n(antes Dashboard) abre o menu, fora de qualquer grupo, e depois vêm\nOperação, Financeiro e Configurações. Cada usuário vê só os grupos com\ntelas que pode abrir. A barra inferior do celular não muda.\n\nNo menu lateral, os itens ficaram mais compactos (fonte e altura\nmenores) para o menu inteiro caber em telas de notebook sem esconder\nEntrada e Saída no fim da lista. Recolhido, um traço separa os grupos;\nao expandir, aparecem os títulos.",
+      "date": "2026-11-08T12:53:28-03:00"
+    },
+    {
       "version": "1.0.369",
       "type": "feat",
       "scope": "faturas",
