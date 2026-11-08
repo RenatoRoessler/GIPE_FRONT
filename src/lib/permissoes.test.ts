@@ -18,6 +18,7 @@ const PERMITIDOS: Record<Area, PerfilUsuario[]> = {
   [AREA.Precos]: [Administrador, Gerente],
   [AREA.Mensalistas]: [Administrador, Gerente],
   [AREA.Conveniadas]: [Administrador],
+  [AREA.Faturas]: [Administrador, Gerente, Financeiro],
   [AREA.NotasFiscais]: [Administrador, Gerente, Financeiro],
   [AREA.Financeiro]: [Administrador, Gerente, Financeiro],
   [AREA.Empresa]: [Administrador],
@@ -64,6 +65,8 @@ describe("areaDaRota", () => {
     expect(areaDaRota("/usuarios")).toBe(AREA.Usuarios);
     expect(areaDaRota("/empresas-conveniadas")).toBe(AREA.Conveniadas);
     expect(areaDaRota("/empresas-conveniadas/nova")).toBe(AREA.Conveniadas);
+    expect(areaDaRota("/faturas")).toBe(AREA.Faturas);
+    expect(areaDaRota("/faturas/12")).toBe(AREA.Faturas);
     expect(areaDaRota("/notas-fiscais")).toBe(AREA.NotasFiscais);
     expect(areaDaRota("/financeiro")).toBe(AREA.Financeiro);
     expect(areaDaRota("/financeiro/qualquer")).toBe(AREA.Financeiro);
@@ -105,5 +108,22 @@ describe("rotas da área logada", () => {
 
     const semDestino = rotas.filter((rota) => areaDaRota(rota) === null && !(ROTAS_SEM_AREA as readonly string[]).includes(rota));
     expect(semDestino).toEqual([]);
+  });
+});
+
+describe("Faturas", () => {
+  it("por padrão é de Administrador, Gerente e Financeiro", () => {
+    expect(podeAcessar(Administrador, AREA.Faturas)).toBe(true);
+    expect(podeAcessar(Gerente, AREA.Faturas)).toBe(true);
+    expect(podeAcessar(Financeiro, AREA.Faturas)).toBe(true);
+    expect(podeAcessar(Caixa, AREA.Faturas)).toBe(false);
+    expect(podeAcessar(AdministradorConveniada, AREA.Faturas)).toBe(false);
+  });
+
+  it("a permissão por módulo substitui o padrão", () => {
+    const overrides = { [AREA.Faturas]: [Caixa] };
+
+    expect(podeAcessar(Caixa, AREA.Faturas, overrides)).toBe(true);
+    expect(podeAcessar(Financeiro, AREA.Faturas, overrides)).toBe(false);
   });
 });

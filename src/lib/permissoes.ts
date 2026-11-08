@@ -12,6 +12,8 @@ export const AREA = {
   Mensalistas: "mensalistas",
   // Empresas com convênio com o estacionamento: consulta e cadastro de conveniadas.
   Conveniadas: "conveniadas",
+  // Faturas da conveniada: junta as saídas em aberto, acompanha, registra pagamento e cancela.
+  Faturas: "faturas",
   NotasFiscais: "notas-fiscais",
   // Fluxo de caixa, lançamentos e categorias de receita e despesa.
   Financeiro: "financeiro",
@@ -50,6 +52,7 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.Precos]: [Administrador, Gerente],
   [AREA.Mensalistas]: [Administrador, Gerente],
   [AREA.Conveniadas]: [Administrador],
+  [AREA.Faturas]: [Administrador, Gerente, Financeiro],
   [AREA.NotasFiscais]: [Administrador, Gerente, Financeiro],
   [AREA.Financeiro]: [Administrador, Gerente, Financeiro],
   [AREA.Empresa]: [Administrador],
@@ -79,6 +82,7 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/precos", AREA.Precos],
   ["/mensalistas", AREA.Mensalistas],
   ["/empresas-conveniadas", AREA.Conveniadas],
+  ["/faturas", AREA.Faturas],
   ["/notas-fiscais", AREA.NotasFiscais],
   ["/financeiro", AREA.Financeiro],
   ["/minha-empresa", AREA.Empresa],

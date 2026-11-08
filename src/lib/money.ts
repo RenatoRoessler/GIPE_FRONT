@@ -8,6 +8,13 @@ export function parseMoney(value: string): number {
   return /^\d+(\.\d+)?$/.test(normalized) ? Number(normalized) : Number.NaN;
 }
 
+// Valor digitado num campo com `maskMoney`: sem vírgula, "1.250" é o que a máscara mostra para 1250 (ponto de milhar),
+// e não 1,25 como `parseMoney` lê. Fora disso, igual a `parseMoney`. Vazio ou inválido devolve NaN.
+export function parseMaskedMoney(value: string): number {
+  const text = value.trim().replace(/^R\$\s*/, "");
+  return /^[1-9]\d{0,2}(\.\d{3})+$/.test(text) ? Number(text.replace(/\./g, "")) : parseMoney(text);
+}
+
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export function formatBRL(value: number): string {

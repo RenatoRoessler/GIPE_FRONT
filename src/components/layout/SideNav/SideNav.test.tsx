@@ -40,6 +40,7 @@ describe("SideNav", () => {
       "Gestão de Usuários",
       "Mensalistas",
       "Empresas conveniadas",
+      "Faturas",
       "Notas Fiscais",
       "Financeiro",
       "Minha Empresa",
@@ -51,7 +52,7 @@ describe("SideNav", () => {
     sessao.atual = { user: { name: "Ana", perfil: 8 }, isLoading: false };
     renderWithTheme(<SideNav />);
 
-    expect(nomes()).toEqual(["Dashboard", "Notas Fiscais", "Financeiro"]);
+    expect(nomes()).toEqual(["Dashboard", "Faturas", "Notas Fiscais", "Financeiro"]);
   });
 
   it("não mostra itens enquanto a sessão carrega", () => {

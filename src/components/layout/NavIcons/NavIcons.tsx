@@ -106,6 +106,17 @@ function InvoiceIcon(props: IconProps) {
   );
 }
 
+// Faturas: folha com linhas e uma moeda no canto.
+function BillIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5M13 3l4 4v2M13 3v4h4M8 11h5M8 15h3" />
+      <circle cx="17" cy="17" r="4" />
+      <path d="M17 15.5v3M15.8 17h2.4" />
+    </IconBase>
+  );
+}
+
 // Financeiro: eixo com colunas de entrada e saída e a linha do saldo.
 function FinanceIcon(props: IconProps) {
   return (
@@ -188,6 +199,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   stamp: StampIcon,
   checklist: ChecklistIcon,
   stampedYard: StampedYardIcon,
+  bill: BillIcon,
 };
 
 export function NavIcon({ id, ...props }: { id: NavIconId } & IconProps) {

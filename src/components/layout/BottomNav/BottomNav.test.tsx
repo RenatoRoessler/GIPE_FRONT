@@ -53,7 +53,7 @@ async function abrir() {
 }
 
 const nomesDaBarra = () => Array.from(screen.getByRole("navigation", { name: "Navegação principal" }).querySelectorAll("a, button")).map((item) => item.textContent);
-const TODOS_DO_PAINEL = ["Conferência de pátio", "Dashboard", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Empresas conveniadas", "Notas Fiscais", "Financeiro", "Minha Empresa", "Quadros de Chaves"];
+const TODOS_DO_PAINEL = ["Conferência de pátio", "Dashboard", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Empresas conveniadas", "Faturas", "Notas Fiscais", "Financeiro", "Minha Empresa", "Quadros de Chaves"];
 
 describe("BottomNav: itens da barra", () => {
   it("perfil operacional: Pátio, Caixa, Entrada, Saída e Mais, com a Entrada no centro", () => {
@@ -143,7 +143,7 @@ describe("BottomNav: menu estendido", () => {
     expect(painel()).toHaveAttribute("open");
     expect(maisButton()).toHaveAttribute("aria-expanded", "true");
     expect(within(painel()).getByRole("heading", { name: "Mais", ...opcoes })).toBeInTheDocument();
-    expect(itensDoPainel()).toEqual(["Conferência de pátio", "Dashboard", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Empresas conveniadas", "Notas Fiscais", "Financeiro", "Minha Empresa", "Quadros de Chaves"]);
+    expect(itensDoPainel()).toEqual(["Conferência de pátio", "Dashboard", "Gestão de Preços", "Gestão de Usuários", "Mensalistas", "Empresas conveniadas", "Faturas", "Notas Fiscais", "Financeiro", "Minha Empresa", "Quadros de Chaves"]);
   });
 
   it("mostra o nome completo dos itens, não o rótulo curto", async () => {
@@ -161,7 +161,7 @@ describe("BottomNav: menu estendido", () => {
     barra.capacidade = 4;
     await abrir();
 
-    expect(itensDoPainel()).toEqual(["Conferência de pátio", "Dashboard", "Gestão de Preços", "Mensalistas", "Notas Fiscais", "Financeiro", "Quadros de Chaves"]);
+    expect(itensDoPainel()).toEqual(["Conferência de pátio", "Dashboard", "Gestão de Preços", "Mensalistas", "Faturas", "Notas Fiscais", "Financeiro", "Quadros de Chaves"]);
   });
 
   it("marca a tela atual no painel, e só ela", async () => {
