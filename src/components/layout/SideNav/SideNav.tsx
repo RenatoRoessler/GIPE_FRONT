@@ -2,46 +2,64 @@
 
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
+import { useId } from "react";
 import { NavIcon } from "@/components/layout/NavIcons";
 import { useVeiculoModais } from "@/components/veiculos/VeiculoModais";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { getVersionLink } from "@/lib/version";
-import { isNavAction, isNavItemActive, navItemKey, navItemsPermitidos } from "@/lib/nav";
-import { Aside, ItemButton, ItemLink, Lista, Rotulo, VersaoLink } from "./SideNav.styles";
+import { agruparItens, isNavAction, isNavItemActive, navItemKey, navItemsPermitidos } from "@/lib/nav";
+import { Aside, Grupos, ItemButton, ItemLink, Lista, Rotulo, TituloGrupo, TituloTexto, Traco, VersaoLink } from "./SideNav.styles";
 
-// Menu lateral das telas grandes: todos os itens que o perfil pode abrir, na ordem do menu. Recolhido mostra só os ícones;
-// ao passar o mouse (ou focar um item pelo teclado) expande com o nome completo. O texto está sempre no DOM, para o leitor de tela.
+// Menu lateral das telas grandes: os itens que o perfil pode abrir, em grupos (Financeiro, Configurações e Operação).
+// Recolhido mostra só os ícones, com um traço entre os grupos; ao passar o mouse (ou focar um item pelo teclado) expande
+// com o nome completo e o título de cada grupo. O texto está sempre no DOM, para o leitor de tela.
 export function SideNav() {
   const pathname = usePathname();
   const { user, isLoading } = useCurrentUser();
   const { abrirEntrada, abrirSaida } = useVeiculoModais();
+  const idBase = useId();
   const versao = getVersionLink();
-  const itens = isLoading ? [] : navItemsPermitidos(user?.perfil);
+  const grupos = agruparItens(isLoading ? [] : navItemsPermitidos(user?.perfil));
 
   return (
     <Aside aria-label="Menu lateral" aria-busy={isLoading}>
-      <Lista>
-        {itens.map((item) => (
-          <li key={navItemKey(item)}>
-            {isNavAction(item) ? (
-              <ItemButton type="button" $active={false} aria-haspopup="dialog" onClick={item.acao === "entrada" ? abrirEntrada : abrirSaida}>
-                <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
-                <Rotulo>{item.label}</Rotulo>
-              </ItemButton>
-            ) : (
-              <ItemLink
-                as={NextLink}
-                href={item.href}
-                $active={isNavItemActive(pathname, item.href)}
-                aria-current={isNavItemActive(pathname, item.href) ? "page" : undefined}
-              >
-                <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
-                <Rotulo>{item.label}</Rotulo>
-              </ItemLink>
-            )}
-          </li>
-        ))}
-      </Lista>
+      <Grupos>
+        {grupos.map((grupo) => {
+          const tituloId = `${idBase}-${grupo.id}`;
+          return (
+            <li key={grupo.id ?? "sem-grupo"}>
+              {grupo.titulo && (
+                <TituloGrupo>
+                  <Traco aria-hidden="true" />
+                  <TituloTexto id={tituloId}>{grupo.titulo}</TituloTexto>
+                </TituloGrupo>
+              )}
+              <Lista aria-labelledby={grupo.titulo ? tituloId : undefined}>
+                {grupo.itens.map((item) => (
+                  <li key={navItemKey(item)}>
+                    {isNavAction(item) ? (
+                      <ItemButton type="button" $active={false} aria-haspopup="dialog" onClick={item.acao === "entrada" ? abrirEntrada : abrirSaida}>
+                        <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
+                        <Rotulo>{item.label}</Rotulo>
+                      </ItemButton>
+                    ) : (
+                      <ItemLink
+                        as={NextLink}
+                        href={item.href}
+                        $active={isNavItemActive(pathname, item.href)}
+                        aria-current={isNavItemActive(pathname, item.href) ? "page" : undefined}
+                      >
+                        <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
+                        <Rotulo>{item.label}</Rotulo>
+                      </ItemLink>
+                    )}
+                  </li>
+                ))}
+              </Lista>
+            </li>
+          );
+        })}
+      </Grupos>
       <VersaoLink as={NextLink} href={versao.href}>
         {versao.label}
       </VersaoLink>

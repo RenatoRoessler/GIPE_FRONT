@@ -12,6 +12,48 @@ export const Rotulo = styled.span`
   }
 `;
 
+// Recuo do ícone com o menu recolhido (72px): (72 - 16 - 22) / 2 = 17px de cada lado. O título do grupo usa o mesmo recuo.
+const RECUO = 17;
+const ICONE = 22;
+const TRACO = 24;
+// Altura de cada item: compacta, para o menu de um Administrador (15 itens e 3 títulos) caber em telas de notebook sem rolar.
+const ALTURA_ITEM = 34;
+
+// Título de cada grupo: o texto aparece com o menu expandido; recolhido, a linha mostra só o traço que separa os grupos.
+// A linha tem a mesma altura nos dois estados, para os itens não mudarem de lugar quando o menu expande.
+export const TituloGrupo = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: ${({ theme }) => theme.space[4]}px;
+  padding: 0 ${RECUO}px;
+`;
+
+export const TituloTexto = styled.span`
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  white-space: nowrap;
+  opacity: 0;
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: opacity 0.12s ease;
+  }
+`;
+
+// Traço decorativo, centralizado sobre a coluna dos ícones.
+export const Traco = styled.span`
+  position: absolute;
+  left: ${RECUO + (ICONE - TRACO) / 2}px;
+  width: ${TRACO}px;
+  height: 1px;
+  background-color: ${({ theme }) => theme.colors.border};
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: opacity 0.12s ease;
+  }
+`;
+
 // Menu lateral: só existe a partir de `lg`; abaixo disso a navegação é a barra inferior.
 // Recolhido mostra só os ícones; ao passar o mouse ou focar um item, expande por cima do conteúdo (sem empurrá-lo).
 export const Aside = styled.nav`
@@ -43,17 +85,40 @@ export const Aside = styled.nav`
       width: ${({ theme }) => theme.layout.sideNavExpandedWidth};
       box-shadow: ${({ theme }) => theme.shadows.md};
 
-      ${Rotulo} {
+      ${Rotulo},
+      ${TituloTexto} {
         opacity: 1;
       }
+
+      ${Traco} {
+        opacity: 0;
+      }
     }
+  }
+`;
+
+// Grupos de itens: rola por dentro quando a altura da tela não comporta tudo, sem barra de rolagem visível.
+// O link da versão fica fora deste contêiner, fixo no pé do menu.
+export const Grupos = styled.ul`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 `;
 
 export const Lista = styled.ul`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.space[1]}px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -65,15 +130,15 @@ const itemStyles = css<{ $active: boolean }>`
   align-items: center;
   gap: ${({ theme }) => theme.space[2]}px;
   width: 100%;
-  min-height: 44px;
-  /* Com o menu recolhido (72px) o ícone de 22px fica centralizado: (72 - 16 - 22) / 2 = 17px de cada lado. */
-  padding: 0 17px;
+  min-height: ${ALTURA_ITEM}px;
+  /* Com o menu recolhido o ícone fica centralizado (ver RECUO). */
+  padding: 0 ${RECUO}px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
   background-color: ${({ theme, $active }) => ($active ? theme.colors.primarySoft : "transparent")};
   color: ${({ theme, $active }) => ($active ? theme.colors.accent : theme.colors.textMuted)};
   font-family: inherit;
-  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme, $active }) => ($active ? theme.fontWeights.bold : theme.fontWeights.medium)};
   text-align: left;
   text-decoration: none;

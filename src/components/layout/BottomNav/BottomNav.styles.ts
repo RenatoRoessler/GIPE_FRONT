@@ -251,6 +251,21 @@ export const SheetList = styled.ul`
   }
 `;
 
+// Grupo do menu estendido: o título e a lista dos seus itens. A divisória fina fica só entre itens do mesmo grupo.
+export const GrupoPainel = styled.section`
+  & + & {
+    margin-top: ${({ theme }) => theme.space[3]}px;
+  }
+`;
+
+export const GrupoTitulo = styled.p`
+  margin: 0 0 ${({ theme }) => theme.space[1]}px;
+  padding: 0 ${({ theme }) => theme.space[2]}px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+`;
+
 // Quadro do ícone de cada linha do menu estendido.
 export const IconTile = styled.span`
   display: grid;

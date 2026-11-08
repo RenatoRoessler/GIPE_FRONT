@@ -1,17 +1,17 @@
 "use client";
 
 import NextLink from "next/link";
-import type { Ref } from "react";
+import { useId, type Ref } from "react";
 import { NavIcon } from "@/components/layout/NavIcons";
 import { getVersionLink } from "@/lib/version";
-import { isNavAction, isNavActive, navItemKey, type NavAction, type NavItem } from "@/lib/nav";
-import { CloseButton, Grabber, IconTile, Sheet, SheetHeader, SheetList, SheetRow, SheetTitle, VersaoRow } from "./BottomNav.styles";
+import { agruparItens, isNavAction, isNavActive, navItemKey, type NavAction, type NavItem } from "@/lib/nav";
+import { CloseButton, Grabber, GrupoPainel, GrupoTitulo, IconTile, Sheet, SheetHeader, SheetList, SheetRow, SheetTitle, VersaoRow } from "./BottomNav.styles";
 
 export interface MenuSheetProps {
   id: string;
   dialogRef: Ref<HTMLDialogElement>;
   pathname: string;
-  // Só os itens que não couberam na barra inferior, na ordem do menu.
+  // Só os itens que não couberam na barra inferior, na ordem do menu; o painel os separa por grupo.
   itens: NavItem[];
   // Chamado quando o painel pede para fechar (fechar, escolher uma tela ou toque no fundo).
   onRequestClose: () => void;
@@ -30,7 +30,9 @@ function ChevronIcon() {
 }
 
 export function MenuSheet({ id, dialogRef, pathname, itens, onRequestClose, onAction, onClosed }: MenuSheetProps) {
+  const idBase = useId();
   const versao = getVersionLink();
+  const grupos = agruparItens(itens);
 
   return (
     <Sheet
@@ -53,35 +55,43 @@ export function MenuSheet({ id, dialogRef, pathname, itens, onRequestClose, onAc
         </CloseButton>
       </SheetHeader>
       <nav aria-label="Outras telas">
-        <SheetList>
-          {itens.map((item) => {
-            if (isNavAction(item)) {
-              return (
-                <li key={navItemKey(item)}>
-                  <SheetRow as="button" type="button" $active={false} aria-haspopup="dialog" onClick={() => onAction(item.acao)}>
-                    <IconTile>
-                      <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
-                    </IconTile>
-                    {item.label}
-                    <ChevronIcon />
-                  </SheetRow>
-                </li>
-              );
-            }
-            const active = isNavActive(pathname, item);
-            return (
-              <li key={item.href}>
-                <SheetRow as={NextLink} href={item.href} $active={active} aria-current={active ? "page" : undefined} onClick={onRequestClose}>
-                  <IconTile>
-                    <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
-                  </IconTile>
-                  {item.label}
-                  <ChevronIcon />
-                </SheetRow>
-              </li>
-            );
-          })}
-        </SheetList>
+        {grupos.map((grupo) => {
+          const tituloId = `${idBase}-${grupo.id}`;
+          return (
+            <GrupoPainel key={grupo.id ?? "sem-grupo"}>
+              {grupo.titulo && <GrupoTitulo id={tituloId}>{grupo.titulo}</GrupoTitulo>}
+              <SheetList aria-labelledby={grupo.titulo ? tituloId : undefined}>
+                {grupo.itens.map((item) => {
+                  if (isNavAction(item)) {
+                    return (
+                      <li key={navItemKey(item)}>
+                        <SheetRow as="button" type="button" $active={false} aria-haspopup="dialog" onClick={() => onAction(item.acao)}>
+                          <IconTile>
+                            <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
+                          </IconTile>
+                          {item.label}
+                          <ChevronIcon />
+                        </SheetRow>
+                      </li>
+                    );
+                  }
+                  const active = isNavActive(pathname, item);
+                  return (
+                    <li key={item.href}>
+                      <SheetRow as={NextLink} href={item.href} $active={active} aria-current={active ? "page" : undefined} onClick={onRequestClose}>
+                        <IconTile>
+                          <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
+                        </IconTile>
+                        {item.label}
+                        <ChevronIcon />
+                      </SheetRow>
+                    </li>
+                  );
+                })}
+              </SheetList>
+            </GrupoPainel>
+          );
+        })}
       </nav>
       <VersaoRow as={NextLink} href={versao.href} onClick={onRequestClose}>
         {versao.label}

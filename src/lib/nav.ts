@@ -13,6 +13,8 @@ export type NavLinkItem = {
   href: string;
   icon: NavIconId;
   area: Area;
+  // Grupo do menu; os itens da conveniada não têm.
+  grupo?: GrupoNavId;
 };
 
 export type NavActionItem = {
@@ -21,6 +23,7 @@ export type NavActionItem = {
   acao: NavAction;
   icon: NavIconId;
   area: Area;
+  grupo?: GrupoNavId;
 };
 
 export type NavItem = NavLinkItem | NavActionItem;
@@ -34,32 +37,56 @@ export function navItemKey(item: NavItem): string {
   return isNavAction(item) ? item.acao : item.href;
 }
 
+// Grupos do menu, na ordem em que aparecem. A ordem dos itens dentro de cada grupo é a de NAV_ITEMS.
+export const GRUPOS_NAV = [
+  { id: "operacao", titulo: "Operação" },
+  { id: "financeiro", titulo: "Financeiro" },
+  { id: "configuracoes", titulo: "Configurações" },
+] as const;
+
+export type GrupoNavId = (typeof GRUPOS_NAV)[number]["id"];
+
+// NAV_ITEMS está na ordem do menu: a Visão Geral, que fica fora dos grupos e abre o menu, depois Operação, Financeiro
+// e Configurações e, no fim, os itens da conveniada (também sem grupo, mas de um perfil que não vê a Visão Geral).
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: AREA.Patio },
-  { label: "Entrada de Veículos", shortLabel: "Entrada", acao: "entrada", icon: "vehicleIn", area: AREA.Patio },
-  { label: "Saída de Veículos", shortLabel: "Saída", acao: "saida", icon: "vehicleOut", area: AREA.Patio },
-  { label: "Caixa", shortLabel: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa },
-  { label: "Conferência de pátio", shortLabel: "Conferência", href: "/conferencia-patio", icon: "checklist", area: AREA.Patio },
+  { label: "Visão Geral", shortLabel: "Visão Geral", href: "/dashboard", icon: "dashboard", area: AREA.Inicio },
+  { label: "Pátio", shortLabel: "Pátio", href: "/patio", icon: "yard", area: AREA.Patio, grupo: "operacao" },
+  { label: "Entrada de Veículos", shortLabel: "Entrada", acao: "entrada", icon: "vehicleIn", area: AREA.Patio, grupo: "operacao" },
+  { label: "Saída de Veículos", shortLabel: "Saída", acao: "saida", icon: "vehicleOut", area: AREA.Patio, grupo: "operacao" },
+  { label: "Conferência de pátio", shortLabel: "Conferência", href: "/conferencia-patio", icon: "checklist", area: AREA.Patio, grupo: "operacao" },
+  { label: "Financeiro", shortLabel: "Financeiro", href: "/financeiro", icon: "finance", area: AREA.Financeiro, grupo: "financeiro" },
+  { label: "Caixa", shortLabel: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa, grupo: "financeiro" },
+  { label: "Faturas", shortLabel: "Faturas", href: "/faturas", icon: "bill", area: AREA.Faturas, grupo: "financeiro" },
+  { label: "Notas Fiscais", shortLabel: "Notas", href: "/notas-fiscais", icon: "invoice", area: AREA.NotasFiscais, grupo: "financeiro" },
+  { label: "Minha Empresa", shortLabel: "Empresa", href: "/minha-empresa", icon: "company", area: AREA.Empresa, grupo: "configuracoes" },
+  { label: "Gestão de Preços", shortLabel: "Preços", href: "/precos", icon: "pricing", area: AREA.Precos, grupo: "configuracoes" },
+  { label: "Quadros de Chaves", shortLabel: "Chaves", href: "/quadros-chaves", icon: "keys", area: AREA.QuadroChaves, grupo: "configuracoes" },
+  { label: "Mensalistas", shortLabel: "Mensalistas", href: "/mensalistas", icon: "members", area: AREA.Mensalistas, grupo: "configuracoes" },
+  { label: "Gestão de Usuários", shortLabel: "Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios, grupo: "configuracoes" },
+  { label: "Empresas conveniadas", shortLabel: "Conveniadas", href: "/empresas-conveniadas", icon: "agreement", area: AREA.Conveniadas, grupo: "configuracoes" },
   { label: "Carimbar ticket", shortLabel: "Carimbo", href: "/carimbo", icon: "stamp", area: AREA.Carimbo },
   { label: "Pátio da conveniada", shortLabel: "Pátio", href: "/patio-conveniada", icon: "stampedYard", area: AREA.PatioConveniada },
-  { label: "Dashboard", shortLabel: "Dashboard", href: "/dashboard", icon: "dashboard", area: AREA.Inicio },
-  { label: "Gestão de Preços", shortLabel: "Preços", href: "/precos", icon: "pricing", area: AREA.Precos },
-  { label: "Gestão de Usuários", shortLabel: "Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios },
-  { label: "Mensalistas", shortLabel: "Mensalistas", href: "/mensalistas", icon: "members", area: AREA.Mensalistas },
-  { label: "Empresas conveniadas", shortLabel: "Conveniadas", href: "/empresas-conveniadas", icon: "agreement", area: AREA.Conveniadas },
-  { label: "Faturas", shortLabel: "Faturas", href: "/faturas", icon: "bill", area: AREA.Faturas },
-  { label: "Notas Fiscais", shortLabel: "Notas", href: "/notas-fiscais", icon: "invoice", area: AREA.NotasFiscais },
-  { label: "Financeiro", shortLabel: "Financeiro", href: "/financeiro", icon: "finance", area: AREA.Financeiro },
-  { label: "Minha Empresa", shortLabel: "Empresa", href: "/minha-empresa", icon: "company", area: AREA.Empresa },
-  { label: "Quadros de Chaves", shortLabel: "Chaves", href: "/quadros-chaves", icon: "keys", area: AREA.QuadroChaves },
 ];
 
-// Itens do menu que o perfil pode abrir; sem perfil conhecido, só o Dashboard.
+export type GrupoNav = { id: GrupoNavId | null; titulo: string | null; itens: NavItem[] };
+
+// Separa os itens por grupo. Os que não têm grupo (`id` e `titulo` nulos) vêm primeiro, sem título, como a Visão Geral;
+// depois os grupos, na ordem de GRUPOS_NAV. Grupo sem item não aparece. Dentro de cada bloco mantém a ordem recebida:
+// quem chama passa a lista já na ordem do menu.
+export function agruparItens(itens: NavItem[]): GrupoNav[] {
+  const grupos: GrupoNav[] = GRUPOS_NAV.map((grupo) => ({ id: grupo.id, titulo: grupo.titulo, itens: itens.filter((item) => item.grupo === grupo.id) })).filter(
+    (grupo) => grupo.itens.length > 0,
+  );
+  const semGrupo = itens.filter((item) => item.grupo === undefined);
+  return semGrupo.length > 0 ? [{ id: null, titulo: null, itens: semGrupo }, ...grupos] : grupos;
+}
+
+// Itens do menu que o perfil pode abrir; sem perfil conhecido, só a Visão Geral.
 export function navItemsPermitidos(perfil: PerfilUsuario | null | undefined): NavItem[] {
   return NAV_ITEMS.filter((item) => podeAcessar(perfil, item.area));
 }
 
-// "Dashboard" só é ativo na rota exata; os demais também nas rotas filhas.
+// A Visão Geral (/dashboard) só é ativa na rota exata; os demais também nas rotas filhas.
 export function isNavItemActive(pathname: string, href: string) {
   return href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 }
