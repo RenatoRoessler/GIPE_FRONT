@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.369",
+      "type": "feat",
+      "scope": "faturas",
+      "title": "adiciona o módulo de faturas das empresas conveniadas",
+      "description": "Administrador, Gerente e Financeiro passam a emitir faturas que juntam as\nsaídas em aberto de uma conveniada, acompanhar as faturas emitidas e dar\nbaixa ou cancelar. Antes essa cobrança era somada à mão, fora do sistema.\n\n- Lista de faturas com filtros por conveniada e situação e paginação.\n- Emissão com vencimento e observação, levando ao detalhe da fatura.\n- Detalhe com valor a cobrar, ciclo (emitida, paga ou cancelada, com quem\n  e quando) e as saídas incluídas.\n- Registro de pagamento (avisa que não entra no caixa) e cancelamento com\n  confirmação, que devolve as saídas para a próxima fatura.\n- Item \"Faturas\" no menu, com permissão por perfil.",
+      "date": "2026-11-08T11:36:04-03:00"
+    },
+    {
       "version": "1.0.367",
       "type": "feat",
       "scope": "menu-mobile",
