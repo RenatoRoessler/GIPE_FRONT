@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.367",
+      "type": "feat",
+      "scope": "menu-mobile",
+      "title": "destaca a Entrada no centro da barra inferior",
+      "description": "No celular, a barra de navegação passa a ter cinco posições fixas,\nna ordem Pátio, Caixa, Entrada, Saída e Mais, em qualquer largura de\ntela. A Entrada, ação mais usada na operação, fica no centro como um\nbotão amarelo com \"+\" que sobressai acima da barra, e o amarelo deixa\nde marcar a aba atual, que agora se destaca por peso e fundo neutro.\n\nPerfis sem acesso ao pátio (como as conveniadas) continuam com a barra\nde antes. O espaço reservado ao fim das telas, aos botões fixos e ao\npainel \"Mais\" passa a considerar a parte do botão que sobressai.",
+      "date": "2026-11-08T10:53:23-03:00"
+    },
+    {
       "version": "1.0.364",
       "type": "feat",
       "scope": "adesao",
