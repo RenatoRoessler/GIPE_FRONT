@@ -22,6 +22,10 @@ describe("manifest do app", () => {
     expect(dados.description).toContain("estacionamentos");
   });
 
+  it("trava a orientação na vertical", () => {
+    expect(dados.orientation).toBe("portrait");
+  });
+
   it("tem os ícones de 192, 512 e o maskable, e os arquivos existem com o tamanho declarado", () => {
     const icones = dados.icons ?? [];
     expect(icones.map((icone) => `${icone.sizes}:${icone.purpose}`)).toEqual(["192x192:any", "512x512:any", "512x512:maskable"]);
