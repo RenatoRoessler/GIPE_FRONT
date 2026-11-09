@@ -3,7 +3,7 @@
 import NextLink from "next/link";
 import { useId, type Ref } from "react";
 import { NavIcon } from "@/components/layout/NavIcons";
-import { getVersionLink } from "@/lib/version";
+import { getVersionLabel } from "@/lib/version";
 import { agruparItens, isNavAction, isNavActive, navItemKey, type NavAction, type NavItem } from "@/lib/nav";
 import { CloseButton, Grabber, GrupoPainel, GrupoTitulo, IconTile, Sheet, SheetHeader, SheetList, SheetRow, SheetTitle, VersaoRow } from "./BottomNav.styles";
 
@@ -31,7 +31,7 @@ function ChevronIcon() {
 
 export function MenuSheet({ id, dialogRef, pathname, itens, onRequestClose, onAction, onClosed }: MenuSheetProps) {
   const idBase = useId();
-  const versao = getVersionLink();
+  const versao = getVersionLabel();
   const grupos = agruparItens(itens);
 
   return (
@@ -93,9 +93,7 @@ export function MenuSheet({ id, dialogRef, pathname, itens, onRequestClose, onAc
           );
         })}
       </nav>
-      <VersaoRow as={NextLink} href={versao.href} onClick={onRequestClose}>
-        {versao.label}
-      </VersaoRow>
+      <VersaoRow>{versao}</VersaoRow>
     </Sheet>
   );
 }

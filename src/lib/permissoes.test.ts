@@ -88,7 +88,7 @@ describe("areaDaRota", () => {
 
   it("rotas abertas não têm área", () => {
     expect(areaDaRota("/usuario/editar")).toBeNull();
-    expect(areaDaRota("/atualizacoes")).toBeNull();
+    expect(areaDaRota("/usuario")).toBeNull();
     expect(areaDaRota("/acesso-negado")).toBeNull();
   });
 

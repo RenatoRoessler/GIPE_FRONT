@@ -93,7 +93,7 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
 ];
 
 // Rotas da área logada abertas a qualquer usuário autenticado.
-export const ROTAS_SEM_AREA = ["/acesso-negado", "/atualizacoes", "/usuario"] as const;
+export const ROTAS_SEM_AREA = ["/acesso-negado", "/usuario"] as const;
 
 // O prefixo mais longo vence: /caixa/historico é do histórico, não do caixa.
 const ROTAS_POR_ESPECIFICIDADE = [...AREA_POR_ROTA].sort((a, b) => b[0].length - a[0].length);

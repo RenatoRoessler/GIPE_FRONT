@@ -6,9 +6,9 @@ import { useId } from "react";
 import { NavIcon } from "@/components/layout/NavIcons";
 import { useVeiculoModais } from "@/components/veiculos/VeiculoModais";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
-import { getVersionLink } from "@/lib/version";
+import { getVersionLabel } from "@/lib/version";
 import { agruparItens, isNavAction, isNavItemActive, navItemKey, navItemsPermitidos } from "@/lib/nav";
-import { Aside, Grupos, ItemButton, ItemLink, Lista, Rotulo, TituloGrupo, TituloTexto, Traco, VersaoLink } from "./SideNav.styles";
+import { Aside, Grupos, ItemButton, ItemLink, Lista, Rotulo, TituloGrupo, TituloTexto, Traco, Versao } from "./SideNav.styles";
 
 // Menu lateral das telas grandes: os itens que o perfil pode abrir, em grupos (Financeiro, Configurações e Operação).
 // Recolhido mostra só os ícones, com um traço entre os grupos; ao passar o mouse (ou focar um item pelo teclado) expande
@@ -18,7 +18,7 @@ export function SideNav() {
   const { user, isLoading } = useCurrentUser();
   const { abrirEntrada, abrirSaida } = useVeiculoModais();
   const idBase = useId();
-  const versao = getVersionLink();
+  const versao = getVersionLabel();
   const grupos = agruparItens(isLoading ? [] : navItemsPermitidos(user?.perfil));
 
   return (
@@ -60,9 +60,7 @@ export function SideNav() {
           );
         })}
       </Grupos>
-      <VersaoLink as={NextLink} href={versao.href}>
-        {versao.label}
-      </VersaoLink>
+      <Versao>{versao}</Versao>
     </Aside>
   );
 }

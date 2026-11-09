@@ -126,7 +126,7 @@ describe("proxy: permissão por perfil", () => {
     expect(chamar("/precos", tokenDoPerfil("Caixa")).headers.get("location")).toBe("http://localhost/acesso-negado");
   });
 
-  it.each(["/acesso-negado", "/usuario/editar", "/atualizacoes", "/dashboard"])("%s abre para qualquer perfil", (caminho) => {
+  it.each(["/acesso-negado", "/usuario/editar", "/dashboard"])("%s abre para qualquer perfil", (caminho) => {
     for (const perfil of [ADMINISTRADOR, MANOBRISTA, FINANCEIRO]) {
       expect(chamar(caminho, tokenDoPerfil(String(perfil))).headers.get("location")).toBeNull();
     }
