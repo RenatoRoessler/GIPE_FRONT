@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.402",
+      "type": "feat",
+      "scope": "entrada",
+      "title": "mostra o comprovante digital após registrar a entrada",
+      "description": "A tela de comprovante logo depois da entrada passa a seguir o Comprovante\nDigital do pátio: dados da empresa, QR Code grande, placa, veículo e a\nlinha de entrada com o ticket. A impressão continua usando o cupom.",
+      "date": "2026-11-09T19:15:42-03:00"
+    },
+    {
       "version": "1.0.400",
       "type": "fix",
       "scope": "comprovante",
