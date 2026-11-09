@@ -10,7 +10,9 @@ export const SITUACOES: readonly { value: SituacaoFiltro; label: string }[] = [
 
 // Valor ausente ou desconhecido na URL vira "todos".
 export function parseSituacao(value: string | null): SituacaoFiltro {
-  return SITUACOES.find((situacao) => situacao.value === value)?.value ?? "todos";
+  return (
+    SITUACOES.find((situacao) => situacao.value === value)?.value ?? "todos"
+  );
 }
 
 // "todos" é o padrão e não vai para a URL.

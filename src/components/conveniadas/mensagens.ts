@@ -3,7 +3,10 @@ import type { ConveniadaResultado } from "@/types/conveniada";
 type Resultado = Pick<ConveniadaResultado, "novaEmpresa" | "novoUsuario">;
 
 // A resposta não diz se o convênio foi reativado; a primeira frase fala só de empresa e convênio.
-export function mensagemCadastro({ novaEmpresa, novoUsuario }: Resultado): string {
+export function mensagemCadastro({
+  novaEmpresa,
+  novoUsuario,
+}: Resultado): string {
   const empresa = novaEmpresa
     ? "Empresa cadastrada e convênio registrado."
     : "Empresa já cadastrada: dados mantidos e convênio registrado.";

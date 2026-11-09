@@ -6,7 +6,9 @@ import { renderWithProviders } from "@/test/render";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
-vi.mock("@/lib/api/services/conveniada", () => ({ cadastrarConveniada: vi.fn() }));
+vi.mock("@/lib/api/services/conveniada", () => ({
+  cadastrarConveniada: vi.fn(),
+}));
 vi.mock("@/lib/api/services/cep", () => ({ fetchAddressByCep: vi.fn() }));
 
 import { cadastrarConveniada } from "@/lib/api/services/conveniada";
@@ -39,7 +41,10 @@ beforeEach(() => {
 async function preencher(user: User) {
   await user.type(screen.getByLabelText(/^CNPJ/), "11222333000181");
   await user.type(screen.getByLabelText(/^Telefone/), "1134567890");
-  await user.type(screen.getByLabelText(/^Razão social/), "Auto Peças Sul LTDA");
+  await user.type(
+    screen.getByLabelText(/^Razão social/),
+    "Auto Peças Sul LTDA",
+  );
   await user.type(screen.getByLabelText(/^CEP/), "01310100");
   await user.type(screen.getByLabelText(/^Logradouro/), "Rua X");
   await user.type(screen.getByLabelText(/^Número/), "10");
@@ -52,15 +57,20 @@ async function preencher(user: User) {
   await user.type(screen.getByLabelText(/^Celular/), "11987654321");
 }
 
-const botaoCadastrar = () => screen.getByRole("button", { name: /^Cadastrar|^Cadastrando/ });
+const botaoCadastrar = () =>
+  screen.getByRole("button", { name: /^Cadastrar|^Cadastrando/ });
 
 describe("NovaConveniada", () => {
   it("abre com as duas seções e os campos em branco", () => {
     renderWithProviders(<NovaConveniada />);
 
-    expect(screen.getByRole("heading", { level: 1, name: "Nova conveniada" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Nova conveniada" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Empresa" })).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Responsável" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "Responsável" }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/^CNPJ/)).toHaveValue("");
     expect(screen.getByLabelText(/^Nome fantasia/)).not.toBeRequired();
   });
@@ -105,23 +115,39 @@ describe("NovaConveniada", () => {
 
     await user.type(screen.getByLabelText(/^CEP/), "01310100");
 
-    await waitFor(() => expect(screen.getByLabelText(/^Logradouro/)).toHaveValue("Avenida Paulista"));
+    await waitFor(() =>
+      expect(screen.getByLabelText(/^Logradouro/)).toHaveValue(
+        "Avenida Paulista",
+      ),
+    );
     expect(screen.getByLabelText(/^Bairro/)).toHaveValue("Bela Vista");
     expect(screen.getByLabelText(/^Estado/)).toHaveValue("SP");
     expect(screen.getByLabelText(/^Número/)).toHaveValue("");
   });
 
   it("envia o cadastro e volta à listagem com o resultado", async () => {
-    cadastrar.mockResolvedValue({ empresaConveniadaId: 1, empresaGuid: "g", novaEmpresa: true, usuarioId: 2, novoUsuario: false });
+    cadastrar.mockResolvedValue({
+      empresaConveniadaId: 1,
+      empresaGuid: "g",
+      novaEmpresa: true,
+      usuarioId: 2,
+      novoUsuario: false,
+    });
     const user = userEvent.setup();
     renderWithProviders(<NovaConveniada />);
 
     await preencher(user);
     await user.click(botaoCadastrar());
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/empresas-conveniadas?cadastro=10"));
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/empresas-conveniadas?cadastro=10"),
+    );
     expect(cadastrar).toHaveBeenCalledWith(
-      expect.objectContaining({ cnpj: "11.222.333/0001-81", razaoSocial: "Auto Peças Sul LTDA", usuarioCpf: "529.982.247-25" }),
+      expect.objectContaining({
+        cnpj: "11.222.333/0001-81",
+        razaoSocial: "Auto Peças Sul LTDA",
+        usuarioCpf: "529.982.247-25",
+      }),
     );
   });
 
@@ -139,15 +165,25 @@ describe("NovaConveniada", () => {
   });
 
   it("mostra o erro do back e mantém os dados digitados", async () => {
-    cadastrar.mockRejectedValue(new ApiError("validation", "Esta empresa já é conveniada deste estacionamento.", 400));
+    cadastrar.mockRejectedValue(
+      new ApiError(
+        "validation",
+        "Esta empresa já é conveniada deste estacionamento.",
+        400,
+      ),
+    );
     const user = userEvent.setup();
     renderWithProviders(<NovaConveniada />);
 
     await preencher(user);
     await user.click(botaoCadastrar());
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Esta empresa já é conveniada deste estacionamento.");
-    expect(screen.getByLabelText(/^Razão social/)).toHaveValue("Auto Peças Sul LTDA");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Esta empresa já é conveniada deste estacionamento.",
+    );
+    expect(screen.getByLabelText(/^Razão social/)).toHaveValue(
+      "Auto Peças Sul LTDA",
+    );
     expect(screen.getByLabelText(/^E-mail/)).toHaveValue("maria@exemplo.com");
     expect(push).not.toHaveBeenCalled();
   });

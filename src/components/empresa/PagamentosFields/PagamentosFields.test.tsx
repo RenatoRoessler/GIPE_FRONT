@@ -2,7 +2,10 @@ import { act, fireEvent, screen } from "@testing-library/react";
 import { useEffect } from "react";
 import { describe, expect, it } from "vitest";
 import { useAppForm, zodFieldErrors } from "@/components/form";
-import { PAGAMENTOS_MINIMO_MESSAGE, paymentsSchema } from "@/lib/schemas/adesao";
+import {
+  PAGAMENTOS_MINIMO_MESSAGE,
+  paymentsSchema,
+} from "@/lib/schemas/adesao";
 import { renderWithTheme } from "@/test/render";
 import { EMPTY_PAYMENTS_DATA, type PaymentsData } from "@/types/adesao";
 import { PagamentosFields } from "./PagamentosFields";
@@ -23,7 +26,13 @@ type HarnessForm = ReturnType<typeof useHarnessForm>;
 const formRef: { current: HarnessForm | null } = { current: null };
 const currentForm = () => formRef.current as HarnessForm;
 
-function Harness({ initial = EMPTY_PAYMENTS_DATA, disabled = false }: { initial?: PaymentsData; disabled?: boolean }) {
+function Harness({
+  initial = EMPTY_PAYMENTS_DATA,
+  disabled = false,
+}: {
+  initial?: PaymentsData;
+  disabled?: boolean;
+}) {
   const form = useHarnessForm(initial);
   useEffect(() => {
     formRef.current = form;
@@ -37,13 +46,21 @@ const NOMES = ["Dinheiro", "Pix", "Cartão de crédito", "Cartão de débito"];
 describe("PagamentosFields", () => {
   it("agrupa os quatro meios sob a legenda e o texto de apoio", () => {
     renderWithTheme(<Harness />);
-    expect(screen.getByRole("group", { name: "Meios de pagamento aceitos" })).toBeInTheDocument();
-    expect(screen.getByText("Só os meios ligados aparecem na saída de veículos.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "Meios de pagamento aceitos" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Só os meios ligados aparecem na saída de veículos."),
+    ).toBeInTheDocument();
   });
 
   it("mostra os quatro switches na ordem, com nome e estado", () => {
     renderWithTheme(<Harness />);
-    expect(screen.getAllByRole("switch").map((item) => item.getAttribute("aria-label"))).toEqual(NOMES);
+    expect(
+      screen
+        .getAllByRole("switch")
+        .map((item) => item.getAttribute("aria-label")),
+    ).toEqual(NOMES);
     expect(meio("Dinheiro")).toBeChecked();
     expect(meio("Pix")).not.toBeChecked();
     expect(meio("Cartão de crédito")).not.toBeChecked();
@@ -61,7 +78,14 @@ describe("PagamentosFields", () => {
 
   it("não mostra erro antes de qualquer interação, mesmo com tudo desligado", () => {
     renderWithTheme(
-      <Harness initial={{ dinheiro: false, pix: false, cartaoCredito: false, cartaoDebito: false }} />,
+      <Harness
+        initial={{
+          dinheiro: false,
+          pix: false,
+          cartaoCredito: false,
+          cartaoDebito: false,
+        }}
+      />,
     );
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
@@ -71,9 +95,9 @@ describe("PagamentosFields", () => {
     fireEvent.click(meio("Dinheiro"));
     const alerta = screen.getByRole("alert");
     expect(alerta).toHaveTextContent(PAGAMENTOS_MINIMO_MESSAGE);
-    expect(screen.getByRole("group", { name: "Meios de pagamento aceitos" })).toHaveAccessibleDescription(
-      PAGAMENTOS_MINIMO_MESSAGE,
-    );
+    expect(
+      screen.getByRole("group", { name: "Meios de pagamento aceitos" }),
+    ).toHaveAccessibleDescription(PAGAMENTOS_MINIMO_MESSAGE);
     for (const nome of NOMES) {
       expect(meio(nome)).toHaveAccessibleDescription(PAGAMENTOS_MINIMO_MESSAGE);
     }
@@ -94,17 +118,28 @@ describe("PagamentosFields", () => {
     fireEvent.click(meio("Cartão de débito"));
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(meio("Dinheiro")).not.toHaveAttribute("data-invalid");
-    expect(meio("Dinheiro")).not.toHaveAccessibleDescription(PAGAMENTOS_MINIMO_MESSAGE);
+    expect(meio("Dinheiro")).not.toHaveAccessibleDescription(
+      PAGAMENTOS_MINIMO_MESSAGE,
+    );
   });
 
   it("mostra o erro depois de uma tentativa de envio com tudo desligado", async () => {
     renderWithTheme(
-      <Harness initial={{ dinheiro: false, pix: false, cartaoCredito: false, cartaoDebito: false }} />,
+      <Harness
+        initial={{
+          dinheiro: false,
+          pix: false,
+          cartaoCredito: false,
+          cartaoDebito: false,
+        }}
+      />,
     );
     await act(async () => {
       await currentForm().handleSubmit();
     });
-    expect(screen.getByRole("alert")).toHaveTextContent(PAGAMENTOS_MINIMO_MESSAGE);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      PAGAMENTOS_MINIMO_MESSAGE,
+    );
   });
 
   it("desabilita os quatro switches com disabled", () => {

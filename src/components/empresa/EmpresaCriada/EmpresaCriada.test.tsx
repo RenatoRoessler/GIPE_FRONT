@@ -14,9 +14,13 @@ beforeEach(() => {
 
 describe("EmpresaCriada", () => {
   it("confirma a criação, mostra o nome da empresa e explica como entrar nela", () => {
-    renderWithTheme(<EmpresaCriada nome="Estacionamento Norte LTDA" onVoltar={vi.fn()} />);
+    renderWithTheme(
+      <EmpresaCriada nome="Estacionamento Norte LTDA" onVoltar={vi.fn()} />,
+    );
 
-    expect(screen.getByRole("heading", { name: "Empresa criada" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Empresa criada" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Estacionamento Norte LTDA")).toBeInTheDocument();
     expect(screen.getByText(/saia e faça login de novo/)).toBeInTheDocument();
     expect(screen.getByText(/escolher em qual empresa/)).toBeInTheDocument();
@@ -26,13 +30,17 @@ describe("EmpresaCriada", () => {
     renderWithTheme(<EmpresaCriada nome="Norte" onVoltar={vi.fn()} />);
 
     expect(screen.getByRole("status")).toHaveAccessibleName("Empresa criada");
-    expect(screen.getByRole("heading", { name: "Empresa criada" })).toHaveFocus();
+    expect(
+      screen.getByRole("heading", { name: "Empresa criada" }),
+    ).toHaveFocus();
   });
 
   it("Sair e escolher a empresa encerra a sessão", async () => {
     renderWithTheme(<EmpresaCriada nome="Norte" onVoltar={vi.fn()} />);
 
-    await userEvent.click(screen.getByRole("button", { name: "Sair e escolher a empresa" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Sair e escolher a empresa" }),
+    );
 
     expect(logout).toHaveBeenCalledTimes(1);
   });
@@ -41,7 +49,9 @@ describe("EmpresaCriada", () => {
     const onVoltar = vi.fn();
     renderWithTheme(<EmpresaCriada nome="Norte" onVoltar={onVoltar} />);
 
-    await userEvent.click(screen.getByRole("button", { name: "Voltar para Minha empresa" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Voltar para Minha empresa" }),
+    );
 
     expect(onVoltar).toHaveBeenCalledTimes(1);
     expect(logout).not.toHaveBeenCalled();
@@ -50,6 +60,8 @@ describe("EmpresaCriada", () => {
   it("não oferece criar outra empresa daqui", () => {
     renderWithTheme(<EmpresaCriada nome="Norte" onVoltar={vi.fn()} />);
 
-    expect(screen.queryByRole("button", { name: /outra/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /outra/i }),
+    ).not.toBeInTheDocument();
   });
 });

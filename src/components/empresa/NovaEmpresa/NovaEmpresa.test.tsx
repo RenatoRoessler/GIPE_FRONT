@@ -8,7 +8,9 @@ const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 vi.mock("@/hooks/useLogout", () => ({ useLogout: () => vi.fn() }));
 vi.mock("@/lib/api/services/empresa", () => ({ addEmpresa: vi.fn() }));
-vi.mock("@/lib/api/services/cep", () => ({ fetchAddressByCep: vi.fn().mockResolvedValue(null) }));
+vi.mock("@/lib/api/services/cep", () => ({
+  fetchAddressByCep: vi.fn().mockResolvedValue(null),
+}));
 
 import { addEmpresa } from "@/lib/api/services/empresa";
 import { NovaEmpresa } from "./NovaEmpresa";
@@ -35,7 +37,10 @@ beforeEach(() => {
 
 async function preencher(user: User, cnpj = "11222333000181") {
   await user.type(screen.getByLabelText(/^CNPJ/), cnpj);
-  await user.type(screen.getByLabelText(/^Razão social/), "Estacionamento Norte LTDA");
+  await user.type(
+    screen.getByLabelText(/^Razão social/),
+    "Estacionamento Norte LTDA",
+  );
   await user.type(screen.getByLabelText(/^Nome fantasia/), "Norte");
   await user.selectOptions(screen.getByLabelText(/^Tipo de empresa/), "1");
   await user.type(screen.getByLabelText(/^Telefone/), "11987654321");
@@ -49,15 +54,20 @@ async function preencher(user: User, cnpj = "11222333000181") {
   await user.type(screen.getByLabelText(/^Vagas de carro/), "50");
 }
 
-const criar = () => screen.getByRole("button", { name: /^Criar empresa|^Criando/ });
+const criar = () =>
+  screen.getByRole("button", { name: /^Criar empresa|^Criando/ });
 
 describe("NovaEmpresa: abertura", () => {
   it("abre com o título, as três seções abertas e os campos em branco", () => {
     renderWithProviders(<NovaEmpresa />);
 
-    expect(screen.getByRole("heading", { level: 1, name: "Adicionar empresa" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Adicionar empresa" }),
+    ).toBeInTheDocument();
     for (const secao of ["Dados da empresa", "Funcionamento", "Pagamentos"]) {
-      expect(screen.getByRole("button", { name: new RegExp(`^${secao}`) })).toHaveAttribute("aria-expanded", "true");
+      expect(
+        screen.getByRole("button", { name: new RegExp(`^${secao}`) }),
+      ).toHaveAttribute("aria-expanded", "true");
     }
     expect(screen.getByLabelText(/^CNPJ/)).toHaveValue("");
     expect(screen.getByLabelText(/^Razão social/)).toHaveValue("");
@@ -74,8 +84,12 @@ describe("NovaEmpresa: abertura", () => {
 
     expect(screen.getByRole("switch", { name: "Dinheiro" })).toBeChecked();
     expect(screen.getByRole("switch", { name: "Pix" })).not.toBeChecked();
-    expect(screen.getByRole("switch", { name: "Cartão de crédito" })).not.toBeChecked();
-    expect(screen.getByRole("switch", { name: "Cartão de débito" })).not.toBeChecked();
+    expect(
+      screen.getByRole("switch", { name: "Cartão de crédito" }),
+    ).not.toBeChecked();
+    expect(
+      screen.getByRole("switch", { name: "Cartão de débito" }),
+    ).not.toBeChecked();
   });
 
   it("os botões Cancelar e Criar empresa já vêm habilitados", () => {
@@ -129,12 +143,19 @@ describe("NovaEmpresa: criação", () => {
 
     await user.click(criar());
 
-    expect(await screen.findByRole("heading", { name: "Empresa criada" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Empresa criada" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Estacionamento Norte LTDA")).toBeInTheDocument();
     expect(addEmpresa).toHaveBeenCalledTimes(1);
     const enviado = vi.mocked(addEmpresa).mock.calls[0][0];
     expect(enviado.company.razaoSocial).toBe("Estacionamento Norte LTDA");
-    expect(enviado.payments).toEqual({ dinheiro: true, pix: false, cartaoCredito: false, cartaoDebito: false });
+    expect(enviado.payments).toEqual({
+      dinheiro: true,
+      pix: false,
+      cartaoCredito: false,
+      cartaoDebito: false,
+    });
     expect(screen.queryByLabelText(/^CNPJ/)).not.toBeInTheDocument();
   });
 
@@ -146,7 +167,9 @@ describe("NovaEmpresa: criação", () => {
 
     await user.click(criar());
 
-    await waitFor(() => expect(screen.getByRole("button", { name: "Criando…" })).toBeDisabled());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Criando…" })).toBeDisabled(),
+    );
     expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
     expect(screen.getByLabelText(/^Razão social/)).toBeDisabled();
   });
@@ -158,7 +181,9 @@ describe("NovaEmpresa: criação", () => {
     await preencher(user);
 
     await user.click(criar());
-    await waitFor(() => expect(screen.getByRole("button", { name: "Criando…" })).toBeDisabled());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Criando…" })).toBeDisabled(),
+    );
     await user.click(screen.getByRole("button", { name: "Criando…" }));
 
     expect(addEmpresa).toHaveBeenCalledTimes(1);
@@ -172,7 +197,9 @@ describe("NovaEmpresa: criação", () => {
     await user.click(criar());
     await screen.findByRole("heading", { name: "Empresa criada" });
 
-    await user.click(screen.getByRole("button", { name: "Voltar para Minha empresa" }));
+    await user.click(
+      screen.getByRole("button", { name: "Voltar para Minha empresa" }),
+    );
 
     expect(push).toHaveBeenCalledWith("/minha-empresa");
   });
@@ -181,22 +208,32 @@ describe("NovaEmpresa: criação", () => {
 describe("NovaEmpresa: erros da API", () => {
   it("mostra a mensagem da API (ex.: CNPJ já cadastrado) e mantém o que foi digitado", async () => {
     const user = userEvent.setup();
-    vi.mocked(addEmpresa).mockRejectedValue(new ApiError("validation", "CNPJ já cadastrado.", 400));
+    vi.mocked(addEmpresa).mockRejectedValue(
+      new ApiError("validation", "CNPJ já cadastrado.", 400),
+    );
     renderWithProviders(<NovaEmpresa />);
     await preencher(user);
 
     await user.click(criar());
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("CNPJ já cadastrado.");
-    expect(screen.getByLabelText(/^Razão social/)).toHaveValue("Estacionamento Norte LTDA");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "CNPJ já cadastrado.",
+    );
+    expect(screen.getByLabelText(/^Razão social/)).toHaveValue(
+      "Estacionamento Norte LTDA",
+    );
     expect(screen.getByLabelText(/^Razão social/)).toBeEnabled();
     expect(criar()).toBeEnabled();
-    expect(screen.queryByRole("heading", { name: "Empresa criada" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Empresa criada" }),
+    ).not.toBeInTheDocument();
   });
 
   it("depois do erro dá para corrigir e enviar de novo", async () => {
     const user = userEvent.setup();
-    vi.mocked(addEmpresa).mockRejectedValueOnce(new ApiError("validation", "CNPJ já cadastrado.", 400));
+    vi.mocked(addEmpresa).mockRejectedValueOnce(
+      new ApiError("validation", "CNPJ já cadastrado.", 400),
+    );
     renderWithProviders(<NovaEmpresa />);
     await preencher(user);
     await user.click(criar());
@@ -205,20 +242,30 @@ describe("NovaEmpresa: erros da API", () => {
     vi.mocked(addEmpresa).mockResolvedValue({ empresaGuid: "guid-2" });
     await user.click(criar());
 
-    expect(await screen.findByRole("heading", { name: "Empresa criada" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Empresa criada" }),
+    ).toBeInTheDocument();
     expect(addEmpresa).toHaveBeenCalledTimes(2);
   });
 
   it("403 mostra o aviso de permissão", async () => {
     const user = userEvent.setup();
-    vi.mocked(addEmpresa).mockRejectedValue(new ApiError("forbidden", undefined, 403));
+    vi.mocked(addEmpresa).mockRejectedValue(
+      new ApiError("forbidden", undefined, 403),
+    );
     renderWithProviders(<NovaEmpresa />);
     await preencher(user);
 
     await user.click(criar());
 
-    expect(await screen.findByText("Você não tem permissão para adicionar empresas.")).toBeInTheDocument();
-    expect(screen.getByLabelText(/^Razão social/)).toHaveValue("Estacionamento Norte LTDA");
+    expect(
+      await screen.findByText(
+        "Você não tem permissão para adicionar empresas.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Razão social/)).toHaveValue(
+      "Estacionamento Norte LTDA",
+    );
   });
 
   it("falha de rede mostra a mensagem padrão do sistema", async () => {
@@ -229,7 +276,9 @@ describe("NovaEmpresa: erros da API", () => {
 
     await user.click(criar());
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível conectar ao servidor.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Não foi possível conectar ao servidor.",
+    );
   });
 });
 
@@ -251,10 +300,16 @@ describe("NovaEmpresa: cancelar", () => {
 
     await user.click(screen.getByRole("button", { name: "Cancelar" }));
 
-    expect(await screen.findByRole("dialog", { name: "Descartar os dados da nova empresa?" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("dialog", {
+        name: "Descartar os dados da nova empresa?",
+      }),
+    ).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: "Continuar editando" }));
+    await user.click(
+      screen.getByRole("button", { name: "Continuar editando" }),
+    );
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByLabelText(/^Razão social/)).toHaveValue("Algo digitado");

@@ -4,7 +4,12 @@ import { useEffect, useRef } from "react";
 import { ThemeProvider } from "styled-components";
 import { describe, expect, it, vi } from "vitest";
 import { lightTheme } from "@/styles/theme";
-import { EMPTY_BUSINESS_HOURS_DATA, EMPTY_COMPANY_DATA, EMPTY_PAYMENTS_DATA, TipoEmpresa } from "@/types/adesao";
+import {
+  EMPTY_BUSINESS_HOURS_DATA,
+  EMPTY_COMPANY_DATA,
+  EMPTY_PAYMENTS_DATA,
+  TipoEmpresa,
+} from "@/types/adesao";
 import type { EmpresaFormValues } from "@/types/empresa";
 import { EmpresaSecoes } from "./EmpresaSecoes";
 import { useEmpresaForms, type EmpresaForms } from "./useEmpresaForms";
@@ -26,10 +31,19 @@ const VALIDA: EmpresaFormValues = {
     quantidadeVagasCarro: "50",
   },
   hours: EMPTY_BUSINESS_HOURS_DATA,
-  payments: { dinheiro: true, pix: false, cartaoCredito: false, cartaoDebito: false },
+  payments: {
+    dinheiro: true,
+    pix: false,
+    cartaoCredito: false,
+    cartaoDebito: false,
+  },
 };
 
-const VAZIA: EmpresaFormValues = { company: EMPTY_COMPANY_DATA, hours: EMPTY_BUSINESS_HOURS_DATA, payments: EMPTY_PAYMENTS_DATA };
+const VAZIA: EmpresaFormValues = {
+  company: EMPTY_COMPANY_DATA,
+  hours: EMPTY_BUSINESS_HOURS_DATA,
+  payments: EMPTY_PAYMENTS_DATA,
+};
 
 let capturado: EmpresaForms | null = null;
 
@@ -70,7 +84,9 @@ describe("useEmpresaForms", () => {
     expect(valores).not.toBeNull();
     expect(valores!.company.razaoSocial).toBe("Estacionamento Central LTDA");
     expect(valores!.payments).toEqual(VALIDA.payments);
-    expect(valores!.hours.horarios).toHaveLength(EMPTY_BUSINESS_HOURS_DATA.horarios.length);
+    expect(valores!.hours.horarios).toHaveLength(
+      EMPTY_BUSINESS_HOURS_DATA.horarios.length,
+    );
   });
 
   it("formulário vazio não passa e devolve null", async () => {
@@ -96,10 +112,22 @@ describe("useEmpresaForms", () => {
   });
 
   it("abre a seção recolhida que tem erro", async () => {
-    renderizar({ ...VALIDA, payments: { dinheiro: false, pix: false, cartaoCredito: false, cartaoDebito: false } });
+    renderizar({
+      ...VALIDA,
+      payments: {
+        dinheiro: false,
+        pix: false,
+        cartaoCredito: false,
+        cartaoDebito: false,
+      },
+    });
 
     await act(async () => {
-      capturado!.setOpen({ empresa: true, funcionamento: true, pagamentos: false });
+      capturado!.setOpen({
+        empresa: true,
+        funcionamento: true,
+        pagamentos: false,
+      });
     });
     expect(capturado!.open.pagamentos).toBe(false);
 
@@ -133,7 +161,10 @@ describe("useEmpresaForms", () => {
     renderizar(VALIDA);
 
     await act(async () => {
-      capturado!.reset({ ...VALIDA, company: { ...VALIDA.company, nomeFantasia: "Salvo agora" } });
+      capturado!.reset({
+        ...VALIDA,
+        company: { ...VALIDA.company, nomeFantasia: "Salvo agora" },
+      });
     });
 
     expect(screen.getByLabelText(/^Nome fantasia/)).toHaveValue("Salvo agora");
@@ -145,7 +176,9 @@ describe("useEmpresaForms", () => {
 
     expect(capturado!.razaoSocial).toBe("Estacionamento Central LTDA");
     expect(capturado!.meiosAceitos).toBe("Dinheiro");
-    expect(capturado!.openDays).toBe(EMPTY_BUSINESS_HOURS_DATA.horarios.filter((dia) => dia.aberto).length);
+    expect(capturado!.openDays).toBe(
+      EMPTY_BUSINESS_HOURS_DATA.horarios.filter((dia) => dia.aberto).length,
+    );
   });
 
   it("sem lockCnpj o CNPJ é editável (cadastro de empresa nova)", () => {

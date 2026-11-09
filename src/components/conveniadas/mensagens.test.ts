@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { cadastroParam, mensagemCadastro, parseCadastroParam } from "./mensagens";
+import {
+  cadastroParam,
+  mensagemCadastro,
+  parseCadastroParam,
+} from "./mensagens";
 
 describe("mensagemCadastro", () => {
   it("empresa nova e usuário novo", () => {
@@ -31,7 +35,9 @@ describe("cadastroParam", () => {
   it("vai e volta nas quatro combinações", () => {
     for (const novaEmpresa of [true, false]) {
       for (const novoUsuario of [true, false]) {
-        expect(parseCadastroParam(cadastroParam({ novaEmpresa, novoUsuario }))).toEqual({ novaEmpresa, novoUsuario });
+        expect(
+          parseCadastroParam(cadastroParam({ novaEmpresa, novoUsuario })),
+        ).toEqual({ novaEmpresa, novoUsuario });
       }
     }
   });

@@ -30,7 +30,9 @@ export function ConveniadasPage() {
       return;
     }
     showToast(mensagemCadastro(resultado));
-    router.replace(situacaoUrl(parseSituacao(situacaoParam)), { scroll: false });
+    router.replace(situacaoUrl(parseSituacao(situacaoParam)), {
+      scroll: false,
+    });
   }, [cadastro, situacaoParam, router, showToast]);
 
   function changeSituacao(next: string) {
@@ -54,8 +56,18 @@ export function ConveniadasPage() {
         onChange={changeSituacao}
         columns={3}
       />
-      <ConveniadasList situacao={situacao} onNova={() => router.push(NOVA_URL)} onVerTodos={() => changeSituacao("todos")} />
-      {toast && <Toast message={toast.message} variant={toast.variant} onDismiss={dismissToast} />}
+      <ConveniadasList
+        situacao={situacao}
+        onNova={() => router.push(NOVA_URL)}
+        onVerTodos={() => changeSituacao("todos")}
+      />
+      {toast && (
+        <Toast
+          message={toast.message}
+          variant={toast.variant}
+          onDismiss={dismissToast}
+        />
+      )}
     </Page>
   );
 }

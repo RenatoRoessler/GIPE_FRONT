@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { enderecoResumido, formatDesde, nomeExibido, razaoSecundaria } from "./format";
+import {
+  enderecoResumido,
+  formatDesde,
+  nomeExibido,
+  razaoSecundaria,
+} from "./format";
 
 describe("nomeExibido / razaoSecundaria", () => {
   it("usa o nome fantasia e mostra a razão social como apoio", () => {
-    const empresa = { nomeFantasia: "Sul Peças", razaoSocial: "Auto Peças Sul LTDA" };
+    const empresa = {
+      nomeFantasia: "Sul Peças",
+      razaoSocial: "Auto Peças Sul LTDA",
+    };
     expect(nomeExibido(empresa)).toBe("Sul Peças");
     expect(razaoSecundaria(empresa)).toBe("Auto Peças Sul LTDA");
   });
@@ -18,15 +26,38 @@ describe("nomeExibido / razaoSecundaria", () => {
 describe("enderecoResumido", () => {
   it("junta rua, bairro e cidade/estado", () => {
     expect(
-      enderecoResumido({ logradouro: "Rua X", numero: "10", bairro: "Centro", cidade: "São Paulo", estado: "SP", cep: "01310100" }),
+      enderecoResumido({
+        logradouro: "Rua X",
+        numero: "10",
+        bairro: "Centro",
+        cidade: "São Paulo",
+        estado: "SP",
+        cep: "01310100",
+      }),
     ).toBe("Rua X, 10 – Centro, São Paulo/SP");
   });
 
   it("pula o que não veio", () => {
-    expect(enderecoResumido({ logradouro: "Rua X", numero: "", bairro: "", cidade: "Santos", estado: "", cep: "" })).toBe(
-      "Rua X – Santos",
-    );
-    expect(enderecoResumido({ logradouro: "", numero: "", bairro: "", cidade: "", estado: "", cep: "" })).toBe("");
+    expect(
+      enderecoResumido({
+        logradouro: "Rua X",
+        numero: "",
+        bairro: "",
+        cidade: "Santos",
+        estado: "",
+        cep: "",
+      }),
+    ).toBe("Rua X – Santos");
+    expect(
+      enderecoResumido({
+        logradouro: "",
+        numero: "",
+        bairro: "",
+        cidade: "",
+        estado: "",
+        cep: "",
+      }),
+    ).toBe("");
   });
 });
 

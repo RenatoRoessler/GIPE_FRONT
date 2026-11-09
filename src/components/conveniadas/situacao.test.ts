@@ -18,6 +18,8 @@ describe("situacaoUrl", () => {
   it("todos fica sem parâmetro", () => {
     expect(situacaoUrl("todos")).toBe("/empresas-conveniadas");
     expect(situacaoUrl("ativos")).toBe("/empresas-conveniadas?situacao=ativos");
-    expect(situacaoUrl("encerrados")).toBe("/empresas-conveniadas?situacao=encerrados");
+    expect(situacaoUrl("encerrados")).toBe(
+      "/empresas-conveniadas?situacao=encerrados",
+    );
   });
 });

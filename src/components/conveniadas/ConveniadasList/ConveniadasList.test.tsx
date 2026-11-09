@@ -20,7 +20,14 @@ const sul: Conveniada = {
   nomeFantasia: "Sul Peças",
   cnpj: "11222333000181",
   telefone: "11987654321",
-  endereco: { logradouro: "Rua X", numero: "10", bairro: "Centro", cidade: "São Paulo", estado: "SP", cep: "01310-100" },
+  endereco: {
+    logradouro: "Rua X",
+    numero: "10",
+    bairro: "Centro",
+    cidade: "São Paulo",
+    estado: "SP",
+    cep: "01310-100",
+  },
   ativo: true,
   dataCriacao: "2026-03-12T10:00:00",
 };
@@ -40,7 +47,13 @@ const onNova = vi.fn();
 const onVerTodos = vi.fn();
 
 function renderizar(situacao: "todos" | "ativos" | "encerrados" = "todos") {
-  return renderWithProviders(<ConveniadasList situacao={situacao} onNova={onNova} onVerTodos={onVerTodos} />);
+  return renderWithProviders(
+    <ConveniadasList
+      situacao={situacao}
+      onNova={onNova}
+      onVerTodos={onVerTodos}
+    />,
+  );
 }
 
 beforeEach(() => {
@@ -51,7 +64,9 @@ describe("ConveniadasList", () => {
   it("mostra o carregamento antes da resposta", () => {
     listar.mockReturnValue(new Promise(() => {}));
     renderizar();
-    expect(screen.getByRole("status", { name: "Carregando conveniadas" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("status", { name: "Carregando conveniadas" }),
+    ).toBeInTheDocument();
   });
 
   it("lista uma linha por convênio com nome, CNPJ, contato, situação e data", async () => {
@@ -62,11 +77,15 @@ describe("ConveniadasList", () => {
     expect(screen.getByText("Auto Peças Sul LTDA")).toBeInTheDocument();
     expect(screen.getByText("11.222.333/0001-81")).toBeInTheDocument();
     expect(screen.getByText("(11) 98765-4321")).toBeInTheDocument();
-    expect(screen.getByText("Rua X, 10 – Centro, São Paulo/SP")).toBeInTheDocument();
+    expect(
+      screen.getByText("Rua X, 10 – Centro, São Paulo/SP"),
+    ).toBeInTheDocument();
     expect(screen.getByText("Ativo")).toBeInTheDocument();
     expect(screen.getByText("Encerrado")).toBeInTheDocument();
     expect(screen.getByText("Norte Ltda")).toBeInTheDocument();
-    expect(screen.getByText("12/03/2026", { selector: "td" })).toBeInTheDocument();
+    expect(
+      screen.getByText("12/03/2026", { selector: "td" }),
+    ).toBeInTheDocument();
     expect(listar).toHaveBeenCalledWith("todos");
   });
 
@@ -82,7 +101,9 @@ describe("ConveniadasList", () => {
     const user = userEvent.setup();
     renderizar();
 
-    expect(await screen.findByText("Nenhuma empresa conveniada ainda.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Nenhuma empresa conveniada ainda."),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Nova conveniada" }));
     expect(onNova).toHaveBeenCalled();
   });
@@ -92,17 +113,23 @@ describe("ConveniadasList", () => {
     const user = userEvent.setup();
     renderizar("encerrados");
 
-    expect(await screen.findByText("Nenhum convênio encerrado.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Nenhum convênio encerrado."),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Ver todos" }));
     expect(onVerTodos).toHaveBeenCalled();
   });
 
   it("no erro, mostra o aviso e tenta novamente", async () => {
-    listar.mockRejectedValueOnce(new ApiError("server")).mockResolvedValue([sul]);
+    listar
+      .mockRejectedValueOnce(new ApiError("server"))
+      .mockResolvedValue([sul]);
     const user = userEvent.setup();
     renderizar();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar as conveniadas.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Não foi possível carregar as conveniadas.",
+    );
     await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
     expect(await screen.findByText("Sul Peças")).toBeInTheDocument();
   });
@@ -111,7 +138,13 @@ describe("ConveniadasList", () => {
     listar.mockRejectedValue(new ApiError("forbidden", undefined, 403));
     renderizar();
 
-    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Você não tem permissão"));
-    expect(screen.queryByRole("button", { name: "Tentar novamente" })).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Você não tem permissão",
+      ),
+    );
+    expect(
+      screen.queryByRole("button", { name: "Tentar novamente" }),
+    ).not.toBeInTheDocument();
   });
 });

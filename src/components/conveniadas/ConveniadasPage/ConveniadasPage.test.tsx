@@ -13,7 +13,9 @@ vi.mock("next/navigation", () => ({
   useRouter: () => router,
   useSearchParams: () => ({ get: (key: string) => params[key] ?? null }),
 }));
-vi.mock("@/lib/api/services/conveniada", () => ({ listConveniadas: vi.fn().mockResolvedValue([]) }));
+vi.mock("@/lib/api/services/conveniada", () => ({
+  listConveniadas: vi.fn().mockResolvedValue([]),
+}));
 
 import { ConveniadasPage } from "./ConveniadasPage";
 
@@ -28,9 +30,13 @@ describe("ConveniadasPage", () => {
     const user = userEvent.setup();
     renderWithProviders(<ConveniadasPage />);
 
-    expect(screen.getByRole("heading", { level: 1, name: "Empresas conveniadas" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Empresas conveniadas" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Todos" })).toBeChecked();
-    await user.click(screen.getAllByRole("button", { name: "Nova conveniada" })[0]);
+    await user.click(
+      screen.getAllByRole("button", { name: "Nova conveniada" })[0],
+    );
     expect(push).toHaveBeenCalledWith("/empresas-conveniadas/nova");
   });
 
@@ -41,7 +47,10 @@ describe("ConveniadasPage", () => {
 
     expect(screen.getByRole("radio", { name: "Ativos" })).toBeChecked();
     await user.click(screen.getByRole("radio", { name: "Encerrados" }));
-    expect(replace).toHaveBeenCalledWith("/empresas-conveniadas?situacao=encerrados", { scroll: false });
+    expect(replace).toHaveBeenCalledWith(
+      "/empresas-conveniadas?situacao=encerrados",
+      { scroll: false },
+    );
   });
 
   it("mostra o resultado do cadastro uma vez e limpa o parâmetro da URL", async () => {
@@ -53,6 +62,10 @@ describe("ConveniadasPage", () => {
         "Empresa cadastrada e convênio registrado. O usuário já cadastrado ganhou acesso a esta conveniada.",
       ),
     ).toBeInTheDocument();
-    await waitFor(() => expect(replace).toHaveBeenCalledWith("/empresas-conveniadas", { scroll: false }));
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith("/empresas-conveniadas", {
+        scroll: false,
+      }),
+    );
   });
 });

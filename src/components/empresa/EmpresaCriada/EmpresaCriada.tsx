@@ -29,7 +29,10 @@ export function EmpresaCriada({ nome, onVoltar }: EmpresaCriadaProps) {
         Empresa criada
       </Titulo>
       <NomeEmpresa>{nome}</NomeEmpresa>
-      <Text>Para entrar nela, saia e faça login de novo. Você vai escolher em qual empresa quer entrar.</Text>
+      <Text>
+        Para entrar nela, saia e faça login de novo. Você vai escolher em qual
+        empresa quer entrar.
+      </Text>
       <Acoes>
         <Button type="button" onClick={logout}>
           Sair e escolher a empresa

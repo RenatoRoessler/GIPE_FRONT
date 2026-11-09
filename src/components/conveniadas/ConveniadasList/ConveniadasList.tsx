@@ -5,14 +5,32 @@ import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/Table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@/components/ui/Table";
 import { Text } from "@/components/ui/Text";
 import { isForbiddenError } from "@/lib/api/errors";
 import { formatCNPJ } from "@/lib/cnpj";
 import { formatPhone } from "@/lib/phone";
 import type { SituacaoFiltro } from "@/types/conveniada";
-import { EmptyState, ErrorArea, Primary, SkeletonRows, SubText, TableArea } from "../Conveniadas.styles";
-import { enderecoResumido, formatDesde, nomeExibido, razaoSecundaria } from "../format";
+import {
+  EmptyState,
+  ErrorArea,
+  Primary,
+  SkeletonRows,
+  SubText,
+  TableArea,
+} from "../Conveniadas.styles";
+import {
+  enderecoResumido,
+  formatDesde,
+  nomeExibido,
+  razaoSecundaria,
+} from "../format";
 import { useConveniadas } from "../useConveniadas";
 
 const SKELETON_ROWS = 6;
@@ -29,8 +47,20 @@ export interface ConveniadasListProps {
   onVerTodos: () => void;
 }
 
-export function ConveniadasList({ situacao, onNova, onVerTodos }: ConveniadasListProps) {
-  const { data, isPending, isError, error, refetch, isFetching, isPlaceholderData } = useConveniadas(situacao);
+export function ConveniadasList({
+  situacao,
+  onNova,
+  onVerTodos,
+}: ConveniadasListProps) {
+  const {
+    data,
+    isPending,
+    isError,
+    error,
+    refetch,
+    isFetching,
+    isPlaceholderData,
+  } = useConveniadas(situacao);
 
   if (isError) {
     // 403 não melhora ao tentar de novo: mostra só o aviso de permissão.
@@ -39,8 +69,15 @@ export function ConveniadasList({ situacao, onNova, onVerTodos }: ConveniadasLis
     }
     return (
       <ErrorArea>
-        <ErrorBanner role="alert">Não foi possível carregar as conveniadas. {error.message}</ErrorBanner>
-        <Button type="button" variant="secondary" onClick={() => void refetch()} disabled={isFetching}>
+        <ErrorBanner role="alert">
+          Não foi possível carregar as conveniadas. {error.message}
+        </ErrorBanner>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => void refetch()}
+          disabled={isFetching}
+        >
           Tentar novamente
         </Button>
       </ErrorArea>
@@ -49,7 +86,11 @@ export function ConveniadasList({ situacao, onNova, onVerTodos }: ConveniadasLis
 
   if (isPending) {
     return (
-      <TableArea $refreshing={false} role="status" aria-label="Carregando conveniadas">
+      <TableArea
+        $refreshing={false}
+        role="status"
+        aria-label="Carregando conveniadas"
+      >
         <SkeletonRows>
           {Array.from({ length: SKELETON_ROWS }, (_, index) => (
             <Skeleton key={index} height="20px" />
