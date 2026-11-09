@@ -66,7 +66,7 @@ beforeEach(() => {
 });
 
 describe("ComprovanteDigital", () => {
-  it("mostra o estabelecimento, o título, a placa, a entrada e as instruções", async () => {
+  it("mostra o estabelecimento, o título, a placa, a entrada, sem instruções", async () => {
     abrir();
 
     expect(await screen.findByText("Estacionamento Central")).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe("ComprovanteDigital", () => {
     expect(screen.getByText("FLP3C88")).toBeInTheDocument();
     expect(screen.getByText("Corolla · BRANCO")).toBeInTheDocument();
     expect(screen.getByText(/Ticket 24024/)).toBeInTheDocument();
-    expect(screen.getByText("Aponte a câmera do celular")).toBeInTheDocument();
+    expect(screen.queryByText("Aponte a câmera do celular")).not.toBeInTheDocument();
   });
 
   it("o QR leva à página pública do comprovante", async () => {

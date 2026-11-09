@@ -114,23 +114,6 @@ export const Entrada = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.sm};
 `;
 
-export const Instrucoes = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.space[2]}px;
-  align-self: stretch;
-  padding: ${({ theme }) => theme.space[3]}px;
-  border-radius: ${({ theme }) => theme.radii.lg};
-  background-color: ${({ theme }) => theme.colors.surface};
-  box-shadow: inset 0 0 0 1px ${({ theme }) => theme.colors.border};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  line-height: 1.4;
-
-  span:last-child {
-    color: ${({ theme }) => theme.colors.textMuted};
-  }
-`;
-
 export const Rodape = styled.div`
   display: flex;
   flex-direction: column;

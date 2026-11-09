@@ -22,7 +22,6 @@ import {
   Estado,
   Fechar,
   Identificacao,
-  Instrucoes,
   Placa,
   Rodape,
   Tela,
@@ -165,13 +164,6 @@ function Conteudo({ patioId }: ComprovanteDigitalProps) {
         <Veiculo>{`${veiculo.modelo ?? "—"} · ${cor}`}</Veiculo>
         <Entrada>{`Entrada ${formatDateTime(veiculo.dataHoraEntrada)} · ${ticket}`}</Entrada>
       </Identificacao>
-
-      <Instrucoes>
-        <span>
-          <b>Aponte a câmera do celular</b> para o QR Code e acompanhe tempo e valor pelo link.
-        </span>
-        <span>Ou tire uma foto desta tela. Não precisa de cadastro.</span>
-      </Instrucoes>
 
       <Rodape>
         <Button type="button" onClick={fechar}>
