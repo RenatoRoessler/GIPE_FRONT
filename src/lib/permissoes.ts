@@ -18,6 +18,8 @@ export const AREA = {
   // Fluxo de caixa, lançamentos e categorias de receita e despesa.
   Financeiro: "financeiro",
   Empresa: "empresa",
+  // Regras da empresa para o dia a dia, como os dados obrigatórios na entrada de veículos.
+  Configuracoes: "configuracoes",
   Usuarios: "usuarios",
   // Cadastro dos quadros de chaves do pátio; escolher o gancho na entrada de veículos faz parte do pátio.
   QuadroChaves: "quadros-chaves",
@@ -56,6 +58,7 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.NotasFiscais]: [Administrador, Gerente, Financeiro],
   [AREA.Financeiro]: [Administrador, Gerente, Financeiro],
   [AREA.Empresa]: [Administrador],
+  [AREA.Configuracoes]: [Administrador, Gerente],
   [AREA.Usuarios]: [Administrador],
   [AREA.QuadroChaves]: [Administrador, Gerente],
   [AREA.Carimbo]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
@@ -86,6 +89,7 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/notas-fiscais", AREA.NotasFiscais],
   ["/financeiro", AREA.Financeiro],
   ["/minha-empresa", AREA.Empresa],
+  ["/configuracoes", AREA.Configuracoes],
   ["/usuarios", AREA.Usuarios],
   ["/quadros-chaves", AREA.QuadroChaves],
   ["/carimbo", AREA.Carimbo],
