@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.388",
+      "type": "feat",
+      "scope": "camera",
+      "title": "facilita liberar a câmera na leitura de placa e QR Code",
+      "description": "Antes de pedir a câmera pela primeira vez, a tela explica para que ela\nserve e só abre o pedido do navegador depois do toque em Permitir câmera.\nSe o navegador informa que a câmera já foi liberada, ela abre direto; se\nestá bloqueada, a tela mostra os passos para liberar no navegador do\nusuário (Safari, Chrome ou Firefox) e Tentar de novo confere a permissão\noutra vez. Vale para a entrada de veículo, a saída por QR Code e a\nconferência do pátio.",
+      "date": "2026-11-09T17:25:39-03:00"
+    },
+    {
       "version": "1.0.386",
       "type": "feat",
       "scope": "entrada",
