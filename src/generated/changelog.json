@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.398",
+      "type": "fix",
+      "scope": "menu",
+      "title": "abre o menu Mais em tela cheia no celular",
+      "description": "No celular o painel \"Mais\" ocupava só parte da tela. Agora ele cobre a\ntela inteira, respeitando as áreas seguras do aparelho. Nas telas\nmaiores continua flutuando acima da barra inferior.",
+      "date": "2026-11-09T19:10:16-03:00"
+    },
+    {
       "version": "1.0.394",
       "type": "fix",
       "scope": "header",
