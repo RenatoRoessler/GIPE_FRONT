@@ -112,6 +112,46 @@ describe("usePrecosUrlState: escrita", () => {
     expect(nav.replace).toHaveBeenCalledWith("/precos?preco=5&pagina=2", { scroll: false });
   });
 
+  it("lê lista=1 como lista completa aberta e qualquer outro valor como fechada", () => {
+    irPara("/precos?lista=1");
+    expect(renderHook(() => usePrecosUrlState()).result.current.listaAberta).toBe(true);
+    irPara("/precos?lista=2");
+    expect(renderHook(() => usePrecosUrlState()).result.current.listaAberta).toBe(false);
+  });
+
+  it("abrirLista cria uma entrada no histórico e mantém o resto do endereço", () => {
+    irPara("/precos?preco=5&q=tarifa&situacao=vigente");
+    const { result } = renderHook(() => usePrecosUrlState());
+    act(() => result.current.abrirLista());
+    expect(nav.push).toHaveBeenCalledWith("/precos?preco=5&q=tarifa&situacao=vigente&lista=1", { scroll: false });
+    expect(nav.replace).not.toHaveBeenCalled();
+  });
+
+  it("fecharLista e selecionar tiram lista=1 do endereço, sem criar entrada no histórico", () => {
+    irPara("/precos?preco=5&lista=1&pagina=2");
+    const { result } = renderHook(() => usePrecosUrlState());
+    act(() => result.current.fecharLista());
+    expect(nav.replace).toHaveBeenLastCalledWith("/precos?preco=5&pagina=2", { scroll: false });
+    act(() => result.current.selecionar(9));
+    expect(nav.replace).toHaveBeenLastCalledWith("/precos?preco=9&pagina=2", { scroll: false });
+    expect(nav.push).not.toHaveBeenCalled();
+  });
+
+  it("buscar, filtrar e paginar mantêm a lista aberta", () => {
+    irPara("/precos?lista=1");
+    const { result } = renderHook(() => usePrecosUrlState());
+    act(() => result.current.setSituacao("vigente"));
+    expect(nav.replace).toHaveBeenLastCalledWith("/precos?situacao=vigente&lista=1", { scroll: false });
+    act(() => result.current.setPagina(2));
+    expect(nav.replace).toHaveBeenLastCalledWith("/precos?pagina=2&lista=1", { scroll: false });
+  });
+
+  it("o link antigo com só ?preco=ID continua abrindo a tabela", () => {
+    irPara("/precos?preco=12");
+    const { result } = renderHook(() => usePrecosUrlState());
+    expect(result.current).toMatchObject({ preco: 12, listaAberta: false });
+  });
+
   it("mantém o aviso salvo enquanto o usuário navega", () => {
     irPara("/precos?salvo=criado");
     const { result } = renderHook(() => usePrecosUrlState());

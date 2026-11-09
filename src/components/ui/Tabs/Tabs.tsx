@@ -1,7 +1,7 @@
 "use client";
 
 import { KeyboardEvent, ReactNode, useId, useRef } from "react";
-import { Panel, Tab, TabList } from "./Tabs.styles";
+import { Panel, Tab, TabList, type TabsVariant } from "./Tabs.styles";
 
 export interface TabsItem {
   id: string;
@@ -13,12 +13,14 @@ export interface TabsProps {
   value: string;
   onChange: (id: string) => void;
   "aria-label": string;
+  // "segmentada": controle compacto de toque (celular); "linha": abas com sublinhado.
+  variant?: TabsVariant;
   // Conteúdo do painel da aba ativa.
   children: ReactNode;
 }
 
 // Abas com seleção automática ao navegar por setas, Home e End; só a aba ativa entra na ordem de Tab.
-export function Tabs({ tabs, value, onChange, "aria-label": ariaLabel, children }: TabsProps) {
+export function Tabs({ tabs, value, onChange, "aria-label": ariaLabel, variant = "linha", children }: TabsProps) {
   const baseId = useId();
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -51,7 +53,7 @@ export function Tabs({ tabs, value, onChange, "aria-label": ariaLabel, children 
 
   return (
     <div>
-      <TabList role="tablist" aria-label={ariaLabel}>
+      <TabList role="tablist" aria-label={ariaLabel} $variant={variant}>
         {tabs.map((tab, index) => {
           const active = tab.id === value;
           return (
@@ -67,6 +69,7 @@ export function Tabs({ tabs, value, onChange, "aria-label": ariaLabel, children 
               aria-controls={`${baseId}-panel-${tab.id}`}
               tabIndex={active ? 0 : -1}
               $active={active}
+              $variant={variant}
               onClick={() => onChange(tab.id)}
               onKeyDown={(event) => handleKeyDown(event, index)}
             >

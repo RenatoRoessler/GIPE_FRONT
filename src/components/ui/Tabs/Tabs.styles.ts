@@ -1,15 +1,27 @@
 "use client";
 
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
-export const TabList = styled.div`
+export type TabsVariant = "linha" | "segmentada";
+
+export const TabList = styled.div<{ $variant: TabsVariant }>`
   display: flex;
   gap: ${({ theme }) => theme.space[2]}px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   overflow-x: auto;
+
+  ${({ $variant, theme }) =>
+    $variant === "segmentada" &&
+    css`
+      gap: 2px;
+      padding: 3px;
+      border-bottom: none;
+      border-radius: ${theme.radii.md};
+      background-color: ${theme.colors.surfaceMuted};
+    `}
 `;
 
-export const Tab = styled.button<{ $active: boolean }>`
+export const Tab = styled.button<{ $active: boolean; $variant: TabsVariant }>`
   flex-shrink: 0;
   min-height: 44px;
   padding: 0 ${({ theme }) => theme.space[3]}px;
@@ -32,6 +44,19 @@ export const Tab = styled.button<{ $active: boolean }>`
     outline-offset: -3px;
     border-radius: ${({ theme }) => theme.radii.sm};
   }
+
+  ${({ $variant, $active, theme }) =>
+    $variant === "segmentada" &&
+    css`
+      flex: 1;
+      justify-content: center;
+      margin-bottom: 0;
+      border-bottom: none;
+      border-radius: ${theme.radii.sm};
+      font-size: ${theme.fontSizes.sm};
+      background-color: ${$active ? theme.colors.surface : "transparent"};
+      box-shadow: ${$active ? theme.shadows.sm : "none"};
+    `}
 `;
 
 export const Panel = styled.div`

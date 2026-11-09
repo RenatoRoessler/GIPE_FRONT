@@ -48,6 +48,13 @@ export const Meta = styled.span`
   gap: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
 `;
 
+// O que a tabela cobra, de relance: o primeiro degrau e a diária.
+export const Resumo = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-variant-numeric: tabular-nums;
+  color: ${({ theme }) => theme.colors.textMuted};
+`;
+
 export const Tipo = styled.span<{ $cor: CorTipo }>`
   display: inline-flex;
   align-items: center;

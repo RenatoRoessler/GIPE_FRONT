@@ -17,6 +17,7 @@ import { SITUACAO_BADGE } from "../situacao";
 import { SimuladorCobranca } from "../SimuladorCobranca";
 import {
   Cabecalho,
+  Conteudo,
   Detalhe,
   EditarLink,
   Estado,
@@ -24,6 +25,7 @@ import {
   FatosEmColunas,
   Identificacao,
   Meta,
+  SimuladorLateral,
   SkeletonBloco,
   Tarifa,
   TipoNome,
@@ -48,7 +50,7 @@ export interface PrecoDetalheProps {
   onTentarNovamente?: () => void;
   // Leva à primeira tabela da lista quando a escolhida deixou de existir.
   onIrParaPrimeira?: () => void;
-  // No celular, volta para a lista.
+  // Nos estados de erro e de tabela inexistente: volta para a lista.
   onVoltar?: () => void;
 }
 
@@ -132,11 +134,6 @@ export function PrecoDetalhe({ estado, preco, mensagemErro, onTentarNovamente, o
 
   return (
     <Detalhe aria-labelledby={`detalhe-titulo-${preco.rotatividadeId}`}>
-      {onVoltar && (
-        <VoltarArea>
-          <BackButton onClick={onVoltar}>Preços</BackButton>
-        </VoltarArea>
-      )}
       <Cabecalho>
         <Identificacao>
           <Titulo id={`detalhe-titulo-${preco.rotatividadeId}`}>{preco.descricao}</Titulo>
@@ -155,79 +152,85 @@ export function PrecoDetalhe({ estado, preco, mensagemErro, onTentarNovamente, o
         </EditarLink>
       </Cabecalho>
 
-      <Tabs tabs={ABAS} value={aba} onChange={(id) => setAba(id as AbaDetalhe)} aria-label="Detalhes da tabela de preço">
-        {aba === "tarifa" && (
-          <Tarifa>
-            <FaixasPreview
-              size="lg"
-              faixas={preco.faixas}
-              diaria={{ periodo: preco.periodoDiaria, valor: preco.valorDiaria, adicional: preco.valorAdicionalDiaria }}
-              conveniadaPercentual={descontos.length === 1 ? descontos[0] : null}
-            />
-            <Fatos>
-              <div>
-                <dt>Tolerância de entrada</dt>
-                <dd>{preco.toleranciaEntradaMinutos} min</dd>
-              </div>
-              <div>
-                <dt>Tolerância de alteração de faixa</dt>
-                <dd>{preco.toleranciaAlteracaoFaixaMinutos} min</dd>
-              </div>
-              <div>
-                <dt>Categorias</dt>
-                <dd>{categoriasTexto(preco)}</dd>
-              </div>
-              {descontos.length > 1 && (
+      <Conteudo>
+        <Tabs tabs={ABAS} value={aba} onChange={(id) => setAba(id as AbaDetalhe)} aria-label="Detalhes da tabela de preço" variant="segmentada">
+          {aba === "tarifa" && (
+            <Tarifa>
+              <FaixasPreview
+                size="md"
+                semTitulo
+                faixas={preco.faixas}
+                diaria={{ periodo: preco.periodoDiaria, valor: preco.valorDiaria, adicional: preco.valorAdicionalDiaria }}
+                conveniadaPercentual={descontos.length === 1 ? descontos[0] : null}
+              />
+              <Fatos>
                 <div>
-                  <dt>Desconto da conveniada</dt>
-                  <dd>
-                    {descontos[0]}% a {descontos.at(-1)}%, conforme o degrau
-                  </dd>
+                  <dt>Tolerância de entrada</dt>
+                  <dd>{preco.toleranciaEntradaMinutos} min</dd>
+                </div>
+                <div>
+                  <dt>Tolerância de alteração de faixa</dt>
+                  <dd>{preco.toleranciaAlteracaoFaixaMinutos} min</dd>
+                </div>
+                <div>
+                  <dt>Categorias</dt>
+                  <dd>{categoriasTexto(preco)}</dd>
+                </div>
+                {descontos.length > 1 && (
+                  <div>
+                    <dt>Desconto da conveniada</dt>
+                    <dd>
+                      {descontos[0]}% a {descontos.at(-1)}%, conforme o degrau
+                    </dd>
+                  </div>
+                )}
+              </Fatos>
+            </Tarifa>
+          )}
+
+          {aba === "horarios" && <PrecoSemana regras={preco.regras} />}
+
+          {aba === "informacoes" && (
+            <FatosEmColunas>
+              <div>
+                <dt>Tipo de regra</dt>
+                <dd>{getTipoRegraLabel(preco.tipoRegra)}</dd>
+              </div>
+              <div>
+                <dt>Vigência</dt>
+                <dd>{formatVigencia(preco.inicioVigencia, preco.fimVigencia)}</dd>
+              </div>
+              <div>
+                <dt>Situação</dt>
+                <dd>{situacao.label}</dd>
+              </div>
+              <div>
+                <dt>Período da diária</dt>
+                <dd>{formatMinutos(preco.periodoDiaria)}</dd>
+              </div>
+              <div>
+                <dt>Valor da diária</dt>
+                <dd>{formatBRL(preco.valorDiaria)}</dd>
+              </div>
+              <div>
+                <dt>Valor adicional</dt>
+                <dd>{formatBRL(preco.valorAdicionalDiaria)}</dd>
+              </div>
+              {preco.empresaConveniadaId !== null && (
+                <div>
+                  <dt>Empresa conveniada</dt>
+                  <dd>{preco.empresaConveniadaId}</dd>
                 </div>
               )}
-            </Fatos>
-          </Tarifa>
-        )}
+            </FatosEmColunas>
+          )}
+        </Tabs>
 
-        {aba === "horarios" && <PrecoSemana regras={preco.regras} />}
-
-        {aba === "informacoes" && (
-          <FatosEmColunas>
-            <div>
-              <dt>Tipo de regra</dt>
-              <dd>{getTipoRegraLabel(preco.tipoRegra)}</dd>
-            </div>
-            <div>
-              <dt>Vigência</dt>
-              <dd>{formatVigencia(preco.inicioVigencia, preco.fimVigencia)}</dd>
-            </div>
-            <div>
-              <dt>Situação</dt>
-              <dd>{situacao.label}</dd>
-            </div>
-            <div>
-              <dt>Período da diária</dt>
-              <dd>{formatMinutos(preco.periodoDiaria)}</dd>
-            </div>
-            <div>
-              <dt>Valor da diária</dt>
-              <dd>{formatBRL(preco.valorDiaria)}</dd>
-            </div>
-            <div>
-              <dt>Valor adicional</dt>
-              <dd>{formatBRL(preco.valorAdicionalDiaria)}</dd>
-            </div>
-            {preco.empresaConveniadaId !== null && (
-              <div>
-                <dt>Empresa conveniada</dt>
-                <dd>{preco.empresaConveniadaId}</dd>
-              </div>
-            )}
-          </FatosEmColunas>
-        )}
-      </Tabs>
-
-      <SimuladorCobranca key={preco.rotatividadeId} preco={preco} />
+        {/* No celular o simulador é a barra fixa (DockSimulador); aqui ele só aparece em telas maiores. */}
+        <SimuladorLateral>
+          <SimuladorCobranca key={preco.rotatividadeId} preco={preco} />
+        </SimuladorLateral>
+      </Conteudo>
     </Detalhe>
   );
 }

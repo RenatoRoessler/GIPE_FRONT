@@ -35,8 +35,20 @@ const PASSO = 5;
 // "Todas" não é uma categoria de veículo: o usuário escolhe uma categoria real para simular.
 const CATEGORIAS = TIPO_CATEGORIA_OPTIONS.filter((option) => option.value !== TIPO_CATEGORIA.Todas);
 
+export interface SimulacaoValor {
+  categoria: TipoCategoria;
+  minutos: number;
+}
+
 export interface SimuladorCobrancaProps {
   preco: PrecoView;
+  // Controlado por quem usa (ex.: o dock do simulador mostra o mesmo resultado); sem isto, o estado é interno.
+  valor?: SimulacaoValor;
+  onChange?: (valor: SimulacaoValor) => void;
+}
+
+export function simulacaoInicial(preco: PrecoView): SimulacaoValor {
+  return { categoria: categoriaInicial(preco), minutos: PERMANENCIA_INICIAL };
 }
 
 function categoriaInicial(preco: PrecoView): TipoCategoria {
@@ -50,11 +62,11 @@ function limitar(valor: number): number {
   return Math.min(Math.max(Math.round(valor), 0), PERMANENCIA_MAXIMA);
 }
 
-function nomeDaCategoria(categoria: TipoCategoria): string {
+export function nomeDaCategoria(categoria: TipoCategoria): string {
   return CATEGORIAS.find((option) => option.value === categoria)?.label ?? "";
 }
 
-function frase(estimativa: Estimativa, categoria: TipoCategoria): string {
+export function frase(estimativa: Estimativa, categoria: TipoCategoria): string {
   switch (estimativa.tipo) {
     case "nao_aplica":
       return `Esta tabela não se aplica a ${nomeDaCategoria(categoria)}.`;
@@ -67,10 +79,17 @@ function frase(estimativa: Estimativa, categoria: TipoCategoria): string {
 
 // Estimativa na tela: nunca substitui o valor calculado pelo sistema na saída. O componente deve ser
 // remontado (key) ao trocar de tabela, para a categoria inicial e a permanência voltarem ao padrão.
-export function SimuladorCobranca({ preco }: SimuladorCobrancaProps) {
+export function SimuladorCobranca({ preco, valor, onChange }: SimuladorCobrancaProps) {
   const ids = useId();
-  const [categoria, setCategoria] = useState<TipoCategoria>(() => categoriaInicial(preco));
-  const [minutos, setMinutos] = useState(PERMANENCIA_INICIAL);
+  const [interno, setInterno] = useState<SimulacaoValor>(() => simulacaoInicial(preco));
+  const { categoria, minutos } = valor ?? interno;
+
+  function alterar(proximo: SimulacaoValor) {
+    setInterno(proximo);
+    onChange?.(proximo);
+  }
+  const setCategoria = (nova: TipoCategoria) => alterar({ categoria: nova, minutos });
+  const setMinutos = (novos: number) => alterar({ categoria, minutos: novos });
   const tecladoMinutos = useTecladoCampo(TECLADO_INTEIRO, { inputMode: "numeric" });
 
   const estimativa = estimarCobranca(preco, categoria, minutos);

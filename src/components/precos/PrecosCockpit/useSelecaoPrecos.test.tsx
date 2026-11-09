@@ -41,6 +41,9 @@ function estado(extra: Partial<PrecosUrlState> = {}): PrecosUrlState {
     setQ: vi.fn(),
     setSituacao: vi.fn(),
     setPagina: vi.fn(),
+    listaAberta: false,
+    abrirLista: vi.fn(),
+    fecharLista: vi.fn(),
     selecionar,
     limparSalvo: vi.fn(),
     ...extra,
@@ -79,7 +82,7 @@ describe("selecaoPadrao e maiorId", () => {
 describe("useSelecaoPrecos: seleção efetiva", () => {
   it("enquanto carrega, não há seleção", () => {
     const { result } = renderHook(() => useSelecaoPrecos(estado(), { status: "carregando" }));
-    expect(result.current).toEqual({ selecionada: null, inexistente: false, detalheAberto: false });
+    expect(result.current).toEqual({ selecionada: null, inexistente: false });
   });
 
   it("na falha, não há seleção", () => {
@@ -87,10 +90,9 @@ describe("useSelecaoPrecos: seleção efetiva", () => {
     expect(result.current.selecionada).toBeNull();
   });
 
-  it("sem escolha explícita, vale a primeira vigente da página e o detalhe não fica aberto", () => {
+  it("sem escolha explícita, vale a primeira vigente da página sem gravar nada no endereço", () => {
     const { result } = renderHook(() => useSelecaoPrecos(estado(), precos([INATIVA(1), preco(2), preco(3)])));
     expect(result.current.selecionada?.rotatividadeId).toBe(2);
-    expect(result.current.detalheAberto).toBe(false);
     expect(selecionar).not.toHaveBeenCalled();
   });
 
@@ -107,24 +109,24 @@ describe("useSelecaoPrecos: seleção efetiva", () => {
 
   it("lista vazia não tem seleção", () => {
     const { result } = renderHook(() => useSelecaoPrecos(estado(), precos([])));
-    expect(result.current).toEqual({ selecionada: null, inexistente: false, detalheAberto: false });
+    expect(result.current).toEqual({ selecionada: null, inexistente: false });
   });
 
-  it("a escolha explícita vale mesmo fora da página atual e abre o detalhe", () => {
+  it("a escolha explícita vale mesmo fora da página atual", () => {
     const todas = [preco(1), preco(2), preco(30)];
     const { result } = renderHook(() => useSelecaoPrecos(estado({ preco: 30 }), precos(todas, [preco(1), preco(2)])));
-    expect(result.current).toMatchObject({ detalheAberto: true, inexistente: false });
+    expect(result.current).toMatchObject({ inexistente: false });
     expect(result.current.selecionada?.rotatividadeId).toBe(30);
   });
 
   it("escolha explícita que não existe mais é sinalizada", () => {
     const { result } = renderHook(() => useSelecaoPrecos(estado({ preco: 99 }), precos([preco(1)])));
-    expect(result.current).toEqual({ selecionada: null, inexistente: true, detalheAberto: true });
+    expect(result.current).toEqual({ selecionada: null, inexistente: true });
   });
 
-  it("enquanto carrega, o detalhe fica aberto se o endereço já tem a tabela (celular)", () => {
+  it("enquanto carrega, mesmo com a tabela no endereço, ainda não há seleção", () => {
     const { result } = renderHook(() => useSelecaoPrecos(estado({ preco: 5 }), { status: "carregando" }));
-    expect(result.current).toEqual({ selecionada: null, inexistente: false, detalheAberto: true });
+    expect(result.current).toEqual({ selecionada: null, inexistente: false });
   });
 });
 

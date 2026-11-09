@@ -80,4 +80,24 @@ describe("PrecoResumoAoVivo", () => {
     renderWithTheme(<PrecoResumoAoVivo values={COMPLETO} original={COMPLETO} etapasCompletas={[true, true, true]} />);
     expect(screen.queryByText("Alterado")).not.toBeInTheDocument();
   });
+
+  it("no cadastro novo os degraus do modelo padrão não aparecem como definidos", () => {
+    renderWithTheme(<PrecoResumoAoVivo values={EMPTY_PRECO_FORM_VALUES} etapasCompletas={[false, false, false]} faixasEditadas={false} />);
+    const painel = screen.getByRole("complementary", { name: "Resumo ao vivo da tabela" });
+    expect(within(painel).getByText("ainda sem valores definidos")).toBeInTheDocument();
+    expect(within(painel).queryByText(/7 degraus/)).not.toBeInTheDocument();
+    // A linha das faixas é lida como pendente para leitores de tela.
+    expect(within(painel).getByText("ainda sem valores definidos").parentElement).toHaveTextContent("(pendente)");
+  });
+
+  it("depois de editar, mostra os degraus e a diária de verdade", () => {
+    renderWithTheme(<PrecoResumoAoVivo values={COMPLETO} etapasCompletas={[true, true, true]} faixasEditadas />);
+    expect(screen.getByText(/2 degraus · diária R\$\s70,00/)).toBeInTheDocument();
+    expect(screen.queryByText("ainda sem valores definidos")).not.toBeInTheDocument();
+  });
+
+  it("sem título quando o painel já está sob um título (folha do celular)", () => {
+    renderWithTheme(<PrecoResumoAoVivo values={COMPLETO} etapasCompletas={[true, true, true]} semTitulo />);
+    expect(screen.queryByText("Sua tabela")).not.toBeInTheDocument();
+  });
 });

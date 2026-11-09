@@ -10,8 +10,6 @@ export interface SelecaoPrecos {
   selecionada: PrecoView | null;
   // O endereço aponta para uma tabela que não está (ou deixou de estar) na lista.
   inexistente: boolean;
-  // No celular, o detalhe só abre quando a tabela foi escolhida de fato (está no endereço).
-  detalheAberto: boolean;
 }
 
 export function maiorId(precos: PrecoView[]): number | null {
@@ -19,7 +17,7 @@ export function maiorId(precos: PrecoView[]): number | null {
 }
 
 // Seleção padrão: a primeira vigente da página, senão o primeiro item da página, senão nenhuma.
-// Ela NÃO é gravada no endereço: no celular isso abriria o detalhe em vez da lista.
+// Ela NÃO é gravada no endereço: só uma escolha explícita (toque na esteira ou na lista) entra nele.
 export function selecaoPadrao(itens: PrecoView[], agora: Date): PrecoView | null {
   const vigente = itens.find((preco) => getSituacao(preco.ativo, preco.inicioVigencia, preco.fimVigencia, agora) === "vigente");
   return vigente ?? itens[0] ?? null;
@@ -46,13 +44,13 @@ export function useSelecaoPrecos(estado: PrecosUrlState, precos: UsePrecos): Sel
   }, [salvo, preco, todas, atualizando, selecionar]);
 
   if (!pronto) {
-    return { selecionada: null, inexistente: false, detalheAberto: preco !== null };
+    return { selecionada: null, inexistente: false };
   }
 
   if (preco !== null) {
     const escolhida = pronto.todas.find((item) => item.rotatividadeId === preco) ?? null;
-    return { selecionada: escolhida, inexistente: escolhida === null, detalheAberto: true };
+    return { selecionada: escolhida, inexistente: escolhida === null };
   }
 
-  return { selecionada: selecaoPadrao(pronto.pagina.itens, new Date()), inexistente: false, detalheAberto: false };
+  return { selecionada: selecaoPadrao(pronto.pagina.itens, new Date()), inexistente: false };
 }

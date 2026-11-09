@@ -183,7 +183,8 @@ export const PrecoFaixasStepFields = withForm({
                         <form.AppField name={`faixas[${index}].valor`}>
                           {(field) => (
                             <field.TextField
-                              label={`Valor (R$) — faixa ${index + 1}`}
+                              label="Valor (R$)"
+                              aria-label={`Valor (R$) — faixa ${index + 1}`}
                               inputMode="decimal"
                               teclado={TECLADO_DECIMAL}
                               format={(value) => value.replace(/[^\d.,]/g, "")}
@@ -195,7 +196,8 @@ export const PrecoFaixasStepFields = withForm({
                           <form.AppField name={`faixas[${index}].percentualConveniada`}>
                             {(field) => (
                               <field.TextField
-                                label={`% conveniada (opcional) — faixa ${index + 1}`}
+                                label="% conveniada (opcional)"
+                                aria-label={`% conveniada (opcional) — faixa ${index + 1}`}
                                 inputMode="decimal"
                                 teclado={TECLADO_DECIMAL}
                                 format={(value) => value.replace(/[^\d.,]/g, "")}

@@ -32,19 +32,23 @@ export interface FaixasPreviewProps {
   conveniadaPercentual?: number | null;
   // "lg" na visualização da tabela; o wizard continua no tamanho padrão.
   size?: PlateSize;
+  // Esconde o título "Tarifa" quando a placa já está sob uma aba com esse nome (poupa altura no celular).
+  semTitulo?: boolean;
 }
 
 // Aceita lista vazia e valores parciais (a pré-visualização é usada enquanto o usuário digita).
-export function FaixasPreview({ faixas, diaria, conveniadaPercentual = null, size = "md" }: FaixasPreviewProps) {
+export function FaixasPreview({ faixas, diaria, conveniadaPercentual = null, size = "md", semTitulo = false }: FaixasPreviewProps) {
   const ordenadas = [...faixas].sort((a, b) => a.minutosLimite - b.minutosLimite);
   const showDiaria = diaria && Number.isFinite(diaria.valor) && diaria.periodo > 0;
 
   return (
     <Plate aria-label="Pré-visualização da tabela tarifária" $size={size} data-size={size}>
-      <PlateHeader>
-        <PlateTitle>Tarifa</PlateTitle>
-        {conveniadaPercentual ? <ConveniadaTag>Conveniada −{conveniadaPercentual}%</ConveniadaTag> : null}
-      </PlateHeader>
+      {(!semTitulo || conveniadaPercentual) && (
+        <PlateHeader>
+          {!semTitulo && <PlateTitle>Tarifa</PlateTitle>}
+          {conveniadaPercentual ? <ConveniadaTag>Conveniada −{conveniadaPercentual}%</ConveniadaTag> : null}
+        </PlateHeader>
+      )}
       {ordenadas.length === 0 ? (
         <EmptyText>Adicione faixas para ver a tarifa.</EmptyText>
       ) : (

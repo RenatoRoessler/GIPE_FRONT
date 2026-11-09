@@ -65,6 +65,9 @@ const shared = {
     keyboardMaxWidth: "560px",
     // Folga no fim do conteúdo, no celular, para o botão flutuante não cobrir o último item.
     fabClearance: "88px",
+    // Barra fixa do módulo de preços (simulador e resumo do cadastro), com uma linha de conteúdo, e largura da miniplaca da esteira.
+    dockHeight: "72px",
+    placaMiniWidth: "168px",
   },
   breakpoints: {
     sm: "480px",

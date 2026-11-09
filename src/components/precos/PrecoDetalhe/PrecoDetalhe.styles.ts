@@ -12,12 +12,37 @@ export const Detalhe = styled.article`
   min-width: 0;
 `;
 
+// Título e Editar na mesma linha, em qualquer largura: a ação não desce para uma linha própria.
 export const Cabecalho = styled.header`
   display: flex;
-  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: ${({ theme }) => theme.space[3]}px;
+`;
+
+// Abas e placa à esquerda; quando a coluna é larga, o simulador fica ao lado (e acompanha a rolagem).
+export const Conteudo = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: ${({ theme }) => theme.space[4]}px;
+  align-items: start;
+
+  @container (min-width: 640px) {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  }
+`;
+
+export const SimuladorLateral = styled.div`
+  display: none;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+    display: block;
+  }
+
+  @container (min-width: 640px) {
+    position: sticky;
+    top: 0;
+  }
 `;
 
 export const Identificacao = styled.div`
@@ -30,22 +55,32 @@ export const Identificacao = styled.div`
 export const Titulo = styled.h2`
   margin: 0;
   font-family: ${({ theme }) => theme.typography.display};
-  font-size: ${({ theme }) => theme.typography.displaySize};
+  font-size: ${({ theme }) => theme.fontSizes.subtitle};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   letter-spacing: ${({ theme }) => theme.typography.displayTracking};
   text-transform: ${({ theme }) => theme.typography.displayTransform};
   line-height: 1.1;
   overflow-wrap: anywhere;
+
+  @container (min-width: 480px) {
+    font-size: ${({ theme }) => theme.typography.displaySize};
+  }
 `;
 
+// Tipo, situação e vigência: no celular ficam fora do cabeçalho (a placa selecionada na esteira e a aba Informações
+// já os mostram), para a tarifa subir na primeira tela.
 export const Meta = styled.div`
-  display: flex;
+  display: none;
   flex-wrap: wrap;
   align-items: center;
   gap: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textMuted};
   font-variant-numeric: tabular-nums;
+
+  @container (min-width: 480px) {
+    display: flex;
+  }
 `;
 
 export const TipoNome = styled.span`
@@ -62,13 +97,13 @@ export const EditarLink = styled(NextLink)`
   justify-content: center;
   gap: ${({ theme }) => theme.space[2]}px;
   flex-shrink: 0;
-  min-height: 44px;
-  padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[4]}px;
+  min-height: ${({ theme }) => theme.layout.touchTarget};
+  padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
   border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: inset 0 0 0 1.5px ${({ theme }) => theme.colors.borderStrong};
   background-color: transparent;
   color: ${({ theme }) => theme.colors.text};
-  font-size: ${({ theme }) => theme.fontSizes.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.extrabold};
   text-decoration: none;
   transition: background-color 0.15s ease;
@@ -83,13 +118,9 @@ export const EditarLink = styled(NextLink)`
   }
 `;
 
-// Voltar para a lista: só no celular, onde lista e detalhe não aparecem juntos.
+// Voltar à lista, nos estados de erro e de tabela inexistente.
 export const VoltarArea = styled.div`
   display: flex;
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
-    display: none;
-  }
 `;
 
 export const Tarifa = styled.div`

@@ -30,6 +30,11 @@ export interface PrecoResumoAoVivoProps {
   original?: PrecoFormValues;
   // Uma posição por etapa (O básico, Quando vale, Quanto cobra).
   etapasCompletas: readonly [boolean, boolean, boolean];
+  // Falso enquanto os degraus e a diária ainda são o modelo padrão do cadastro novo: o resumo não os
+  // apresenta como definidos. Na edição e depois de qualquer mudança vale o que está na tela.
+  faixasEditadas?: boolean;
+  // Esconde o título "Sua tabela" quando o painel já está sob um título (folha do celular).
+  semTitulo?: boolean;
 }
 
 interface Linha {
@@ -54,7 +59,7 @@ function mudancaInfo(diff: PrecoDiff | null, ...campos: InfoChange["campo"][]): 
   return diff ? diff.info.filter((change) => campos.includes(change.campo)) : [];
 }
 
-function montarLinhas(values: PrecoFormValues, diff: PrecoDiff | null): Linha[] {
+function montarLinhas(values: PrecoFormValues, diff: PrecoDiff | null, faixasEditadas: boolean): Linha[] {
   const { info } = values;
   const tipo = TIPO_REGRA_OPTIONS.find((option) => String(option.value) === info.tipoRegra)?.label ?? "—";
   const horarios = resumoHorarios(values.horarios);
@@ -103,8 +108,10 @@ function montarLinhas(values: PrecoFormValues, diff: PrecoDiff | null): Linha[] 
     {
       chave: "faixas",
       rotulo: "Faixas",
-      ok: faixas.length > 0 && diariaOk,
-      texto: `${faixas.length} ${faixas.length === 1 ? "degrau" : "degraus"} · diária ${diariaOk ? formatBRL(valorDiaria) : "—"}`,
+      ok: faixasEditadas && faixas.length > 0 && diariaOk,
+      texto: faixasEditadas
+        ? `${faixas.length} ${faixas.length === 1 ? "degrau" : "degraus"} · diária ${diariaOk ? formatBRL(valorDiaria) : "—"}`
+        : "ainda sem valores definidos",
       mudancas: [
         ...(diff ? descreverLista(diff.faixas) : []),
         ...descreve(
@@ -123,9 +130,9 @@ function montarLinhas(values: PrecoFormValues, diff: PrecoDiff | null): Linha[] 
 }
 
 // Painel "Sua tabela": a tabela se forma enquanto o usuário preenche, com a placa tarifária logo abaixo.
-export function PrecoResumoAoVivo({ values, original, etapasCompletas }: PrecoResumoAoVivoProps) {
+export function PrecoResumoAoVivo({ values, original, etapasCompletas, faixasEditadas = true, semTitulo = false }: PrecoResumoAoVivoProps) {
   const diff = original ? diffPreco(original, values) : null;
-  const linhas = montarLinhas(values, diff);
+  const linhas = montarLinhas(values, diff, faixasEditadas);
   const completas = etapasCompletas.filter(Boolean).length;
 
   // Anuncia o andamento depois de uma pausa na digitação, não a cada tecla.
@@ -135,7 +142,7 @@ export function PrecoResumoAoVivo({ values, original, etapasCompletas }: PrecoRe
   return (
     <Painel aria-label="Resumo ao vivo da tabela">
       <Caixa>
-        <Titulo>Sua tabela</Titulo>
+        {!semTitulo && <Titulo>Sua tabela</Titulo>}
         <Progresso aria-hidden="true">
           {etapasCompletas.map((completa, index) => (
             <Segmento key={index} $completo={completa} />

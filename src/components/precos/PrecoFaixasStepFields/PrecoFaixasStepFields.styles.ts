@@ -4,22 +4,36 @@ import styled from "styled-components";
 
 import { Row } from "../shared/RepeatableRows.styles";
 
+// Celular: tempo e valor lado a lado (e o percentual da conveniada numa linha própria), para cada degrau
+// ocupar pouca altura; a partir de md os campos ficam todos na mesma linha.
 export const RowFields = styled.div<{ $withPercent: boolean }>`
   display: grid;
-  grid-template-columns: 1fr;
-  gap: ${({ theme }) => theme.space[3]}px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${({ theme }) => theme.space[2]}px;
+
+  > :nth-child(3) {
+    grid-column: 1 / -1;
+  }
 
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: ${({ $withPercent }) => ($withPercent ? "1fr 1fr 1fr" : "1fr 1fr")};
+
+    > :nth-child(3) {
+      grid-column: auto;
+    }
   }
 `;
 
 export const RowFooter = styled.div`
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: ${({ theme }) => theme.space[3]}px;
-  min-height: 44px;
+  min-height: ${({ theme }) => theme.layout.touchTarget};
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+    justify-content: flex-end;
+  }
 `;
 
 export const Duracao = styled.div`

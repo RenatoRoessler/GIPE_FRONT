@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { PrecosMasterDetail } from "@/components/precos/PrecosMasterDetail";
+import { PrecosCockpit } from "@/components/precos/PrecosCockpit";
 
 export default function PrecosPage() {
   return (
     // useSearchParams (tabela, busca, situação e página na URL) exige Suspense.
     <Suspense fallback={null}>
-      <PrecosMasterDetail />
+      <PrecosCockpit />
     </Suspense>
   );
 }

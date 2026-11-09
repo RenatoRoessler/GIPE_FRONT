@@ -5,8 +5,9 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getSituacao } from "@/lib/api/services/preco.mapper";
 import type { PrecoView } from "@/types/preco";
 import { getTipoRegraLabel } from "../format";
+import { resumoPreco } from "../resumoPreco";
 import { SITUACAO_BADGE } from "../situacao";
-import { COR_DO_TIPO, Descricao, Item, Meta, Tipo } from "./PrecoListItem.styles";
+import { COR_DO_TIPO, Descricao, Item, Meta, Resumo, Tipo } from "./PrecoListItem.styles";
 
 export type DirecaoFoco = "anterior" | "proximo" | "inicio" | "fim";
 
@@ -55,6 +56,7 @@ export function PrecoListItem({ preco, selecionado, onSelecionar, tabIndex, onMo
         <Tipo $cor={preco.tipoRegra ? COR_DO_TIPO[preco.tipoRegra] : "steel"}>{getTipoRegraLabel(preco.tipoRegra)}</Tipo>
         <StatusBadge tone={situacao.tone}>{situacao.label}</StatusBadge>
       </Meta>
+      <Resumo>{resumoPreco(preco)}</Resumo>
     </Item>
   );
 }

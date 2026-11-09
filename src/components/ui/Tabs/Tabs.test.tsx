@@ -11,13 +11,14 @@ const TABS = [
   { id: "c", label: "Terceira" },
 ];
 
-function Controlled({ onChange }: { onChange?: (id: string) => void }) {
+function Controlled({ onChange, variant }: { onChange?: (id: string) => void; variant?: "linha" | "segmentada" }) {
   const [value, setValue] = useState("a");
   return (
     <Tabs
       tabs={TABS}
       value={value}
       aria-label="Seções"
+      variant={variant}
       onChange={(id) => {
         setValue(id);
         onChange?.(id);
@@ -70,5 +71,15 @@ describe("Tabs", () => {
 
     await userEvent.keyboard("{Home}");
     expect(screen.getByRole("tab", { name: "Primeira" })).toHaveFocus();
+  });
+
+  it("na variante segmentada mantém os papéis ARIA, o teclado e a aba ativa", async () => {
+    renderWithTheme(<Controlled variant="segmentada" />);
+    expect(screen.getByRole("tablist", { name: "Seções" })).toBeInTheDocument();
+    screen.getByRole("tab", { name: "Primeira" }).focus();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(screen.getByRole("tab", { name: "Segunda" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Segunda" })).toHaveFocus();
+    expect(screen.getByText("Conteúdo de b")).toBeInTheDocument();
   });
 });

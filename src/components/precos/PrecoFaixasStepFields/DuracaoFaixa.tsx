@@ -46,7 +46,8 @@ export function DuracaoFaixa({ value, onChange, onBlur, numero, error, disabled 
     <div>
       <Duracao>
         <Input
-          label={`Horas — faixa ${numero}`}
+          label="Horas"
+          aria-label={`Horas — faixa ${numero}`}
           inputMode="numeric"
           teclado={TECLADO_INTEIRO}
           value={atual.horas}
@@ -56,7 +57,8 @@ export function DuracaoFaixa({ value, onChange, onBlur, numero, error, disabled 
           aria-invalid={Boolean(error)}
         />
         <Input
-          label={`Minutos — faixa ${numero}`}
+          label="Minutos"
+          aria-label={`Minutos — faixa ${numero}`}
           inputMode="numeric"
           teclado={TECLADO_INTEIRO}
           value={atual.minutos}

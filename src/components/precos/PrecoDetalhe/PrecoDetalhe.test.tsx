@@ -60,11 +60,16 @@ describe("PrecoDetalhe: cabeçalho", () => {
     expect(screen.queryByRole("button", { name: /Preços/ })).not.toBeInTheDocument();
   });
 
-  it("mostra Voltar e o aciona (celular)", () => {
-    const onVoltar = vi.fn();
-    renderDetalhe({ onVoltar });
-    fireEvent.click(screen.getByRole("button", { name: /Preços/ }));
-    expect(onVoltar).toHaveBeenCalledTimes(1);
+  it("com a tabela pronta não há Voltar, mesmo com onVoltar: trocar de tabela é pela esteira", () => {
+    renderDetalhe({ onVoltar: vi.fn() });
+    expect(screen.queryByRole("button", { name: /Preços/ })).not.toBeInTheDocument();
+  });
+
+  it("Editar fica na mesma linha do título, dentro do cabeçalho", () => {
+    renderDetalhe();
+    const cabecalho = screen.getByRole("banner");
+    expect(cabecalho).toContainElement(screen.getByRole("heading", { level: 2 }));
+    expect(cabecalho).toContainElement(screen.getByRole("link", { name: /Editar/ }));
   });
 });
 
@@ -78,7 +83,7 @@ describe("PrecoDetalhe: abas", () => {
   it("Tarifa mostra a placa, a diária, as tolerâncias e as categorias", () => {
     renderDetalhe();
     const placa = screen.getByLabelText("Pré-visualização da tabela tarifária");
-    expect(placa).toHaveAttribute("data-size", "lg");
+    expect(placa).toHaveAttribute("data-size", "md");
     expect(within(placa).getByText(/Diária de 12 h/)).toBeInTheDocument();
     expect(screen.getByText("Tolerância de entrada").nextSibling).toHaveTextContent("10 min");
     expect(screen.getByText("Tolerância de alteração de faixa").nextSibling).toHaveTextContent("5 min");
@@ -173,20 +178,22 @@ describe("PrecoDetalhe: abas", () => {
 });
 
 describe("PrecoDetalhe: simulador", () => {
-  it("aparece abaixo das abas, em todas elas", async () => {
+  // No jsdom as media queries não valem e o simulador lateral (escondido no celular) conta como oculto.
+  it("fica ao lado das abas (em telas maiores), em todas elas", async () => {
     const user = userEvent.setup();
     renderDetalhe();
     for (const nome of ["Tarifa", "Horários", "Informações"]) {
       await user.click(aba(nome));
-      expect(screen.getByRole("heading", { name: "Simular cobrança" })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Simular cobrança", hidden: true })).toBeInTheDocument();
     }
   });
 
   it("recomeça do padrão ao trocar de tabela", () => {
     const { rerender } = renderWithTheme(<PrecoDetalhe estado="pronto" preco={preco()} />);
-    fireEvent.change(screen.getByLabelText("Permanência (minutos)"), { target: { value: "45" } });
+    const minutos = () => screen.getByLabelText("Permanência (minutos)", { selector: "input" });
+    fireEvent.change(minutos(), { target: { value: "45" } });
     rerender(<PrecoDetalhe estado="pronto" preco={preco({ rotatividadeId: 8 })} />);
-    expect(screen.getByLabelText("Permanência (minutos)")).toHaveValue("150");
+    expect(minutos()).toHaveValue("150");
   });
 });
 
