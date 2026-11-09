@@ -6,47 +6,20 @@ export const Page = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[4]}px;
+  max-width: ${({ theme }) => theme.layout.contentMaxWidth};
 `;
 
-export const Header = styled.div`
+// Voltar, título e situação da tabela, no alto da página.
+export const Cabecalho = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.space[4]}px;
+  gap: ${({ theme }) => theme.space[2]}px;
 `;
 
 export const TitleGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[1]}px;
-`;
-
-export const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.space[4]}px;
-`;
-
-export const Actions = styled.div`
-  display: flex;
-  flex-direction: column-reverse;
-  gap: ${({ theme }) => theme.space[2]}px;
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-`;
-
-export const ActionsGroup = styled.div`
-  display: flex;
-  flex-direction: column-reverse;
-  gap: ${({ theme }) => theme.space[2]}px;
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.sm}) {
-    flex-direction: row;
-    align-items: center;
-  }
 `;
 
 export const StateBox = styled.div`
@@ -70,59 +43,24 @@ export const UnsavedNote = styled.span`
   color: ${({ theme }) => theme.colors.textMuted};
 `;
 
-export const TitleRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.space[2]}px;
-`;
-
-// Formulário da etapa à esquerda e painel "Sua tabela" à direita; em telas menores o painel desce para depois do formulário.
-export const Corpo = styled.div`
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: ${({ theme }) => theme.space[4]}px;
-  align-items: start;
+// Painel de conclusão e resumo da tabela. No celular e no tablet o painel vira a barra fixa acima do menu e o
+// resumo desce para o fim da página (o wrapper some do layout); em telas grandes os dois ficam juntos, ao lado das seções,
+// e rolam por dentro se não couberem na altura da janela.
+export const Lateral = styled.div`
+  display: contents;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
-    grid-template-columns: minmax(0, 1fr) 320px;
-  }
-`;
+    display: flex;
+    flex-direction: column;
+    gap: ${({ theme }) => theme.space[3]}px;
+    position: sticky;
+    top: ${({ theme }) => theme.layout.stickyTop};
+    max-height: calc(100vh - ${({ theme }) => theme.layout.stickyTop} - ${({ theme }) => theme.space[3]}px);
+    overflow-y: auto;
 
-export const ErrosEtapa = styled.ul`
-  margin: ${({ theme }) => theme.space[1]}px 0 0;
-  padding-left: ${({ theme }) => theme.space[4]}px;
-`;
-
-// Bloco recolhível com o editor de horários por linha, ao lado da grade da etapa "Quando vale".
-export const AjusteFino = styled.details`
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radii.md};
-  padding: ${({ theme }) => theme.space[3]}px;
-
-  > summary {
-    cursor: pointer;
-    font-size: ${({ theme }) => theme.fontSizes.sm};
-    font-weight: ${({ theme }) => theme.fontWeights.bold};
-  }
-
-  &[open] > summary {
-    margin-bottom: ${({ theme }) => theme.space[3]}px;
-  }
-`;
-
-// Lista do que falta para liberar o botão "Avançar".
-export const Pendencias = styled.div`
-  padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
-  border-left: 4px solid ${({ theme }) => theme.colors.warn};
-  border-radius: ${({ theme }) => theme.radii.sm};
-  background-color: ${({ theme }) => theme.colors.surface};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.text};
-
-  ul {
-    margin: ${({ theme }) => theme.space[1]}px 0 0;
-    padding-left: ${({ theme }) => theme.space[4]}px;
+    /* O sticky do painel passa a ser o do wrapper. */
+    & > aside {
+      position: static;
+    }
   }
 `;

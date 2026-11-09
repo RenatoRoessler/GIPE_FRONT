@@ -8,6 +8,7 @@ import {
   gradeVazia,
   horariosForaDaGrade,
   horariosParaGrade,
+  pintarFaixa,
   totalDeHoras,
 } from "./grade";
 
@@ -97,5 +98,38 @@ describe("atalhos", () => {
     grade[3] = new Array<boolean>(24).fill(false);
     const copiada = copiarSegundaParaTodos(grade);
     expect(totalDeHoras(copiada)).toBe(7 * 10);
+  });
+});
+
+describe("pintarFaixa", () => {
+  it("liga as horas de `de` até `ate` (exclusivo) só nos dias escolhidos", () => {
+    const grade = pintarFaixa(gradeVazia(), [2, 3], 8, 18);
+    expect(grade[1].slice(8, 18).every(Boolean)).toBe(true);
+    expect(grade[1][7]).toBe(false);
+    expect(grade[1][18]).toBe(false);
+    expect(totalDeHoras(grade)).toBe(20);
+    expect(grade[3].some(Boolean)).toBe(false);
+  });
+
+  it("não altera a grade recebida nem as horas já ligadas fora do intervalo", () => {
+    const base = pintarFaixa(gradeVazia(), [2], 0, 4);
+    const nova = pintarFaixa(base, [2], 8, 10);
+    expect(totalDeHoras(base)).toBe(4);
+    expect(totalDeHoras(nova)).toBe(6);
+  });
+
+  it("desliga as horas quando `ligada` é falso", () => {
+    const grade = pintarFaixa(gradeDoAtalho("24h"), [1], 6, 8, false);
+    expect(grade[0].slice(6, 8)).toEqual([false, false]);
+    expect(totalDeHoras(grade)).toBe(7 * 24 - 2);
+  });
+
+  it("intervalo que cruza a meia-noite pinta de 22 a 23 e de 0 a 5 no mesmo dia", () => {
+    const grade = pintarFaixa(gradeVazia(), [6], 22, 6);
+    expect(grade[5].map((ligada, hora) => (ligada ? hora : -1)).filter((hora) => hora >= 0)).toEqual([0, 1, 2, 3, 4, 5, 22, 23]);
+  });
+
+  it("`de` igual a `ate` não pinta nada", () => {
+    expect(totalDeHoras(pintarFaixa(gradeVazia(), [2], 9, 9))).toBe(0);
   });
 });

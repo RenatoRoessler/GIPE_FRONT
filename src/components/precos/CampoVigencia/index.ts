@@ -1,0 +1,1 @@
+export { CampoVigencia } from "./CampoVigencia";

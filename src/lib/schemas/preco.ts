@@ -11,7 +11,12 @@ import {
 const INTEGER = /^\d+$/;
 
 function integerField(requiredMessage: string, invalidMessage: string) {
-  return z.string().trim().min(1, requiredMessage).regex(INTEGER, invalidMessage);
+  // Vazio só acusa "obrigatório": o formato só é cobrado de quem digitou algo.
+  return z
+    .string()
+    .trim()
+    .min(1, requiredMessage)
+    .refine((value) => value === "" || INTEGER.test(value), invalidMessage);
 }
 
 function moneyField(requiredMessage: string) {
@@ -19,7 +24,7 @@ function moneyField(requiredMessage: string) {
     .string()
     .trim()
     .min(1, requiredMessage)
-    .refine((value) => !Number.isNaN(parseMoney(value)), "Informe um valor válido, ex.: 15,00");
+    .refine((value) => value === "" || !Number.isNaN(parseMoney(value)), "Informe um valor válido, ex.: 15,00");
 }
 
 const TIPOS_REGRA = TIPO_REGRA_OPTIONS.map((option) => String(option.value));
@@ -164,12 +169,6 @@ export const precoCategoriasSchema = z
 
 const CAMPOS_BASICO = new Set(["descricao", "tipoRegra", "empresaConveniadaId", "inicioVigencia", "fimVigencia"]);
 
-export interface EtapasPreco {
-  basico: string[];
-  horarios: string[];
-  cobranca: string[];
-}
-
 function mensagens(result: { success: boolean; error?: z.ZodError }, aceita: (campo: string) => boolean = () => true) {
   if (result.success || !result.error) {
     return [];
@@ -177,15 +176,20 @@ function mensagens(result: { success: boolean; error?: z.ZodError }, aceita: (ca
   return result.error.issues.filter((issue) => aceita(String(issue.path[0] ?? ""))).map((issue) => issue.message);
 }
 
-// Mensagens de erro por etapa do cadastro (vazio = etapa completa). Reaproveita os schemas por formulário:
-// "O básico" = campos de identificação e vigência + categorias; "Quanto cobra" = diária, tolerâncias e faixas.
-export function validarEtapasPreco(values: PrecoFormValues): EtapasPreco {
+export type PrecoSecaoId = "basico" | "categorias" | "horarios" | "cobranca";
+
+export type SecoesPreco = Record<PrecoSecaoId, string[]>;
+
+// Ordem em que as seções aparecem na tela.
+export const ORDEM_SECOES_PRECO: readonly PrecoSecaoId[] = ["basico", "categorias", "horarios", "cobranca"];
+
+// Mensagens de erro por seção do cadastro (vazio = seção completa). Reaproveita os schemas por formulário:
+// "O básico" = identificação e vigência; "Categorias" à parte; "Quanto cobra" = diária, tolerâncias e faixas.
+export function validarSecoesPreco(values: PrecoFormValues): SecoesPreco {
   const info = precoInfoSchema.safeParse(values.info);
   return {
-    basico: [
-      ...mensagens(info, (campo) => CAMPOS_BASICO.has(campo)),
-      ...mensagens(precoCategoriasSchema.safeParse({ categorias: values.categorias })),
-    ],
+    basico: mensagens(info, (campo) => CAMPOS_BASICO.has(campo)),
+    categorias: mensagens(precoCategoriasSchema.safeParse({ categorias: values.categorias })),
     horarios: mensagens(precoHorariosSchema.safeParse({ horarios: values.horarios })),
     cobranca: [
       ...mensagens(info, (campo) => !CAMPOS_BASICO.has(campo)),
@@ -194,14 +198,8 @@ export function validarEtapasPreco(values: PrecoFormValues): EtapasPreco {
   };
 }
 
-// Revalida as três etapas antes do envio; devolve a primeira etapa (1-3) com erro, ou null se tudo é válido.
-export function findInvalidPrecoStep(values: PrecoFormValues): 1 | 2 | 3 | null {
-  const etapas = validarEtapasPreco(values);
-  if (etapas.basico.length > 0) {
-    return 1;
-  }
-  if (etapas.horarios.length > 0) {
-    return 2;
-  }
-  return etapas.cobranca.length > 0 ? 3 : null;
+// Primeira seção, na ordem da tela, com erro; null se a tabela está válida.
+export function findInvalidPrecoSecao(values: PrecoFormValues): PrecoSecaoId | null {
+  const secoes = validarSecoesPreco(values);
+  return ORDEM_SECOES_PRECO.find((id) => secoes[id].length > 0) ?? null;
 }

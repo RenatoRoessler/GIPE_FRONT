@@ -3,22 +3,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Link } from "@/components/ui/Link";
+import { BackButton } from "@/components/ui/BackButton";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
 import { ApiError } from "@/lib/api/errors";
 import { createPreco, getPreco, updatePreco } from "@/lib/api/services/preco";
 import { getSituacao, toPrecoFormValues } from "@/lib/api/services/preco.mapper";
 import type { PrecoFormValues } from "@/types/preco";
 import { novoPrecoFormValues } from "../novoPreco";
-import { Header, Page, StateBox, TitleGroup } from "./PrecoWizard.styles";
+import { Cabecalho, Page, StateBox, TitleGroup } from "./PrecoWizard.styles";
 import { PrecoWizardForm } from "./PrecoWizardForm";
 
-const STEPS = ["O básico", "Quando vale", "Quanto cobra"];
-const SKELETON_FIELDS = 6;
+const SKELETON_SECTIONS = 4;
 
 export interface PrecoWizardProps {
   // Com `id`, edita a tabela existente; sem `id`, cadastra uma nova.
@@ -53,22 +51,20 @@ function EditPrecoWizard({ id }: { id: number }) {
 
   if (isPending) {
     return (
-      <Page>
-        <Card maxWidth="1120px" role="status" aria-label="Carregando tabela de preço">
-          <Header>
-            <TitleGroup>
-              <Text variant="heading" as="h1">
-                Editar preço
-              </Text>
-            </TitleGroup>
-            <Stepper steps={STEPS} currentStep={1} />
-          </Header>
-          <StateBox>
-            {Array.from({ length: SKELETON_FIELDS }, (_, index) => (
-              <Skeleton key={index} height="40px" />
-            ))}
-          </StateBox>
-        </Card>
+      <Page role="status" aria-label="Carregando tabela de preço">
+        <Cabecalho>
+          <BackButton disabled>Preços</BackButton>
+          <TitleGroup>
+            <Text variant="heading" as="h1">
+              Editar preço
+            </Text>
+          </TitleGroup>
+        </Cabecalho>
+        <StateBox>
+          {Array.from({ length: SKELETON_SECTIONS }, (_, index) => (
+            <Skeleton key={index} height="56px" />
+          ))}
+        </StateBox>
       </Page>
     );
   }

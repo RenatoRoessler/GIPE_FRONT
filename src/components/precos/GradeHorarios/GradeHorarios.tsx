@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@tanstack/react-form";
-import { useEffect, useRef, type PointerEvent } from "react";
+import { Fragment, useEffect, useRef, type CSSProperties, type PointerEvent } from "react";
 import { withForm } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { DIAS_SEMANA_PRECO, type PrecoHorariosValues } from "@/types/preco";
@@ -14,11 +14,13 @@ import {
   horariosParaGrade,
   HORAS_NA_SEMANA,
   HORAS_NO_DIA,
+  pintarFaixa,
   totalDeHoras,
   type AtalhoGrade,
   type Grade,
 } from "../grade";
 import { resumoHorarios } from "../resumoHorarios";
+import { FaixaRapida } from "./FaixaRapida";
 import {
   Amostra,
   Atalho,
@@ -26,12 +28,12 @@ import {
   AtalhoTitulo,
   Atalhos,
   AtalhosRotulo,
-  BotaoEixo,
+  BotaoDia,
   BotaoHora,
+  Canto,
   Celula,
   Ferramentas,
   Legenda,
-  Linha,
   Raiz,
   Resumo,
   ResumoTitulo,
@@ -51,6 +53,9 @@ const ATALHOS: { atalho: AtalhoGrade; titulo: string; detalhe: string }[] = [
 // Segunda a domingo, como o gestor pensa a semana; o índice é a posição em DIAS_SEMANA_PRECO (domingo primeiro).
 const ORDEM_DOS_DIAS = [1, 2, 3, 4, 5, 6, 0];
 const HORAS = Array.from({ length: HORAS_NO_DIA }, (_, hora) => hora);
+
+// Posição do botão na grade: o CSS transforma dia (--d) e hora (--h) em linha e coluna, conforme a largura.
+const posicao = (dia: number, hora: number): CSSProperties => ({ "--d": ORDEM_DOS_DIAS.indexOf(dia), "--h": hora }) as CSSProperties;
 
 export const GradeHorarios = withForm({
   defaultValues: DEFAULT_VALUES,
@@ -169,6 +174,7 @@ export const GradeHorarios = withForm({
             })}
           </Atalhos>
         </div>
+        <FaixaRapida disabled={disabled} onAplicar={(dias, de, ate) => mudar((atual) => pintarFaixa(atual, dias, de, ate))} />
         <Ferramentas>
           <Button type="button" variant="secondary" size="sm" disabled={disabled} onClick={() => aplicarAtalho("copiar")}>
             Copiar segunda para os outros dias
@@ -180,25 +186,37 @@ export const GradeHorarios = withForm({
 
         <Rolagem>
           <Tabela role="group" aria-label="Horários de cobrança por dia e hora">
-            <Linha>
-              <span />
-              {HORAS.map((hora) => (
-                <BotaoHora key={hora} type="button" disabled={disabled} aria-label={`Alternar ${hora}h em todos os dias`} onClick={() => alternarHora(hora)}>
-                  {hora}
-                </BotaoHora>
-              ))}
-            </Linha>
+            <Canto />
+            {HORAS.map((hora) => (
+              <BotaoHora
+                key={hora}
+                type="button"
+                style={posicao(ORDEM_DOS_DIAS[0], hora)}
+                disabled={disabled}
+                aria-label={`Alternar ${hora}h em todos os dias`}
+                onClick={() => alternarHora(hora)}
+              >
+                {hora}h
+              </BotaoHora>
+            ))}
             {ORDEM_DOS_DIAS.map((dia) => {
               const nome = DIAS_SEMANA_PRECO[dia].label;
               return (
-                <Linha key={dia}>
-                  <BotaoEixo type="button" disabled={disabled} aria-label={`Alternar o dia inteiro: ${nome}`} onClick={() => alternarDia(dia)}>
+                <Fragment key={dia}>
+                  <BotaoDia
+                    type="button"
+                    style={posicao(dia, 0)}
+                    disabled={disabled}
+                    aria-label={`Alternar o dia inteiro: ${nome}`}
+                    onClick={() => alternarDia(dia)}
+                  >
                     {nome.slice(0, 3)}
-                  </BotaoEixo>
+                  </BotaoDia>
                   {HORAS.map((hora) => (
                     <Celula
                       key={hora}
                       type="button"
+                      style={posicao(dia, hora)}
                       disabled={disabled}
                       aria-pressed={grade[dia][hora]}
                       aria-label={`${nome}, ${String(hora).padStart(2, "0")}h`}
@@ -207,7 +225,7 @@ export const GradeHorarios = withForm({
                       onClick={() => clicar(dia, hora)}
                     />
                   ))}
-                </Linha>
+                </Fragment>
               );
             })}
           </Tabela>
@@ -222,7 +240,7 @@ export const GradeHorarios = withForm({
             <Amostra $ligada={false} />
             Sem cobrança
           </span>
-          <span>Clique ou arraste para pintar. O nome do dia e a hora alternam a linha ou a coluna.</span>
+          <span>Toque numa hora para ligar ou desligar a cobrança (no computador também dá para arrastar). O nome do dia e a hora alternam a linha ou a coluna.</span>
         </Legenda>
 
         <Resumo role="status" aria-live="polite">

@@ -2,10 +2,10 @@
 
 import { withForm } from "@/components/form";
 import { Grid, GridItem } from "@/components/form/FormGrid.styles";
-import { Checkbox } from "@/components/ui/Checkbox";
 import { Text } from "@/components/ui/Text";
 import type { ConveniadaOpcao } from "@/types/conveniada";
-import { EMPTY_PRECO_INFO } from "@/types/preco";
+import { EMPTY_PRECO_INFO, TIPO_REGRA } from "@/types/preco";
+import { CampoVigencia } from "../CampoVigencia";
 import { Section, SectionTitle } from "../shared/FormSection.styles";
 import { TipoRegraCards } from "../TipoRegraCards";
 
@@ -13,22 +13,13 @@ export const PrecoBasicoFields = withForm({
   defaultValues: EMPTY_PRECO_INFO,
   props: {} as {
     disabled?: boolean;
-    semFim: boolean;
-    onSemFimChange: (semFim: boolean) => void;
     // Conveniadas com convênio ativo para o campo "Empresa conveniada"; `conveniosState` diz se a lista ainda carrega ou falhou.
     convenios: ConveniadaOpcao[];
     conveniosState: "carregando" | "pronto" | "erro";
     // Motivo devolvido pela API quando a lista falha.
     conveniosErro?: string;
   },
-  render: function Render({ form, disabled, semFim, onSemFimChange, convenios, conveniosState, conveniosErro }) {
-    function handleSemFim(checked: boolean) {
-      if (checked) {
-        form.setFieldValue("fimVigencia", "");
-      }
-      onSemFimChange(checked);
-    }
-
+  render: function Render({ form, disabled, convenios, conveniosState, conveniosErro }) {
     return (
       <>
         <Section>
@@ -46,7 +37,13 @@ export const PrecoBasicoFields = withForm({
                   return (
                     <TipoRegraCards
                       value={field.state.value}
-                      onChange={field.handleChange}
+                      onChange={(tipo) => {
+                        field.handleChange(tipo);
+                        // Conveniada só existe no tipo Convênio: ao sair dele, o campo é limpo.
+                        if (tipo !== String(TIPO_REGRA.Convenio)) {
+                          form.setFieldValue("empresaConveniadaId", "");
+                        }
+                      }}
                       disabled={disabled}
                       error={typeof error === "string" ? error : undefined}
                     />
@@ -55,6 +52,8 @@ export const PrecoBasicoFields = withForm({
               </form.AppField>
             </GridItem>
             <GridItem $span>
+              <form.Subscribe selector={(state) => state.values.tipoRegra === String(TIPO_REGRA.Convenio)}>
+                {(ehConvenio) => (
               <form.AppField name="empresaConveniadaId">
                 {(field) => {
                   const atual = field.state.value;
@@ -62,7 +61,7 @@ export const PrecoBasicoFields = withForm({
                   const foraDaLista = atual !== "" && !convenios.some((convenio) => String(convenio.empresaConveniadaId) === atual);
                   return (
                     <>
-                      <field.SelectField label="Empresa conveniada" disabled={disabled || conveniosState === "carregando"}>
+                      <field.SelectField label="Empresa conveniada" disabled={disabled || !ehConvenio || conveniosState === "carregando"}>
                         <option value="">Nenhuma</option>
                         {foraDaLista && <option value={atual}>{`Empresa nº ${atual}`}</option>}
                         {convenios.map((convenio) => (
@@ -76,33 +75,21 @@ export const PrecoBasicoFields = withForm({
                           ? "Carregando conveniadas…"
                           : conveniosState === "erro"
                             ? `Não foi possível carregar as conveniadas${conveniosErro ? `: ${conveniosErro}` : "."} A tabela vale para todos.`
-                            : "Obrigatória no tipo Convênio; nos outros tipos, deixe em Nenhuma."}
+                            : ehConvenio ? "Obrigatória no tipo Convênio." : "Só pode ser escolhida no tipo Convênio."}
                       </Text>
                     </>
                   );
                 }}
               </form.AppField>
+                )}
+              </form.Subscribe>
             </GridItem>
           </Grid>
         </Section>
 
         <Section>
           <SectionTitle>Vigência</SectionTitle>
-          <Grid>
-            <GridItem>
-              <form.AppField name="inicioVigencia">
-                {(field) => <field.TextField label="Início da vigência" type="datetime-local" disabled={disabled} />}
-              </form.AppField>
-            </GridItem>
-            <GridItem>
-              <form.AppField name="fimVigencia">
-                {(field) => <field.TextField label="Fim da vigência" type="datetime-local" disabled={disabled || semFim} />}
-              </form.AppField>
-            </GridItem>
-            <GridItem $span>
-              <Checkbox label="Sem data de fim" checked={semFim} onCheckedChange={handleSemFim} disabled={disabled} />
-            </GridItem>
-          </Grid>
+          <CampoVigencia form={form} disabled={disabled} />
         </Section>
 
         <Section>

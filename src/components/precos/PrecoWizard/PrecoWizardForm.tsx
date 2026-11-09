@@ -1,68 +1,30 @@
 "use client";
 
-import { useStore } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useAppForm, zodFieldErrors } from "@/components/form";
+import { BackButton } from "@/components/ui/BackButton";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { ErrorDialog } from "@/components/ui/ErrorDialog";
+import { CadastroCorpo, irParaSecao, PainelCadastro } from "@/components/ui/PainelCadastro";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/Text";
-import {
-  findInvalidPrecoStep,
-  precoCategoriasSchema,
-  precoFaixasSchema,
-  precoHorariosSchema,
-  precoInfoSchema,
-  validarEtapasPreco,
-} from "@/lib/schemas/preco";
 import { parseMoney } from "@/lib/money";
-import { TIPO_REGRA, type PrecoFormValues, type SituacaoPreco } from "@/types/preco";
-import { PrecoBasicoFields } from "../PrecoBasicoFields";
-import { PrecoCategoriasStepFields } from "../PrecoCategoriasStepFields";
-import { PrecoCobrancaFields } from "../PrecoCobrancaFields";
-import { PrecoEtapasNav, type EtapaNav } from "../PrecoEtapasNav";
-import { PrecoFaixasStepFields } from "../PrecoFaixasStepFields";
-import { GradeHorarios } from "../GradeHorarios";
-import { horariosForaDaGrade } from "../grade";
-import { PrecoHorariosStepFields } from "../PrecoHorariosStepFields";
+import { findInvalidPrecoSecao, validarSecoesPreco, type PrecoSecaoId } from "@/lib/schemas/preco";
+import type { PrecoFormValues, SituacaoPreco } from "@/types/preco";
+import { diffPreco, hasChanges } from "../diff";
 import { PrecoResumoAoVivo } from "../PrecoResumoAoVivo";
-import { usePrecoConvenios } from "../usePrecoConvenios";
-import { hasChanges } from "../diff";
-import { Section, SectionTitle } from "../shared/FormSection.styles";
+import { estadoDaSecao, idDaSecao, mudancasDaSecao, SECOES, secaoDoElemento } from "../secoes";
 import { SITUACAO_BADGE } from "../situacao";
-import {
-  Actions,
-  ActionsGroup,
-  AjusteFino,
-  Corpo,
-  ErrosEtapa,
-  Form,
-  Header,
-  Page,
-  Pendencias,
-  SubtitleRow,
-  TitleGroup,
-  TitleRow,
-  UnsavedNote,
-} from "./PrecoWizard.styles";
-
-const ETAPAS = [
-  { titulo: "O básico", apoio: "Nome, tipo, vigência, categorias", descricao: "Quem é esta tabela e a quais veículos ela vale?" },
-  { titulo: "Quando vale", apoio: "Dias e horários de cobrança", descricao: "Em quais dias e horários esta tabela cobra?" },
-  { titulo: "Quanto cobra", apoio: "Degraus, diária e tolerâncias", descricao: "Quanto é cobrado por tempo de permanência?" },
-] as const;
-
-const ULTIMA_ETAPA = ETAPAS.length;
-
-const CAMPOS_DO_BASICO = ["descricao", "tipoRegra", "inicioVigencia", "fimVigencia"] as const;
+import { usePrecoConvenios } from "../usePrecoConvenios";
+import { Cabecalho, Lateral, Page, SubtitleRow, TitleGroup, UnsavedNote } from "./PrecoWizard.styles";
+import { PrecoSecoes } from "./PrecoSecoes";
+import { usePrecoForms } from "./usePrecoForms";
 
 export interface PrecoWizardFormProps {
   title: string;
-  // Valores iniciais (vazios no cadastro, preenchidos na edição). Viram os defaultValues das etapas.
+  // Valores iniciais (vazios no cadastro, preenchidos na edição). Viram os defaultValues dos formulários.
   initial: PrecoFormValues;
   onSave: (values: PrecoFormValues) => Promise<void>;
   // Parâmetro `salvo` enviado à listagem para exibir o aviso de sucesso.
@@ -75,6 +37,16 @@ export interface PrecoWizardFormProps {
   mode?: "create" | "edit";
   nome?: string;
   situacao?: SituacaoPreco;
+}
+
+function textoDoStatus(pendencias: string[], mudancas: number, isEdit: boolean): string {
+  if (pendencias.length > 0) {
+    return `Faltam: ${pendencias[0]}${pendencias.length > 1 ? ` (+${pendencias.length - 1})` : ""}`;
+  }
+  if (isEdit) {
+    return mudancas > 0 ? `${mudancas} ${mudancas === 1 ? "mudança" : "mudanças"}` : "Tudo salvo";
+  }
+  return "Pronta para salvar";
 }
 
 export function PrecoWizardForm({
@@ -94,69 +66,17 @@ export function PrecoWizardForm({
   const router = useRouter();
   const queryClient = useQueryClient();
   const convenios = usePrecoConvenios();
-  const [step, setStep] = useState(1);
-  // Etapas já abertas: só depois de visitada uma etapa incompleta passa a mostrar pendência.
-  const [visitadas, setVisitadas] = useState<ReadonlySet<number>>(() => new Set([1]));
-  // Etapa onde a última tentativa de salvar encontrou erros; o aviso some quando ela fica válida.
-  const [falhaEtapa, setFalhaEtapa] = useState<number | null>(null);
-  // Popup com o erro do salvamento; o aviso na etapa continua até a próxima tentativa.
+  const forms = usePrecoForms(initial);
+  const { values, isDirty, faixasDirty } = forms;
+  // Cadastro novo começa na primeira seção; a edição, com todas fechadas e o resumo do que já está salvo.
+  const [aberta, setAberta] = useState<PrecoSecaoId | null>(isEdit ? null : "basico");
+  // Seções já abertas: só depois de visitada uma seção incompleta passa a mostrar pendência.
+  const [visitadas, setVisitadas] = useState<ReadonlySet<PrecoSecaoId>>(() => new Set(isEdit ? [] : ["basico"]));
+  // Seção onde a última tentativa de salvar encontrou erros; o aviso some quando ela fica válida.
+  const [falhaSecao, setFalhaSecao] = useState<PrecoSecaoId | null>(null);
+  // Popup com o erro do salvamento; o aviso na seção continua até a próxima tentativa.
   const [erroSalvarAberto, setErroSalvarAberto] = useState(false);
-  const [semFim, setSemFim] = useState(initial.info.fimVigencia === "");
-  // O ajuste fino já abre quando a tabela tem horários que a grade não desenha (minutos, inativos, períodos).
-  const [ajusteFinoAberto, setAjusteFinoAberto] = useState(() => horariosForaDaGrade(initial.horarios).length > 0);
-  const stepDescriptionRef = useRef<HTMLParagraphElement>(null);
-  const isFirstRender = useRef(true);
   const savedRef = useRef(false);
-
-  // Ao trocar de etapa, o foco vai para a descrição da nova etapa (leitores de tela e teclado).
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    stepDescriptionRef.current?.focus();
-  }, [step]);
-
-  // As etapas navegam livremente: o envio é feito no fim, então os formulários não têm ação própria.
-  const infoForm = useAppForm({
-    defaultValues: initial.info,
-    validators: {
-      onChange: ({ value }) => {
-        const result = precoInfoSchema.safeParse(value);
-        return result.success ? undefined : zodFieldErrors(result);
-      },
-    },
-  });
-
-  const horariosForm = useAppForm({
-    defaultValues: { horarios: initial.horarios },
-    validators: {
-      onChange: ({ value }) => {
-        const result = precoHorariosSchema.safeParse(value);
-        return result.success ? undefined : zodFieldErrors(result);
-      },
-    },
-  });
-
-  const faixasForm = useAppForm({
-    defaultValues: { faixas: initial.faixas },
-    validators: {
-      onChange: ({ value }) => {
-        const result = precoFaixasSchema.safeParse(value);
-        return result.success ? undefined : zodFieldErrors(result);
-      },
-    },
-  });
-
-  const categoriasForm = useAppForm({
-    defaultValues: { categorias: initial.categorias },
-    validators: {
-      onChange: ({ value }) => {
-        const result = precoCategoriasSchema.safeParse(value);
-        return result.success ? undefined : zodFieldErrors(result);
-      },
-    },
-  });
 
   const mutation = useMutation({
     mutationFn: onSave,
@@ -171,42 +91,14 @@ export function PrecoWizardForm({
     onError: () => setErroSalvarAberto(true),
   });
 
-  const infoValues = useStore(infoForm.store, (state) => state.values);
-  const horariosValues = useStore(horariosForm.store, (state) => state.values.horarios);
-  const faixasValues = useStore(faixasForm.store, (state) => state.values.faixas);
-  const categoriasSelecionadas = useStore(categoriasForm.store, (state) => state.values.categorias);
-
-  const infoDirty = useStore(infoForm.store, (state) => state.isDirty);
-  const horariosDirty = useStore(horariosForm.store, (state) => state.isDirty);
-  const faixasDirty = useStore(faixasForm.store, (state) => state.isDirty);
-  const categoriasDirty = useStore(categoriasForm.store, (state) => state.isDirty);
-  const isDirty = infoDirty || horariosDirty || faixasDirty || categoriasDirty;
-
-  const values: PrecoFormValues = {
-    info: infoValues,
-    horarios: horariosValues,
-    faixas: faixasValues,
-    categorias: categoriasSelecionadas,
-  };
-
   // Na edição, "alterado" é diferença real em relação ao salvo; `isDirty` acusaria mudança mesmo após reverter um valor.
   const hasPendingChanges = isEdit ? hasChanges(original, values) : isDirty;
 
-  const mensagensPorEtapa = validarEtapasPreco(values);
-  const mensagens = [mensagensPorEtapa.basico, mensagensPorEtapa.horarios, mensagensPorEtapa.cobranca];
-  const etapasCompletas = [mensagens[0].length === 0, mensagens[1].length === 0, mensagens[2].length === 0] as const;
-  const totalCompletas = etapasCompletas.filter(Boolean).length;
-
-  const etapasNav: EtapaNav[] = ETAPAS.map((etapa, index) => {
-    const numero = index + 1;
-    let estado: EtapaNav["estado"] = "neutra";
-    if (etapasCompletas[index]) {
-      estado = "completa";
-    } else if (visitadas.has(numero) && numero !== step) {
-      estado = "pendencia";
-    }
-    return { titulo: etapa.titulo, apoio: etapa.apoio, estado };
-  });
+  const mensagens = validarSecoesPreco(values);
+  const todasAsMensagens = SECOES.flatMap((secao) => mensagens[secao.id]);
+  const prontaParaSalvar = todasAsMensagens.length === 0;
+  const diff = isEdit ? diffPreco(original, values) : null;
+  const totalMudancas = diff ? SECOES.reduce((total, secao) => total + mudancasDaSecao(secao.id, diff).length, 0) : 0;
 
   // Evita perder o preenchimento ao fechar a aba ou recarregar.
   useEffect(() => {
@@ -222,9 +114,14 @@ export function PrecoWizardForm({
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasPendingChanges]);
 
-  function irParaEtapa(numero: number) {
-    setVisitadas((atual) => new Set(atual).add(numero));
-    setStep(numero);
+  // Abre a seção (as outras fecham), marca como visitada e rola até ela depois que o layout assenta. `null` só fecha.
+  function abrir(id: PrecoSecaoId | null) {
+    setAberta(id);
+    if (id === null) {
+      return;
+    }
+    setVisitadas((atual) => new Set(atual).add(id));
+    requestAnimationFrame(() => irParaSecao(idDaSecao(id)));
   }
 
   function handleCancel() {
@@ -236,179 +133,118 @@ export function PrecoWizardForm({
   }
 
   async function salvar() {
-    // Marca todos os campos como tocados para que os erros apareçam quando a etapa for aberta.
-    await Promise.all([
-      infoForm.handleSubmit(),
-      horariosForm.handleSubmit(),
-      faixasForm.handleSubmit(),
-      categoriasForm.handleSubmit(),
-    ]);
-    const invalidStep = findInvalidPrecoStep(values);
-    if (invalidStep !== null) {
-      setFalhaEtapa(invalidStep);
-      irParaEtapa(invalidStep);
+    // Marca todos os campos como tocados para que os erros apareçam quando a seção for aberta.
+    await forms.submitAll();
+    const invalida = findInvalidPrecoSecao(values);
+    if (invalida !== null) {
+      setFalhaSecao(invalida);
+      abrir(invalida);
       return;
     }
-    setFalhaEtapa(null);
+    setFalhaSecao(null);
     await mutation.mutateAsync(values).catch(() => undefined);
   }
 
+  const saving = mutation.isPending;
+  const podeSalvar = !saving && (isEdit ? hasPendingChanges : prontaParaSalvar);
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    event.stopPropagation();
-    if (step < ULTIMA_ETAPA && pendentesDaEtapa.length > 0) {
-      // O botão já fica desabilitado; isto cobre o Enter no formulário e deixa os erros dos campos da etapa visíveis.
-      for (const campo of CAMPOS_DO_BASICO) {
-        if (step === 1) {
-          infoForm.setFieldMeta(campo, (meta) => ({ ...meta, isTouched: true }));
-        }
-      }
-      void categoriasForm.handleSubmit();
-      return;
+    if (!saving && (!isEdit || hasPendingChanges)) {
+      void salvar();
     }
-    if (step < ULTIMA_ETAPA) {
-      irParaEtapa(step + 1);
-      return;
-    }
-    void salvar();
   }
 
-  const saving = mutation.isPending;
-  const mensagensDoAviso = falhaEtapa === step ? mensagens[step - 1] : [];
-  const prontaParaSalvar = totalCompletas === ULTIMA_ETAPA;
-  // O que falta na etapa atual: libera o "Avançar" e, na última etapa, o "Salvar".
-  const pendentesDaEtapa = mensagens[step - 1];
+  // No cadastro novo os degraus partem de um modelo padrão: só contam como definidos depois de mexer neles ou na diária.
+  const faixasEditadas = isEdit || faixasDirty || Number.isFinite(parseMoney(values.info.valorDiaria));
+  const falhaAtiva = falhaSecao !== null && mensagens[falhaSecao].length > 0 ? falhaSecao : null;
+  const secoesPainel = SECOES.map((secao) => ({
+    id: idDaSecao(secao.id),
+    titulo: secao.titulo,
+    estado: estadoDaSecao({
+      mensagens: mensagens[secao.id],
+      visitada: visitadas.has(secao.id),
+      aberta: aberta === secao.id,
+      falhou: falhaAtiva === secao.id,
+    }),
+  }));
+  const etapasCompletas = [
+    mensagens.basico.length === 0 && mensagens.categorias.length === 0,
+    mensagens.horarios.length === 0,
+    mensagens.cobranca.length === 0,
+  ] as const;
 
   return (
     <Page>
-      <Card maxWidth="1120px">
-        <Header>
-          <TitleGroup>
-            <TitleRow>
-              <Text variant="heading" as="h1">
-                {title}
-              </Text>
-              <StatusBadge tone={prontaParaSalvar ? "success" : "neutral"}>
-                {prontaParaSalvar ? "Pronta para salvar" : `Rascunho · ${totalCompletas} de ${ULTIMA_ETAPA} etapas`}
-              </StatusBadge>
-            </TitleRow>
-            {isEdit && (
-              <SubtitleRow>
-                {nome && <strong>{nome}</strong>}
-                {situacao && (
-                  <StatusBadge tone={SITUACAO_BADGE[situacao].tone}>{SITUACAO_BADGE[situacao].label}</StatusBadge>
-                )}
-                <UnsavedNote role="status" aria-live="polite">
-                  {hasPendingChanges ? "Alterações não salvas" : ""}
-                </UnsavedNote>
-              </SubtitleRow>
-            )}
-            <Text variant="muted" ref={stepDescriptionRef} tabIndex={-1}>
-              Etapa {step} de {ULTIMA_ETAPA}: {ETAPAS[step - 1].descricao}
-            </Text>
-          </TitleGroup>
-          <PrecoEtapasNav etapas={etapasNav} atual={step} onSelect={irParaEtapa} />
-        </Header>
+      <Cabecalho>
+        <BackButton onClick={handleCancel} disabled={saving}>
+          Preços
+        </BackButton>
+        <TitleGroup>
+          <Text variant="heading" as="h1">
+            {title}
+          </Text>
+          {isEdit && (
+            <SubtitleRow>
+              {nome && <strong>{nome}</strong>}
+              {situacao && <StatusBadge tone={SITUACAO_BADGE[situacao].tone}>{SITUACAO_BADGE[situacao].label}</StatusBadge>}
+              <UnsavedNote role="status" aria-live="polite">
+                {hasPendingChanges ? "Alterações não salvas" : ""}
+              </UnsavedNote>
+            </SubtitleRow>
+          )}
+        </TitleGroup>
+      </Cabecalho>
 
-        <Corpo>
-          <Form onSubmit={handleSubmit}>
-            {mensagensDoAviso.length > 0 && (
-              <ErrorBanner role="alert">
-                Há campos a corrigir na etapa {step} ({ETAPAS[step - 1].titulo}).
-                <ErrosEtapa>
-                  {mensagensDoAviso.map((mensagem, index) => (
-                    <li key={`${mensagem}-${index}`}>{mensagem}</li>
-                  ))}
-                </ErrosEtapa>
-              </ErrorBanner>
-            )}
-            {step === ULTIMA_ETAPA && mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
+      {mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}
 
-            {step === 1 && (
-              <>
-                <PrecoBasicoFields
-                  form={infoForm}
-                  disabled={saving}
-                  semFim={semFim}
-                  onSemFimChange={setSemFim}
-                  convenios={convenios.data ?? []}
-                  conveniosErro={convenios.error?.message}
-                  conveniosState={convenios.isError ? "erro" : convenios.isPending ? "carregando" : "pronto"}
-                />
-                <Section>
-                  <SectionTitle>Categorias de veículo</SectionTitle>
-                  <PrecoCategoriasStepFields form={categoriasForm} disabled={saving} />
-                </Section>
-              </>
-            )}
-            {step === 2 && (
-              <>
-                <GradeHorarios form={horariosForm} disabled={saving} />
-                <AjusteFino open={ajusteFinoAberto} onToggle={(event) => setAjusteFinoAberto(event.currentTarget.open)}>
-                  <summary>Ajuste fino: minutos exatos, horários inativos e períodos específicos</summary>
-                  <PrecoHorariosStepFields form={horariosForm} disabled={saving} />
-                </AjusteFino>
-              </>
-            )}
-            {step === 3 && (
-              <>
-                <Section>
-                  <SectionTitle>Faixas de valores</SectionTitle>
-                  <PrecoFaixasStepFields
-                    form={faixasForm}
-                    disabled={saving}
-                    showPercentual={infoValues.tipoRegra === String(TIPO_REGRA.Convenio)}
-                    diariaValor={parseMoney(infoValues.valorDiaria)}
-                  />
-                </Section>
-                <PrecoCobrancaFields form={infoForm} disabled={saving} />
-              </>
-            )}
+      <form noValidate aria-busy={saving} onSubmit={handleSubmit}>
+        <CadastroCorpo>
+          <PrecoSecoes
+            forms={forms}
+            original={isEdit ? original : undefined}
+            aberta={aberta}
+            onAbrir={abrir}
+            mensagens={mensagens}
+            visitadas={visitadas}
+            falhaSecao={falhaAtiva}
+            faixasEditadas={faixasEditadas}
+            disabled={saving}
+            convenios={{
+              data: convenios.data,
+              erro: convenios.error?.message,
+              estado: convenios.isError ? "erro" : convenios.isPending ? "carregando" : "pronto",
+            }}
+          />
 
-            {pendentesDaEtapa.length > 0 && (
-              <Pendencias role="status" aria-live="polite">
-                <strong>{step < ULTIMA_ETAPA ? "Para avançar, falta:" : "Para salvar, falta:"}</strong>
-                <ul>
-                  {pendentesDaEtapa.map((mensagem, index) => (
-                    <li key={`${mensagem}-${index}`}>{mensagem}</li>
-                  ))}
-                </ul>
-              </Pendencias>
-            )}
+          <Lateral>
+            <PainelCadastro
+              secoes={secoesPainel}
+              onSelect={(elementoId) => {
+                const id = secaoDoElemento(elementoId);
+                if (id) {
+                  abrir(id);
+                }
+              }}
+              status={textoDoStatus(todasAsMensagens, totalMudancas, isEdit)}
+            >
+              <Button type="button" variant="secondary" onClick={handleCancel} disabled={saving}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={!podeSalvar} aria-busy={saving}>
+                {saving ? "Salvando..." : isEdit ? "Salvar alterações" : "Salvar"}
+              </Button>
+            </PainelCadastro>
+            <PrecoResumoAoVivo
+              values={values}
+              original={isEdit ? original : undefined}
+              etapasCompletas={etapasCompletas}
+              faixasEditadas={faixasEditadas}
+            />
+          </Lateral>
+        </CadastroCorpo>
+      </form>
 
-            <Actions>
-              {step === 1 ? (
-                <Button type="button" variant="secondary" onClick={handleCancel} disabled={saving}>
-                  Cancelar
-                </Button>
-              ) : (
-                <Button type="button" variant="secondary" onClick={() => irParaEtapa(step - 1)} disabled={saving}>
-                  Voltar
-                </Button>
-              )}
-              {step < ULTIMA_ETAPA ? (
-                <Button type="submit" disabled={pendentesDaEtapa.length > 0}>
-                  Avançar: {ETAPAS[step].titulo.toLowerCase()}
-                </Button>
-              ) : (
-                <ActionsGroup>
-                  <Button type="button" variant="secondary" onClick={handleCancel} disabled={saving}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={saving || pendentesDaEtapa.length > 0 || (isEdit && !hasPendingChanges)}>
-                    {saving ? "Salvando..." : isEdit ? "Salvar alterações" : "Salvar"}
-                  </Button>
-                </ActionsGroup>
-              )}
-            </Actions>
-            {isEdit && !hasPendingChanges && step === ULTIMA_ETAPA && (
-              <Text variant="muted">Nenhuma alteração para salvar.</Text>
-            )}
-          </Form>
-
-          <PrecoResumoAoVivo values={values} original={isEdit ? original : undefined} etapasCompletas={etapasCompletas} />
-        </Corpo>
-      </Card>
       {erroSalvarAberto && mutation.isError && (
         <ErrorDialog
           title={isEdit ? "Não foi possível salvar as alterações" : "Não foi possível cadastrar o preço"}

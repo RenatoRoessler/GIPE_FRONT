@@ -113,6 +113,29 @@ function pintar(grade: Grade, codigos: number[], de: number, ate: number) {
   }
 }
 
+// Liga (ou desliga) as horas de `de` até `ate` (exclusivo, 0 a 24) nos dias escolhidos, sem tocar nos outros.
+// Se `ate` não é maior que `de`, o intervalo cruza a meia-noite (ex.: 22 → 6 pinta 22–23 e 0–5 no mesmo dia, como no resto da grade);
+// `de === ate` não pinta nada.
+export function pintarFaixa(grade: Grade, dias: number[], de: number, ate: number, ligada = true): Grade {
+  const nova = grade.map((linha) => [...linha]);
+  if (de === ate) {
+    return nova;
+  }
+  const trechos = ate > de ? [[de, ate]] : [[de, HORAS_NO_DIA], [0, ate]];
+  for (const codigo of dias) {
+    const linha = nova[codigo - 1];
+    if (!linha) {
+      continue;
+    }
+    for (const [inicio, fim] of trechos) {
+      for (let hora = inicio; hora < fim; hora++) {
+        linha[hora] = ligada;
+      }
+    }
+  }
+  return nova;
+}
+
 export function gradeDoAtalho(atalho: AtalhoGrade): Grade {
   const grade = gradeVazia();
   switch (atalho) {

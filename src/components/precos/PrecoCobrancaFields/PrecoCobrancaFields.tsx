@@ -2,10 +2,13 @@
 
 import { withForm } from "@/components/form";
 import { Grid, GridItem } from "@/components/form/FormGrid.styles";
+import { Text } from "@/components/ui/Text";
 import { EMPTY_PRECO_INFO, PERIODO_DIARIA_OPTIONS } from "@/types/preco";
 import { formatMinutos } from "../format";
 import { Section, SectionTitle } from "../shared/FormSection.styles";
-import { TECLADO_DECIMAL, TECLADO_INTEIRO } from "@/lib/teclado/tipos";
+
+const MAX_VALOR = 9999;
+const MAX_TOLERANCIA = 120;
 
 export const PrecoCobrancaFields = withForm({
   defaultValues: EMPTY_PRECO_INFO,
@@ -41,12 +44,12 @@ export const PrecoCobrancaFields = withForm({
             <GridItem>
               <form.AppField name="valorDiaria">
                 {(field) => (
-                  <field.TextField
-                    label="Valor da diária (R$)"
-                    inputMode="decimal"
-                    teclado={TECLADO_DECIMAL}
-                    aria-required="true"
-                    format={(value) => value.replace(/[^\d.,]/g, "")}
+                  <field.StepperField
+                    label="Valor da diária"
+                    min={0}
+                    max={MAX_VALOR}
+                    step={1}
+                    decimals={2}
                     disabled={disabled}
                   />
                 )}
@@ -55,17 +58,17 @@ export const PrecoCobrancaFields = withForm({
             <GridItem>
               <form.AppField name="valorAdicionalDiaria">
                 {(field) => (
-                  <field.TextField
-                    label="Valor adicional da diária (R$)"
-                    inputMode="decimal"
-                    teclado={TECLADO_DECIMAL}
-                    aria-required="true"
-                    hint="Cobrado por hora depois do período da diária."
-                    format={(value) => value.replace(/[^\d.,]/g, "")}
+                  <field.StepperField
+                    label="Valor adicional da diária"
+                    min={0}
+                    max={MAX_VALOR}
+                    step={0.5}
+                    decimals={2}
                     disabled={disabled}
                   />
                 )}
               </form.AppField>
+              <Text variant="muted">Cobrado por hora depois do período da diária.</Text>
             </GridItem>
           </Grid>
         </Section>
@@ -76,30 +79,32 @@ export const PrecoCobrancaFields = withForm({
             <GridItem>
               <form.AppField name="toleranciaEntradaMinutos">
                 {(field) => (
-                  <field.TextField
-                    label="Tolerância de entrada (min)"
-                    inputMode="numeric"
-                    teclado={TECLADO_INTEIRO}
-                    hint="Minutos iniciais sem cobrança."
-                    format={(value) => value.replace(/\D/g, "")}
+                  <field.StepperField
+                    label="Tolerância de entrada"
+                    min={0}
+                    max={MAX_TOLERANCIA}
+                    step={5}
+                    format={formatMinutos}
                     disabled={disabled}
                   />
                 )}
               </form.AppField>
+              <Text variant="muted">Minutos iniciais sem cobrança.</Text>
             </GridItem>
             <GridItem>
               <form.AppField name="toleranciaAlteracaoFaixaMinutos">
                 {(field) => (
-                  <field.TextField
-                    label="Tolerância de alteração de faixa (min)"
-                    inputMode="numeric"
-                    teclado={TECLADO_INTEIRO}
-                    hint="Minutos extras antes de passar para o degrau seguinte."
-                    format={(value) => value.replace(/\D/g, "")}
+                  <field.StepperField
+                    label="Tolerância de alteração de faixa"
+                    min={0}
+                    max={MAX_TOLERANCIA}
+                    step={5}
+                    format={formatMinutos}
                     disabled={disabled}
                   />
                 )}
               </form.AppField>
+              <Text variant="muted">Minutos extras antes de passar para o degrau seguinte.</Text>
             </GridItem>
           </Grid>
         </Section>
