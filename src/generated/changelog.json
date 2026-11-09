@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.390",
+      "type": "fix",
+      "scope": "camera",
+      "title": "abre a câmera no app instalado e mostra os passos certos",
+      "description": "No app instalado a consulta de permissão pode vir desatualizada, e antes\ndisso a câmera nem era pedida. Agora o app sempre tenta abrir a câmera, e\nsó mostra o bloqueio se o navegador recusar. Os passos para liberar também\nmudam no app instalado, que não tem barra de endereço nem cadeado: no\nAndroid levam às informações do app e às permissões do sistema, no iPhone\naos ajustes do Safari e no computador ao menu do app.",
+      "date": "2026-11-09T17:34:02-03:00"
+    },
+    {
       "version": "1.0.388",
       "type": "feat",
       "scope": "camera",
