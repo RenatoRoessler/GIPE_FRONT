@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.379",
+      "type": "feat",
+      "scope": "precos",
+      "title": "cadastro e edição de preço em página única com seções",
+      "description": "O cadastro deixa de ser um passo a passo e vira uma página com quatro\nseções em acordeão (O básico, Categorias, Quando vale, Quanto cobra), uma\naberta por vez. Na edição as seções começam fechadas, mostram o resumo e,\nquando alteradas, o antes → depois. O painel de conclusão traz o status e as\nações Salvar e Cancelar; salvar com pendência abre a primeira seção com\nproblema.\n\n- Vigência em chips (começa hoje, sem fim) e faixa rápida na grade de horários.\n- Diária e tolerâncias com botões − e +.\n- Empresa conveniada só pode ser escolhida no tipo Convênio.\n- Validação por seção e remoção da navegação por etapas.",
+      "date": "2026-11-09T17:11:49-03:00"
+    },
+    {
+      "version": "1.0.378",
+      "type": "feat",
+      "scope": "ui",
+      "title": "adiciona marca de estado ao Accordion e passo ao NumberStepper",
+      "description": "O Accordion aceita resumo com elementos, marca de estado (pronta, pendente,\nerro ou número da seção) e etiqueta como \"Alterado\". O NumberStepper ganha\npasso, formatação e casas decimais sem erro de ponto flutuante. O novo\nStepperField liga o stepper a um campo de texto do formulário.",
+      "date": "2026-11-09T17:11:49-03:00"
+    },
+    {
       "version": "1.0.376",
       "type": "feat",
       "scope": "app",
