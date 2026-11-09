@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.382",
+      "type": "feat",
+      "scope": "precos",
+      "title": "redesenha a lista de preços para o celular",
+      "description": "Substitui o mestre-detalhe por um cockpit de preços com esteira de placas,\nlista completa, barra do simulador e detalhe adaptados ao celular. Inclui os\ncomponentes DockBar e BottomSheet, ajustes em Tabs e o novo resumo de uma\nlinha por tabela de preço.",
+      "date": "2026-11-09T17:14:18-03:00"
+    },
+    {
       "version": "1.0.379",
       "type": "feat",
       "scope": "precos",
