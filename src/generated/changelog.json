@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.404",
+      "type": "feat",
+      "scope": "caixa",
+      "title": "abre o lançamento de despesa pelo botão Lançar despesa",
+      "description": "O botão Lançar despesa da tela do caixa estava desabilitado (\"Em breve\").\nAgora abre a mesma janela de lançamento do financeiro, já como saída.\nCriar categoria leva para a aba de categorias do financeiro.",
+      "date": "2026-11-09T19:25:18-03:00"
+    },
+    {
       "version": "1.0.402",
       "type": "feat",
       "scope": "entrada",
