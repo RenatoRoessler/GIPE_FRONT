@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.400",
+      "type": "fix",
+      "scope": "comprovante",
+      "title": "remove o card de instruções do comprovante digital",
+      "description": "O comprovante digital deixa de mostrar o aviso sobre apontar a câmera\npara o QR Code e tirar foto da tela. O QR Code e os dados do ticket\ncontinuam na tela.",
+      "date": "2026-11-09T19:12:31-03:00"
+    },
+    {
       "version": "1.0.398",
       "type": "fix",
       "scope": "menu",
