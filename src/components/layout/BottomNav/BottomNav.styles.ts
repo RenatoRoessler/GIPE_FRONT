@@ -154,15 +154,16 @@ export const EntradaTab = styled(TabButton)`
 // Menu estendido: sobe da base no celular; a partir de `md` fica centralizado logo acima da barra.
 export const Sheet = styled.dialog`
   position: fixed;
-  inset: auto 0 0 0;
+  inset: 0;
   width: 100%;
   max-width: 100%;
-  max-height: 82dvh;
+  height: 100dvh;
+  max-height: 100dvh;
   margin: 0;
-  padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px
+  padding: calc(${({ theme }) => theme.space[2]}px + env(safe-area-inset-top, 0px)) ${({ theme }) => theme.space[3]}px
     calc(${({ theme }) => theme.space[3]}px + env(safe-area-inset-bottom, 0px));
   border: none;
-  border-radius: ${({ theme }) => theme.radii.xl} ${({ theme }) => theme.radii.xl} 0 0;
+  border-radius: 0;
   overflow-y: auto;
   background-color: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.text};
@@ -188,8 +189,10 @@ export const Sheet = styled.dialog`
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
     inset: auto 0 calc(${({ theme }) => theme.layout.bottomNavReserved} + env(safe-area-inset-bottom, 0px) + ${({ theme }) => theme.space[2]}px) 0;
     width: min(480px, 100%);
+    height: auto;
     max-height: min(82dvh, calc(100dvh - ${({ theme }) => theme.layout.bottomNavReserved} - env(safe-area-inset-bottom, 0px) - ${({ theme }) => theme.space[5]}px));
     margin: 0 auto;
+    padding-top: ${({ theme }) => theme.space[2]}px;
     padding-bottom: ${({ theme }) => theme.space[3]}px;
     border-radius: ${({ theme }) => theme.radii.xl};
   }
