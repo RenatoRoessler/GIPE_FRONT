@@ -7,11 +7,14 @@ import {
   Heading,
   HeaderRow,
   Item,
+  Label,
   List,
+  Mark,
   Panel,
   Summary,
   Title,
   TitleGroup,
+  TitleRow,
   Trigger,
 } from "./Accordion.styles";
 
@@ -19,11 +22,22 @@ export function Accordion(props: HTMLAttributes<HTMLDivElement>) {
   return <List {...props} />;
 }
 
+// Estado da seção: "pronta" (✓), "pendente" (!), "erro" (!) ou o número da seção.
+export type AccordionMark = "pronta" | "pendente" | "erro" | number;
+
+const MARK_LABELS = { pronta: "Seção pronta", pendente: "Seção com pendência", erro: "Seção com erro" } as const;
+const MARK_SYMBOLS = { pronta: "✓", pendente: "!", erro: "!" } as const;
+
 export interface AccordionItemProps {
   // id do item, para rolar até ele (ex.: atalho de seção do PainelCadastro).
   id?: string;
   title: string;
-  summary?: string;
+  // Texto ou conteúdo rico (ex.: antes → depois) sob o título.
+  summary?: ReactNode;
+  // Círculo à esquerda do título com o estado da seção.
+  marca?: AccordionMark;
+  // Selo ao lado do título (ex.: "Alterado").
+  etiqueta?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   hasError?: boolean;
@@ -37,6 +51,8 @@ export function AccordionItem({
   id: itemId,
   title,
   summary,
+  marca,
+  etiqueta,
   open,
   onOpenChange,
   hasError = false,
@@ -58,8 +74,20 @@ export function AccordionItem({
             aria-controls={panelId}
             onClick={() => onOpenChange(!open)}
           >
+            {marca !== undefined && (
+              <Mark
+                $state={typeof marca === "number" ? "numero" : marca}
+                role="img"
+                aria-label={typeof marca === "number" ? `Seção ${marca}` : MARK_LABELS[marca]}
+              >
+                {typeof marca === "number" ? marca : MARK_SYMBOLS[marca]}
+              </Mark>
+            )}
             <TitleGroup>
-              <Title>{title}</Title>
+              <TitleRow>
+                <Title>{title}</Title>
+                {etiqueta && <Label>{etiqueta}</Label>}
+              </TitleRow>
               {(summary || hasError) && (
                 <Summary $hasError={hasError}>{hasError ? "Há campos para corrigir" : summary}</Summary>
               )}

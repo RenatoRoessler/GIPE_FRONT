@@ -51,4 +51,26 @@ describe("NumberStepper", () => {
     await userEvent.click(screen.getByRole("button", { name: "Aumentar linhas" }));
     expect(onChange).not.toHaveBeenCalled();
   });
+
+  it("anda de step em step, limitado por min e max", async () => {
+    const onChange = setup({ value: 10, min: 0, max: 12, step: 5 });
+    await userEvent.click(screen.getByRole("button", { name: "Aumentar linhas" }));
+    await userEvent.click(screen.getByRole("button", { name: "Diminuir linhas" }));
+    expect(onChange).toHaveBeenNthCalledWith(1, 12);
+    expect(onChange).toHaveBeenNthCalledWith(2, 5);
+  });
+
+  it("mostra o valor formatado e evita erro de ponto flutuante nas casas decimais", async () => {
+    const onChange = setup({
+      value: 0.1,
+      min: 0,
+      max: 10,
+      step: 0.2,
+      decimals: 2,
+      format: (valor) => `R$ ${valor.toFixed(2).replace(".", ",")}`,
+    });
+    expect(screen.getByText("R$ 0,10")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Aumentar linhas" }));
+    expect(onChange).toHaveBeenCalledWith(0.3);
+  });
 });

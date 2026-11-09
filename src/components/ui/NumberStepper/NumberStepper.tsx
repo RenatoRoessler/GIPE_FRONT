@@ -12,14 +12,31 @@ export interface NumberStepperProps {
   // Texto de apoio ao lado do valor (ex.: "A–E").
   hint?: string;
   disabled?: boolean;
+  // Quanto − e + e as setas andam por vez.
+  step?: number;
+  // Como o valor aparece (ex.: em reais); o padrão é o próprio número.
+  format?: (value: number) => string;
+  // Casas decimais do valor, para o passo não acumular erro de ponto flutuante.
+  decimals?: number;
 }
 
 // Campo numérico de poucos passos: − valor +, limitado por min e max. O valor também responde às setas e a Home/End.
-export function NumberStepper({ label, value, min, max, onChange, hint, disabled = false }: NumberStepperProps) {
+export function NumberStepper({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+  hint,
+  disabled = false,
+  step = 1,
+  format,
+  decimals = 0,
+}: NumberStepperProps) {
   const labelId = useId();
 
   function set(next: number) {
-    const clamped = Math.min(max, Math.max(min, next));
+    const clamped = Math.min(max, Math.max(min, Number(next.toFixed(decimals))));
     if (clamped !== value) {
       onChange(clamped);
     }
@@ -31,9 +48,9 @@ export function NumberStepper({ label, value, min, max, onChange, hint, disabled
     }
     const next =
       event.key === "ArrowUp" || event.key === "ArrowRight"
-        ? value + 1
+        ? value + step
         : event.key === "ArrowDown" || event.key === "ArrowLeft"
-          ? value - 1
+          ? value - step
           : event.key === "Home"
             ? min
             : event.key === "End"
@@ -49,7 +66,7 @@ export function NumberStepper({ label, value, min, max, onChange, hint, disabled
     <Wrapper role="group" aria-labelledby={labelId}>
       <Label id={labelId}>{label}</Label>
       <Control>
-        <StepButton type="button" aria-label={`Diminuir ${label.toLowerCase()}`} disabled={disabled || value <= min} onClick={() => set(value - 1)}>
+        <StepButton type="button" aria-label={`Diminuir ${label.toLowerCase()}`} disabled={disabled || value <= min} onClick={() => set(value - step)}>
           −
         </StepButton>
         <Value
@@ -57,15 +74,16 @@ export function NumberStepper({ label, value, min, max, onChange, hint, disabled
           tabIndex={disabled ? -1 : 0}
           aria-labelledby={labelId}
           aria-valuenow={value}
+          aria-valuetext={format ? format(value) : undefined}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-disabled={disabled || undefined}
           onKeyDown={handleKeyDown}
         >
-          <NumberText>{value}</NumberText>
+          <NumberText>{format ? format(value) : value}</NumberText>
           {hint ? <Hint>{hint}</Hint> : null}
         </Value>
-        <StepButton type="button" aria-label={`Aumentar ${label.toLowerCase()}`} disabled={disabled || value >= max} onClick={() => set(value + 1)}>
+        <StepButton type="button" aria-label={`Aumentar ${label.toLowerCase()}`} disabled={disabled || value >= max} onClick={() => set(value + step)}>
           +
         </StepButton>
       </Control>

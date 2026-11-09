@@ -60,10 +60,46 @@ export const Trigger = styled.button`
 `;
 
 export const TitleGroup = styled.span`
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[1]}px;
   min-width: 0;
+`;
+
+export const TitleRow = styled.span`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.space[2]}px;
+`;
+
+export const Label = styled.span`
+  padding: 0 ${({ theme }) => theme.space[2]}px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  background-color: ${({ theme }) => theme.colors.primarySoft};
+  color: ${({ theme }) => theme.colors.text};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+`;
+
+export const Mark = styled.span<{ $state: "pronta" | "pendente" | "erro" | "numero" }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid
+    ${({ theme, $state }) =>
+      $state === "pronta" ? theme.colors.success : $state === "erro" ? theme.colors.danger : theme.colors.borderStrong};
+  border-radius: ${({ theme }) => theme.radii.full};
+  background-color: ${({ theme, $state }) =>
+    $state === "pronta" ? theme.colors.success : $state === "erro" ? theme.colors.danger : "transparent"};
+  color: ${({ theme, $state }) =>
+    $state === "pronta" ? theme.colors.onSuccess : $state === "erro" ? theme.colors.onDanger : theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
 `;
 
 export const Title = styled.span`

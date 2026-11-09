@@ -5,6 +5,7 @@ import { ComboboxField } from "./ComboboxField";
 import { OptionField } from "./OptionField";
 import { PlateField } from "./PlateField";
 import { SelectField } from "./SelectField";
+import { StepperField } from "./StepperField";
 import { SwitchField } from "./SwitchField";
 import { TextareaField } from "./TextareaField";
 import { TextField } from "./TextField";
@@ -20,6 +21,7 @@ export const { useAppForm, withForm } = createFormHook({
     OptionField,
     PlateField,
     SelectField,
+    StepperField,
     SwitchField,
   },
   formComponents: {},
