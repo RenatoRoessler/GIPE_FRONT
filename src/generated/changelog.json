@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.394",
+      "type": "fix",
+      "scope": "header",
+      "title": "mostra a palavra murel no cabeçalho também no celular",
+      "description": "Antes, em telas pequenas o cabeçalho exibia só o símbolo. Agora a marca\ncompleta (símbolo e palavra) aparece em qualquer tamanho de tela.",
+      "date": "2026-11-09T19:06:38-03:00"
+    },
+    {
       "version": "1.0.392",
       "type": "fix",
       "scope": "entrada",
