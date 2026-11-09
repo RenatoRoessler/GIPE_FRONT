@@ -1,6 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { MEDIA_TOQUE } from "@/components/teclado/useTecladoCampo";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
@@ -89,6 +90,25 @@ describe("EntradaVeiculoModal", () => {
     handlers.onSuccess.mockReset();
     vi.mocked(listQuadros).mockReset().mockResolvedValue([]);
     vi.mocked(escolherQuadroChave).mockReset();
+  });
+
+  it("no celular a leitura da placa abre junto com a tela; no computador não", () => {
+    const toque = (ativo: boolean) =>
+      vi.stubGlobal("matchMedia", (query: string) => ({
+        matches: ativo && query === MEDIA_TOQUE,
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }));
+    toque(true);
+    const celular = renderModal();
+    expect(screen.getByRole("dialog", { name: "Leitor de placa" })).toBeInTheDocument();
+    celular.unmount();
+
+    toque(false);
+    renderModal();
+    expect(screen.queryByRole("dialog", { name: "Leitor de placa" })).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 
   it("começa sem cor pré-marcada, com o registro bloqueado e dizendo o que falta", () => {

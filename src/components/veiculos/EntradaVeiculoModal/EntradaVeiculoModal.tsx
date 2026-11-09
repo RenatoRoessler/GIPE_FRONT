@@ -11,6 +11,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Link } from "@/components/ui/Link";
 import { Modal } from "@/components/ui/Modal";
+import { MEDIA_TOQUE } from "@/components/teclado/useTecladoCampo";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
 import { usePatio } from "@/components/patio/usePatio";
 import { EscolherGancho } from "@/components/quadros/EscolherGancho";
@@ -172,7 +173,10 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
         ? `Falta: ${listaEmPortugues(faltando)}.`
         : null;
   const [confirmingClose, setConfirmingClose] = useState(false);
-  const [leitorAberto, setLeitorAberto] = useState(false);
+  // No celular a leitura da placa pela câmera já abre junto com a tela; "Digitar" leva ao formulário.
+  const [leitorAberto, setLeitorAberto] = useState(
+    () => typeof window.matchMedia === "function" && window.matchMedia(MEDIA_TOQUE).matches,
+  );
   const { data: modelos = [] } = useModelos();
 
   // O listener do campo pode ser recriado a cada render; a ref garante a lista mais recente.
