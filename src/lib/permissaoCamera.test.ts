@@ -3,14 +3,11 @@ import {
   appInstalado,
   consultarPermissaoCamera,
   detectarNavegador,
-  explicacaoCameraVista,
-  marcarExplicacaoCameraVista,
   passosParaLiberarCamera,
 } from "./permissaoCamera";
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  window.localStorage.clear();
 });
 
 describe("consultarPermissaoCamera", () => {
@@ -24,14 +21,6 @@ describe("consultarPermissaoCamera", () => {
     expect(await consultarPermissaoCamera()).toBe("desconhecida");
     vi.stubGlobal("navigator", { permissions: { query: vi.fn().mockRejectedValue(new TypeError("camera")) } });
     expect(await consultarPermissaoCamera()).toBe("desconhecida");
-  });
-});
-
-describe("explicação vista", () => {
-  it("começa não vista e lembra depois de marcada", () => {
-    expect(explicacaoCameraVista()).toBe(false);
-    marcarExplicacaoCameraVista();
-    expect(explicacaoCameraVista()).toBe(true);
   });
 });
 

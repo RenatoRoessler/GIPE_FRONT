@@ -92,7 +92,7 @@ describe("EntradaVeiculoModal", () => {
     vi.mocked(escolherQuadroChave).mockReset();
   });
 
-  it("no celular a leitura da placa abre junto com a tela; no computador não", () => {
+  it("no celular a leitura da placa abre junto com a tela; no computador não", async () => {
     const toque = (ativo: boolean) =>
       vi.stubGlobal("matchMedia", (query: string) => ({
         matches: ativo && query === MEDIA_TOQUE,
@@ -102,11 +102,12 @@ describe("EntradaVeiculoModal", () => {
       }));
     toque(true);
     const celular = renderModal();
-    expect(screen.getByRole("dialog", { name: "Leitor de placa" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Leitor de placa" })).toBeInTheDocument();
     celular.unmount();
 
     toque(false);
     renderModal();
+    await new Promise((resolve) => setTimeout(resolve, 20));
     expect(screen.queryByRole("dialog", { name: "Leitor de placa" })).not.toBeInTheDocument();
     vi.unstubAllGlobals();
   });

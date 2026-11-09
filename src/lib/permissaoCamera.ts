@@ -2,8 +2,6 @@ export type PermissaoCamera = "granted" | "prompt" | "denied" | "desconhecida";
 
 export type NavegadorCamera = "ios-safari" | "ios-chrome" | "chrome" | "firefox" | "outro";
 
-const CHAVE_EXPLICACAO = "murel:camera-explicacao-vista";
-
 // Pergunta ao navegador, sem abrir a câmera, se a permissão já foi dada, bloqueada ou ainda será pedida.
 // Navegadores sem essa consulta (ex.: Safari) devolvem "desconhecida".
 export async function consultarPermissaoCamera(): Promise<PermissaoCamera> {
@@ -15,23 +13,6 @@ export async function consultarPermissaoCamera(): Promise<PermissaoCamera> {
     return status.state;
   } catch {
     return "desconhecida";
-  }
-}
-
-// A explicação antes do pedido do navegador aparece uma vez por aparelho.
-export function explicacaoCameraVista(): boolean {
-  try {
-    return window.localStorage.getItem(CHAVE_EXPLICACAO) === "1";
-  } catch {
-    return false;
-  }
-}
-
-export function marcarExplicacaoCameraVista(): void {
-  try {
-    window.localStorage.setItem(CHAVE_EXPLICACAO, "1");
-  } catch {
-    // Sem armazenamento, a explicação só volta a aparecer na próxima abertura.
   }
 }
 

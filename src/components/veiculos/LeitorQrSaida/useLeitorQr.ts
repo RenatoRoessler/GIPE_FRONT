@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { consultarPermissaoCamera, explicacaoCameraVista, marcarExplicacaoCameraVista } from "@/lib/permissaoCamera";
+import { consultarPermissaoCamera } from "@/lib/permissaoCamera";
 
-export type LeitorQrEstado = "ocioso" | "abrindo" | "explicando" | "lendo" | "negada" | "indisponivel";
+export type LeitorQrEstado = "ocioso" | "abrindo" | "pedindo" | "lendo" | "negada" | "indisponivel";
 
 export interface UseLeitorQrOptions {
   // Câmera ligada enquanto true; ao virar false (ou desmontar) tudo é liberado.
@@ -15,10 +15,8 @@ export interface UseLeitorQrOptions {
 export interface UseLeitorQr {
   videoRef: RefObject<HTMLVideoElement | null>;
   estado: LeitorQrEstado;
-  // Para navegadores que só abrem a câmera após um toque; consulta a permissão e, na primeira vez, antes explica.
+  // Para navegadores que só abrem a câmera após um toque; com "pedindo" o navegador está perguntando se pode usá-la.
   iniciar: () => void;
-  // Depois da explicação: segue para o pedido do navegador.
-  permitir: () => void;
 }
 
 type Detector = { detect: (source: HTMLVideoElement) => Promise<{ rawValue: string }[]> };
@@ -58,7 +56,7 @@ export function useLeitorQr({ ativo, onTexto }: UseLeitorQrOptions): UseLeitorQr
     }
   }, []);
 
-  const iniciar = useCallback(async (explicado = false) => {
+  const iniciar = useCallback(async () => {
     if (!ativoRef.current || streamRef.current || abrindoRef.current) {
       return;
     }
@@ -77,9 +75,9 @@ export function useLeitorQr({ ativo, onTexto }: UseLeitorQrOptions): UseLeitorQr
       }
       // Com "denied" ainda se tenta abrir: a consulta pode estar desatualizada (ex.: app instalado) e, se estiver
       // mesmo bloqueada, o navegador recusa na hora, sem mostrar nada, e cai em "negada".
-      if (!explicado && (permissao === "prompt" || permissao === "desconhecida") && !explicacaoCameraVista()) {
-        setEstado("explicando");
-        return;
+      // Quando o navegador vai perguntar, a tela explica para que serve a câmera enquanto o pedido está aberto.
+      if (permissao === "prompt" || permissao === "desconhecida") {
+        setEstado("pedindo");
       }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" } },
@@ -188,9 +186,5 @@ export function useLeitorQr({ ativo, onTexto }: UseLeitorQrOptions): UseLeitorQr
     // Fora de uso a câmera está liberada, qualquer que tenha sido o último estado.
     estado: ativo ? estado : "ocioso",
     iniciar: () => void iniciar(),
-    permitir: () => {
-      marcarExplicacaoCameraVista();
-      void iniciar(true);
-    },
   };
 }

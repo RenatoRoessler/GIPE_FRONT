@@ -1,7 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { marcarExplicacaoCameraVista } from "@/lib/permissaoCamera";
 import { useLeitorPlaca } from "./useLeitorPlaca";
 
 const reconhecer = vi.hoisted(() => vi.fn());
@@ -17,7 +16,7 @@ interface HarnessProps {
 }
 
 function Harness({ ativo, onPlaca = () => {}, tempoLimiteMs, continuo }: HarnessProps) {
-  const { videoRef, estado, contextoSeguro, iniciar, permitir } = useLeitorPlaca({
+  const { videoRef, estado, contextoSeguro, iniciar } = useLeitorPlaca({
     ativo,
     onPlaca,
     tempoLimiteMs,
@@ -32,9 +31,6 @@ function Harness({ ativo, onPlaca = () => {}, tempoLimiteMs, continuo }: Harness
       <button type="button" onClick={iniciar}>
         iniciar
       </button>
-      <button type="button" onClick={permitir}>
-        permitir
-      </button>
     </div>
   );
 }
@@ -47,7 +43,6 @@ function fakeStream() {
 }
 
 beforeEach(() => {
-  marcarExplicacaoCameraVista();
   stopTrack.mockReset();
   encerrar.mockReset().mockResolvedValue(undefined);
   reconhecer.mockReset().mockResolvedValue("");
@@ -59,7 +54,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  window.localStorage.clear();
   Reflect.deleteProperty(navigator, "permissions");
   vi.restoreAllMocks();
 });
@@ -230,33 +224,32 @@ describe("permissão da câmera", () => {
     });
   }
 
-  it("na primeira vez, antes do pedido do navegador, explica e espera o usuário permitir", async () => {
-    window.localStorage.clear();
+  // O pedido do navegador fica pendente até o usuário responder.
+  function pedidoPendente() {
+    let liberar: (stream: MediaStream) => void = () => {};
+    getUserMedia.mockReturnValueOnce(new Promise<MediaStream>((resolve) => (liberar = resolve)));
+    return (stream: MediaStream) => liberar(stream);
+  }
+
+  it("pede a câmera na hora e, enquanto o navegador pergunta, a tela explica para que ela serve", async () => {
     simularPermissao("prompt");
+    const responder = pedidoPendente();
     render(<Harness ativo />);
-    await waitFor(() => expect(estado()).toBe("explicando"));
-    expect(getUserMedia).not.toHaveBeenCalled();
-
-    await userEvent.click(screen.getByRole("button", { name: "permitir" }));
-    await waitFor(() => expect(estado()).toBe("lendo"));
+    await waitFor(() => expect(estado()).toBe("pedindo"));
     expect(getUserMedia).toHaveBeenCalledTimes(1);
+
+    await act(async () => responder(fakeStream()));
+    await waitFor(() => expect(estado()).toBe("lendo"));
   });
 
-  it("sem a consulta de permissão (ex.: Safari) também explica na primeira vez e não repete depois", async () => {
-    window.localStorage.clear();
+  it("sem a consulta de permissão (ex.: Safari) também mostra o estado pedindo", async () => {
     simularPermissao(null);
-    const primeira = render(<Harness ativo />);
-    await waitFor(() => expect(estado()).toBe("explicando"));
-    await userEvent.click(screen.getByRole("button", { name: "permitir" }));
-    await waitFor(() => expect(estado()).toBe("lendo"));
-    primeira.unmount();
-
+    pedidoPendente();
     render(<Harness ativo />);
-    await waitFor(() => expect(estado()).toBe("lendo"));
+    await waitFor(() => expect(estado()).toBe("pedindo"));
   });
 
-  it("com a permissão já concedida abre direto, sem explicar", async () => {
-    window.localStorage.clear();
+  it("com a permissão já concedida abre direto, sem passar por pedindo", async () => {
     simularPermissao("granted");
     render(<Harness ativo />);
     await waitFor(() => expect(estado()).toBe("lendo"));
@@ -275,8 +268,7 @@ describe("permissão da câmera", () => {
     await waitFor(() => expect(estado()).toBe("lendo"));
   });
 
-  it("consulta desatualizada (bloqueada, mas a câmera abre): abre normalmente, sem explicação", async () => {
-    window.localStorage.clear();
+  it("consulta desatualizada (bloqueada, mas a câmera abre): abre normalmente", async () => {
     simularPermissao("denied");
     render(<Harness ativo />);
     await waitFor(() => expect(estado()).toBe("lendo"));

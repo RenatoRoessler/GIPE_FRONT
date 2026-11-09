@@ -17,7 +17,7 @@ export const TEMPO_LIMITE_CONFERENCIA_MS = 120_000;
 const MENSAGENS: Record<Exclude<LeitorPlacaEstado, "indisponivel">, string> = {
   ocioso: "Preparando a câmera…",
   abrindo: "Preparando a câmera…",
-  explicando: "",
+  pedindo: "Aguardando a permissão da câmera…",
   lendo: "Aponte a câmera para a placa",
   negada: "Permita o acesso à câmera nas configurações do navegador, ou digite a placa.",
   "sem-leitura": "A câmera parou por falta de leitura. Toque em Ler placas para continuar.",
@@ -49,7 +49,7 @@ function soletrar(placa: string): string {
 
 export function VisorPlacas({ ativo, onPlaca, ultimaLeitura, onRegistrarEntrada, onDigitar }: VisorPlacasProps) {
   const visivel = useSyncExternalStore(assinarVisibilidade, abaVisivel, () => true);
-  const { videoRef, estado, contextoSeguro, iniciar, permitir } = useLeitorPlaca({
+  const { videoRef, estado, contextoSeguro, iniciar } = useLeitorPlaca({
     ativo: ativo && visivel,
     onPlaca,
     continuo: true,
@@ -90,20 +90,9 @@ export function VisorPlacas({ ativo, onPlaca, ultimaLeitura, onRegistrarEntrada,
           </>
         )}
 
-        {estado === "explicando" && <ExplicacaoCamera motivo="conferir as placas dos veículos" />}
+        {estado === "pedindo" && <ExplicacaoCamera motivo="conferir as placas dos veículos" />}
         {estado === "negada" && <PassosLiberarCamera />}
         <Mensagem>{mensagem}</Mensagem>
-
-        {estado === "explicando" && (
-          <Acoes>
-            <Button type="button" size="sm" onClick={permitir}>
-              Permitir câmera
-            </Button>
-            <Button type="button" variant="secondary" size="sm" onClick={onDigitar}>
-              Digitar placa
-            </Button>
-          </Acoes>
-        )}
 
         {falhou && (
           <Acoes>

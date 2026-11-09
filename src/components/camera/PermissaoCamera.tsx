@@ -8,13 +8,13 @@ export interface ExplicacaoCameraProps {
   motivo: string;
 }
 
-// Antes do pedido do navegador: quem entende o motivo tende a tocar em Permitir.
+// Mostrada enquanto o navegador pergunta: quem entende o motivo tende a tocar em Permitir.
 export function ExplicacaoCamera({ motivo }: ExplicacaoCameraProps) {
   return (
     <Caixa role="group" aria-label="Permissão da câmera">
       <Titulo>Vamos usar a câmera</Titulo>
       <Texto>
-        A câmera serve só para {motivo}. Nada é gravado. Na próxima janela do navegador, toque em <strong>Permitir</strong>.
+        A câmera serve só para {motivo}. Nada é gravado. Na janela do navegador, toque em <strong>Permitir</strong>.
       </Texto>
     </Caixa>
   );

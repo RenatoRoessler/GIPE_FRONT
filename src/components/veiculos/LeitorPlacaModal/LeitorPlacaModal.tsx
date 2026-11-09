@@ -24,7 +24,7 @@ export interface LeitorPlacaModalProps {
 const MENSAGENS: Record<Exclude<LeitorPlacaEstado, "indisponivel">, string> = {
   ocioso: "Preparando leitura…",
   abrindo: "Preparando leitura…",
-  explicando: "",
+  pedindo: "Aguardando a permissão da câmera…",
   lendo: "Aponte a câmera para a placa",
   negada: "Permita o acesso à câmera nas configurações do navegador e tente novamente.",
   "sem-leitura": "Não consegui ler a placa. Tente de novo ou digite.",
@@ -45,7 +45,7 @@ function LeitorPlacaAberto({ onClose, onConfirm, onDigitar = onClose }: Omit<Lei
   const [etapa, setEtapa] = useState<"leitura" | "conferencia">("leitura");
   const [placa, setPlaca] = useState("");
 
-  const { videoRef, estado, contextoSeguro, iniciar, permitir } = useLeitorPlaca({
+  const { videoRef, estado, contextoSeguro, iniciar } = useLeitorPlaca({
     ativo: etapa === "leitura",
     onPlaca: (lida) => {
       setPlaca(lida);
@@ -114,16 +114,7 @@ function LeitorPlacaAberto({ onClose, onConfirm, onDigitar = onClose }: Omit<Lei
       closeOnBackdrop={false}
       footer={
         <Acoes>
-          {estado === "explicando" ? (
-            <>
-              <Button type="button" onClick={permitir}>
-                Permitir câmera
-              </Button>
-              <Button type="button" variant="secondary" onClick={onDigitar}>
-                Digitar
-              </Button>
-            </>
-          ) : falhou ? (
+          {falhou ? (
             <>
               {podeTentarDeNovo && (
                 <Button type="button" onClick={iniciar}>
@@ -152,7 +143,7 @@ function LeitorPlacaAberto({ onClose, onConfirm, onDigitar = onClose }: Omit<Lei
             <Mira $canto="br" $tom={falhou ? "invalido" : "neutro"} />
           </Moldura>
         </Visor>
-        {estado === "explicando" && <ExplicacaoCamera motivo="ler a placa do veículo" />}
+        {estado === "pedindo" && <ExplicacaoCamera motivo="ler a placa do veículo" />}
         {estado === "negada" && <PassosLiberarCamera />}
         <Mensagem aria-hidden="true">{mensagem}</Mensagem>
         <VisuallyHidden role="status" aria-live="polite">

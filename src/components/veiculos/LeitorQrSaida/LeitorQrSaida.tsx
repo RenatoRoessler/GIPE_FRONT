@@ -22,7 +22,7 @@ const INVALIDO_MS = 1200;
 const MENSAGENS: Record<LeitorQrEstado, string> = {
   ocioso: "Toque para ativar a câmera",
   abrindo: "Abrindo câmera…",
-  explicando: "Toque para permitir a câmera",
+  pedindo: "Aguardando a permissão da câmera…",
   lendo: "",
   negada: "Permita o acesso à câmera e toque aqui",
   indisponivel: "Câmera indisponível neste navegador",
@@ -41,7 +41,7 @@ export function LeitorQrSaida({ onToken, onInvalido, buscando = false }: LeitorQ
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [invalido, setInvalido] = useState(false);
 
-  const { videoRef, estado, iniciar, permitir } = useLeitorQr({
+  const { videoRef, estado, iniciar } = useLeitorQr({
     ativo: !buscando,
     onTexto: (texto) => {
       const tokenLido = extrairTokenComprovante(texto);
@@ -79,7 +79,7 @@ export function LeitorQrSaida({ onToken, onInvalido, buscando = false }: LeitorQ
       <Visor
         type="button"
         $tom={tom}
-        onClick={estado === "explicando" ? permitir : iniciar}
+        onClick={iniciar}
         aria-label="Área de leitura do QR Code. Toque para ativar a câmera"
       >
         <Video ref={videoRef} playsInline muted />
@@ -90,7 +90,7 @@ export function LeitorQrSaida({ onToken, onInvalido, buscando = false }: LeitorQ
         {estado === "lendo" && !buscando && <Varredura aria-hidden="true" />}
         {mensagem && <Mensagem aria-hidden="true">{mensagem}</Mensagem>}
       </Visor>
-      {estado === "explicando" && <ExplicacaoCamera motivo="ler o QR Code do ticket" />}
+      {estado === "pedindo" && <ExplicacaoCamera motivo="ler o QR Code do ticket" />}
       {estado === "negada" && <PassosLiberarCamera />}
       <VisuallyHidden role="status" aria-live="polite">
         {anuncio}

@@ -173,10 +173,16 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
         ? `Falta: ${listaEmPortugues(faltando)}.`
         : null;
   const [confirmingClose, setConfirmingClose] = useState(false);
-  // No celular a leitura da placa pela câmera já abre junto com a tela; "Digitar" leva ao formulário.
-  const [leitorAberto, setLeitorAberto] = useState(
-    () => typeof window.matchMedia === "function" && window.matchMedia(MEDIA_TOQUE).matches,
-  );
+  const [leitorAberto, setLeitorAberto] = useState(false);
+  // No celular a leitura da placa pela câmera já abre junto com a tela. Abre depois que o modal da entrada
+  // está aberto: um modal aberto antes ficaria por baixo dele, escondendo a câmera e o pedido de permissão.
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function" || !window.matchMedia(MEDIA_TOQUE).matches) {
+      return;
+    }
+    const timer = setTimeout(() => setLeitorAberto(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
   const { data: modelos = [] } = useModelos();
 
   // O listener do campo pode ser recriado a cada render; a ref garante a lista mais recente.

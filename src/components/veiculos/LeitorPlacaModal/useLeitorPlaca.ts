@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { criarConsenso, extrairPlaca } from "@/lib/ocrPlaca";
-import { consultarPermissaoCamera, explicacaoCameraVista, marcarExplicacaoCameraVista } from "@/lib/permissaoCamera";
+import { consultarPermissaoCamera } from "@/lib/permissaoCamera";
 import { criarReconhecedorPlaca, type ReconhecedorPlaca } from "@/lib/reconhecedorPlaca";
 
-export type LeitorPlacaEstado = "ocioso" | "abrindo" | "explicando" | "lendo" | "negada" | "indisponivel" | "sem-leitura";
+export type LeitorPlacaEstado = "ocioso" | "abrindo" | "pedindo" | "lendo" | "negada" | "indisponivel" | "sem-leitura";
 
 export interface UseLeitorPlacaOptions {
   // Câmera ligada enquanto true; ao virar false (ou desmontar) tudo é liberado.
@@ -25,10 +25,8 @@ export interface UseLeitorPlaca {
   estado: LeitorPlacaEstado;
   // false quando a câmera não pode abrir por falta de HTTPS (o navegador remove a API).
   contextoSeguro: boolean;
-  // Abre a câmera (ou tenta de novo): consulta a permissão e, se ainda será pedida pela primeira vez, antes explica.
+  // Abre a câmera (ou tenta de novo); com "pedindo" o navegador está perguntando se pode usá-la.
   iniciar: () => void;
-  // Depois da explicação: segue para o pedido do navegador.
-  permitir: () => void;
 }
 
 const TEMPO_LIMITE_MS = 15000;
@@ -81,7 +79,7 @@ export function useLeitorPlaca({
     reconhecedorRef.current = null;
   }, []);
 
-  const iniciar = useCallback(async (explicado = false) => {
+  const iniciar = useCallback(async () => {
     if (!ativoRef.current || streamRef.current || abrindoRef.current) {
       return;
     }
@@ -101,9 +99,9 @@ export function useLeitorPlaca({
       }
       // Com "denied" ainda se tenta abrir: a consulta pode estar desatualizada (ex.: app instalado) e, se estiver
       // mesmo bloqueada, o navegador recusa na hora, sem mostrar nada, e cai em "negada".
-      if (!explicado && (permissao === "prompt" || permissao === "desconhecida") && !explicacaoCameraVista()) {
-        setEstado("explicando");
-        return;
+      // Quando o navegador vai perguntar, a tela explica para que serve a câmera enquanto o pedido está aberto.
+      if (permissao === "prompt" || permissao === "desconhecida") {
+        setEstado("pedindo");
       }
       // A câmera e o OCR carregam juntos; o OCR é baixado só na primeira vez.
       const [stream, reconhecedor] = await Promise.all([
@@ -218,9 +216,5 @@ export function useLeitorPlaca({
     estado: ativo ? estado : "ocioso",
     contextoSeguro,
     iniciar: () => void iniciar(),
-    permitir: () => {
-      marcarExplicacaoCameraVista();
-      void iniciar(true);
-    },
   };
 }
