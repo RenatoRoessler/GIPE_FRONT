@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.392",
+      "type": "fix",
+      "scope": "entrada",
+      "title": "pede a câmera na hora ao abrir a leitura da placa",
+      "description": "Na entrada de veículo o pedido de permissão da câmera não aparecia: a\nleitura abria por baixo do modal da entrada e esperava um toque que ficava\nescondido. Agora ela abre por cima e a câmera é pedida direto, como na\nsaída. Enquanto o navegador pergunta, a tela explica para que a câmera\nserve, também na leitura do QR Code e na conferência do pátio.",
+      "date": "2026-11-09T17:42:36-03:00"
+    },
+    {
       "version": "1.0.390",
       "type": "fix",
       "scope": "camera",
