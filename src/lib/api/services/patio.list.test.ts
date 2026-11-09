@@ -44,8 +44,28 @@ describe("fromPatioResponse", () => {
       rotatividadeDescricao: "TABELA MOTOS",
       usuarioEntrada: "operador teste",
       token: "ABCD1234",
+      prisma: null,
       posicaoChave: null,
       chaveRef: null,
+    });
+  });
+
+  describe("prisma", () => {
+    it("lê o inteiro de 1 a 999", () => {
+      expect(fromPatioResponse({ ...completo, prisma: 45 }).prisma).toBe(45);
+      expect(fromPatioResponse({ ...completo, prisma: 1 }).prisma).toBe(1);
+      expect(fromPatioResponse({ ...completo, prisma: 999 }).prisma).toBe(999);
+    });
+
+    it("ausente ou nulo é sem prisma", () => {
+      expect(fromPatioResponse(completo).prisma).toBeNull();
+      expect(fromPatioResponse({ ...completo, prisma: null }).prisma).toBeNull();
+    });
+
+    it("fora do intervalo ou fora do formato é sem prisma, sem quebrar a lista", () => {
+      for (const prisma of [0, 1000, -3, 1.5, "abc", {}]) {
+        expect(fromPatioResponse({ ...completo, prisma }).prisma).toBeNull();
+      }
     });
   });
 
@@ -148,6 +168,7 @@ describe("fromPatioResponse", () => {
       rotatividadeDescricao: null,
       usuarioEntrada: null,
       token: null,
+      prisma: null,
       posicaoChave: null,
       chaveRef: null,
     });

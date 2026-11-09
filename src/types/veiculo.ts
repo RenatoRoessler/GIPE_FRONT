@@ -85,8 +85,11 @@ export type EntradaPayload = {
   placa: string;
   categoria: number;
   mensalista: boolean;
-  modelo: string;
-  cor: CorVeiculo;
+  // Ausentes quando a empresa não exige o campo e ele não foi informado.
+  modelo?: string;
+  cor?: CorVeiculo;
+  // Inteiro de 1 a 999. [A CONFIRMAR com o back] nome do campo. Só vai quando a empresa o exige e a entrada não é de mensalista.
+  prisma?: number;
 };
 
 export type EntradaRegistrada = {
@@ -105,6 +108,8 @@ export type EntradaRegistrada = {
   usuarioEntrada: string;
   // Identifica a entrada na página pública do comprovante.
   token: string;
+  // Inteiro de 1 a 999; ausente quando a empresa não usa o prisma. [A CONFIRMAR com o back] se a resposta o traz.
+  prisma?: number | null;
 };
 
 // GET /Patio/recibo/cliente?token=... (público): o recibo de uma saída já registrada.

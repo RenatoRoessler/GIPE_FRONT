@@ -35,6 +35,7 @@ function veiculo(extra: Partial<PatioVeiculo> = {}): PatioVeiculo {
     rotatividadeDescricao: "TABELA",
     usuarioEntrada: "operador",
     token: "ABCD1234",
+    prisma: null,
     ...extra,
   };
 }

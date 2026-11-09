@@ -21,6 +21,8 @@ export type PatioVeiculo = {
   usuarioEntrada: string | null;
   // Abre o comprovante; nunca é exibido.
   token: string | null;
+  // Inteiro de 1 a 999; null quando o veículo não tem prisma. [A CONFIRMAR com o back] o campo na listagem.
+  prisma: number | null;
   // Onde a chave está no quadro (ex.: "A2" ou "Recepção · A2"); ausente ou null quando nenhuma posição foi escolhida.
   posicaoChave?: string | null;
   // A mesma posição em partes, para achar o gancho na grade do quadro; null quando o formato não é reconhecido.

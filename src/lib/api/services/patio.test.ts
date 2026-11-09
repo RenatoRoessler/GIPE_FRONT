@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ComprovanteCliente, ReciboCliente } from "@/types/veiculo";
 
-vi.mock("../client", () => ({ api: { get: vi.fn(), post: vi.fn() } }));
+vi.mock("../client", () => ({ api: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }));
 
 import { api } from "../client";
 import { ApiError } from "../errors";
-import { consultarComprovante, consultarRecibo, resolverBuscaPorToken } from "./patio";
+import { atualizarPrisma, consultarComprovante, consultarRecibo, resolverBuscaPorToken } from "./patio";
 
 const comprovante = { token: "227SUSYV", placa: "LWJ2686" } as ComprovanteCliente;
 
@@ -84,5 +84,31 @@ describe("resolverBuscaPorToken", () => {
   it("propaga os demais erros", async () => {
     vi.mocked(api.get).mockRejectedValue(new ApiError("server", undefined, 500));
     await expect(resolverBuscaPorToken("XXXX")).rejects.toMatchObject({ kind: "server" });
+  });
+});
+
+describe("atualizarPrisma", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("envia o prisma como número ao veículo do pátio", async () => {
+    vi.mocked(api.put).mockResolvedValue({});
+    await atualizarPrisma(54, 45);
+    expect(api.put).toHaveBeenCalledWith("/Patio/54/prisma", { prisma: 45 });
+  });
+
+  it("envia null para apagar o prisma", async () => {
+    vi.mocked(api.put).mockResolvedValue({});
+    await atualizarPrisma(54, null);
+    expect(api.put).toHaveBeenCalledWith("/Patio/54/prisma", { prisma: null });
+  });
+
+  it("veículo que saiu vira um erro de não encontrado em português", async () => {
+    vi.mocked(api.put).mockRejectedValue(new ApiError("not_found", "x", 404));
+    await expect(atualizarPrisma(54, 3)).rejects.toMatchObject({ kind: "not_found", message: "O veículo não está no pátio." });
+  });
+
+  it("erro de validação do back sobe com a mensagem dele", async () => {
+    vi.mocked(api.put).mockRejectedValue(new ApiError("validation", "Prisma já está em uso.", 400));
+    await expect(atualizarPrisma(54, 3)).rejects.toMatchObject({ kind: "validation", message: "Prisma já está em uso." });
   });
 });

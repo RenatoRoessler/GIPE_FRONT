@@ -10,11 +10,14 @@ export interface TicketItensProps {
   veiculo: PatioVeiculo;
   // A empresa tem quadro de chaves: só então o item da chave aparece (salvo se o veículo já tem gancho).
   comQuadros: boolean;
+  // A empresa usa o prisma: só então ele pode ser informado ou alterado (um valor já gravado aparece sempre).
+  prismaAtivo: boolean;
   onGuardarChave: () => void;
+  onEditarPrisma: () => void;
 }
 
 // Entrada, tabela de preço, quem registrou e onde está a chave. Não há "próxima faixa": o back não entrega esse valor.
-export function TicketItens({ veiculo, comQuadros, onGuardarChave }: TicketItensProps) {
+export function TicketItens({ veiculo, comQuadros, prismaAtivo, onGuardarChave, onEditarPrisma }: TicketItensProps) {
   const temGancho = Boolean(veiculo.posicaoChave);
 
   return (
@@ -41,6 +44,23 @@ export function TicketItens({ veiculo, comQuadros, onGuardarChave }: TicketItens
         <dt>Registrado por</dt>
         <dd>{veiculo.usuarioEntrada ?? TRACO}</dd>
       </Item>
+      {(prismaAtivo || veiculo.prisma !== null) && (
+        <Item>
+          <dt>Prisma</dt>
+          <dd>
+            {veiculo.prisma !== null ? <Mono>{veiculo.prisma}</Mono> : TRACO}
+            {prismaAtivo && (
+              <LinkBotao
+                type="button"
+                aria-label={`${veiculo.prisma !== null ? "Alterar" : "Informar"} prisma de ${veiculo.placa}`}
+                onClick={onEditarPrisma}
+              >
+                {veiculo.prisma !== null ? "Alterar" : "Informar"}
+              </LinkBotao>
+            )}
+          </dd>
+        </Item>
+      )}
       {(comQuadros || temGancho) && (
         <Item>
           <dt>Quadro de chaves</dt>

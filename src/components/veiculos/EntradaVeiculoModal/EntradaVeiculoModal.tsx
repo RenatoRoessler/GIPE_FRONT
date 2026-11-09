@@ -2,7 +2,8 @@
 
 import { useStore } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useConfiguracao } from "@/components/configuracoes/useConfiguracao";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { formatDateTime, formatTime } from "@/components/caixa/format";
 import { Button } from "@/components/ui/Button";
@@ -18,7 +19,9 @@ import { EscolherGancho } from "@/components/quadros/EscolherGancho";
 import { ApiError } from "@/lib/api/errors";
 import { registrarEntrada } from "@/lib/api/services/patio";
 import { isValidPlaca, normalizePlaca } from "@/lib/placa";
-import { entradaVeiculoSchema, type EntradaVeiculoValues } from "@/lib/schemas/veiculo";
+import { PRISMA_INTERVALO_MESSAGE, prismaDoTexto } from "@/lib/prisma";
+import { prismaExigido } from "@/lib/schemas/regrasEntrada";
+import { criarEntradaVeiculoSchema, type EntradaVeiculoValues } from "@/lib/schemas/veiculo";
 import {
   CATEGORIA_VEICULO,
   CATEGORIA_VEICULO_OPTIONS,
@@ -98,9 +101,6 @@ function mensagensDoErro(error: Error): string[] {
   return detalhes.length > 0 ? detalhes : [error.message];
 }
 
-// Enquanto ninguém escolhe, a cor do formulário fica vazia; o schema a exige antes de enviar.
-type EntradaFormValues = Omit<EntradaVeiculoValues, "cor"> & { cor: EntradaVeiculoValues["cor"] | "" };
-
 export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalProps) {
   const formId = useId();
   const pendenciaId = useId();
@@ -115,6 +115,17 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   // Cor do cadastro que não existe na lista de cores: aparece como texto, sem escolher outra no lugar.
   const [corForaDaLista, setCorForaDaLista] = useState<string | null>(null);
 
+  // O que a empresa exige (modelo, cor e prisma). O prisma não vale para mensalista, que pode entrar sem ele.
+  const { configuracao } = useConfiguracao();
+  const mensalista = cadastro?.mensalista === true;
+  const { modelo: exigeModelo, cor: exigeCor, prisma: exigePrismaDaEmpresa } = configuracao;
+  const regras = useMemo(
+    () => ({ modelo: exigeModelo, cor: exigeCor, prisma: exigePrismaDaEmpresa, mensalista }),
+    [exigeModelo, exigeCor, exigePrismaDaEmpresa, mensalista],
+  );
+  const schema = useMemo(() => criarEntradaVeiculoSchema(regras), [regras]);
+  const exigePrisma = prismaExigido(regras);
+
   const queryClient = useQueryClient();
   const mutation = useMutation({
     // O código do ticket é gerado pelo backend.
@@ -123,10 +134,11 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
         placa: normalizePlaca(values.placa),
         categoria: Number(values.categoria),
         // Quem decide é o cadastro da placa: fora do plano contratado o back devolve false e a entrada é rotativa.
-        mensalista: cadastro?.mensalista === true,
-        // [A CONFIRMAR] modelo opcional: assume que o backend aceita texto vazio.
-        modelo: values.modelo.trim(),
-        cor: values.cor,
+        mensalista,
+        // Campo que a empresa não exige não aparece no formulário e não vai (mesmo que a consulta da placa o tenha preenchido).
+        ...(exigeModelo && values.modelo.trim() !== "" ? { modelo: values.modelo.trim() } : {}),
+        ...(exigeCor && values.cor !== "" ? { cor: values.cor } : {}),
+        ...(exigePrisma && prismaDoTexto(values.prisma) !== null ? { prisma: prismaDoTexto(values.prisma) as number } : {}),
       }),
     onSuccess: (registrada) => {
       setEntrada(registrada);
@@ -136,42 +148,47 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   });
 
   const form = useAppForm({
-    defaultValues: { placa: "", categoria: "", modelo: "", cor: "" } as EntradaFormValues,
+    defaultValues: { placa: "", categoria: "", modelo: "", cor: "", prisma: "" } as EntradaVeiculoValues,
     validators: {
       onChange: ({ value }) => {
-        const result = entradaVeiculoSchema.safeParse(value);
+        const result = schema.safeParse(value);
         return result.success ? undefined : zodFieldErrors(result);
       },
     },
-    // Só chega aqui com o schema satisfeito (a cor já está escolhida).
-    onSubmit: ({ value }) => mutation.mutate(value as EntradaVeiculoValues),
+    // Só chega aqui com o schema satisfeito (a cor já está escolhida, se a empresa a exige).
+    onSubmit: ({ value }) => mutation.mutate(schema.parse(value)),
   });
 
   const hasChanges = useStore(
     form.store,
-    ({ values }) => values.placa !== "" || values.categoria !== "" || values.modelo !== "" || values.cor !== "",
+    ({ values }) => values.placa !== "" || values.categoria !== "" || values.modelo !== "" || values.cor !== "" || values.prisma !== "",
   );
   const placaAtual = useStore(form.store, ({ values }) => values.placa);
   const categoriaAtual = useStore(form.store, ({ values }) => values.categoria);
   const modeloAtual = useStore(form.store, ({ values }) => values.modelo);
   const corAtual = useStore(form.store, ({ values }) => values.cor);
+  const prismaAtual = useStore(form.store, ({ values }) => values.prisma);
   // Placa que já está no pátio: a lista já é a do Pátio (mesma consulta), atualizada ao abrir o modal.
   const { data: patio } = usePatio({ pausado: true });
   const placaNormalizada = normalizePlaca(placaAtual);
   const jaNoPatio = isValidPlaca(placaNormalizada) ? patio?.find((veiculo) => veiculo.placa === placaNormalizada) : undefined;
-  // Placa, categoria, modelo e cor são obrigatórios (o back recusa sem eles): o rodapé diz o que falta.
+  // Placa e categoria sempre; modelo, cor e prisma conforme a empresa: o rodapé diz o que falta.
   const faltando = [
-    modeloAtual.trim() === "" && "modelo",
+    exigeModelo && modeloAtual.trim() === "" && "modelo",
     !CATEGORIAS.includes(categoriaAtual) && "categoria",
-    corAtual === "" && "cor",
+    exigeCor && corAtual === "" && "cor",
+    exigePrisma && prismaAtual.trim() === "" && "prisma",
   ].filter((item): item is string => item !== false);
+  const prismaInvalido = exigePrisma && prismaAtual.trim() !== "" && prismaDoTexto(prismaAtual) === null;
   const motivoPendente = jaNoPatio
     ? "Esta placa já está no pátio."
     : !isValidPlaca(placaAtual)
       ? "Informe a placa completa."
       : faltando.length > 0
         ? `Falta: ${listaEmPortugues(faltando)}.`
-        : null;
+        : prismaInvalido
+          ? `${PRISMA_INTERVALO_MESSAGE}.`
+          : null;
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [leitorAberto, setLeitorAberto] = useState(false);
   // No celular a leitura da placa pela câmera já abre junto com a tela. Abre depois que o modal da entrada
@@ -277,7 +294,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
       return radios.find((radio) => radio.checked) ?? radios[0];
     };
     const alvo =
-      modeloAtual.trim() === ""
+      exigeModelo && modeloAtual.trim() === ""
         ? formulario?.querySelector<HTMLInputElement>('input[role="combobox"]')
         : !CATEGORIAS.includes(categoriaAtual)
           ? primeiroRadio(grupos[0])
@@ -414,24 +431,33 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
                 horario={cadastro.dadosMensalista.intervaloPermitido}
               />
             )}
-            <form.AppField name="modelo" listeners={{ onChange: ({ value }) => handleModeloChange(value) }}>
-              {() => <ModeloField maxLength={60} disabled={isSending} required />}
-            </form.AppField>
+            {exigeModelo && (
+              <form.AppField name="modelo" listeners={{ onChange: ({ value }) => handleModeloChange(value) }}>
+                {() => <ModeloField maxLength={60} disabled={isSending} required />}
+              </form.AppField>
+            )}
             <form.AppField name="categoria">
               {(field) => (
                 <field.OptionField legend="Categoria (define a tarifa)" options={CATEGORIA_OPTIONS} disabled={isSending} />
               )}
             </form.AppField>
-            <form.AppField name="cor">
-              {(field) => (
-                <field.ColorField
-                  legend="Cor"
-                  options={CORES_VEICULO}
-                  disabled={isSending}
-                  hint={corForaDaLista ? `Cor no cadastro: ${corForaDaLista}. Escolha a mais próxima, se quiser.` : undefined}
-                />
-              )}
-            </form.AppField>
+            {exigeCor && (
+              <form.AppField name="cor">
+                {(field) => (
+                  <field.ColorField
+                    legend="Cor"
+                    options={CORES_VEICULO}
+                    disabled={isSending}
+                    hint={corForaDaLista ? `Cor no cadastro: ${corForaDaLista}. Escolha a mais próxima, se quiser.` : undefined}
+                  />
+                )}
+              </form.AppField>
+            )}
+            {exigePrisma && (
+              <form.AppField name="prisma">
+                {(field) => <field.PrismaField disabled={isSending} />}
+              </form.AppField>
+            )}
           </Form>
         </>
       )}

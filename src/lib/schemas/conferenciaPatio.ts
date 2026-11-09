@@ -1,11 +1,13 @@
 import { z } from "zod";
 import { isValidPlaca, PLACA_INVALIDA_MESSAGE } from "@/lib/placa";
-import { CATEGORIA_VEICULO_OPTIONS, CORES_VEICULO, type CorVeiculo } from "@/types/veiculo";
+import { CATEGORIA_VEICULO_OPTIONS, type CorVeiculo } from "@/types/veiculo";
 import { MOTIVO_SAIDA, type MotivoSaida } from "@/types/conferenciaPatio";
+import { prismaDoTexto } from "@/lib/prisma";
+import { CONFIGURACAO_PADRAO } from "@/types/configuracao";
+import { camposDaEntrada, type RegrasEntrada } from "./regrasEntrada";
 
 const INTEGER = /^\d+$/;
 const CATEGORIAS = CATEGORIA_VEICULO_OPTIONS.map((option) => String(option.value));
-const CORES = CORES_VEICULO.map((cor) => cor.value) as [CorVeiculo, ...CorVeiculo[]];
 
 const MOTIVOS = Object.values(MOTIVO_SAIDA).map(String);
 
@@ -40,23 +42,39 @@ export function toMotivoSaida(values: SaidaConferenciaValues): { motivo: MotivoS
   return motivo === MOTIVO_SAIDA.Outro ? { motivo, descricao: values.descricao } : { motivo };
 }
 
-// Entrada de uma placa lida sem ticket aberto.
-export const entradaConferenciaSchema = z.object({
-  categoria: z.string().refine((valor) => CATEGORIAS.includes(valor), "Selecione a categoria"),
-  modelo: z.string().trim().min(1, "Informe o modelo").max(MODELO_MAX, `Use no máximo ${MODELO_MAX} caracteres`),
-  cor: z.enum(CORES, { message: "Selecione a cor" }),
-  codigoTicket: z.string().trim().refine((valor) => valor === "" || (INTEGER.test(valor) && valor.length <= 9), "Use apenas números"),
-  mensalista: z.boolean(),
-});
+export type EntradaConferenciaValues = {
+  categoria: string;
+  modelo: string;
+  // Vazia só quando a empresa não exige a cor.
+  cor: CorVeiculo | "";
+  prisma: string;
+  codigoTicket: string;
+  mensalista: boolean;
+};
 
-export type EntradaConferenciaValues = z.infer<typeof entradaConferenciaSchema>;
+// Entrada de uma placa lida sem ticket aberto. A empresa decide se modelo, cor e prisma são obrigatórios; o prisma
+// também depende de a entrada ser de mensalista (`regras.mensalista`).
+export function criarEntradaConferenciaSchema(regras: RegrasEntrada): z.ZodType<EntradaConferenciaValues> {
+  return z.object({
+    categoria: z.string().refine((valor) => CATEGORIAS.includes(valor), "Selecione a categoria"),
+    ...camposDaEntrada(regras, MODELO_MAX),
+    codigoTicket: z.string().trim().refine((valor) => valor === "" || (INTEGER.test(valor) && valor.length <= 9), "Use apenas números"),
+    mensalista: z.boolean(),
+  });
+}
 
-// Só chamar com valores já validados por `entradaConferenciaSchema`.
+// Regras padrão da empresa: modelo e cor obrigatórios, prisma opcional.
+export const entradaConferenciaSchema = criarEntradaConferenciaSchema({ ...CONFIGURACAO_PADRAO, mensalista: false });
+
+// Só chamar com valores já validados por `criarEntradaConferenciaSchema`. O que a empresa não exige e ficou vazio não vai.
 export function toEntradaConferenciaPayload(values: EntradaConferenciaValues) {
+  const modelo = values.modelo.trim();
+  const prisma = prismaDoTexto(values.prisma);
   return {
     categoria: Number(values.categoria),
-    modelo: values.modelo.trim(),
-    cor: values.cor,
+    ...(modelo !== "" ? { modelo } : {}),
+    ...(values.cor !== "" ? { cor: values.cor } : {}),
+    ...(prisma !== null && !values.mensalista ? { prisma } : {}),
     ...(values.codigoTicket !== "" ? { codigoTicket: Number(values.codigoTicket) } : {}),
     mensalista: values.mensalista,
   };

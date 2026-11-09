@@ -31,6 +31,7 @@ const veiculo: PatioVeiculo = {
   rotatividadeDescricao: null,
   usuarioEntrada: null,
   token: "ABCD1234",
+  prisma: null,
 };
 
 const comprovante: ComprovanteCliente = {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useConfiguracao } from "@/components/configuracoes/useConfiguracao";
 import { ListError } from "@/components/mensalistas/ListError";
 import { GuardarChaveModal } from "@/components/quadros/GuardarChaveModal";
 import { rotuloGancho } from "@/components/quadros/gancho";
@@ -14,6 +15,7 @@ import { Toast } from "@/components/ui/Toast";
 import { SaidaVeiculoModal } from "@/components/veiculos/SaidaVeiculoModal";
 import { formatBRL } from "@/lib/money";
 import type { PatioVeiculo } from "@/types/patio";
+import { EditarPrismaModal } from "../EditarPrismaModal";
 import { corDoVeiculo, rotuloCategoria, rotuloTipo } from "../patio";
 import { DE_TICKET, hrefDaLista, hrefDoComprovante, lerFiltros, PARAM_DE, PARAM_SAIU, PATIO_PATH } from "../patioUrl";
 import { useComprovanteTicket } from "../useComprovanteTicket";
@@ -58,9 +60,11 @@ export function TicketView({ patioId }: TicketViewProps) {
   // Com um modal aberto (a saída, a chave) a lista não se atualiza sozinha: o ticket não pode mudar debaixo do operador.
   const [saida, setSaida] = useState<PatioVeiculo | null>(null);
   const [chaveDe, setChaveDe] = useState<PatioVeiculo | null>(null);
+  const [prismaDe, setPrismaDe] = useState<PatioVeiculo | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
 
-  const { veiculo, carregando, ausente, erro, atualizando, recarregar } = usePatioVeiculo(patioId, { pausado: saida !== null || chaveDe !== null });
+  const { veiculo, carregando, ausente, erro, atualizando, recarregar } = usePatioVeiculo(patioId, { pausado: saida !== null || chaveDe !== null || prismaDe !== null });
+  const { configuracao } = useConfiguracao();
   const { data: quadros } = useQuadros();
   const comQuadros = (quadros?.length ?? 0) > 0;
   const comprovante = useComprovanteTicket(veiculo?.token ?? null);
@@ -98,6 +102,13 @@ export function TicketView({ patioId }: TicketViewProps) {
             setChaveDe(null);
             setAviso(`Chave guardada no ${rotuloGancho(guardada.linha, guardada.coluna)}.`);
           }}
+        />
+      )}
+      {prismaDe && (
+        <EditarPrismaModal
+          veiculo={prismaDe}
+          onClose={() => setPrismaDe(null)}
+          onSalvo={() => setAviso("Prisma atualizado.")}
         />
       )}
       {aviso && <Toast message={aviso} variant="success" onDismiss={() => setAviso(null)} />}
@@ -182,7 +193,13 @@ export function TicketView({ patioId }: TicketViewProps) {
       </Coluna>
 
       <Coluna>
-        <TicketItens veiculo={veiculo} comQuadros={comQuadros} onGuardarChave={() => setChaveDe(veiculo)} />
+        <TicketItens
+          veiculo={veiculo}
+          comQuadros={comQuadros}
+          prismaAtivo={configuracao.prisma}
+          onGuardarChave={() => setChaveDe(veiculo)}
+          onEditarPrisma={() => setPrismaDe(veiculo)}
+        />
 
         <Acoes>
           {!semToken && (

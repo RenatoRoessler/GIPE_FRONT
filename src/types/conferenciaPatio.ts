@@ -125,10 +125,12 @@ export type SaidaConferenciaPayload = {
 
 export type EntradaConferenciaPayload = {
   categoria: number;
-  // Até 80 caracteres.
-  modelo: string;
-  // Até 50 caracteres.
-  cor: string;
+  // Até 80 caracteres. Ausente quando a empresa não exige o modelo e ele não foi informado.
+  modelo?: string;
+  // Até 50 caracteres. Ausente quando a empresa não exige a cor e ela não foi informada.
+  cor?: string;
+  // Inteiro de 1 a 999. [A CONFIRMAR com o back] nome do campo. Só vai quando a empresa o exige e a entrada não é de mensalista.
+  prisma?: number;
   codigoTicket?: number;
   mensalista: boolean;
 };

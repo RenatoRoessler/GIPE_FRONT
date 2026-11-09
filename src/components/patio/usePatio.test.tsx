@@ -26,6 +26,7 @@ const veiculo: PatioVeiculo = {
   rotatividadeDescricao: null,
   usuarioEntrada: null,
   token: null,
+  prisma: null,
 };
 
 function renderPatio(options: UsePatioOptions = {}) {

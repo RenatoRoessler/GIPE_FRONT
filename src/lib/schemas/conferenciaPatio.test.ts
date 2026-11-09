@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MOTIVO_SAIDA } from "@/types/conferenciaPatio";
 import {
   DESCRICAO_SAIDA_MAX,
+  criarEntradaConferenciaSchema,
   entradaConferenciaSchema,
   type EntradaConferenciaValues,
   MODELO_MAX,
@@ -51,7 +52,7 @@ describe("saidaConferenciaSchema", () => {
 });
 
 describe("entradaConferenciaSchema", () => {
-  const valido: EntradaConferenciaValues = { categoria: "3", modelo: "Gol", cor: "PRATA", codigoTicket: "", mensalista: false };
+  const valido: EntradaConferenciaValues = { categoria: "3", modelo: "Gol", cor: "PRATA", prisma: "", codigoTicket: "", mensalista: false };
 
   it("aceita os dados mínimos", () => {
     expect(entradaConferenciaSchema.safeParse(valido).success).toBe(true);
@@ -88,6 +89,44 @@ describe("entradaConferenciaSchema", () => {
       codigoTicket: 24024,
       mensalista: true,
     });
+  });
+});
+
+describe("criarEntradaConferenciaSchema", () => {
+  const valido: EntradaConferenciaValues = { categoria: "3", modelo: "Gol", cor: "PRATA", prisma: "", codigoTicket: "", mensalista: false };
+  const regras = { modelo: true, cor: true, prisma: false, mensalista: false };
+  const campos = (resultado: { success: boolean; error?: { issues: { path: PropertyKey[] }[] } }) =>
+    resultado.error?.issues.map((issue) => issue.path[0]).sort();
+
+  it("modelo e cor desligados aceitam vazio", () => {
+    const schema = criarEntradaConferenciaSchema({ ...regras, modelo: false, cor: false });
+    expect(schema.safeParse({ ...valido, modelo: "", cor: "" }).success).toBe(true);
+  });
+
+  it("modelo e cor ligados recusam vazio", () => {
+    const resultado = criarEntradaConferenciaSchema(regras).safeParse({ ...valido, modelo: "", cor: "" });
+    expect(campos(resultado)).toEqual(["cor", "modelo"]);
+  });
+
+  it("com o prisma ligado, exige o prisma", () => {
+    const resultado = criarEntradaConferenciaSchema({ ...regras, prisma: true }).safeParse(valido);
+    expect(campos(resultado)).toEqual(["prisma"]);
+    expect(resultado.error?.issues[0].message).toBe("Informe o prisma (de 1 a 999)");
+    expect(criarEntradaConferenciaSchema({ ...regras, prisma: true }).safeParse({ ...valido, prisma: "123" }).success).toBe(true);
+  });
+
+  it("o prisma ligado não vale para mensalista", () => {
+    const schema = criarEntradaConferenciaSchema({ ...regras, prisma: true, mensalista: true });
+    expect(schema.safeParse({ ...valido, mensalista: true }).success).toBe(true);
+  });
+
+  it("com o prisma desligado, aceita vazio", () => {
+    expect(criarEntradaConferenciaSchema(regras).safeParse(valido).success).toBe(true);
+  });
+
+  it("o payload leva o prisma só quando preenchido e fora de mensalista, e omite modelo e cor vazios", () => {
+    expect(toEntradaConferenciaPayload({ ...valido, modelo: "", cor: "", prisma: " 12 " })).toEqual({ categoria: 3, prisma: 12, mensalista: false });
+    expect(toEntradaConferenciaPayload({ ...valido, prisma: "12", mensalista: true })).toEqual({ categoria: 3, modelo: "Gol", cor: "PRATA", mensalista: true });
   });
 });
 

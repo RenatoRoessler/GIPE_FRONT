@@ -12,6 +12,7 @@ import type { EntradaRegistrada } from "@/types/veiculo";
 vi.mock("@/lib/api/services/patio", () => ({ registrarEntrada: vi.fn(), listPatio: vi.fn() }));
 vi.mock("@/lib/api/services/veiculo", () => ({ consultarPlaca: vi.fn(), listModelos: vi.fn().mockResolvedValue([]) }));
 vi.mock("@/lib/api/services/quadroChaves", () => ({ listQuadros: vi.fn().mockResolvedValue([]), escolherQuadroChave: vi.fn() }));
+vi.mock("@/lib/api/services/configuracao", () => ({ getConfiguracao: vi.fn(), updateConfiguracao: vi.fn() }));
 vi.mock("@/lib/api/services/empresa", () => ({ getEmpresa: vi.fn().mockRejectedValue(new Error("sem empresa")) }));
 
 // O leitor em si é testado à parte: aqui ele só devolve uma placa lida.
@@ -29,6 +30,7 @@ vi.mock("../LeitorPlacaModal", () => ({
     ) : null,
 }));
 
+import { getConfiguracao } from "@/lib/api/services/configuracao";
 import { listPatio, registrarEntrada } from "@/lib/api/services/patio";
 import { escolherQuadroChave, listQuadros } from "@/lib/api/services/quadroChaves";
 import { consultarPlaca } from "@/lib/api/services/veiculo";
@@ -49,6 +51,8 @@ const handlers = { onClose: vi.fn(), onSuccess: vi.fn() };
 // Pátio vazio por padrão; os testes de "já está no pátio" põem um veículo na lista.
 beforeEach(() => {
   vi.mocked(listPatio).mockReset().mockResolvedValue([]);
+  // Padrão da empresa: modelo e cor obrigatórios, prisma opcional.
+  vi.mocked(getConfiguracao).mockReset().mockResolvedValue({ modelo: true, cor: true, prisma: false, alteradoPorId: null, alteradoEm: null });
 });
 
 const registrada: EntradaRegistrada = {
@@ -562,5 +566,108 @@ describe("EntradaVeiculoModal: gancho da chave", () => {
     vi.mocked(listQuadros).mockResolvedValue([]);
     await registrar();
     expect(await screen.findByText("Entrada registrada")).toBeInTheDocument();
+  });
+});
+
+describe("EntradaVeiculoModal: regras da empresa", () => {
+  const dadosMensalista = { nome: "Maria", intervaloPermitido: { de: "07:00", ate: "19:00" } };
+  const cadastroBase = { placa: "ABC1D23", encontrado: true, origem: "mensalista", modelo: "ONIX", cor: "Vermelho", categoria: 2 };
+
+  beforeEach(() => {
+    vi.mocked(registrarEntrada).mockReset();
+    vi.mocked(consultarPlaca).mockReset();
+  });
+
+  const configurar = (regras: { modelo?: boolean; cor?: boolean; prisma?: boolean }) =>
+    vi.mocked(getConfiguracao).mockResolvedValue({ modelo: true, cor: true, prisma: false, alteradoPorId: 1, alteradoEm: "2026-11-08T16:36:03", ...regras });
+
+  it("com o prisma obrigatório mostra o campo, pede no rodapé e envia o prisma", async () => {
+    configurar({ prisma: true });
+    vi.mocked(registrarEntrada).mockResolvedValue(registrada);
+    const user = userEvent.setup();
+    renderModal();
+    await preencher(user);
+    await user.click(await screen.findByLabelText("Prisma"));
+    expect(screen.getByText("Falta: prisma.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeDisabled();
+
+    await user.type(screen.getByLabelText("Prisma"), "45");
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+    await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
+    expect(vi.mocked(registrarEntrada).mock.calls[0][0]).toMatchObject({ modelo: "Onix", cor: "AZUL", prisma: 45 });
+  });
+
+    it("o prisma só aceita números de 1 a 999: 0 bloqueia o registro e diz a regra", async () => {
+      configurar({ prisma: true });
+      const user = userEvent.setup();
+      renderModal();
+      await preencher(user);
+      const campo = await screen.findByLabelText("Prisma");
+      await user.type(campo, "0");
+      await user.tab();
+      expect(await screen.findByText("Use um número de 1 a 999")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeDisabled();
+
+      await user.clear(campo);
+      await user.type(campo, "1000");
+      expect(campo).toHaveValue("100");
+      await user.clear(campo);
+      await user.type(campo, "999");
+      expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeEnabled();
+    });
+
+    it("o prisma vai como número inteiro, sem zeros à esquerda", async () => {
+      configurar({ prisma: true });
+      vi.mocked(registrarEntrada).mockResolvedValue(registrada);
+      const user = userEvent.setup();
+      renderModal();
+      await preencher(user);
+      await user.type(await screen.findByLabelText("Prisma"), "007");
+      await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+      await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
+      expect(vi.mocked(registrarEntrada).mock.calls[0][0].prisma).toBe(7);
+    });
+
+  it("sem o prisma obrigatório o campo não aparece e o payload não leva prisma", async () => {
+    vi.mocked(registrarEntrada).mockResolvedValue(registrada);
+    const user = userEvent.setup();
+    renderModal();
+    await preencher(user);
+    expect(screen.queryByLabelText("Prisma")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+    await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
+    expect(vi.mocked(registrarEntrada).mock.calls[0][0]).not.toHaveProperty("prisma");
+  });
+
+  it("mensalista entra sem o prisma, mesmo com ele obrigatório", async () => {
+    configurar({ prisma: true });
+    vi.mocked(consultarPlaca).mockResolvedValue({ ...cadastroBase, mensalista: true, dadosMensalista });
+    vi.mocked(registrarEntrada).mockResolvedValue(registrada);
+    const user = userEvent.setup();
+    renderModal();
+    await screen.findByLabelText("Placa");
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.tab();
+    await screen.findByText("Maria");
+    await waitFor(() => expect(screen.queryByLabelText("Prisma")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeEnabled());
+  });
+
+  it("com modelo e cor desligados os campos não aparecem; só placa e categoria bastam, e o payload os omite", async () => {
+    configurar({ modelo: false, cor: false });
+    vi.mocked(registrarEntrada).mockResolvedValue(registrada);
+    const user = userEvent.setup();
+    renderModal();
+    await screen.findByLabelText("Placa");
+    await waitFor(() => expect(screen.queryByLabelText("Modelo")).not.toBeInTheDocument());
+    expect(screen.queryByRole("group", { name: "Cor" })).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText("Placa"), "abc1d23");
+    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    await user.click(screen.getByRole("button", { name: "Registrar entrada" }));
+    await waitFor(() => expect(registrarEntrada).toHaveBeenCalled());
+    const payload = vi.mocked(registrarEntrada).mock.calls[0][0];
+    expect(payload).toMatchObject({ placa: "ABC1D23", categoria: 2 });
+    expect(payload).not.toHaveProperty("modelo");
+    expect(payload).not.toHaveProperty("cor");
   });
 });

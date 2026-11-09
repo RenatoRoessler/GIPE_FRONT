@@ -25,6 +25,7 @@ const base: PatioVeiculo = {
   rotatividadeDescricao: null,
   usuarioEntrada: null,
   token: "ABCD1234",
+  prisma: null,
 };
 
 function render(patioId: number) {

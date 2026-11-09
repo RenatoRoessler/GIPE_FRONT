@@ -1,4 +1,5 @@
 import { normalizePlaca } from "@/lib/placa";
+import { PRISMA_MAX, PRISMA_MIN } from "@/lib/prisma";
 import type { ChaveRef, PatioVeiculo } from "@/types/patio";
 import type { ComprovanteCliente, EntradaPayload, EntradaRegistrada, ReciboCliente } from "@/types/veiculo";
 import type { SaidaBusca, SaidaBuscaTipo, SaidaConsulta, SaidaPayload, SaidaRegistrada } from "@/types/saida";
@@ -91,6 +92,19 @@ export async function registrarSaida(patioId: number, payload: SaidaPayload): Pr
   }
 }
 
+// Corrige o prisma de um veículo que está no pátio; `null` apaga (só mensalista pode ficar sem).
+// [A CONFIRMAR com o back] rota e corpo: assumido PUT /Patio/{id}/prisma com { prisma }.
+export async function atualizarPrisma(patioId: number, prisma: number | null): Promise<void> {
+  try {
+    await api.put(`/Patio/${patioId}/prisma`, { prisma });
+  } catch (error) {
+    if (error instanceof ApiError && error.kind === "not_found") {
+      throw new ApiError("not_found", "O veículo não está no pátio.", 404);
+    }
+    throw error;
+  }
+}
+
 // "A2" ou "Recepção · A2": o nome do quadro é opcional e a posição é linha (letras) mais coluna (número).
 const CHAVE_TEXTO = /^(?:(.+?)\s·\s)?([A-Za-z]{1,10})(\d{1,3})$/;
 
@@ -133,6 +147,12 @@ function lerChave(value: unknown): { posicaoChave: string | null; chaveRef: Chav
   };
 }
 
+// Só vale inteiro de 1 a 999; qualquer outra coisa é "sem prisma", sem derrubar a tela.
+function lerPrisma(value: unknown): number | null {
+  const numero = toNumber(value);
+  return numero !== null && Number.isInteger(numero) && numero >= PRISMA_MIN && numero <= PRISMA_MAX ? numero : null;
+}
+
 // Tolerante: um campo ausente ou fora do formato não derruba a tela.
 export function fromPatioResponse(raw: Record<string, unknown>): PatioVeiculo {
   return {
@@ -150,6 +170,7 @@ export function fromPatioResponse(raw: Record<string, unknown>): PatioVeiculo {
     rotatividadeDescricao: toText(raw.rotatividadeDescricao),
     usuarioEntrada: toText(raw.usuarioEntrada),
     token: toText(raw.token),
+    prisma: lerPrisma(raw.prisma),
     ...lerChave(raw.quadroChaves),
   };
 }

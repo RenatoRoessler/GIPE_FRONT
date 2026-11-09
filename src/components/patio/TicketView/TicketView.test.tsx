@@ -13,6 +13,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(nav.query),
 }));
 vi.mock("@/lib/api/services/patio", () => ({ listPatio: vi.fn(), consultarComprovante: vi.fn() }));
+vi.mock("@/lib/api/services/configuracao", () => ({ getConfiguracao: vi.fn(), updateConfiguracao: vi.fn() }));
 vi.mock("@/lib/api/services/quadroChaves", () => ({ listQuadros: vi.fn(), escolherQuadroChave: vi.fn() }));
 vi.mock("@/contexts/CurrentUserContext", () => ({
   useCurrentUser: () => ({ user: { id: "x", name: "Renato", email: "r@e.com", perfil: 1 }, isLoading: false }),
@@ -31,6 +32,19 @@ vi.mock("@/components/veiculos/SaidaVeiculoModal", () => ({
     </div>
   ),
 }));
+vi.mock("../EditarPrismaModal", () => ({
+  EditarPrismaModal: ({ veiculo, onClose, onSalvo }: { veiculo: { placa: string }; onClose: () => void; onSalvo: () => void }) => (
+    <div role="dialog" aria-label="Prisma">
+      <span>{`Prisma de ${veiculo.placa}`}</span>
+      <button type="button" onClick={onSalvo}>
+        Confirmar prisma
+      </button>
+      <button type="button" onClick={onClose}>
+        Cancelar prisma
+      </button>
+    </div>
+  ),
+}));
 vi.mock("@/components/quadros/GuardarChaveModal", () => ({
   GuardarChaveModal: ({ veiculo, onClose, onGuardado }: { veiculo: { placa: string }; onClose: () => void; onGuardado: (c: { linha: string; coluna: number }) => void }) => (
     <div role="dialog" aria-label="Guardar chave">
@@ -45,6 +59,7 @@ vi.mock("@/components/quadros/GuardarChaveModal", () => ({
   ),
 }));
 
+import { getConfiguracao } from "@/lib/api/services/configuracao";
 import { consultarComprovante, listPatio } from "@/lib/api/services/patio";
 import { listQuadros } from "@/lib/api/services/quadroChaves";
 import { TicketView } from "./TicketView";
@@ -65,6 +80,7 @@ function veiculo(extra: Partial<PatioVeiculo> = {}): PatioVeiculo {
     rotatividadeDescricao: "TABELA CARROS",
     usuarioEntrada: "Ana",
     token: "ABCD1234",
+    prisma: null,
     ...extra,
   };
 }
@@ -111,6 +127,8 @@ beforeEach(() => {
   nav.query = "";
   vi.mocked(listPatio).mockReset();
   vi.mocked(consultarComprovante).mockReset().mockResolvedValue(comprovante);
+  // Padrão da empresa: prisma desligado.
+  vi.mocked(getConfiguracao).mockReset().mockResolvedValue({ modelo: true, cor: true, prisma: false, alteradoPorId: null, alteradoEm: null });
   vi.mocked(listQuadros)
     .mockReset()
     .mockResolvedValue([QUADRO] as never);
@@ -302,5 +320,58 @@ describe("TicketView: popup", () => {
 
     const dialogo = await screen.findByRole("dialog", { name: "Ticket de entrada · 24024" });
     expect(within(dialogo).getByText("FLP3C88")).toBeInTheDocument();
+  });
+});
+
+describe("TicketView: prisma", () => {
+  const empresaComPrisma = () =>
+    vi.mocked(getConfiguracao).mockResolvedValue({ modelo: true, cor: true, prisma: true, alteradoPorId: null, alteradoEm: null });
+
+  it("com a empresa sem prisma e o veículo sem prisma, o item não aparece", async () => {
+    abrir();
+    await screen.findByText("FLP3C88");
+    expect(screen.queryByText("Prisma")).not.toBeInTheDocument();
+  });
+
+  it("com a empresa sem prisma, um valor já gravado aparece, mas sem o link de editar", async () => {
+    abrir([veiculo({ prisma: 45 })]);
+    expect(await screen.findByText("Prisma")).toBeInTheDocument();
+    expect(screen.getByText("Prisma").nextElementSibling).toHaveTextContent("45");
+    expect(screen.queryByRole("button", { name: /prisma de FLP3C88/ })).not.toBeInTheDocument();
+  });
+
+  it("com o prisma ativo e o valor gravado mostra o número e o link Alterar", async () => {
+    empresaComPrisma();
+    abrir([veiculo({ prisma: 45 })]);
+    expect(await screen.findByRole("button", { name: "Alterar prisma de FLP3C88" })).toHaveTextContent("Alterar");
+    expect(screen.getByText("Prisma").nextElementSibling).toHaveTextContent("45");
+  });
+
+  it("com o prisma ativo e sem valor mostra o traço e o link Informar", async () => {
+    empresaComPrisma();
+    abrir();
+    expect(await screen.findByRole("button", { name: "Informar prisma de FLP3C88" })).toHaveTextContent("Informar");
+    expect(screen.getByText("Prisma").nextElementSibling).toHaveTextContent("—");
+  });
+
+  it("o link abre a edição e, ao salvar, avisa que o prisma foi atualizado", async () => {
+    empresaComPrisma();
+    const user = userEvent.setup();
+    abrir([veiculo({ prisma: 45 })]);
+    await user.click(await screen.findByRole("button", { name: "Alterar prisma de FLP3C88" }));
+    expect(await screen.findByText("Prisma de FLP3C88")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Confirmar prisma" }));
+    expect(await screen.findByText("Prisma atualizado.")).toBeInTheDocument();
+  });
+
+  it("Cancelar fecha a edição sem avisar", async () => {
+    empresaComPrisma();
+    const user = userEvent.setup();
+    abrir();
+    await user.click(await screen.findByRole("button", { name: "Informar prisma de FLP3C88" }));
+    await user.click(await screen.findByRole("button", { name: "Cancelar prisma" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Prisma" })).not.toBeInTheDocument());
+    expect(screen.queryByText("Prisma atualizado.")).not.toBeInTheDocument();
   });
 });

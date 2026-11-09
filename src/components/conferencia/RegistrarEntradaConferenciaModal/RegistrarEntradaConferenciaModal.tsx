@@ -2,7 +2,9 @@
 
 import { useStore } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useId } from "react";
+import type { ZodType } from "zod";
+import { useEffect, useId, useMemo, useRef } from "react";
+import { useConfiguracao } from "@/components/configuracoes/useConfiguracao";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
@@ -14,11 +16,14 @@ import { useModelos } from "@/components/veiculos/useModelos";
 import { ApiError } from "@/lib/api/errors";
 import { registrarEntradaSemTicket } from "@/lib/api/services/conferenciaPatio";
 import {
+  criarEntradaConferenciaSchema,
   entradaConferenciaSchema,
   MODELO_MAX,
   toEntradaConferenciaPayload,
   type EntradaConferenciaValues,
 } from "@/lib/schemas/conferenciaPatio";
+import { PRISMA_INTERVALO_MESSAGE, prismaDoTexto } from "@/lib/prisma";
+import { prismaExigido } from "@/lib/schemas/regrasEntrada";
 import { TECLADO_INTEIRO } from "@/lib/teclado/tipos";
 import { CATEGORIA_VEICULO, CATEGORIA_VEICULO_OPTIONS, CORES_VEICULO } from "@/types/veiculo";
 import { atualizarAposAjuste } from "../useConferenciaAcoes";
@@ -49,17 +54,21 @@ const CATEGORIA_OPTIONS = [...CATEGORIA_VEICULO_OPTIONS]
 export const MENSAGEM_ENTRADA_REGISTRADA = "Entrada registrada.";
 export const DICA_AVULSO = "Você pode registrar como avulso.";
 
-// Enquanto ninguém escolhe, a cor do formulário fica vazia; o schema a exige antes de enviar.
-type FormValues = Omit<EntradaConferenciaValues, "cor"> & { cor: EntradaConferenciaValues["cor"] | "" };
-
 export function RegistrarEntradaConferenciaModal({ conferenciaId, placa, onClose, onRegistrada }: RegistrarEntradaConferenciaModalProps) {
   const formId = useId();
   const pendenciaId = useId();
   const queryClient = useQueryClient();
   const { data: modelos = [] } = useModelos();
+  const { configuracao } = useConfiguracao();
 
   const mutation = useMutation({
-    mutationFn: (values: EntradaConferenciaValues) => registrarEntradaSemTicket(conferenciaId, placa, toEntradaConferenciaPayload(values)),
+    // Campo que a empresa não exige não aparece no formulário e não vai.
+    mutationFn: (values: EntradaConferenciaValues) =>
+      registrarEntradaSemTicket(
+        conferenciaId,
+        placa,
+        toEntradaConferenciaPayload({ ...values, modelo: exigeModelo ? values.modelo : "", cor: exigeCor ? values.cor : "" }),
+      ),
     onSuccess: () => {
       atualizarAposAjuste(queryClient);
       onRegistrada(MENSAGEM_ENTRADA_REGISTRADA);
@@ -73,31 +82,49 @@ export function RegistrarEntradaConferenciaModal({ conferenciaId, placa, onClose
     },
   });
 
+  // Os validadores do formulário leem o schema da vez (a configuração chega depois da abertura).
+  const schemaRef = useRef<ZodType<EntradaConferenciaValues>>(entradaConferenciaSchema);
+
   const form = useAppForm({
-    defaultValues: { categoria: "", modelo: "", cor: "", codigoTicket: "", mensalista: false } as FormValues,
+    defaultValues: { categoria: "", modelo: "", cor: "", prisma: "", codigoTicket: "", mensalista: false } as EntradaConferenciaValues,
     validators: {
       onChange: ({ value }) => {
-        const result = entradaConferenciaSchema.safeParse(value);
+        const result = schemaRef.current.safeParse(value);
         return result.success ? undefined : zodFieldErrors(result);
       },
     },
     // Só chega aqui com o schema satisfeito.
-    onSubmit: ({ value }) => mutation.mutate(value as EntradaConferenciaValues),
+    onSubmit: ({ value }) => mutation.mutate(schemaRef.current.parse(value)),
   });
 
   const categoria = useStore(form.store, ({ values }) => values.categoria);
   const modelo = useStore(form.store, ({ values }) => values.modelo);
   const cor = useStore(form.store, ({ values }) => values.cor);
+  const prisma = useStore(form.store, ({ values }) => values.prisma);
   const codigoTicket = useStore(form.store, ({ values }) => values.codigoTicket);
+  const mensalista = useStore(form.store, ({ values }) => values.mensalista);
   const enviando = mutation.isPending;
 
+  // O que a empresa exige. O prisma não vale para mensalista, que pode entrar sem ele.
+  const { modelo: exigeModelo, cor: exigeCor, prisma: exigePrismaDaEmpresa } = configuracao;
+  const regras = useMemo(
+    () => ({ modelo: exigeModelo, cor: exigeCor, prisma: exigePrismaDaEmpresa, mensalista }),
+    [exigeModelo, exigeCor, exigePrismaDaEmpresa, mensalista],
+  );
+  useEffect(() => {
+    schemaRef.current = criarEntradaConferenciaSchema(regras);
+  }, [regras]);
+  const exigePrisma = prismaExigido(regras);
+
   const faltando = [
-    modelo.trim() === "" && "modelo",
+    exigeModelo && modelo.trim() === "" && "modelo",
     !CATEGORIAS.includes(categoria) && "categoria",
-    cor === "" && "cor",
+    exigeCor && cor === "" && "cor",
+    exigePrisma && prisma.trim() === "" && "prisma",
   ].filter((item): item is string => item !== false);
+  const prismaInvalido = exigePrisma && prisma.trim() !== "" && prismaDoTexto(prisma) === null;
   const ticketInvalido = codigoTicket !== "" && !/^\d{1,9}$/.test(codigoTicket);
-  const pendencia = faltando.length > 0 ? `Falta: ${faltando.join(", ").replace(/,([^,]*)$/, " e$1")}.` : ticketInvalido ? "Use só números no código do ticket." : null;
+  const pendencia = faltando.length > 0 ? `Falta: ${faltando.join(", ").replace(/,([^,]*)$/, " e$1")}.` : prismaInvalido ? `${PRISMA_INTERVALO_MESSAGE}.` : ticketInvalido ? "Use só números no código do ticket." : null;
 
   // Escolher um modelo conhecido já sugere a categoria dele; o operador pode trocar.
   function handleModeloChange(texto: string) {
@@ -147,15 +174,24 @@ export function RegistrarEntradaConferenciaModal({ conferenciaId, placa, onClose
           void form.handleSubmit();
         }}
       >
-        <form.AppField name="modelo" listeners={{ onChange: ({ value }) => handleModeloChange(value) }}>
-          {() => <ModeloField maxLength={MODELO_MAX} disabled={enviando} required data-autofocus="" />}
-        </form.AppField>
+        {exigeModelo && (
+          <form.AppField name="modelo" listeners={{ onChange: ({ value }) => handleModeloChange(value) }}>
+            {() => <ModeloField maxLength={MODELO_MAX} disabled={enviando} required data-autofocus="" />}
+          </form.AppField>
+        )}
         <form.AppField name="categoria">
           {(field) => <field.OptionField legend="Categoria (define a tarifa)" options={CATEGORIA_OPTIONS} disabled={enviando} />}
         </form.AppField>
-        <form.AppField name="cor">
-          {(field) => <field.ColorField legend="Cor" options={CORES_VEICULO} disabled={enviando} />}
-        </form.AppField>
+        {exigeCor && (
+          <form.AppField name="cor">
+            {(field) => <field.ColorField legend="Cor" options={CORES_VEICULO} disabled={enviando} />}
+          </form.AppField>
+        )}
+        {exigePrisma && (
+          <form.AppField name="prisma">
+            {(field) => <field.PrismaField disabled={enviando} />}
+          </form.AppField>
+        )}
         <form.AppField name="codigoTicket">
           {(field) => (
             <field.TextField
