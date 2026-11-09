@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.407",
+      "type": "feat",
+      "scope": "entrada",
+      "title": "aplica as regras da empresa e cria o campo prisma",
+      "description": "Na entrada do pátio e da conferência, modelo e cor aparecem só quando a\nempresa os exige. Com \"Prisma obrigatório\" ligado, surge o campo prisma\n(número de 1 a 999, com teclado numérico), exigido exceto para\nmensalista. No ticket do veículo no pátio há agora o item Prisma, com a\nopção de informar ou alterar o número.",
+      "date": "2026-11-09T20:18:06-03:00"
+    },
+    {
+      "version": "1.0.406",
+      "type": "feat",
+      "scope": "configuracoes",
+      "title": "cria a tela de configurações da empresa",
+      "description": "Nova página Configurações, no menu, onde Administrador e Gerente escolhem\nquais dados do veículo a empresa exige na entrada: modelo, cor e prisma.\nA tela mostra o valor atual, salva as mudanças com aviso de sucesso ou\nerro e exibe a data da última alteração. Sem configuração gravada vale o\npadrão: modelo e cor obrigatórios e prisma opcional.",
+      "date": "2026-11-09T20:18:05-03:00"
+    },
+    {
       "version": "1.0.404",
       "type": "feat",
       "scope": "caixa",
