@@ -23,7 +23,7 @@ export function Header() {
   return (
     <Bar>
       <BrandLink href="/" aria-label="Murel — ir para o início">
-        <Logo align="start" size={28} compactOnMobile />
+        <Logo align="start" size={28} />
       </BrandLink>
       <EndGroup>
         <Welcome>
