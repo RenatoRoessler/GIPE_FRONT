@@ -53,7 +53,36 @@ const PASSOS: Record<NavegadorCamera, string[]> = {
   outro: ["Abra as configurações do site no navegador.", "Permita o uso da câmera."],
 };
 
-// Passos para liberar uma câmera bloqueada, no caminho de cada navegador.
-export function passosParaLiberarCamera(userAgent: string): string[] {
+// No app instalado (PWA) não há barra de endereço nem cadeado: a permissão se muda pelo sistema.
+const PASSOS_APP_INSTALADO = {
+  ios: [
+    "Abra os Ajustes do iPhone e toque em Safari.",
+    "Em Câmera, escolha Perguntar ou Permitir.",
+  ],
+  android: [
+    "Segure o ícone do app na tela inicial e toque em Informações do app.",
+    "Abra Permissões, depois Câmera, e escolha Permitir.",
+    "Se continuar sem abrir, confira nos Ajustes do Android, em Apps e Chrome, se a Câmera está permitida.",
+  ],
+  computador: ["Abra o menu ⋮ do app e escolha Configurações do site.", "Em Câmera, escolha Permitir."],
+};
+
+// App aberto pelo ícone da tela inicial, sem a interface do navegador.
+export function appInstalado(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  const standaloneIos = (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  return standaloneIos || window.matchMedia?.("(display-mode: standalone)").matches === true;
+}
+
+// Passos para liberar uma câmera bloqueada, no caminho de cada navegador (ou do app instalado).
+export function passosParaLiberarCamera(userAgent: string, instalado = false): string[] {
+  if (instalado) {
+    if (/iPhone|iPad|iPod/i.test(userAgent)) {
+      return PASSOS_APP_INSTALADO.ios;
+    }
+    return /Android/i.test(userAgent) ? PASSOS_APP_INSTALADO.android : PASSOS_APP_INSTALADO.computador;
+  }
   return PASSOS[detectarNavegador(userAgent)];
 }

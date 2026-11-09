@@ -1,6 +1,6 @@
 "use client";
 
-import { passosParaLiberarCamera } from "@/lib/permissaoCamera";
+import { appInstalado, passosParaLiberarCamera } from "@/lib/permissaoCamera";
 import { Caixa, Passos, Texto, Titulo } from "./PermissaoCamera.styles";
 
 export interface ExplicacaoCameraProps {
@@ -22,7 +22,7 @@ export function ExplicacaoCamera({ motivo }: ExplicacaoCameraProps) {
 
 // Câmera bloqueada: o navegador não pergunta de novo, então o usuário precisa liberar nas configurações do site.
 export function PassosLiberarCamera() {
-  const passos = passosParaLiberarCamera(typeof navigator === "undefined" ? "" : navigator.userAgent);
+  const passos = passosParaLiberarCamera(typeof navigator === "undefined" ? "" : navigator.userAgent, appInstalado());
   return (
     <Caixa role="group" aria-label="Como liberar a câmera">
       <Titulo>A câmera está bloqueada</Titulo>

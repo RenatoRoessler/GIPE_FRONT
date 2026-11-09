@@ -75,11 +75,9 @@ export function useLeitorQr({ ativo, onTexto }: UseLeitorQrOptions): UseLeitorQr
       if (sessao !== sessaoRef.current) {
         return;
       }
-      if (permissao === "denied") {
-        setEstado("negada");
-        return;
-      }
-      if (!explicado && permissao !== "granted" && !explicacaoCameraVista()) {
+      // Com "denied" ainda se tenta abrir: a consulta pode estar desatualizada (ex.: app instalado) e, se estiver
+      // mesmo bloqueada, o navegador recusa na hora, sem mostrar nada, e cai em "negada".
+      if (!explicado && (permissao === "prompt" || permissao === "desconhecida") && !explicacaoCameraVista()) {
         setEstado("explicando");
         return;
       }

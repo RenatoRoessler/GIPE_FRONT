@@ -194,14 +194,23 @@ describe("permissão da câmera", () => {
     await waitFor(() => expect(estado()).toBe("lendo"));
   });
 
-  it("com a câmera bloqueada nem tenta abrir: vai para negada, e Tentar de novo vale depois de liberar", async () => {
+  it("com a câmera marcada como bloqueada ainda tenta abrir; se o navegador recusar, vai para negada", async () => {
     simularPermissao("denied");
+    getUserMedia.mockRejectedValueOnce(new DOMException("bloqueada", "NotAllowedError"));
     render(<Harness ativo onTexto={() => {}} />);
     await waitFor(() => expect(estado()).toBe("negada"));
-    expect(getUserMedia).not.toHaveBeenCalled();
+    expect(getUserMedia).toHaveBeenCalledTimes(1);
 
+    // Liberada nos ajustes: Tentar de novo abre a câmera.
     simularPermissao("granted");
     await userEvent.click(screen.getByRole("button", { name: "iniciar" }));
+    await waitFor(() => expect(estado()).toBe("lendo"));
+  });
+
+  it("consulta desatualizada (bloqueada, mas a câmera abre): abre normalmente, sem explicação", async () => {
+    window.localStorage.clear();
+    simularPermissao("denied");
+    render(<Harness ativo onTexto={() => {}} />);
     await waitFor(() => expect(estado()).toBe("lendo"));
   });
 });
