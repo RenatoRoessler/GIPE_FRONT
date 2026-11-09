@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro e edição de preços — 3 modelos de layout</title>
+<style>
+  /* Tokens do tema claro do GIPE (src/styles/theme.ts) */
+  :root {
+    --primary:#FFC20E; --on-primary:#0E1729; --text:#0E1729; --muted:#5A6478;
+    --bg:#F4F1E8; --surface:#fff; --surface-muted:#ECE8DA; --border:#D9D4C5; --border-strong:#737D91;
+    --success:#17795A; --warn:#E0A800; --steel:#9AA3B5; --nav:#ECE8DA; --nav-active:#DCD6C5; --danger:#C8242B;
+    --sign:#0E1729;
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font:15px/1.45 system-ui, "Segoe UI", sans-serif; background:#E4E0D2; color:var(--text); padding:24px 16px 64px; }
+  h1 { font-size:28px; letter-spacing:-.02em; font-weight:800; }
+  .lead { color:var(--muted); max-width:70ch; margin:6px 0 24px; }
+  .modelo { max-width:1180px; margin:0 auto 56px; }
+  .modelo > header { margin-bottom:16px; }
+  .kicker { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; background:var(--text); color:var(--bg); padding:3px 9px; border-radius:99px; }
+  .modelo h2 { font-size:24px; font-weight:800; letter-spacing:-.02em; margin:8px 0 4px; }
+  .modelo p.tese { max-width:75ch; color:var(--muted); }
+  .telas { display:flex; gap:20px; overflow-x:auto; padding:8px 4px 16px; align-items:flex-start; }
+  figure { flex:0 0 auto; }
+  figcaption { font-size:13px; font-weight:700; margin-top:8px; text-align:center; }
+  figcaption small { display:block; font-weight:400; color:var(--muted); max-width:300px; margin:2px auto 0; }
+  /* moldura de celular 360 x 640 */
+  .phone { width:360px; height:640px; background:var(--bg); border:8px solid #0E1729; border-radius:30px; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+  .desk { width:640px; height:400px; background:var(--bg); border:6px solid #0E1729; border-radius:12px; position:relative; overflow:hidden; display:flex; }
+  .topbar { height:40px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 12px; font-weight:800; font-size:14px; }
+  .topbar i { width:26px; height:26px; border-radius:50%; background:var(--surface-muted); border:1px solid var(--border); display:inline-block; }
+  .body { flex:1; overflow:hidden; padding:0 12px; position:relative; }
+  .nav { position:absolute; left:0; right:0; bottom:0; height:56px; background:var(--nav); display:flex; justify-content:space-around; align-items:center; font-size:10px; color:var(--muted); padding-top:6px; z-index:5; }
+  .nav b { color:var(--text); }
+  .nav .fab { position:absolute; top:-16px; left:50%; margin-left:-24px; width:48px; height:48px; border-radius:50%; background:var(--primary); border:3px solid var(--bg); display:grid; place-items:center; font-size:22px; font-weight:800; color:var(--on-primary); }
+  .reserva { height:72px; flex:none; } /* espaço reservado para o menu */
+  h3.t { font-size:20px; font-weight:800; letter-spacing:-.02em; }
+  .row { display:flex; align-items:center; gap:8px; }
+  .between { justify-content:space-between; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 16px; border-radius:10px; font-weight:700; font-size:14px; background:var(--primary); color:var(--on-primary); border:0; white-space:nowrap; }
+  .btn.sec { background:transparent; border:1.5px solid var(--border-strong); }
+  .btn.sm { height:34px; padding:0 12px; font-size:13px; }
+  .btn.full { width:100%; }
+  .chip { display:inline-flex; align-items:center; height:30px; padding:0 11px; border-radius:99px; font-size:12.5px; font-weight:600; border:1.5px solid var(--border-strong); background:transparent; white-space:nowrap; }
+  .chip.on { background:var(--text); color:var(--bg); border-color:var(--text); }
+  .badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:99px; border:1.5px solid var(--success); color:var(--success); }
+  .tipo { font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); display:inline-flex; align-items:center; gap:5px; }
+  .dot { width:9px; height:9px; border-radius:50%; background:var(--primary); display:inline-block; }
+  .dot.g { background:var(--success); }
+  .muted { color:var(--muted); font-size:12px; }
+  .busca { height:38px; border:1.5px solid var(--border-strong); border-radius:10px; background:var(--surface-muted); padding:0 10px; display:flex; align-items:center; color:var(--muted); font-size:13px; gap:6px; }
+  /* placa tarifária */
+  .placa { background:var(--sign); color:#F4F1E8; border-radius:14px; padding:10px 14px; }
+  .placa .l { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; border-bottom:1px dashed rgba(244,241,232,.3); font-size:13px; }
+  .placa .l:last-of-type { border:0; }
+  .placa .l b { font-size:17px; font-variant-numeric:tabular-nums; }
+  .placa .dia { background:var(--primary); color:var(--on-primary); border-radius:8px; padding:5px 9px; margin-top:6px; font-size:12px; font-weight:600; }
+  .mini { display:flex; gap:5px; margin-top:6px; }
+  .mini span { flex:1; text-align:center; background:var(--sign); color:#F4F1E8; border-radius:7px; padding:4px 2px; font-size:11px; line-height:1.2; }
+  .mini span b { display:block; font-size:13px; font-variant-numeric:tabular-nums; }
+  .mini span.d { background:var(--primary); color:var(--on-primary); }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:10px 12px; }
+  .card.sel { border:2px solid var(--text); }
+  .seg { display:flex; background:var(--surface-muted); border-radius:10px; padding:3px; gap:2px; }
+  .seg span { flex:1; text-align:center; font-size:12.5px; font-weight:600; padding:6px 0; border-radius:8px; color:var(--muted); }
+  .seg span.on { background:var(--surface); color:var(--text); box-shadow:0 1px 2px rgba(14,23,41,.12); }
+  .dock { position:absolute; left:0; right:0; bottom:56px; background:var(--surface); border-top:2px solid var(--text); padding:8px 12px; z-index:4; }
+  .dock .v { font:800 22px/1 ui-monospace, Menlo, monospace; }
+  .acoes { position:absolute; left:0; right:0; bottom:56px; background:var(--bg); border-top:1px solid var(--border); padding:8px 12px; display:flex; gap:8px; z-index:4; }
+  .rail { display:flex; gap:8px; overflow:hidden; margin:8px -12px 0; padding:0 12px; }
+  .rail .card { flex:0 0 150px; padding:8px 10px; }
+  .rail .card b { font-size:13px; display:block; }
+  .passos { display:flex; gap:4px; margin:6px 0; }
+  .passos i { flex:1; height:5px; border-radius:3px; background:var(--border); }
+  .passos i.ok { background:var(--success); } .passos i.at { background:var(--text); }
+  .field { margin:8px 0; } .field label { font-size:12px; font-weight:600; display:block; margin-bottom:3px; }
+  .field div { height:36px; border:1.5px solid var(--border-strong); border-radius:10px; background:var(--surface-muted); padding:0 10px; display:flex; align-items:center; font-size:13px; color:var(--muted); }
+  .tipos { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .tipos div { border:1.5px solid var(--border); border-radius:10px; padding:6px 8px; font-size:12px; background:var(--surface-muted); }
+  .tipos div.on { border-color:var(--text); background:var(--surface); }
+  .grade { display:grid; grid-template-columns:28px repeat(24,1fr); gap:1px; font-size:8px; align-items:center; margin:6px 0; }
+  .grade i { height:11px; background:var(--surface-muted); border-radius:2px; }
+  .grade i.x { background:var(--text); }
+  .sheet { position:absolute; left:0; right:0; bottom:56px; top:130px; background:var(--surface); border-radius:18px 18px 0 0; border:1px solid var(--border); box-shadow:0 -12px 32px -8px rgba(14,23,41,.3); padding:10px 12px; z-index:6; }
+  .sheet::before { content:""; display:block; width:40px; height:4px; background:var(--border-strong); border-radius:3px; margin:0 auto 8px; }
+  .slider { height:6px; border-radius:3px; background:var(--border); position:relative; margin:10px 0; }
+  .slider::after { content:""; position:absolute; left:42%; top:-6px; width:18px; height:18px; border-radius:50%; background:var(--primary); border:2px solid var(--text); }
+  .col { width:210px; border-right:1px solid var(--border); padding:10px; background:var(--surface); display:flex; flex-direction:column; gap:6px; }
+  .side { width:34px; background:var(--surface-muted); border-right:1px solid var(--border); flex:none; }
+  .nota { max-width:1180px; margin:0 auto 48px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 22px; }
+  table { border-collapse:collapse; width:100%; font-size:14px; } th,td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:top; } th { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .cobre { outline:2px dashed var(--danger); outline-offset:-2px; background:rgba(200,36,43,.08); }
+
+  /* específicos do cadastro e da edição */
+  .bar { position:absolute; left:0; right:0; bottom:56px; background:var(--surface); border-top:2px solid var(--text); padding:8px 12px; z-index:4; display:flex; align-items:center; gap:10px; }
+  .bar .t { flex:1; min-width:0; font-size:12.5px; line-height:1.25; }
+  .bar .t b { display:block; font-size:13px; }
+  .btn.off { opacity:.5; }
+  .sec { background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:8px; overflow:hidden; }
+  .sec.open { border:2px solid var(--text); }
+  .sec .h { display:flex; align-items:center; gap:8px; padding:9px 12px; min-height:44px; }
+  .sec .h .n { width:22px; height:22px; border-radius:50%; background:var(--surface-muted); display:grid; place-items:center; font-size:12px; font-weight:700; flex:none; }
+  .sec .h .n.ok { background:var(--success); color:#fff; } .sec .h .n.pend { background:var(--warn); color:var(--on-primary); }
+  .sec .h .x { flex:1; min-width:0; } .sec .h .x b { font-size:13.5px; display:block; } .sec .h .x > span { font-size:12px; color:var(--muted); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sec .b { padding:0 12px 10px; }
+  .tag { font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:99px; background:var(--primary); color:var(--on-primary); white-space:nowrap; }
+  .antes { text-decoration:line-through; color:var(--muted); }
+  .depois { font-weight:700; }
+  .fld { margin:7px 0; } .fld .l { font-size:11.5px; font-weight:600; margin-bottom:3px; }
+  .fld .i { height:38px; border:1.5px solid var(--border-strong); border-radius:10px; background:var(--surface-muted); padding:0 10px; display:flex; align-items:center; font-size:13px; }
+  .segs { display:flex; gap:6px; flex-wrap:wrap; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .deg { display:grid; grid-template-columns:52px 52px 1fr 30px; gap:6px; align-items:end; margin:6px 0; }
+  .deg .i { height:36px; border:1.5px solid var(--border-strong); border-radius:9px; background:var(--surface-muted); display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .deg .i.v { justify-content:flex-start; padding:0 9px; }
+  .deg .lx { font-size:10.5px; color:var(--muted); }
+  .salto { font-size:10.5px; color:var(--muted); }
+  .step { display:flex; align-items:center; justify-content:space-between; border:1.5px solid var(--border-strong); border-radius:10px; background:var(--surface-muted); height:40px; padding:0 4px; }
+  .step b { font:800 15px ui-monospace, Menlo, monospace; } .step span { width:32px; height:32px; border-radius:8px; background:var(--surface); display:grid; place-items:center; font-weight:800; }
+  .pl { background:var(--surface); border-radius:12px; box-shadow:inset 0 0 0 2px var(--text); padding:7px 10px; }
+  .pl .c { display:flex; gap:5px; margin-top:4px; }
+  .pl .c span { flex:1; text-align:center; background:var(--surface-muted); border-radius:7px; padding:3px 1px; font-size:10.5px; line-height:1.2; font-variant-numeric:tabular-nums; }
+  .pl .c span b { display:block; font-size:12px; }
+  .pl .c span.d { background:var(--warn); color:var(--on-primary); }
+  .pl .c span.m { background:var(--primary); }
+  .tabs3 { display:flex; background:var(--surface-muted); border-radius:10px; padding:3px; gap:2px; margin:8px 0; }
+  .tabs3 span { flex:1; text-align:center; font-size:12.5px; font-weight:600; padding:7px 0; border-radius:8px; color:var(--muted); }
+  .tabs3 span.on { background:var(--surface); color:var(--text); box-shadow:0 1px 2px rgba(14,23,41,.12); }
+  .card2 { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:9px 12px; margin-bottom:7px; display:flex; align-items:center; gap:8px; min-height:48px; }
+  .card2.next { border:2px dashed var(--text); }
+  .card2 .x { flex:1; min-width:0; } .card2 .x b { font-size:13.5px; display:block; } .card2 .x > span { font-size:12px; color:var(--muted); display:block; }
+  .g7 { display:grid; grid-template-columns:30px repeat(7,1fr); gap:2px; font-size:9px; text-align:center; margin:6px 0; }
+  .g7 i { height:12px; background:var(--surface-muted); border-radius:2px; } .g7 i.x { background:var(--text); }
+  .g7 b { font-weight:600; color:var(--muted); text-align:right; padding-right:3px; }
+  .sheet2 { position:absolute; inset:0 0 56px 0; background:var(--bg); z-index:6; display:flex; flex-direction:column; }
+  .sheet2 .hd { display:flex; align-items:center; justify-content:space-between; padding:0 12px; height:44px; font-weight:800; font-size:14px; background:var(--surface); border-bottom:1px solid var(--border); flex:none; }
+  .sheet2 .bd { flex:1; overflow:hidden; padding:8px 12px; }
+  .colL { width:200px; flex:none; border-right:1px solid var(--border); background:var(--surface); padding:8px; }
+  .modelo.cmp { max-width:1180px; }
+</style>
+</head>
+<body>
+<div class="modelo" style="margin-bottom:24px">
+  <h1>Cadastro e edição de preços — 3 modelos de layout</h1>
+  <p class="lead">Mock-ups só com os tokens do tema claro do GIPE, em celular (360 × 640) e computador. Cada modelo mostra o mesmo conteúdo (<code>prd.md</code>, RF2): <b>cadastro novo</b>, <b>edição com "antes → depois"</b>, uma <b>parte editada</b> (degraus, diária e tolerâncias) e a versão para computador. Todos mantêm o topo curto, a ação principal acima do menu inferior, salvar disponível de qualquer parte na edição e tratam o fim da vigência, a grade de horários e os degraus para toque. Os dados são <b>fictícios</b>. A comparação e a recomendação estão em <code>design.md</code>.</p>
+</div>
+<section class="modelo">
+  <header>
+    <span class="kicker">A · Página única em seções (a sorteada)</span>
+    <h2>Uma página, seções que abrem uma de cada vez</h2>
+    <p class="tese">O cadastro vira uma página só com 4 seções (O básico, Categorias, Quando vale, Quanto cobra). Só uma fica aberta; as outras mostram em uma linha o estado e o resumo. Na edição todas começam fechadas, com o "antes → depois" nas linhas e <b>Salvar fixo</b> de qualquer lugar.</p>
+  </header>
+  <div class="telas">
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Novo preço</span><span class="muted">0 de 3 partes</span></div>
+        <div class="body">
+  <div class="sec open"><div class="h"><span class="n">1</span><div class="x"><b>O básico</b><span>Quem é esta tabela?</span></div></div>
+    <div class="b">
+      <div class="fld"><div class="l">Descrição</div><div class="i" style="color:var(--muted)">Ex.: Tabela rotativa</div></div>
+      <div class="fld"><div class="l">Tipo de regra</div><div class="segs"><span class="chip on">Padrão</span><span class="chip">Convênio</span><span class="chip">Promocional</span><span class="chip">Evento</span></div><div class="muted" style="margin-top:4px">Tarifa de uso geral do dia a dia.</div></div>
+      <div class="fld"><div class="l">Vigência</div><div class="segs"><span class="chip on">Começa hoje</span><span class="chip">Escolher data</span></div><div class="segs" style="margin-top:6px"><span class="chip on">Sem fim</span><span class="chip">Termina em…</span></div></div>
+    </div></div>
+  <div class="sec"><div class="h"><span class="n pend">!</span><div class="x"><b>Categorias</b><span>Nenhuma escolhida</span></div><span class="muted">›</span></div></div>
+  <div class="sec"><div class="h"><span class="n">2</span><div class="x"><b>Quando vale</b><span>Nenhum horário ainda</span></div><span class="muted">›</span></div></div>
+  <div class="sec"><div class="h"><span class="n">3</span><div class="x"><b>Quanto cobra</b><span>Ainda sem valores definidos</span></div><span class="muted">›</span></div></div>
+</div>
+        <div class="bar"><div class="t">Faltam 3 coisas · <b>descrição, categoria…</b></div><span class="btn off">Salvar</span></div><div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Cadastro · primeira tela<small>Topo curto; só uma seção aberta; as outras mostram o estado em uma linha</small></figcaption>
+    </figure>
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Editar preço</span><span class="muted">Vigente</span></div>
+        <div class="body">
+  <div class="row between" style="margin:2px 0 8px"><b style="font-size:15px">Tabela final de semana</b><span class="tag">2 mudanças</span></div>
+  <div class="sec"><div class="h"><span class="n ok">✓</span><div class="x"><b>O básico</b><span>Padrão · 07/11/2026 → sem fim · Todas</span></div><span class="muted">›</span></div></div>
+  <div class="sec"><div class="h"><span class="n ok">✓</span><div class="x"><b>Quando vale</b><span>Dom e Sáb 00:00–23:59</span></div><span class="muted">›</span></div></div>
+  <div class="sec open"><div class="h"><span class="n ok">✓</span><div class="x"><b>Quanto cobra</b><span>7 degraus · diária <span class="antes">R$ 100</span> <span class="depois">R$ 120</span></span></div><span class="tag">Alterado</span></div>
+    <div class="b"><div class="muted">Tolerância de entrada <span class="antes">0</span> <b>10 min</b></div></div></div>
+  <div class="pl" style="margin-top:8px"><div class="row between"><b style="font-size:12px">Tarifa</b><span class="muted">2 mudanças</span></div><div class="c"><span><b>15</b>1 h</span><span><b>25</b>2 h</span><span><b>30</b>3 h</span><span class="d"><b>120</b>diária</span></div></div>
+</div>
+        <div class="bar"><div class="t">2 mudanças · <b>diária R$ 100 → 120</b></div><span class="btn">Salvar</span></div><div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Edição · primeira tela<small>"Antes → depois" nas próprias linhas; Salvar fixo, de qualquer parte</small></figcaption>
+    </figure>
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Editar preço</span><span class="muted">2 mudanças</span></div>
+        <div class="body">
+  <div class="sec open"><div class="h"><span class="n ok">✓</span><div class="x"><b>Quanto cobra</b><span>Degraus, diária e tolerâncias</span></div></div>
+    <div class="b">
+      <div class="muted" style="margin-bottom:2px">Modelos: <b>Rotativo 1 h, 2 h, 3 h</b> · <b>A cada 30 min</b></div>
+      <div class="deg"><div><div class="lx">Horas</div><div class="i">1</div></div><div><div class="lx">Min</div><div class="i">0</div></div><div><div class="lx">Valor (R$)</div><div class="i v">15,00</div></div><span class="salto">🗑</span></div>
+      <div class="deg"><div><div class="lx">Horas</div><div class="i">2</div></div><div><div class="lx">Min</div><div class="i">0</div></div><div><div class="lx">Valor (R$) <span class="salto">+10</span></div><div class="i v">25,00</div></div><span class="salto">🗑</span></div>
+      <div class="muted">+ 5 degraus · <b>Adicionar degrau</b></div>
+      <div class="fld"><div class="l">Diária de 12 h <span class="antes">R$ 100</span></div><div class="step"><span>−</span><b>R$ 120,00</b><span>+</span></div></div>
+      <div class="row2"><div class="fld"><div class="l">Tolerância de entrada</div><div class="step"><span>−</span><b>10 min</b><span>+</span></div></div><div class="fld"><div class="l">Alteração de faixa</div><div class="step"><span>−</span><b>0 min</b><span>+</span></div></div></div>
+    </div></div>
+</div>
+        <div class="bar"><div class="t">2 mudanças · <b>ver antes → depois ▴</b></div><span class="btn">Salvar</span></div><div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Parte aberta · degraus e diária<small>Linha de degrau compacta (hora, minuto, valor); diária e tolerâncias com − / +</small></figcaption>
+    </figure>
+    <figure>
+      <div class="desk">
+        <div class="side"></div>
+        <div style="flex:1; padding:10px; display:flex; gap:12px; min-width:0">
+          <div style="flex:1; min-width:0">
+            <div class="row between" style="margin-bottom:6px"><b style="font-size:17px">Editar preço</b><span class="row" style="gap:6px"><span class="btn sm sec">Cancelar</span><span class="btn sm">Salvar · 2 mudanças</span></span></div>
+            <div class="sec"><div class="h"><span class="n ok">✓</span><div class="x"><b>O básico</b><span>Padrão · 07/11/2026 → sem fim</span></div><span class="muted">›</span></div></div>
+            <div class="sec"><div class="h"><span class="n ok">✓</span><div class="x"><b>Quando vale</b><span>Dom e Sáb 00:00–23:59</span></div><span class="muted">›</span></div></div>
+            <div class="sec open"><div class="h"><span class="n ok">✓</span><div class="x"><b>Quanto cobra</b><span>diária <span class="antes">R$ 100</span> <span class="depois">R$ 120</span></span></div><span class="tag">Alterado</span></div><div class="b"><div class="deg" style="grid-template-columns:60px 60px 1fr 30px"><div class="i">1</div><div class="i">0</div><div class="i v">15,00</div><span>🗑</span></div></div></div>
+          </div>
+          <div style="width:190px"><div class="pl"><b style="font-size:12px">Tarifa</b><div class="c"><span><b>15</b>1 h</span><span class="d"><b>120</b>diária</span></div></div><div class="card" style="margin-top:8px;font-size:12px"><b>Sua tabela</b><br>✓ Descrição<br>✓ Horários<br>✓ Faixas · 2 mudanças</div></div>
+        </div>
+      </div>
+      <figcaption>Computador<small>Seções à esquerda; resumo e placa fixos à direita; Salvar no topo</small></figcaption>
+    </figure>
+  </div>
+</section>
+<section class="modelo">
+  <header>
+    <span class="kicker">B · Painel de cartões</span>
+    <h2>A tela é o resumo da tabela; cada cartão abre o seu editor</h2>
+    <p class="tese">A tela inicial é o próprio resumo da tabela, com a <b>placa tarifária ao vivo</b> no topo e um cartão por assunto (Identificação, Vigência, Categorias, Horários, Degraus, Diária e tolerâncias). Tocar num cartão abre só aquele editor em tela cheia, com <b>Concluir</b>. Na edição vai direto ao cartão que quer mudar; <b>Salvar</b> fica fixo.</p>
+  </header>
+  <div class="telas">
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Novo preço</span><span class="muted">rascunho</span></div>
+        <div class="body">
+  <div class="pl" style="text-align:center;color:var(--muted);padding:12px"><b style="color:var(--text);font-size:13px">Sua tarifa aparece aqui</b><div style="font-size:11.5px">Preencha os cartões abaixo, na ordem que quiser.</div></div>
+  <div style="height:8px"></div>
+  <div class="card2 next"><span class="tag">Comece</span><div class="x"><b>Identificação</b><span>Nome e tipo de regra</span></div><span class="muted">›</span></div>
+  <div class="card2"><div class="x"><b>Vigência</b><span>Hoje → sem fim</span></div><span class="muted">›</span></div>
+  <div class="card2"><div class="x"><b>Categorias</b><span>Nenhuma escolhida</span></div><span class="tag" style="background:var(--warn)">!</span></div>
+  <div class="card2"><div class="x"><b>Horários</b><span>Nenhum ainda</span></div><span class="muted">›</span></div>
+  <div class="card2"><div class="x"><b>Degraus</b><span>Ainda sem valores definidos</span></div><span class="muted">›</span></div>
+</div>
+        <div class="bar"><div class="t">Faltam 4 · <b>nome, categoria, horários…</b></div><span class="btn off">Salvar</span></div><div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Cadastro · painel de cartões<small>A tela é o resumo da tabela; cada cartão abre só o seu editor</small></figcaption>
+    </figure>
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Editar preço</span><span class="muted">Vigente</span></div>
+        <div class="body">
+  <div class="pl"><div class="row between"><b style="font-size:12px">Tarifa · Tabela final de semana</b><span class="tag">2 mudanças</span></div><div class="c"><span><b>15</b>1 h</span><span><b>25</b>2 h</span><span><b>30</b>3 h</span><span class="d"><b><span class="antes">100</span> 120</b>diária</span></div></div>
+  <div style="height:8px"></div>
+  <div class="card2"><div class="x"><b>Identificação</b><span>Tabela final de semana · Padrão</span></div><span class="muted">›</span></div>
+  <div class="card2"><div class="x"><b>Vigência</b><span>07/11/2026 → sem fim</span></div><span class="muted">›</span></div>
+  <div class="card2"><div class="x"><b>Horários</b><span>Dom e Sáb 00:00–23:59</span></div><span class="muted">›</span></div>
+  <div class="card2"><div class="x"><b>Degraus</b><span>7 degraus · 1 h R$ 15 … 12 h R$ 50</span></div><span class="muted">›</span></div>
+  <div class="card2" style="border:2px solid var(--primary)"><div class="x"><b>Diária e tolerâncias</b><span>diária <span class="antes">R$ 100</span> <b>R$ 120</b> · entrada <span class="antes">0</span> <b>10 min</b></span></div><span class="tag">Alterado</span></div>
+</div>
+        <div class="bar"><div class="t">2 mudanças · <b>toque nos cartões para ver</b></div><span class="btn">Salvar</span></div><div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Edição · painel de cartões<small>A placa ao vivo no topo mostra o antes → depois; cartões alterados se destacam</small></figcaption>
+    </figure>
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Horários</span><span class="btn sm">Concluir</span></div>
+        <div class="body" style="padding-top:2px">
+          <div class="muted">Comece por um modelo</div>
+          <div class="segs" style="margin:4px 0"><span class="chip on">Comercial</span><span class="chip">Rotativo</span><span class="chip">24 h</span><span class="chip">Fim de semana</span></div>
+          <div class="g7"><span></span><b style="text-align:center">Seg</b><b style="text-align:center">Ter</b><b style="text-align:center">Qua</b><b style="text-align:center">Qui</b><b style="text-align:center">Sex</b><b style="text-align:center">Sáb</b><b style="text-align:center">Dom</b>
+            <b>6h</b><i></i><i></i><i></i><i></i><i></i><i></i><i></i><b>7h</b><i></i><i></i><i></i><i></i><i></i><i></i><i></i><b>8h</b><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><b>9h</b><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><b>10h</b><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><b>11h</b><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><b>12h</b><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><b>13h</b><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><b>14h</b><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><b>15h</b><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><b>16h</b><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><b>17h</b><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><b>18h</b><i></i><i></i><i></i><i></i><i></i><i></i><i></i><b>19h</b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="muted">Seg–Sex 08:00–18:00 · 50 de 168 horas da semana</div>
+        </div>
+        <div class="bar"><div class="t"><b>Seg–Sex 08:00–18:00</b></div><span class="btn">Concluir</span></div>
+        <div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Editor de uma parte · horários<small>Folha em tela cheia só com o horário; Concluir volta ao painel</small></figcaption>
+    </figure>
+    <figure>
+      <div class="desk">
+        <div class="side"></div>
+        <div style="flex:1; display:flex; min-width:0">
+          <div class="colL">
+            <div class="pl" style="margin-bottom:6px"><b style="font-size:11px">Tarifa</b><div class="c"><span><b>15</b>1 h</span><span class="d"><b>120</b>dia</span></div></div>
+            <div class="card2" style="min-height:40px;padding:6px 8px"><div class="x"><b style="font-size:12px">Identificação</b></div></div>
+            <div class="card2" style="min-height:40px;padding:6px 8px"><div class="x"><b style="font-size:12px">Vigência</b></div></div>
+            <div class="card2" style="min-height:40px;padding:6px 8px"><div class="x"><b style="font-size:12px">Horários</b></div></div>
+            <div class="card2" style="min-height:40px;padding:6px 8px"><div class="x"><b style="font-size:12px">Degraus</b></div></div>
+            <div class="card2" style="min-height:40px;padding:6px 8px;border:2px solid var(--text)"><div class="x"><b style="font-size:12px">Diária e tolerâncias</b></div><span class="tag">Alt.</span></div>
+          </div>
+          <div style="flex:1; padding:10px; min-width:0"><div class="row between"><b style="font-size:16px">Diária e tolerâncias</b><span class="btn sm">Salvar · 2 mudanças</span></div>
+            <div class="fld"><div class="l">Diária de 12 h <span class="antes">R$ 100</span></div><div class="step" style="width:180px"><span>−</span><b>R$ 120,00</b><span>+</span></div></div>
+            <div class="row2"><div class="fld"><div class="l">Tolerância de entrada</div><div class="step"><span>−</span><b>10 min</b><span>+</span></div></div><div class="fld"><div class="l">Alteração de faixa</div><div class="step"><span>−</span><b>0 min</b><span>+</span></div></div></div></div>
+        </div>
+      </div>
+      <figcaption>Computador<small>Lista de partes à esquerda (com a placa) e o editor da parte escolhida à direita</small></figcaption>
+    </figure>
+  </div>
+</section>
+<section class="modelo">
+  <header>
+    <span class="kicker">C · Placa viva fixa</span>
+    <h2>A tarifa sempre à vista, e as abas mudam só o que está embaixo</h2>
+    <p class="tese">A <b>placa tarifária</b> fica fixa no topo (degraus e diária) e muda enquanto se digita; na edição ela mostra o <b>antes → depois</b> nos próprios valores. Embaixo, um controle de 3 abas (Básico, Horários, Valores) com o estado de cada uma. <b>Salvar</b> fixo; no cadastro, a ação é Avançar até a última aba.</p>
+  </header>
+  <div class="telas">
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Novo preço</span><span class="muted">1 de 3 completas</span></div>
+        <div class="body">
+  <div class="pl"><div class="row between"><b style="font-size:12px">Tarifa</b><span class="muted">toque para abrir</span></div><div class="c"><span class="m"><b>—</b>1 h</span><span class="m"><b>—</b>2 h</span><span class="m"><b>—</b>3 h</span><span class="d"><b>—</b>diária</span></div></div>
+  <div class="tabs3"><span class="on">Básico</span><span>Horários !</span><span>Valores</span></div>
+  <div class="fld"><div class="l">Descrição</div><div class="i" style="color:var(--muted)">Ex.: Tabela rotativa</div></div>
+  <div class="fld"><div class="l">Tipo de regra</div><div class="segs"><span class="chip on">Padrão</span><span class="chip">Convênio</span><span class="chip">Promocional</span><span class="chip">Evento</span></div></div>
+  <div class="fld"><div class="l">Vigência</div><div class="segs"><span class="chip on">Começa hoje</span><span class="chip">Escolher data</span><span class="chip on">Sem fim</span></div></div>
+  <div class="fld"><div class="l">Categorias</div><div class="segs"><span class="chip">Moto</span><span class="chip">Carro pequeno</span><span class="chip">Carro médio</span></div></div>
+</div>
+        <div class="bar"><div class="t">Faltam 2 · <b>descrição, categoria</b></div><span class="btn off">Avançar</span></div><div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Cadastro · placa fixa no topo<small>A placa fica sempre à vista; 3 abas por assunto; os degraus mudam à medida que se preenche</small></figcaption>
+    </figure>
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Editar preço</span><span class="muted">Vigente</span></div>
+        <div class="body">
+  <div class="pl"><div class="row between"><b style="font-size:12px">Tarifa · antes → depois</b><span class="tag">2 mudanças</span></div><div class="c"><span><b>15</b>1 h</span><span><b>25</b>2 h</span><span><b>30</b>3 h</span><span class="d"><b><span class="antes">100</span><br>120</b>diária</span></div></div>
+  <div class="tabs3"><span>Básico ✓</span><span>Horários ✓</span><span class="on">Valores ●</span></div>
+  <div class="fld"><div class="l">Diária de 12 h</div><div class="step"><span>−</span><b>R$ 120,00</b><span>+</span></div><div class="muted" style="margin-top:3px">antes R$ 100,00</div></div>
+  <div class="row2"><div class="fld"><div class="l">Tolerância de entrada</div><div class="step"><span>−</span><b>10 min</b><span>+</span></div></div><div class="fld"><div class="l">Alteração de faixa</div><div class="step"><span>−</span><b>0 min</b><span>+</span></div></div></div>
+</div>
+        <div class="bar"><div class="t">2 mudanças · <b>diária e tolerância</b></div><span class="btn">Salvar</span></div><div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Edição · placa com antes → depois<small>O antes → depois aparece na própria placa; abre direto na aba que mais interessa</small></figcaption>
+    </figure>
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Editar preço</span><span class="muted">2 mudanças</span></div>
+        <div class="body">
+  <div class="pl"><div class="row between"><b style="font-size:12px">Tarifa</b><span class="muted">7 degraus</span></div><div class="c"><span><b>15</b>1 h</span><span><b>25</b>2 h</span><span><b>30</b>3 h</span><span class="d"><b>120</b>diária</span></div></div>
+  <div class="tabs3"><span>Básico ✓</span><span>Horários ✓</span><span class="on">Valores ●</span></div>
+  <div class="muted">Modelos: <b>Rotativo 1/2/3 h</b> · <b>A cada 30 min</b></div>
+  <div class="deg"><div><div class="lx">Horas</div><div class="i">1</div></div><div><div class="lx">Min</div><div class="i">0</div></div><div><div class="lx">Valor (R$)</div><div class="i v">15,00</div></div><span class="salto">🗑</span></div>
+  <div class="deg"><div><div class="lx">Horas</div><div class="i">2</div></div><div><div class="lx">Min</div><div class="i">0</div></div><div><div class="lx">Valor (R$) <span class="salto">+10</span></div><div class="i v">25,00</div></div><span class="salto">🗑</span></div>
+  <div class="deg"><div><div class="lx">Horas</div><div class="i">3</div></div><div><div class="lx">Min</div><div class="i">0</div></div><div><div class="lx">Valor (R$) <span class="salto">+5</span></div><div class="i v">30,00</div></div><span class="salto">🗑</span></div>
+  <div class="muted">+ 4 degraus · <b>Adicionar degrau</b></div>
+</div>
+        <div class="bar"><div class="t">2 mudanças · <b>a placa já mostra</b></div><span class="btn">Salvar</span></div><div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Aba Valores · degraus<small>Cada degrau editado se reflete na placa de cima, sem abrir nada</small></figcaption>
+    </figure>
+    <figure>
+      <div class="desk">
+        <div class="side"></div>
+        <div style="flex:1; padding:10px; display:flex; gap:12px; min-width:0">
+          <div style="width:210px; flex:none"><div class="pl" style="padding:10px"><div class="row between"><b style="font-size:13px">Tarifa</b><span class="tag">2 mudanças</span></div>
+            <div style="font-size:12px;margin-top:6px;font-variant-numeric:tabular-nums">Até 1 h <b style="float:right">R$ 15,00</b><br>Até 2 h <b style="float:right">R$ 25,00</b><br>Até 3 h <b style="float:right">R$ 30,00</b><br><span style="display:block;margin-top:6px;background:var(--warn);border-radius:6px;padding:3px 6px">Diária <span class="antes">100</span> <b>R$ 120,00</b></span></div></div></div>
+          <div style="flex:1; min-width:0"><div class="row between"><b style="font-size:17px">Editar preço</b><span class="btn sm">Salvar · 2 mudanças</span></div>
+            <div class="tabs3" style="width:300px"><span>Básico ✓</span><span>Horários ✓</span><span class="on">Valores ●</span></div>
+            <div class="fld"><div class="l">Diária de 12 h</div><div class="step" style="width:180px"><span>−</span><b>R$ 120,00</b><span>+</span></div></div>
+            <div class="row2" style="width:340px"><div class="fld"><div class="l">Tolerância de entrada</div><div class="step"><span>−</span><b>10 min</b><span>+</span></div></div><div class="fld"><div class="l">Alteração de faixa</div><div class="step"><span>−</span><b>0 min</b><span>+</span></div></div></div></div>
+        </div>
+      </div>
+      <figcaption>Computador<small>Placa grande fixa à esquerda; abas e campos à direita</small></figcaption>
+    </figure>
+  </div>
+</section>
+<div class="nota">
+  <h2 style="font-size:20px;margin-bottom:8px">Como cada modelo resolve os problemas encontrados</h2>
+  <table>
+    <tr><th>Problema da tela atual</th><th>A · Seções</th><th>B · Painel de cartões</th><th>C · Placa fixa</th></tr>
+    <tr><td>Topo gasta a primeira tela</td><td>Barra de uma linha; a primeira seção já mostra campos</td><td>Barra de uma linha; a placa e os cartões ocupam a tela</td><td>Barra de uma linha + placa compacta (cerca de 80 px)</td></tr>
+    <tr><td>Etapas longas</td><td>Só uma seção aberta por vez</td><td>Cada cartão abre só o seu editor</td><td>Abas curtas por assunto</td></tr>
+    <tr><td>Salvar longe na edição</td><td>Salvar fixo, de qualquer seção</td><td>Salvar fixo no painel e nos editores</td><td>Salvar fixo, de qualquer aba</td></tr>
+    <tr><td>"Antes → depois" escondido</td><td>Nas próprias linhas das seções</td><td>Na placa e nos cartões alterados</td><td>Na própria placa e nos campos</td></tr>
+    <tr><td>Datas pesadas / fim vazio</td><td>"Começa hoje" / "Escolher data" e "Sem fim" / "Termina em…"</td><td>Mesmo tratamento, dentro do cartão Vigência</td><td>Mesmo tratamento, na aba Básico</td></tr>
+    <tr><td>Grade e degraus longos</td><td>Degraus em linha compacta; grade por modelos e dias</td><td>Horários e degraus em editor próprio, tela cheia</td><td>Degraus na aba Valores, com a placa refletindo</td></tr>
+  </table>
+</div>
+</body>
+</html>
