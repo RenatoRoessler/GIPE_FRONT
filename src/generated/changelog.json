@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.386",
+      "type": "feat",
+      "scope": "entrada",
+      "title": "abre a leitura da placa ao entrar na tela no celular",
+      "description": "Em aparelhos de toque, a tela de entrada de veículo já abre com a câmera\npronta para ler a placa, poupando um toque a cada entrada. O botão Digitar\ncontinua levando ao campo da placa. No computador nada muda.",
+      "date": "2026-11-09T17:16:37-03:00"
+    },
+    {
       "version": "1.0.382",
       "type": "feat",
       "scope": "precos",
