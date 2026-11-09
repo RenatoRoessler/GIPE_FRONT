@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { criarConsenso, extrairPlaca } from "@/lib/ocrPlaca";
+import { consultarPermissaoCamera, explicacaoCameraVista, marcarExplicacaoCameraVista } from "@/lib/permissaoCamera";
 import { criarReconhecedorPlaca, type ReconhecedorPlaca } from "@/lib/reconhecedorPlaca";
 
-export type LeitorPlacaEstado = "ocioso" | "abrindo" | "lendo" | "negada" | "indisponivel" | "sem-leitura";
+export type LeitorPlacaEstado = "ocioso" | "abrindo" | "explicando" | "lendo" | "negada" | "indisponivel" | "sem-leitura";
 
 export interface UseLeitorPlacaOptions {
   // Câmera ligada enquanto true; ao virar false (ou desmontar) tudo é liberado.
@@ -24,7 +25,10 @@ export interface UseLeitorPlaca {
   estado: LeitorPlacaEstado;
   // false quando a câmera não pode abrir por falta de HTTPS (o navegador remove a API).
   contextoSeguro: boolean;
+  // Abre a câmera (ou tenta de novo): consulta a permissão e, se ainda será pedida pela primeira vez, antes explica.
   iniciar: () => void;
+  // Depois da explicação: segue para o pedido do navegador.
+  permitir: () => void;
 }
 
 const TEMPO_LIMITE_MS = 15000;
@@ -77,7 +81,7 @@ export function useLeitorPlaca({
     reconhecedorRef.current = null;
   }, []);
 
-  const iniciar = useCallback(async () => {
+  const iniciar = useCallback(async (explicado = false) => {
     if (!ativoRef.current || streamRef.current || abrindoRef.current) {
       return;
     }
@@ -91,6 +95,18 @@ export function useLeitorPlaca({
     abrindoRef.current = true;
     setEstado("abrindo");
     try {
+      const permissao = await consultarPermissaoCamera();
+      if (sessao !== sessaoRef.current) {
+        return;
+      }
+      if (permissao === "denied") {
+        setEstado("negada");
+        return;
+      }
+      if (!explicado && permissao !== "granted" && !explicacaoCameraVista()) {
+        setEstado("explicando");
+        return;
+      }
       // A câmera e o OCR carregam juntos; o OCR é baixado só na primeira vez.
       const [stream, reconhecedor] = await Promise.all([
         navigator.mediaDevices.getUserMedia({
@@ -204,5 +220,9 @@ export function useLeitorPlaca({
     estado: ativo ? estado : "ocioso",
     contextoSeguro,
     iniciar: () => void iniciar(),
+    permitir: () => {
+      marcarExplicacaoCameraVista();
+      void iniciar(true);
+    },
   };
 }

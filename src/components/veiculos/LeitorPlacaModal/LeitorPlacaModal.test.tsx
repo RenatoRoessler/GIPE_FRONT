@@ -10,6 +10,7 @@ const leitor = vi.hoisted(() => ({
   contextoSeguro: true,
   options: null as UseLeitorPlacaOptions | null,
   iniciar: vi.fn(),
+  permitir: vi.fn(),
 }));
 
 vi.mock("./useLeitorPlaca", async () => {
@@ -22,6 +23,7 @@ vi.mock("./useLeitorPlaca", async () => {
         estado: options.ativo ? leitor.estado : "ocioso",
         contextoSeguro: leitor.contextoSeguro,
         iniciar: leitor.iniciar,
+        permitir: leitor.permitir,
       };
     },
   };
@@ -42,6 +44,7 @@ beforeEach(() => {
   leitor.contextoSeguro = true;
   leitor.options = null;
   leitor.iniciar.mockReset();
+  leitor.permitir.mockReset();
 });
 
 function renderModal(props: Partial<LeitorPlacaModalProps> = {}) {
@@ -132,11 +135,21 @@ describe("LeitorPlacaModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("explica como liberar a câmera negada", () => {
+  it("explica como liberar a câmera negada, com os passos do navegador", () => {
     leitor.estado = "negada";
     renderModal();
     expect(screen.getAllByText(/Permita o acesso à câmera/).length).toBeGreaterThan(0);
+    expect(screen.getByRole("group", { name: "Como liberar a câmera" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
+  });
+
+  it("antes do pedido do navegador explica para que a câmera serve e só pede ao tocar em Permitir", async () => {
+    leitor.estado = "explicando";
+    renderModal();
+    expect(screen.getByRole("group", { name: "Permissão da câmera" })).toHaveTextContent("ler a placa do veículo");
+    await userEvent.click(screen.getByRole("button", { name: "Permitir câmera" }));
+    expect(leitor.permitir).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Digitar" })).toBeInTheDocument();
   });
 
   it("avisa quando a câmera não está disponível, sem oferecer tentar de novo", () => {

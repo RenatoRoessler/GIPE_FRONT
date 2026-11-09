@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { consultarPermissaoCamera, explicacaoCameraVista, marcarExplicacaoCameraVista } from "@/lib/permissaoCamera";
 
-export type LeitorQrEstado = "ocioso" | "abrindo" | "lendo" | "negada" | "indisponivel";
+export type LeitorQrEstado = "ocioso" | "abrindo" | "explicando" | "lendo" | "negada" | "indisponivel";
 
 export interface UseLeitorQrOptions {
   // Câmera ligada enquanto true; ao virar false (ou desmontar) tudo é liberado.
@@ -14,8 +15,10 @@ export interface UseLeitorQrOptions {
 export interface UseLeitorQr {
   videoRef: RefObject<HTMLVideoElement | null>;
   estado: LeitorQrEstado;
-  // Para navegadores que só abrem a câmera após um toque.
+  // Para navegadores que só abrem a câmera após um toque; consulta a permissão e, na primeira vez, antes explica.
   iniciar: () => void;
+  // Depois da explicação: segue para o pedido do navegador.
+  permitir: () => void;
 }
 
 type Detector = { detect: (source: HTMLVideoElement) => Promise<{ rawValue: string }[]> };
@@ -55,7 +58,7 @@ export function useLeitorQr({ ativo, onTexto }: UseLeitorQrOptions): UseLeitorQr
     }
   }, []);
 
-  const iniciar = useCallback(async () => {
+  const iniciar = useCallback(async (explicado = false) => {
     if (!ativoRef.current || streamRef.current || abrindoRef.current) {
       return;
     }
@@ -68,6 +71,18 @@ export function useLeitorQr({ ativo, onTexto }: UseLeitorQrOptions): UseLeitorQr
     abrindoRef.current = true;
     setEstado("abrindo");
     try {
+      const permissao = await consultarPermissaoCamera();
+      if (sessao !== sessaoRef.current) {
+        return;
+      }
+      if (permissao === "denied") {
+        setEstado("negada");
+        return;
+      }
+      if (!explicado && permissao !== "granted" && !explicacaoCameraVista()) {
+        setEstado("explicando");
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" } },
         audio: false,
@@ -175,5 +190,9 @@ export function useLeitorQr({ ativo, onTexto }: UseLeitorQrOptions): UseLeitorQr
     // Fora de uso a câmera está liberada, qualquer que tenha sido o último estado.
     estado: ativo ? estado : "ocioso",
     iniciar: () => void iniciar(),
+    permitir: () => {
+      marcarExplicacaoCameraVista();
+      void iniciar(true);
+    },
   };
 }

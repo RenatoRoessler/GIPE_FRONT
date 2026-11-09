@@ -1,18 +1,23 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { marcarExplicacaoCameraVista } from "@/lib/permissaoCamera";
 import { useLeitorQr } from "./useLeitorQr";
 
 const jsqrMock = vi.hoisted(() => vi.fn());
 vi.mock("jsqr", () => ({ default: jsqrMock }));
 
 function Harness({ ativo, onTexto }: { ativo: boolean; onTexto: (texto: string) => void }) {
-  const { videoRef, estado, iniciar } = useLeitorQr({ ativo, onTexto });
+  const { videoRef, estado, iniciar, permitir } = useLeitorQr({ ativo, onTexto });
   return (
     <div>
       <video ref={videoRef} data-testid="video" />
       <span data-testid="estado">{estado}</span>
       <button type="button" onClick={iniciar}>
         iniciar
+      </button>
+      <button type="button" onClick={permitir}>
+        permitir
       </button>
     </div>
   );
@@ -33,6 +38,7 @@ function setBarcodeDetector(detect: () => Promise<{ rawValue: string }[]>) {
 }
 
 beforeEach(() => {
+  marcarExplicacaoCameraVista();
   stopTrack.mockReset();
   getUserMedia.mockReset().mockResolvedValue(fakeStream());
   Object.defineProperty(navigator, "mediaDevices", { value: { getUserMedia }, configurable: true });
@@ -44,6 +50,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  window.localStorage.clear();
+  Reflect.deleteProperty(navigator, "permissions");
   vi.restoreAllMocks();
   Reflect.deleteProperty(window, "BarcodeDetector");
 });
@@ -143,5 +151,57 @@ describe("useLeitorQr", () => {
     rerender(<Harness ativo={false} onTexto={() => {}} />);
     await act(async () => liberar(fakeStream()));
     expect(stopTrack).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("permissão da câmera", () => {
+  function simularPermissao(state: PermissionState | null) {
+    Object.defineProperty(navigator, "permissions", {
+      value: state === null ? undefined : { query: vi.fn().mockResolvedValue({ state }) },
+      configurable: true,
+    });
+  }
+
+  it("na primeira vez, antes do pedido do navegador, explica e espera o usuário permitir", async () => {
+    window.localStorage.clear();
+    simularPermissao("prompt");
+    render(<Harness ativo onTexto={() => {}} />);
+    await waitFor(() => expect(estado()).toBe("explicando"));
+    expect(getUserMedia).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: "permitir" }));
+    await waitFor(() => expect(estado()).toBe("lendo"));
+    expect(getUserMedia).toHaveBeenCalledTimes(1);
+  });
+
+  it("sem a consulta de permissão (ex.: Safari) também explica na primeira vez e não repete depois", async () => {
+    window.localStorage.clear();
+    simularPermissao(null);
+    const primeira = render(<Harness ativo onTexto={() => {}} />);
+    await waitFor(() => expect(estado()).toBe("explicando"));
+    await userEvent.click(screen.getByRole("button", { name: "permitir" }));
+    await waitFor(() => expect(estado()).toBe("lendo"));
+    primeira.unmount();
+
+    render(<Harness ativo onTexto={() => {}} />);
+    await waitFor(() => expect(estado()).toBe("lendo"));
+  });
+
+  it("com a permissão já concedida abre direto, sem explicar", async () => {
+    window.localStorage.clear();
+    simularPermissao("granted");
+    render(<Harness ativo onTexto={() => {}} />);
+    await waitFor(() => expect(estado()).toBe("lendo"));
+  });
+
+  it("com a câmera bloqueada nem tenta abrir: vai para negada, e Tentar de novo vale depois de liberar", async () => {
+    simularPermissao("denied");
+    render(<Harness ativo onTexto={() => {}} />);
+    await waitFor(() => expect(estado()).toBe("negada"));
+    expect(getUserMedia).not.toHaveBeenCalled();
+
+    simularPermissao("granted");
+    await userEvent.click(screen.getByRole("button", { name: "iniciar" }));
+    await waitFor(() => expect(estado()).toBe("lendo"));
   });
 });

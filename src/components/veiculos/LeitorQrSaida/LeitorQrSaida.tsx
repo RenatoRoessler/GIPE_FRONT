@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ExplicacaoCamera, PassosLiberarCamera } from "@/components/camera/PermissaoCamera";
 import { extrairTokenComprovante } from "@/lib/qr";
 import {
   Mensagem,
@@ -21,6 +22,7 @@ const INVALIDO_MS = 1200;
 const MENSAGENS: Record<LeitorQrEstado, string> = {
   ocioso: "Toque para ativar a câmera",
   abrindo: "Abrindo câmera…",
+  explicando: "Toque para permitir a câmera",
   lendo: "",
   negada: "Permita o acesso à câmera e toque aqui",
   indisponivel: "Câmera indisponível neste navegador",
@@ -39,7 +41,7 @@ export function LeitorQrSaida({ onToken, onInvalido, buscando = false }: LeitorQ
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [invalido, setInvalido] = useState(false);
 
-  const { videoRef, estado, iniciar } = useLeitorQr({
+  const { videoRef, estado, iniciar, permitir } = useLeitorQr({
     ativo: !buscando,
     onTexto: (texto) => {
       const tokenLido = extrairTokenComprovante(texto);
@@ -77,7 +79,7 @@ export function LeitorQrSaida({ onToken, onInvalido, buscando = false }: LeitorQ
       <Visor
         type="button"
         $tom={tom}
-        onClick={iniciar}
+        onClick={estado === "explicando" ? permitir : iniciar}
         aria-label="Área de leitura do QR Code. Toque para ativar a câmera"
       >
         <Video ref={videoRef} playsInline muted />
@@ -88,6 +90,8 @@ export function LeitorQrSaida({ onToken, onInvalido, buscando = false }: LeitorQ
         {estado === "lendo" && !buscando && <Varredura aria-hidden="true" />}
         {mensagem && <Mensagem aria-hidden="true">{mensagem}</Mensagem>}
       </Visor>
+      {estado === "explicando" && <ExplicacaoCamera motivo="ler o QR Code do ticket" />}
+      {estado === "negada" && <PassosLiberarCamera />}
       <VisuallyHidden role="status" aria-live="polite">
         {anuncio}
       </VisuallyHidden>
