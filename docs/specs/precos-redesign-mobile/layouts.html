@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestão de Preços — 3 modelos de layout</title>
+<style>
+  /* Tokens do tema claro do GIPE (src/styles/theme.ts) */
+  :root {
+    --primary:#FFC20E; --on-primary:#0E1729; --text:#0E1729; --muted:#5A6478;
+    --bg:#F4F1E8; --surface:#fff; --surface-muted:#ECE8DA; --border:#D9D4C5; --border-strong:#737D91;
+    --success:#17795A; --warn:#E0A800; --steel:#9AA3B5; --nav:#ECE8DA; --nav-active:#DCD6C5; --danger:#C8242B;
+    --sign:#0E1729;
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font:15px/1.45 system-ui, "Segoe UI", sans-serif; background:#E4E0D2; color:var(--text); padding:24px 16px 64px; }
+  h1 { font-size:28px; letter-spacing:-.02em; font-weight:800; }
+  .lead { color:var(--muted); max-width:70ch; margin:6px 0 24px; }
+  .modelo { max-width:1180px; margin:0 auto 56px; }
+  .modelo > header { margin-bottom:16px; }
+  .kicker { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; background:var(--text); color:var(--bg); padding:3px 9px; border-radius:99px; }
+  .modelo h2 { font-size:24px; font-weight:800; letter-spacing:-.02em; margin:8px 0 4px; }
+  .modelo p.tese { max-width:75ch; color:var(--muted); }
+  .telas { display:flex; gap:20px; overflow-x:auto; padding:8px 4px 16px; align-items:flex-start; }
+  figure { flex:0 0 auto; }
+  figcaption { font-size:13px; font-weight:700; margin-top:8px; text-align:center; }
+  figcaption small { display:block; font-weight:400; color:var(--muted); max-width:300px; margin:2px auto 0; }
+  /* moldura de celular 360 x 640 */
+  .phone { width:360px; height:640px; background:var(--bg); border:8px solid #0E1729; border-radius:30px; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+  .desk { width:640px; height:400px; background:var(--bg); border:6px solid #0E1729; border-radius:12px; position:relative; overflow:hidden; display:flex; }
+  .topbar { height:40px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 12px; font-weight:800; font-size:14px; }
+  .topbar i { width:26px; height:26px; border-radius:50%; background:var(--surface-muted); border:1px solid var(--border); display:inline-block; }
+  .body { flex:1; overflow:hidden; padding:0 12px; position:relative; }
+  .nav { position:absolute; left:0; right:0; bottom:0; height:56px; background:var(--nav); display:flex; justify-content:space-around; align-items:center; font-size:10px; color:var(--muted); padding-top:6px; z-index:5; }
+  .nav b { color:var(--text); }
+  .nav .fab { position:absolute; top:-16px; left:50%; margin-left:-24px; width:48px; height:48px; border-radius:50%; background:var(--primary); border:3px solid var(--bg); display:grid; place-items:center; font-size:22px; font-weight:800; color:var(--on-primary); }
+  .reserva { height:72px; flex:none; } /* espaço reservado para o menu */
+  h3.t { font-size:20px; font-weight:800; letter-spacing:-.02em; }
+  .row { display:flex; align-items:center; gap:8px; }
+  .between { justify-content:space-between; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 16px; border-radius:10px; font-weight:700; font-size:14px; background:var(--primary); color:var(--on-primary); border:0; white-space:nowrap; }
+  .btn.sec { background:transparent; border:1.5px solid var(--border-strong); }
+  .btn.sm { height:34px; padding:0 12px; font-size:13px; }
+  .btn.full { width:100%; }
+  .chip { display:inline-flex; align-items:center; height:30px; padding:0 11px; border-radius:99px; font-size:12.5px; font-weight:600; border:1.5px solid var(--border-strong); background:transparent; white-space:nowrap; }
+  .chip.on { background:var(--text); color:var(--bg); border-color:var(--text); }
+  .badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:99px; border:1.5px solid var(--success); color:var(--success); }
+  .tipo { font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); display:inline-flex; align-items:center; gap:5px; }
+  .dot { width:9px; height:9px; border-radius:50%; background:var(--primary); display:inline-block; }
+  .dot.g { background:var(--success); }
+  .muted { color:var(--muted); font-size:12px; }
+  .busca { height:38px; border:1.5px solid var(--border-strong); border-radius:10px; background:var(--surface-muted); padding:0 10px; display:flex; align-items:center; color:var(--muted); font-size:13px; gap:6px; }
+  /* placa tarifária */
+  .placa { background:var(--sign); color:#F4F1E8; border-radius:14px; padding:10px 14px; }
+  .placa .l { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; border-bottom:1px dashed rgba(244,241,232,.3); font-size:13px; }
+  .placa .l:last-of-type { border:0; }
+  .placa .l b { font-size:17px; font-variant-numeric:tabular-nums; }
+  .placa .dia { background:var(--primary); color:var(--on-primary); border-radius:8px; padding:5px 9px; margin-top:6px; font-size:12px; font-weight:600; }
+  .mini { display:flex; gap:5px; margin-top:6px; }
+  .mini span { flex:1; text-align:center; background:var(--sign); color:#F4F1E8; border-radius:7px; padding:4px 2px; font-size:11px; line-height:1.2; }
+  .mini span b { display:block; font-size:13px; font-variant-numeric:tabular-nums; }
+  .mini span.d { background:var(--primary); color:var(--on-primary); }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:10px 12px; }
+  .card.sel { border:2px solid var(--text); }
+  .seg { display:flex; background:var(--surface-muted); border-radius:10px; padding:3px; gap:2px; }
+  .seg span { flex:1; text-align:center; font-size:12.5px; font-weight:600; padding:6px 0; border-radius:8px; color:var(--muted); }
+  .seg span.on { background:var(--surface); color:var(--text); box-shadow:0 1px 2px rgba(14,23,41,.12); }
+  .dock { position:absolute; left:0; right:0; bottom:56px; background:var(--surface); border-top:2px solid var(--text); padding:8px 12px; z-index:4; }
+  .dock .v { font:800 22px/1 ui-monospace, Menlo, monospace; }
+  .acoes { position:absolute; left:0; right:0; bottom:56px; background:var(--bg); border-top:1px solid var(--border); padding:8px 12px; display:flex; gap:8px; z-index:4; }
+  .rail { display:flex; gap:8px; overflow:hidden; margin:8px -12px 0; padding:0 12px; }
+  .rail .card { flex:0 0 150px; padding:8px 10px; }
+  .rail .card b { font-size:13px; display:block; }
+  .passos { display:flex; gap:4px; margin:6px 0; }
+  .passos i { flex:1; height:5px; border-radius:3px; background:var(--border); }
+  .passos i.ok { background:var(--success); } .passos i.at { background:var(--text); }
+  .field { margin:8px 0; } .field label { font-size:12px; font-weight:600; display:block; margin-bottom:3px; }
+  .field div { height:36px; border:1.5px solid var(--border-strong); border-radius:10px; background:var(--surface-muted); padding:0 10px; display:flex; align-items:center; font-size:13px; color:var(--muted); }
+  .tipos { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .tipos div { border:1.5px solid var(--border); border-radius:10px; padding:6px 8px; font-size:12px; background:var(--surface-muted); }
+  .tipos div.on { border-color:var(--text); background:var(--surface); }
+  .grade { display:grid; grid-template-columns:28px repeat(24,1fr); gap:1px; font-size:8px; align-items:center; margin:6px 0; }
+  .grade i { height:11px; background:var(--surface-muted); border-radius:2px; }
+  .grade i.x { background:var(--text); }
+  .sheet { position:absolute; left:0; right:0; bottom:56px; top:130px; background:var(--surface); border-radius:18px 18px 0 0; border:1px solid var(--border); box-shadow:0 -12px 32px -8px rgba(14,23,41,.3); padding:10px 12px; z-index:6; }
+  .sheet::before { content:""; display:block; width:40px; height:4px; background:var(--border-strong); border-radius:3px; margin:0 auto 8px; }
+  .slider { height:6px; border-radius:3px; background:var(--border); position:relative; margin:10px 0; }
+  .slider::after { content:""; position:absolute; left:42%; top:-6px; width:18px; height:18px; border-radius:50%; background:var(--primary); border:2px solid var(--text); }
+  .col { width:210px; border-right:1px solid var(--border); padding:10px; background:var(--surface); display:flex; flex-direction:column; gap:6px; }
+  .side { width:34px; background:var(--surface-muted); border-right:1px solid var(--border); flex:none; }
+  .nota { max-width:1180px; margin:0 auto 48px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 22px; }
+  table { border-collapse:collapse; width:100%; font-size:14px; } th,td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:top; } th { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .cobre { outline:2px dashed var(--danger); outline-offset:-2px; background:rgba(200,36,43,.08); }
+</style>
+</head>
+<body>
+
+<div class="modelo" style="margin-bottom:24px">
+  <h1>Gestão de Preços — 3 modelos de layout</h1>
+  <p class="lead">Mock-ups navegáveis só com os tokens do tema claro do GIPE (amarelo faixa, asfalto, giz). Cada modelo mostra o mesmo módulo: <b>consulta</b> (lista e detalhe com simulador) e <b>cadastro</b>, em celular (360 × 640) e no computador. Todos reservam o espaço do menu inferior (RF11) e mostram valores e <b>Editar</b> na primeira tela (RF12). Os dados abaixo são <b>fictícios</b>, só para o desenho. A comparação e a recomendação estão em <code>design.md</code>.</p>
+</div>
+
+<!-- ============ MODELO A ============ -->
+<section class="modelo">
+  <header>
+    <span class="kicker">A · Cockpit da tabela (a sorteada)</span>
+    <h2>Uma tabela por vez, trocada por uma esteira de placas</h2>
+    <p class="tese">O detalhe da tabela escolhida ocupa a tela inteira, com a placa tarifária no alto. Uma esteira horizontal de miniplacas troca de tabela sem sair da tela. O simulador vira uma <b>barra fixa</b> acima do menu, sempre com o resultado à vista.</p>
+  </header>
+  <div class="telas">
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>Preços</span><span class="row"><span class="btn sm sec">Buscar</span><span class="btn sm">+ Novo</span></span></div>
+        <div class="body">
+          <div class="rail">
+            <div class="card sel"><b>Final de semana</b><span class="tipo"><span class="dot"></span>Padrão</span><div class="mini"><span><b>15</b>1 h</span><span><b>25</b>2 h</span><span class="d"><b>100</b>dia</span></div></div>
+            <div class="card"><b>Convênio</b><span class="tipo"><span class="dot g"></span>Convênio</span><div class="mini"><span><b>10</b>1 h</span><span><b>18</b>2 h</span><span class="d"><b>70</b>dia</span></div></div>
+            <div class="card"><b>Evento</b><span class="tipo">Evento</span></div>
+          </div>
+          <div class="row between" style="margin:6px 0 2px"><span class="muted">Ver todas as tabelas (14) ›</span><span class="badge">Vigente</span></div>
+          <div class="row between" style="margin:4px 0 6px"><h3 class="t">Final de semana</h3><span class="btn sm sec">✎ Editar</span></div>
+          <div class="seg"><span class="on">Tarifa</span><span>Horários</span><span>Informações</span></div>
+          <div class="placa" style="margin-top:8px">
+            <div class="l"><span>Até 1 h</span><b>R$ 15,00</b></div>
+            <div class="l"><span>Até 2 h</span><b>R$ 25,00</b></div>
+            <div class="l"><span>Até 3 h</span><b>R$ 30,00</b></div>
+            <div class="l"><span>Até 4 h</span><b>R$ 35,00</b></div>
+            <div class="dia">Diária de 12 h: <b>R$ 100,00</b> · adicional R$ 5,00</div>
+          </div>
+        </div>
+        <div class="dock"><div class="row between"><div><span class="muted">Simular · Carro médio · 2 h 30</span><div class="v">R$ 30,00</div></div><span class="btn sm sec">Ajustar ▴</span></div></div>
+        <div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Consulta · primeira tela<small>Valores, Editar e o resultado do simulador sem rolar</small></figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Todas as tabelas</span><span class="muted">14 tabelas</span></div>
+        <div class="body">
+          <div class="busca">⌕ Buscar tabela de preço</div>
+          <div class="row" style="margin:8px 0; flex-wrap:wrap; gap:6px"><span class="chip on">Todas</span><span class="chip">Vigente</span><span class="chip">Agendada</span><span class="chip">Encerrada</span><span class="chip">Inativa</span></div>
+          <div class="card sel" style="margin-bottom:6px"><div class="row between"><b>Final de semana</b><span class="badge">Vigente</span></div><div class="row between"><span class="tipo"><span class="dot"></span>Padrão</span><span class="muted">R$ 15 a 1 h · diária R$ 100</span></div></div>
+          <div class="card" style="margin-bottom:6px"><div class="row between"><b>Convênio</b><span class="badge">Vigente</span></div><div class="row between"><span class="tipo"><span class="dot g"></span>Convênio</span><span class="muted">R$ 10 a 1 h · diária R$ 70</span></div></div>
+          <div class="card" style="margin-bottom:6px"><div class="row between"><b>Feriado de ano novo</b><span class="badge" style="border-color:var(--warn);color:#7a5a00">Agendada</span></div><div class="row between"><span class="tipo">Evento</span><span class="muted">R$ 20 a 1 h</span></div></div>
+          <div class="row between muted" style="margin-top:8px"><span>1–10 de 14</span><span class="row"><span class="btn sm sec">‹</span><span class="btn sm sec">›</span></span></div>
+        </div>
+        <div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Todas as tabelas<small>Busca, filtros que quebram linha (nenhum cortado), valor-resumo em cada item, paginação</small></figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Novo preço</span><span class="muted">1 de 3</span></div>
+        <div class="body">
+          <div class="passos"><i class="at"></i><i></i><i></i></div>
+          <div class="row between"><b>O básico</b><span class="muted">Quando vale ›</span></div>
+          <div class="field"><label>Descrição</label><div>Ex.: Tabela rotativa</div></div>
+          <label style="font-size:12px;font-weight:600">Tipo de regra</label>
+          <div class="tipos" style="margin-top:3px"><div class="on"><b>Padrão</b><br>Uso geral</div><div><b>Convênio</b><br>Empresas</div><div><b>Promocional</b><br>Tempo limitado</div><div><b>Evento</b><br>Dias específicos</div></div>
+          <div class="field"><label>Início da vigência</label><div>08/11/2026</div></div>
+          <div class="field"><label>Fim da vigência · ☑ Sem data de fim</label><div>—</div></div>
+        </div>
+        <div class="dock"><div class="row between"><div><span class="muted">Sua tabela · faltam descrição e categoria</span><div style="font-weight:700;font-size:13px">Nada configurado ainda ▴</div></div><span class="btn sm" style="opacity:.55">Avançar</span></div></div>
+        <div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Cadastro<small>Barra de 3 etapas compacta; o resumo e o botão Avançar ficam numa barra fixa; a placa abre ao tocar no resumo</small></figcaption>
+    </figure>
+
+    <figure>
+      <div class="desk">
+        <div class="side"></div>
+        <div style="flex:1; padding:10px; display:flex; flex-direction:column; gap:8px">
+          <div class="row between"><b style="font-size:18px">Gestão de Preços</b><span class="btn sm">+ Novo preço</span></div>
+          <div class="row" style="gap:6px"><div class="card sel" style="width:150px"><b style="font-size:12px">Final de semana</b><div class="mini"><span><b>15</b>1 h</span><span class="d"><b>100</b>dia</span></div></div><div class="card" style="width:150px"><b style="font-size:12px">Convênio</b><div class="mini"><span><b>10</b>1 h</span><span class="d"><b>70</b>dia</span></div></div><span class="muted">Ver todas ›</span></div>
+          <div class="row" style="gap:12px; align-items:flex-start">
+            <div style="flex:1"><div class="row between"><h3 class="t" style="font-size:16px">Final de semana</h3><span class="btn sm sec">✎ Editar</span></div><div class="seg" style="margin:6px 0"><span class="on">Tarifa</span><span>Horários</span><span>Informações</span></div><div class="placa"><div class="l"><span>Até 1 h</span><b>R$ 15,00</b></div><div class="l"><span>Até 2 h</span><b>R$ 25,00</b></div><div class="dia">Diária R$ 100,00</div></div></div>
+            <div class="card" style="width:200px"><span class="muted">Simular cobrança</span><div class="slider"></div><div style="font:800 24px ui-monospace">R$ 30,00</div><span class="muted">Degrau até 3 h</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Computador<small>Esteira vira faixa de cartões; simulador é coluna ao lado da placa</small></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ MODELO B ============ -->
+<section class="modelo">
+  <header>
+    <span class="kicker">B · Cartões-placa</span>
+    <h2>Um feed de cartões; o cartão abre no lugar</h2>
+    <p class="tese">Cada tabela é um cartão que já mostra o que cobra (primeiros degraus e diária). Tocar expande o cartão ali mesmo, com abas, simulador e Editar. Sem tela de detalhe separada: nada de "voltar" e a lista nunca perde posição. No cadastro, as 3 etapas são seções que abrem e fecham numa página única.</p>
+  </header>
+  <div class="telas">
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>Preços</span><span class="row"><span class="btn sm sec">⌕</span><span class="btn sm sec">Filtros · 1</span></span></div>
+        <div class="body">
+          <div class="row" style="gap:6px; margin-bottom:8px; overflow:hidden"><span class="chip on">Vigentes 2</span><span class="chip">Agendadas 1</span><span class="chip">Todas 14</span></div>
+          <div class="card sel" style="margin-bottom:8px">
+            <div class="row between"><b>Final de semana</b><span class="badge">Vigente</span></div>
+            <span class="tipo"><span class="dot"></span>Padrão</span>
+            <div class="mini" style="margin:6px 0"><span><b>15</b>1 h</span><span><b>25</b>2 h</span><span><b>30</b>3 h</span><span><b>35</b>4 h</span><span class="d"><b>100</b>dia</span></div>
+            <div class="seg"><span class="on">Tarifa</span><span>Horários</span><span>Info</span></div>
+            <div class="placa" style="margin-top:6px"><div class="l"><span>Até 5 h</span><b>R$ 40,00</b></div><div class="l"><span>Até 6 h</span><b>R$ 45,00</b></div><div class="l"><span>Até 12 h</span><b>R$ 50,00</b></div></div>
+            <div class="row" style="margin-top:8px"><span class="btn sm sec" style="flex:1">Simular cobrança</span><span class="btn sm" style="flex:1">✎ Editar</span></div>
+          </div>
+          <div class="card"><div class="row between"><b>Convênio</b><span class="badge">Vigente</span></div><span class="tipo"><span class="dot g"></span>Convênio</span><div class="mini" style="margin-top:6px"><span><b>10</b>1 h</span><span><b>18</b>2 h</span><span class="d"><b>70</b>dia</span></div></div>
+        </div>
+        <div class="reserva"></div>
+        <div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Consulta · cartão aberto<small>Cada cartão fechado já mostra valores; o aberto traz abas e ações</small></figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>Preços</span><span class="muted">14 tabelas</span></div>
+        <div class="body">
+          <div class="busca">⌕ Buscar tabela de preço</div>
+          <div class="sheet" style="top:110px">
+            <div class="row between"><b>Situação</b><span class="muted">Limpar</span></div>
+            <div style="display:grid; gap:6px; margin-top:8px">
+              <div class="card sel row between"><span>Todas</span><b>14</b></div>
+              <div class="card row between"><span>Vigente</span><b>2</b></div>
+              <div class="card row between"><span>Agendada</span><b>1</b></div>
+              <div class="card row between"><span>Encerrada</span><b>9</b></div>
+              <div class="card row between"><span>Inativa</span><b>2</b></div>
+            </div>
+            <span class="btn full" style="margin-top:10px">Ver 14 tabelas</span>
+          </div>
+        </div>
+        <div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Filtros em folha<small>Todas as situações visíveis, com contagem; nada cortado</small></figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Novo preço</span><span class="muted">Rascunho</span></div>
+        <div class="body">
+          <div class="card" style="margin-bottom:6px"><div class="row between"><b>✓ 1 · O básico</b><span class="muted">Padrão · 08/11 → sem fim</span></div></div>
+          <div class="card sel" style="margin-bottom:6px">
+            <div class="row between"><b>2 · Quando vale</b><span class="muted">Falta marcar</span></div>
+            <div class="row" style="gap:4px;margin:6px 0"><span class="chip" style="height:26px">Comercial</span><span class="chip" style="height:26px">24 h</span><span class="chip" style="height:26px">Fim de sem.</span></div>
+            <div class="grade"><span></span><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <span>Seg</span><i></i><i></i><i></i><i></i><i></i><i></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="card"><div class="row between"><b>! 3 · Quanto cobra</b><span class="muted">Sem degraus</span></div></div>
+        </div>
+        <div class="acoes"><span class="btn sec" style="flex:0 0 100px">Cancelar</span><span class="btn" style="flex:1">Salvar · faltam 2</span></div>
+        <div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Cadastro em seções<small>3 seções com ✓ / !; cada uma mostra o resumo ao fechar; salvar fixo, avisa o que falta</small></figcaption>
+    </figure>
+
+    <figure>
+      <div class="desk">
+        <div class="side"></div>
+        <div style="flex:1; padding:10px">
+          <div class="row between" style="margin-bottom:6px"><b style="font-size:18px">Gestão de Preços</b><span class="row"><span class="busca" style="width:150px;height:30px">⌕ Buscar</span><span class="btn sm">+ Novo preço</span></span></div>
+          <div class="row" style="gap:5px;margin-bottom:8px"><span class="chip on">Vigentes</span><span class="chip">Agendadas</span><span class="chip">Encerradas</span><span class="chip">Inativas</span><span class="chip">Todas</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div class="card sel" style="grid-column:span 2"><div class="row between"><b>Final de semana</b><span class="badge">Vigente</span></div><div class="row" style="gap:12px;align-items:flex-start;margin-top:6px"><div class="placa" style="flex:1"><div class="l"><span>Até 1 h</span><b>R$ 15,00</b></div><div class="l"><span>Até 2 h</span><b>R$ 25,00</b></div></div><div style="flex:1"><span class="muted">Simular</span><div style="font:800 22px ui-monospace">R$ 30,00</div><span class="btn sm sec">✎ Editar</span></div></div></div>
+            <div class="card"><b>Convênio</b><div class="mini"><span><b>10</b>1 h</span><span class="d"><b>70</b>dia</span></div></div>
+            <div class="card"><b>Evento</b><div class="mini"><span><b>20</b>1 h</span></div></div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Computador<small>Grade de 3 colunas; o cartão aberto ocupa 2</small></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ MODELO C ============ -->
+<section class="modelo">
+  <header>
+    <span class="kicker">C · Mesa de simulação</span>
+    <h2>Começa pela pergunta "quanto cobra?"</h2>
+    <p class="tese">O topo é o simulador (categoria e permanência). A lista logo abaixo mostra <b>quanto cada tabela cobraria</b> nessa situação, para comparar de relance. Tocar numa linha abre o detalhe completo. No cadastro, a placa fica fixa no topo enquanto o gestor edita e a última etapa é "Teste antes de salvar".</p>
+  </header>
+  <div class="telas">
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>Preços</span><span class="btn sm">+ Novo</span></div>
+        <div class="body">
+          <div class="card" style="border:2px solid var(--text)">
+            <span class="muted">QUANTO COBRA?</span>
+            <div class="row" style="gap:6px;margin:4px 0"><span class="chip on">Carro médio ▾</span><span class="chip">1 h</span><span class="chip on">2 h 30</span><span class="chip">12 h</span></div>
+            <div class="slider"></div>
+          </div>
+          <div class="row between" style="margin:8px 0 4px"><span class="muted">Tabelas · 14</span><span class="row" style="gap:6px"><span class="chip on" style="height:26px">Vigentes</span><span class="chip" style="height:26px">Filtros ▾</span><span class="chip" style="height:26px">⌕</span></span></div>
+          <div class="card sel row between" style="margin-bottom:6px"><div><b>Final de semana</b><br><span class="tipo"><span class="dot"></span>Padrão · Vigente</span></div><div style="text-align:right"><div style="font:800 20px ui-monospace">R$ 30</div><span class="muted">Degrau até 3 h</span></div></div>
+          <div class="card row between" style="margin-bottom:6px"><div><b>Convênio</b><br><span class="tipo"><span class="dot g"></span>Convênio · Vigente</span></div><div style="text-align:right"><div style="font:800 20px ui-monospace">R$ 21</div><span class="muted">com 30% de desconto</span></div></div>
+          <div class="card row between" style="opacity:.7"><div><b>Feriado de ano novo</b><br><span class="tipo">Evento · Agendada</span></div><div style="text-align:right"><div style="font:800 20px ui-monospace">R$ 40</div><span class="muted">a partir de 31/12</span></div></div>
+          <p class="muted" style="margin-top:8px">Estimativa. O valor real é calculado no momento da saída.</p>
+        </div>
+        <div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Consulta · mesa<small>Simulador no topo; cada tabela mostra o resultado e a regra aplicada</small></figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Preços</span><span class="btn sm sec">✎ Editar</span></div>
+        <div class="body">
+          <div class="row between"><h3 class="t">Final de semana</h3><span class="badge">Vigente</span></div>
+          <span class="muted">Padrão · 07/11/2026 → sem fim · Todas as categorias</span>
+          <div class="placa" style="margin:8px 0"><div class="l"><span>Até 1 h</span><b>R$ 15,00</b></div><div class="l"><span>Até 2 h</span><b>R$ 25,00</b></div><div class="l"><span>Até 3 h</span><b>R$ 30,00</b></div><div class="l"><span>Até 4 h</span><b>R$ 35,00</b></div><div class="dia">Diária de 12 h: <b>R$ 100,00</b> · adicional R$ 5,00</div></div>
+          <div class="seg"><span class="on">Semana</span><span>Tolerâncias</span><span>Informações</span></div>
+          <div class="grade" style="margin-top:8px"><span>Dom</span><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i>
+          <span>Seg</span><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="dock"><div class="row between"><div><span class="muted">Mesma simulação · 2 h 30</span><div class="v">R$ 30,00</div></div><span class="btn sm sec">Mudar</span></div></div>
+        <div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Detalhe<small>Placa primeiro; a simulação escolhida acompanha numa barra fixa</small></figcaption>
+    </figure>
+
+    <figure>
+      <div class="phone">
+        <div class="topbar"><span>‹ Novo preço</span><span class="muted">3 de 3</span></div>
+        <div style="padding:0 12px"><div class="placa" style="padding:6px 12px"><div class="row between"><b style="font-size:12px">Sua placa · Rotativo</b><span class="muted" style="color:#9AA3B5">7 degraus</span></div><div class="mini"><span><b>15</b>1 h</span><span><b>25</b>2 h</span><span><b>30</b>3 h</span><span class="d"><b>100</b>dia</span></div></div></div>
+        <div class="body">
+          <div class="passos"><i class="ok"></i><i class="ok"></i><i class="at"></i></div>
+          <div class="row between"><b>Quanto cobra</b><span class="muted">Modelos ▾</span></div>
+          <div class="field"><label>Degrau 1 · até</label><div>1 h 00 min · R$ 15,00</div></div>
+          <div class="field"><label>Degrau 2 · até · +R$ 10 sobre o anterior</label><div>2 h 00 min · R$ 25,00</div></div>
+          <div class="card" style="border:2px solid var(--text);margin-top:8px"><span class="muted">TESTE ANTES DE SALVAR</span><div class="row between"><span class="chip on">Carro médio ▾</span><span style="font:800 20px ui-monospace">R$ 30,00</span></div></div>
+        </div>
+        <div class="acoes"><span class="btn sec" style="flex:0 0 90px">Voltar</span><span class="btn" style="flex:1">Salvar tabela</span></div>
+        <div class="nav"><span>Pátio</span><span>Caixa</span><span class="fab">+</span><span>Saída</span><span><b>Mais</b></span></div>
+      </div>
+      <figcaption>Cadastro<small>Placa fixa no topo muda enquanto digita; o simulador fecha a última etapa</small></figcaption>
+    </figure>
+
+    <figure>
+      <div class="desk">
+        <div class="side"></div>
+        <div style="flex:1; padding:10px; display:flex; gap:10px">
+          <div class="card" style="width:190px;align-self:flex-start;border:2px solid var(--text)"><span class="muted">QUANTO COBRA?</span><div class="chip on" style="margin:4px 0">Carro médio ▾</div><div class="slider"></div><div style="font:800 22px ui-monospace">2 h 30</div><span class="muted">Estimativa</span></div>
+          <div style="flex:1"><div class="row between" style="margin-bottom:6px"><b style="font-size:18px">Gestão de Preços</b><span class="btn sm">+ Novo preço</span></div>
+          <table><tr><th>Tabela</th><th>Tipo</th><th>Situação</th><th>Cobra</th></tr><tr class="sel"><td><b>Final de semana</b></td><td>Padrão</td><td>Vigente</td><td><b>R$ 30,00</b></td></tr><tr><td><b>Convênio</b></td><td>Convênio</td><td>Vigente</td><td><b>R$ 21,00</b></td></tr><tr><td><b>Feriado</b></td><td>Evento</td><td>Agendada</td><td><b>R$ 40,00</b></td></tr></table></div>
+        </div>
+      </div>
+      <figcaption>Computador<small>Simulador fixo à esquerda; comparação em tabela à direita; detalhe em painel lateral</small></figcaption>
+    </figure>
+  </div>
+</section>
+
+<div class="nota">
+  <h2 style="font-size:20px;margin-bottom:8px">Como cada modelo resolve os problemas encontrados</h2>
+  <table>
+    <tr><th>Problema da tela atual</th><th>A · Cockpit</th><th>B · Cartões-placa</th><th>C · Mesa de simulação</th></tr>
+    <tr><td>Menu inferior cobre conteúdo</td><td>Dock e barras fixas ficam acima do menu</td><td>Espaço reservado no fim do feed e barra de ações acima do menu</td><td>Idem A; barra de simulação acima do menu</td></tr>
+    <tr><td>Lista sem valores</td><td>Miniplacas e valor-resumo em cada item</td><td>Cada cartão mostra os degraus</td><td>Cada linha mostra o valor simulado</td></tr>
+    <tr><td>Cabeçalho do detalhe longo</td><td>Compacto: placa na primeira tela</td><td>Sem cabeçalho extra: abre no lugar</td><td>Título curto; placa logo abaixo</td></tr>
+    <tr><td>Cadastro longo</td><td>Dock fixo com resumo + Avançar</td><td>3 seções numa página, salvar fixo</td><td>Placa fixa no topo; teste na última etapa</td></tr>
+    <tr><td>Filtros cortados</td><td>Chips que quebram linha</td><td>Folha com todas as opções e contagem</td><td>Chip "Filtros" abre a folha</td></tr>
+  </table>
+</div>
+
+</body>
+</html>
