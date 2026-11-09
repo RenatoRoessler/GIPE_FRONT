@@ -11,7 +11,7 @@ vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => sessao.a
 import { AcoesCaixa } from "./AcoesCaixa";
 
 function renderizar(turnoPronto = true) {
-  const props = { onSangria: vi.fn(), onTrocarTurno: vi.fn(), onFechar: vi.fn() };
+  const props = { onSangria: vi.fn(), onLancarDespesa: vi.fn(), onTrocarTurno: vi.fn(), onFechar: vi.fn() };
   renderWithTheme(<AcoesCaixa turnoPronto={turnoPronto} {...props} />);
   return props;
 }
@@ -25,17 +25,17 @@ describe("AcoesCaixa", () => {
     ["Administrador", 1],
     ["Gerente", 2],
     ["Caixa", 4],
-  ])("%s vê Sangria, Lançar despesa desabilitado e Fechar caixa, sem Trocar turno", async (_nome, perfil) => {
+  ])("%s vê Sangria, Lançar despesa e Fechar caixa, sem Trocar turno", async (_nome, perfil) => {
     sessao.atual = { user: { name: "X", perfil }, isLoading: false };
     const props = renderizar();
 
-    expect(screen.getByRole("button", { name: "Lançar despesa" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Lançar despesa" })).toHaveAttribute("title", "Em breve");
     expect(screen.queryByRole("button", { name: "Trocar turno" })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Sangria" }));
+    await userEvent.click(screen.getByRole("button", { name: "Lançar despesa" }));
     await userEvent.click(screen.getByRole("button", { name: "Fechar caixa" }));
     expect(props.onSangria).toHaveBeenCalledTimes(1);
+    expect(props.onLancarDespesa).toHaveBeenCalledTimes(1);
     expect(props.onFechar).toHaveBeenCalledTimes(1);
   });
 

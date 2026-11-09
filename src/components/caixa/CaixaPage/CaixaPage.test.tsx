@@ -6,6 +6,7 @@ import { renderWithProviders } from "@/test/render";
 import type { Caixa, Movimento, Turno } from "@/types/caixa";
 
 const caixa = vi.hoisted(() => ({ atual: {} as Record<string, unknown> }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("../useCaixa", () => ({ useCaixa: () => caixa.atual, CAIXA_KEY: ["caixa"] }));
 
 const sessao = vi.hoisted(() => ({

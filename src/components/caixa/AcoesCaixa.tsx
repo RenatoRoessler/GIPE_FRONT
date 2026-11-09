@@ -9,12 +9,13 @@ export interface AcoesCaixaProps {
   // As ações dependem do turno: ficam desabilitadas até ele existir.
   turnoPronto: boolean;
   onSangria: () => void;
+  onLancarDespesa: () => void;
   onTrocarTurno: () => void;
   onFechar: () => void;
 }
 
 // Quem pode fazer sangria é o perfil de movimentação (Sangria e Lançar despesa); os demais operam o turno (Trocar turno).
-export function AcoesCaixa({ turnoPronto, onSangria, onTrocarTurno, onFechar }: AcoesCaixaProps) {
+export function AcoesCaixa({ turnoPronto, onSangria, onLancarDespesa, onTrocarTurno, onFechar }: AcoesCaixaProps) {
   const movimenta = useCan(AREA.CaixaSangria);
 
   return (
@@ -24,8 +25,7 @@ export function AcoesCaixa({ turnoPronto, onSangria, onTrocarTurno, onFechar }: 
           <Button type="button" variant="secondary" onClick={onSangria} disabled={!turnoPronto}>
             Sangria
           </Button>
-          {/* Ainda não existe: fica à vista, sem ação, até o produto definir a despesa. */}
-          <Button type="button" variant="secondary" disabled aria-disabled="true" title="Em breve">
+          <Button type="button" variant="secondary" onClick={onLancarDespesa}>
             Lançar despesa
           </Button>
         </>
