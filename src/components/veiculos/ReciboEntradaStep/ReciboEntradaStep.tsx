@@ -10,6 +10,7 @@ import { formatCNPJ } from "@/lib/cnpj";
 import { formatPhone } from "@/lib/phone";
 import type { EntradaRegistrada } from "@/types/veiculo";
 import { Actions, PrintStyles, Success } from "../Recibo.styles";
+import { ComprovanteEntradaDigital } from "./ComprovanteEntradaDigital";
 import { ReciboEntradaConteudo, type ReciboEntradaData } from "./ReciboEntradaConteudo";
 
 export interface ReciboEntradaStepProps {
@@ -62,7 +63,7 @@ export function ReciboEntradaStep({ entrada, onConcluir }: ReciboEntradaStepProp
         </svg>
         Entrada registrada
       </Success>
-      <ReciboEntradaConteudo data={data} />
+      <ComprovanteEntradaDigital data={data} />
       <Actions>
         <Button type="button" variant="secondary" onClick={onConcluir}>
           Concluir

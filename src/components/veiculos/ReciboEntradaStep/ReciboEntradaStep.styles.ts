@@ -156,3 +156,57 @@ export const TicketFoot = styled.footer`
   color: ${({ theme }) => theme.colors.textMuted};
   font-size: ${({ theme }) => theme.fontSizes.xs};
 `;
+
+// Versão de tela, igual ao Comprovante Digital do pátio: dados da empresa, QR grande e a identificação do carro.
+export const Digital = styled.section`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[3]}px;
+  text-align: center;
+`;
+
+export const DigitalEmpresa = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-self: stretch;
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  line-height: 1.4;
+  text-align: left;
+
+  b {
+    color: ${({ theme }) => theme.colors.text};
+    font-size: ${({ theme }) => theme.fontSizes.lg};
+    font-weight: ${({ theme }) => theme.fontWeights.extrabold};
+    letter-spacing: -0.01em;
+  }
+`;
+
+export const DigitalTitulo = styled.h3`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSizes.subtitle};
+  font-weight: ${({ theme }) => theme.fontWeights.extrabold};
+  letter-spacing: ${({ theme }) => theme.typography.displayTracking};
+`;
+
+export const DigitalPlaca = styled.b`
+  font-family: ${({ theme }) => theme.fontFamilies.mono};
+  font-size: ${({ theme }) => theme.fontSizes.xl};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+`;
+
+export const DigitalVeiculo = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+`;
+
+export const DigitalEntrada = styled.span`
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-family: ${({ theme }) => theme.fontFamilies.mono};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+`;
