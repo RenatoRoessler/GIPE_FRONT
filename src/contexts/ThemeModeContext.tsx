@@ -23,7 +23,14 @@ const GlobalStyle = createGlobalStyle<{ $dark: boolean }>`
     color: ${({ theme }) => theme.colors.text};
     font-family: ${({ theme }) => theme.fontFamilies.sans};
     font-variant-numeric: tabular-nums;
-    /* Evita a seleção de texto ao tocar/clicar numa palavra (e o menu "Pesquisar no Google"). */
+  }
+
+  /* Evita a seleção de texto ao tocar/clicar numa palavra (e o menu "Pesquisar no Google").
+     Em todos os elementos, e não só no body, porque o Chrome do Android ainda selecionava
+     o texto quando a regra vinha só por herança. */
+  *,
+  *::before,
+  *::after {
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
