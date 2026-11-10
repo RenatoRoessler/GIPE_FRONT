@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.409",
+      "type": "feat",
+      "scope": "ui",
+      "title": "impede a seleção de texto ao tocar em uma palavra",
+      "description": "Desativa a seleção de texto no estilo global, evitando que o navegador\nmostre o menu \"Pesquisar no Google\" ao tocar ou clicar em uma palavra.\nCampos de digitação (input, textarea e contenteditable) continuam\nselecionáveis para não atrapalhar copiar e colar.",
+      "date": "2026-11-10T16:50:22-03:00"
+    },
+    {
       "version": "1.0.407",
       "type": "feat",
       "scope": "entrada",
