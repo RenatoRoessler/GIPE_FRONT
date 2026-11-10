@@ -40,6 +40,10 @@ export const viewport: Viewport = {
   ],
   // Necessário para env(safe-area-inset-*) valer no iOS: a barra inferior usa o recuo da barra de gestos.
   viewportFit: "cover",
+  // Desativa o zoom por pinça e por toque duplo.
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

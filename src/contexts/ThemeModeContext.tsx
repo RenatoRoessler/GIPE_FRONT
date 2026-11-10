@@ -14,6 +14,8 @@ const LEGACY_STORAGE_KEY = "gipe-theme-mode";
 const GlobalStyle = createGlobalStyle<{ $dark: boolean }>`
   html {
     color-scheme: ${({ $dark }) => ($dark ? "dark" : "light")};
+    /* Mantém rolagem, mas bloqueia o zoom por pinça e por toque duplo (o iOS ignora user-scalable). */
+    touch-action: pan-x pan-y;
   }
 
   body {
