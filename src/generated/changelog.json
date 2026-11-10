@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.412",
+      "type": "feat",
+      "scope": "ui",
+      "title": "desativa o zoom por pinça e por toque duplo",
+      "description": "Define o viewport sem escala do usuário (initialScale 1, maximumScale 1\ne userScalable false) e adiciona touch-action pan-x pan-y no estilo\nglobal, já que o iOS ignora o user-scalable. A rolagem continua normal,\nmas a tela não amplia mais por engano ao tocar ou pinçar.",
+      "date": "2026-11-10T16:54:20-03:00"
+    },
+    {
       "version": "1.0.409",
       "type": "feat",
       "scope": "ui",
