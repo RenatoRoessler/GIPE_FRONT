@@ -1,2 +1,5 @@
-quando for no mobile, na tela de entrada
-ao abrir a tela já deve vir com a opçõa de ler a placa clicada
+criar campo prisma
+é um campo inteiro de 1 a 999
+vai ser um campo na entrada de veiculos
+e opção para editar no patio
+só vai ser ativo quando na configuração for prisma = true
