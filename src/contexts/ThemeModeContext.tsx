@@ -21,6 +21,18 @@ const GlobalStyle = createGlobalStyle<{ $dark: boolean }>`
     color: ${({ theme }) => theme.colors.text};
     font-family: ${({ theme }) => theme.fontFamilies.sans};
     font-variant-numeric: tabular-nums;
+    /* Evita a seleção de texto ao tocar/clicar numa palavra (e o menu "Pesquisar no Google"). */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Campos de digitação continuam selecionáveis. */
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
   }
 `;
 
