@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.414",
+      "type": "fix",
+      "scope": "ui",
+      "title": "bloqueia a seleção de texto em todos os elementos",
+      "description": "A regra de user-select estava só no body e o Chrome do Android ainda\nselecionava o texto ao tocar numa palavra, mostrando o menu de copiar e\na busca do Google. Agora ela vale para todos os elementos. Os campos de\ndigitação continuam selecionáveis.",
+      "date": "2026-11-10T16:59:18-03:00"
+    },
+    {
       "version": "1.0.412",
       "type": "feat",
       "scope": "ui",
