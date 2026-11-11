@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.422",
+      "type": "fix",
+      "scope": "patio",
+      "title": "apaga o prisma do veículo com o contrato do back",
+      "description": "Ao remover o prisma de um mensalista no ticket, a alteração agora é\nenviada do jeito que o sistema espera (valor 0 para \"sem prisma\"), em\nvez de nulo. Sem isso, apagar o prisma não funcionaria.",
+      "date": "2026-11-11T14:31:24-03:00"
+    },
+    {
       "version": "1.0.419",
       "type": "feat",
       "scope": "empresa",
