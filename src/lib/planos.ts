@@ -53,7 +53,7 @@ export function descreverParaLeitor(plano: PlanoAdesao): string {
 export function descricaoNaCredencial(plano: PlanoAdesao | undefined, tipo: number | undefined): string | undefined {
   if (tipo === undefined) return undefined;
   if (tipo === TipoPlanoAdesao.Trial) {
-    return plano ? `Teste grátis · ${descreverDuracao(plano.meses)}` : "Teste grátis";
+    return plano ? `${descreverDuracao(plano.meses)} grátis` : "Mês grátis";
   }
   return plano ? `${plano.nome} · ${formatarReais(plano.centavosAtual)}/mês` : undefined;
 }

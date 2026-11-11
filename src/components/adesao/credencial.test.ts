@@ -94,11 +94,11 @@ describe("buildCredencial", () => {
     });
 
     it("repassa o teste com a duração do back-end", () => {
-      expect(buildCredencial({ ...base, plano: descricaoNaCredencial(teste, 0) }).plano).toBe("Teste grátis · 1 mês");
+      expect(buildCredencial({ ...base, plano: descricaoNaCredencial(teste, 0) }).plano).toBe("1 mês grátis");
     });
 
     it("repassa o teste sem duração quando os dados não chegaram", () => {
-      expect(buildCredencial({ ...base, plano: descricaoNaCredencial(undefined, 0) }).plano).toBe("Teste grátis");
+      expect(buildCredencial({ ...base, plano: descricaoNaCredencial(undefined, 0) }).plano).toBe("Mês grátis");
     });
   });
 });

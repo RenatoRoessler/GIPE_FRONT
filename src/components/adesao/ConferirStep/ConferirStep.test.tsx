@@ -169,30 +169,30 @@ describe("ConferirStep", () => {
   describe("no teste grátis", () => {
     it("mostra o resumo do teste no lugar do plano, com a duração do back-end", () => {
       renderar(vi.fn(), TipoPlanoAdesao.Trial);
-      const secao = screen.getByRole("region", { name: "Teste grátis por 1 mês" });
+      const secao = screen.getByRole("region", { name: "1 mês grátis" });
       expect(secao).toHaveTextContent("Use o sistema completo por 1 mês.");
-      expect(secao).toHaveTextContent("No fim do teste, você decide se quer assinar.");
+      expect(secao).toHaveTextContent("Depois do período grátis, você decide se quer assinar.");
       expect(screen.queryByRole("region", { name: "Plano" })).not.toBeInTheDocument();
     });
 
     it("a duração acompanha o número do back-end", () => {
       renderar(vi.fn(), TipoPlanoAdesao.Trial, true, { planoTeste: { ...TRIAL, meses: 2 } });
-      expect(screen.getByRole("region", { name: "Teste grátis por 2 meses" })).toHaveTextContent(
+      expect(screen.getByRole("region", { name: "2 meses grátis" })).toHaveTextContent(
         "Use o sistema completo por 2 meses.",
       );
     });
 
     it("sem os dados do teste não cita número nem prazo", () => {
       renderar(vi.fn(), TipoPlanoAdesao.Trial, true, { planoTeste: null });
-      const secao = screen.getByRole("region", { name: "Teste grátis" });
-      expect(secao).toHaveTextContent("Use o sistema completo durante o teste.");
-      expect(secao).toHaveTextContent("No fim do teste, você decide se quer assinar.");
+      const secao = screen.getByRole("region", { name: "Mês grátis" });
+      expect(secao).toHaveTextContent("Use o sistema completo no mês grátis.");
+      expect(secao).toHaveTextContent("Depois do período grátis, você decide se quer assinar.");
       expect(secao.textContent).not.toMatch(/\d/);
     });
 
     it("lista as três garantias numa lista real", () => {
       renderar(vi.fn(), TipoPlanoAdesao.Trial);
-      const itens = within(screen.getByRole("region", { name: "Teste grátis por 1 mês" })).getAllByRole("listitem");
+      const itens = within(screen.getByRole("region", { name: "1 mês grátis" })).getAllByRole("listitem");
       expect(itens.map((item) => item.textContent)).toEqual([
         "Todas as funcionalidades",
         "Sem cartão de crédito",

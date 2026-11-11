@@ -98,7 +98,7 @@ const GARANTIAS_DO_TESTE = ["Todas as funcionalidades", "Sem cartão de crédito
 // Só tem "Editar" quando o teste foi escolhido na etapa Plano; vindo do site (etapa Plano oculta) não há o que corrigir.
 // A duração é a do back-end; sem ela o texto não cita número.
 function ResumoTeste({ duracao, onEditar }: { duracao?: string; onEditar?: () => void }) {
-  const titulo = duracao ? `Teste grátis por ${duracao}` : "Teste grátis";
+  const titulo = duracao ? `${duracao} grátis` : "Mês grátis";
 
   return (
     <SecaoTeste aria-label={titulo}>
@@ -111,8 +111,8 @@ function ResumoTeste({ duracao, onEditar }: { duracao?: string; onEditar?: () =>
         )}
       </SecaoCabecalho>
       <FraseTeste>
-        {duracao ? `Use o sistema completo por ${duracao}.` : "Use o sistema completo durante o teste."} No fim do
-        teste, você decide se quer assinar.
+        {duracao ? `Use o sistema completo por ${duracao}.` : "Use o sistema completo no mês grátis."} Depois do
+        período grátis, você decide se quer assinar.
       </FraseTeste>
       <Garantias>
         {GARANTIAS_DO_TESTE.map((garantia) => (

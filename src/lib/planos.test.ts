@@ -122,11 +122,11 @@ describe("descricaoNaCredencial", () => {
   });
 
   it("descreve o teste com a duração do back-end", () => {
-    expect(descricaoNaCredencial(TRIAL, 0)).toBe("Teste grátis · 1 mês");
+    expect(descricaoNaCredencial(TRIAL, 0)).toBe("1 mês grátis");
   });
 
   it("descreve o teste sem número quando não há dados", () => {
-    expect(descricaoNaCredencial(undefined, 0)).toBe("Teste grátis");
+    expect(descricaoNaCredencial(undefined, 0)).toBe("Mês grátis");
   });
 
   it("fica vazio sem plano escolhido ou sem dados do plano pago", () => {

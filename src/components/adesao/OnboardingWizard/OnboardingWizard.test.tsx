@@ -649,7 +649,7 @@ describe("OnboardingWizard: plano", () => {
     await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
     await titulo("Confira os dados");
 
-    expect(screen.getByRole("region", { name: "Teste grátis por 1 mês" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "1 mês grátis" })).toBeInTheDocument();
     await aceitarTermos(user);
     await user.click(criarConta());
     await waitFor(() => expect(saveAdesao).toHaveBeenCalledTimes(1));
@@ -724,7 +724,7 @@ describe("OnboardingWizard: teste grátis", () => {
     renderWizard(TESTE_GRATIS);
     await irAteConferenciaDoTeste(user);
 
-    const resumo = screen.getByRole("region", { name: "Teste grátis por 1 mês" });
+    const resumo = screen.getByRole("region", { name: "1 mês grátis" });
     expect(within(resumo).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
       "Todas as funcionalidades",
       "Sem cartão de crédito",
@@ -763,7 +763,7 @@ describe("OnboardingWizard: teste grátis", () => {
 
     await user.click(proximo());
     await titulo("Confira os dados");
-    expect(screen.getByRole("region", { name: "Teste grátis por 1 mês" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "1 mês grátis" })).toBeInTheDocument();
   });
 
   it("etapas concluídas do indicador voltam para a etapa certa", async () => {
@@ -789,7 +789,7 @@ describe("OnboardingWizard: teste grátis", () => {
     await titulo("Usuário titular");
     await user.click(screen.getByRole("button", { name: "Voltar para a conferência" }));
     await titulo("Confira os dados");
-    expect(screen.getByRole("region", { name: "Teste grátis por 1 mês" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "1 mês grátis" })).toBeInTheDocument();
   });
 });
 
@@ -814,7 +814,7 @@ describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
     await titulo("Confira os dados");
 
     expect(screen.getByText(/Etapa 5 de 5/)).toBeInTheDocument();
-    const resumo = screen.getByRole("region", { name: "Teste grátis por 1 mês" });
+    const resumo = screen.getByRole("region", { name: "1 mês grátis" });
     expect(within(resumo).getByRole("button", { name: "Editar Plano" })).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Plano" })).not.toBeInTheDocument();
 
