@@ -38,7 +38,7 @@ export function SideNav() {
                 {grupo.itens.map((item) => (
                   <li key={navItemKey(item)}>
                     {isNavAction(item) ? (
-                      <ItemButton type="button" $active={false} aria-haspopup="dialog" onClick={item.acao === "entrada" ? abrirEntrada : abrirSaida}>
+                      <ItemButton type="button" $active={false} aria-haspopup="dialog" data-tour-id={navItemKey(item)} onClick={item.acao === "entrada" ? abrirEntrada : abrirSaida}>
                         <NavIcon id={item.icon} width={22} height={22} aria-hidden="true" />
                         <Rotulo>{item.label}</Rotulo>
                       </ItemButton>
@@ -46,6 +46,7 @@ export function SideNav() {
                       <ItemLink
                         as={NextLink}
                         href={item.href}
+                        data-tour-id={navItemKey(item)}
                         $active={isNavItemActive(pathname, item.href)}
                         aria-current={isNavItemActive(pathname, item.href) ? "page" : undefined}
                       >

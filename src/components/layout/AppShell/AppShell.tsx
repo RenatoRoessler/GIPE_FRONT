@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { SideNav } from "@/components/layout/SideNav";
 import { Header } from "@/components/layout/Header";
+import { OnboardingProvider } from "@/components/onboarding";
 import { useModelos } from "@/components/veiculos/useModelos";
 import { VeiculoModaisProvider } from "@/components/veiculos/VeiculoModais";
 import { Layout, Main } from "./AppShell.styles";
@@ -18,12 +19,14 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <VeiculoModaisProvider>
-      <Layout>
-        <Header />
-        <Main>{children}</Main>
-        <BottomNav />
-        <SideNav />
-      </Layout>
+      <OnboardingProvider>
+        <Layout>
+          <Header />
+          <Main>{children}</Main>
+          <BottomNav />
+          <SideNav />
+        </Layout>
+      </OnboardingProvider>
     </VeiculoModaisProvider>
   );
 }

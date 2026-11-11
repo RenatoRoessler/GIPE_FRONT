@@ -19,6 +19,7 @@ vi.mock("@/components/veiculos/LeitorQrSaida", () => ({
     </div>
   ),
 }));
+vi.mock("@/components/onboarding", () => ({ RepetirTourButton: () => <button type="button">Repetir tour</button> }));
 vi.mock("@/lib/api/services/carimbo", () => ({ carimbarTicket: vi.fn() }));
 
 import { carimbarTicket } from "@/lib/api/services/carimbo";
@@ -49,6 +50,12 @@ describe("CarimboPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Carimbar ticket" })).toBeInTheDocument();
     expect(screen.getByText(/Aponte a câmera para o QR Code/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ler QR" })).toBeInTheDocument();
+  });
+
+  it("oferece Repetir tour ao lado do título, para a conveniada rever o tour", () => {
+    renderWithProviders(<CarimboPage />);
+
+    expect(screen.getByRole("button", { name: "Repetir tour" })).toBeInTheDocument();
   });
 
   it("carimba o ticket lido e mostra o resultado no lugar do leitor", async () => {

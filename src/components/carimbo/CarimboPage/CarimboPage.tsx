@@ -2,6 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
+import { RepetirTourButton } from "@/components/onboarding";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Input } from "@/components/ui/Input";
@@ -10,7 +11,7 @@ import { LeitorQrSaida } from "@/components/veiculos/LeitorQrSaida";
 import { ApiError, isForbiddenError } from "@/lib/api/errors";
 import { extrairTokenComprovante } from "@/lib/qr";
 import { TOKEN_INVALIDO_MESSAGE } from "@/lib/schemas/saida";
-import { Divisor, ErroArea, LeitorArea, Page, TitleGroup, TokenForm } from "../Carimbo.styles";
+import { Divisor, ErroArea, LeitorArea, Page, TitleGroup, TituloLinha, TokenForm } from "../Carimbo.styles";
 import { TicketCarimbado } from "../TicketCarimbado";
 import { useCarimbar } from "../useCarimbar";
 
@@ -44,12 +45,15 @@ export function CarimboPage() {
 
   return (
     <Page>
-      <TitleGroup>
-        <Text variant="heading" as="h1">
-          Carimbar ticket
-        </Text>
-        <Text variant="muted">Aponte a câmera para o QR Code do ticket de entrada do cliente.</Text>
-      </TitleGroup>
+      <TituloLinha>
+        <TitleGroup>
+          <Text variant="heading" as="h1">
+            Carimbar ticket
+          </Text>
+          <Text variant="muted">Aponte a câmera para o QR Code do ticket de entrada do cliente.</Text>
+        </TitleGroup>
+        <RepetirTourButton />
+      </TituloLinha>
 
       {isError && isForbiddenError(error) ? (
         <ErroSemPermissao message="Você não tem permissão para carimbar tickets." />

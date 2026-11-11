@@ -12,6 +12,15 @@ export const Page = styled.div`
   margin-inline: auto;
 `;
 
+// Título à esquerda e, na mesma linha, a ação de rever o tour; quebra para baixo se faltar espaço.
+export const TituloLinha = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.space[3]}px;
+`;
+
 export const TitleGroup = styled.div`
   display: flex;
   flex-direction: column;

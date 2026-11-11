@@ -54,10 +54,10 @@ export const BottomBar = ({ entradaEmDestaque = false, itens, temMais, maisAtivo
           itens.map((item) => {
             if (isNavAction(item)) {
               if (entradaEmDestaque && item.acao === "entrada") {
-                return <EntradaButton key={navItemKey(item)} label={item.shortLabel} onClick={() => onAction(item.acao)} />;
+                return <EntradaButton key={navItemKey(item)} label={item.shortLabel} tourId={navItemKey(item)} onClick={() => onAction(item.acao)} />;
               }
               return (
-                <TabButton key={navItemKey(item)} type="button" $active={false} aria-haspopup="dialog" onClick={() => onAction(item.acao)}>
+                <TabButton key={navItemKey(item)} type="button" $active={false} aria-haspopup="dialog" data-tour-id={navItemKey(item)} onClick={() => onAction(item.acao)}>
                   <IconPill $active={false}>
                     <TabIcon id={item.icon} />
                   </IconPill>
@@ -67,7 +67,7 @@ export const BottomBar = ({ entradaEmDestaque = false, itens, temMais, maisAtivo
             }
             const active = isNavItemActive(pathname, item.href);
             return (
-              <TabLink key={item.href} as={NextLink} href={item.href} $active={active} aria-current={active ? "page" : undefined}>
+              <TabLink key={item.href} as={NextLink} href={item.href} data-tour-id={item.href} $active={active} aria-current={active ? "page" : undefined}>
                 <IconPill $active={active}>
                   <TabIcon id={item.icon} />
                 </IconPill>
