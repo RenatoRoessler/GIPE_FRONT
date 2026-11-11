@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.428",
+      "type": "fix",
+      "scope": "adesao",
+      "title": "troca o termo \"teste\" por \"mês grátis\" nos textos",
+      "description": "A conferência da adesão e a credencial passam a falar em \"1 mês grátis\"\n(ou \"Mês grátis\" sem duração) e \"Depois do período grátis, você decide se\nquer assinar\", no lugar de \"teste grátis\". Evita a impressão de produto\ninacabado e alinha o app ao site. Testes atualizados para os novos textos.",
+      "date": "2026-11-11T17:19:53-03:00"
+    },
+    {
       "version": "1.0.425",
       "type": "feat",
       "scope": "onboarding",
