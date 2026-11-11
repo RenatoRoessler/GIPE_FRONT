@@ -15,9 +15,12 @@ import { useToast } from "@/hooks/useToast";
 import { updateEmpresa } from "@/lib/api/services/empresa";
 import { AREA } from "@/lib/permissoes";
 import type { EmpresaFormValues } from "@/types/empresa";
-import { HeaderRow, Page, TitleGroup } from "./MinhaEmpresa.styles";
+import { GerarCartazButton } from "../CartazTicket";
+import { AcoesCabecalho, HeaderRow, Page, TitleGroup } from "./MinhaEmpresa.styles";
+import { EMPRESA_QUERY_KEY } from "./queryKeys";
 
-export const EMPRESA_QUERY_KEY = ["empresa"] as const;
+// A chave vive em módulo próprio para quem só precisa dela não importar a tela inteira; segue exportada daqui.
+export { EMPRESA_QUERY_KEY };
 
 export interface EmpresaFormProps {
   initial: EmpresaFormValues;
@@ -34,7 +37,8 @@ export function EmpresaForm({ initial }: EmpresaFormProps) {
   const mutation = useMutation({
     mutationFn: (values: EmpresaFormValues) => updateEmpresa(values),
     onSuccess: (_data, values) => {
-      queryClient.setQueryData(EMPRESA_QUERY_KEY, values);
+      // O formulário não edita o guid: mantém o que veio da leitura para o cache não perdê-lo (o cartaz depende dele).
+      queryClient.setQueryData(EMPRESA_QUERY_KEY, { ...values, empresaGuid: initial.empresaGuid ?? null });
       forms.reset(values);
       showToast("Dados da empresa salvos com sucesso.");
     },
@@ -64,11 +68,14 @@ export function EmpresaForm({ initial }: EmpresaFormProps) {
           </Text>
           <Text variant="muted">Consulte e atualize os dados cadastrais da sua empresa.</Text>
         </TitleGroup>
-        {podeAdicionar && (
-          <Button type="button" variant="secondary" onClick={() => router.push("/minha-empresa/nova")}>
-            Adicionar empresa
-          </Button>
-        )}
+        <AcoesCabecalho>
+          <GerarCartazButton />
+          {podeAdicionar && (
+            <Button type="button" variant="secondary" onClick={() => router.push("/minha-empresa/nova")}>
+              Adicionar empresa
+            </Button>
+          )}
+        </AcoesCabecalho>
       </HeaderRow>
 
       {mutation.isError && <ErrorBanner role="alert">{mutation.error.message}</ErrorBanner>}

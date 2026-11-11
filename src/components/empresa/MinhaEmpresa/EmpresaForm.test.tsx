@@ -118,6 +118,32 @@ describe("EmpresaForm: acesso a Adicionar empresa", () => {
   });
 });
 
+describe("EmpresaForm: cartaz do ticket", () => {
+  it.each([
+    ["Administrador", 1],
+    ["Gerente", 2],
+    ["Caixa", 4],
+  ])("%s vê o botão Gerar Cartaz do Ticket", async (_nome, perfil) => {
+    sessao.atual = { user: { name: "X", perfil }, isLoading: false };
+    await renderForm();
+
+    expect(screen.getByRole("button", { name: "Gerar Cartaz do Ticket" })).toBeEnabled();
+  });
+
+  it("salvar a empresa mantém o guid no cache (o cartaz depende dele)", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getEmpresa).mockResolvedValue({ ...initial(), empresaGuid: "3f2b8c1e-0000-4000-8000-000000000001" });
+    const { queryClient } = renderWithProviders(<MinhaEmpresa />);
+    await screen.findByRole("switch", { name: "Dinheiro" });
+
+    await user.click(meio("Cartão de crédito"));
+    await user.click(salvar());
+    await screen.findByText("Dados da empresa salvos com sucesso.");
+
+    expect(queryClient.getQueryData<EmpresaFormValues>(["empresa"])?.empresaGuid).toBe("3f2b8c1e-0000-4000-8000-000000000001");
+  });
+});
+
 describe("EmpresaForm: seção Pagamentos", () => {
   it("mostra a terceira seção aberta, com os meios atuais e o resumo", async () => {
     await renderForm();

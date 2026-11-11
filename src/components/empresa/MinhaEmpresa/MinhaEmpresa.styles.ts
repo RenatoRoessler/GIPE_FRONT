@@ -105,3 +105,18 @@ export const SkeletonAside = styled(SkeletonCard)`
     display: flex;
   }
 `;
+
+// Ações do cabeçalho (Adicionar empresa, Gerar cartaz): lado a lado e quebrando linha; no celular, cada uma na largura toda.
+export const AcoesCabecalho = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.space[2]}px;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column;
+
+    & > button {
+      width: 100%;
+    }
+  }
+`;

@@ -21,6 +21,8 @@ import {
 
 // Corpo plano (sem o wrapper "empresa" da adesão). O GET é assumido com o mesmo formato do PUT.
 export interface EmpresaDto {
+  // Só vem na leitura; o PUT não o envia.
+  empresaGuid?: string | null;
   razaoSocial: string;
   nomeFantasia: string;
   cnpj: string;
@@ -100,7 +102,7 @@ export function fromEmpresaResponse(dto: Partial<EmpresaDto>): EmpresaFormValues
     cartaoDebito: dto.cartaoDebito ?? true,
   };
 
-  return { company, hours, payments };
+  return { company, hours, payments, empresaGuid: dto.empresaGuid?.trim() || null };
 }
 
 export function toEmpresaPayload({ company, hours, payments }: EmpresaFormValues): EmpresaDto {

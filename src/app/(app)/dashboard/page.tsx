@@ -1,3 +1,4 @@
+import { GerarCartazButton } from "@/components/empresa/CartazTicket";
 import { InstallPwaButton } from "@/components/layout/InstallPwaButton";
 import { DashboardContent } from "@/components/home/DashboardContent";
 import { IndicadoresPatio } from "@/components/home/IndicadoresPatio";
@@ -12,6 +13,7 @@ export default function DashboardPage() {
       <ActionRow>
         <RegistrarEntradaButton />
         <RegistrarSaidaButton />
+        <GerarCartazButton />
       </ActionRow>
       <IndicadoresPatio />
     </DashboardContent>

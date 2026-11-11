@@ -90,6 +90,23 @@ describe("fromEmpresaResponse: meios de pagamento", () => {
   });
 });
 
+describe("empresaGuid", () => {
+  it("lê o guid da empresa, sem espaços nas pontas", () => {
+    expect(fromEmpresaResponse({ ...dto, empresaGuid: " 3f2b8c1e-0000-4000-8000-000000000001 " }).empresaGuid).toBe(
+      "3f2b8c1e-0000-4000-8000-000000000001",
+    );
+  });
+
+  it.each([[undefined], [null], [""], ["   "]])("guid ausente ou vazio (%j) vira null", (empresaGuid) => {
+    expect(fromEmpresaResponse({ ...dto, empresaGuid }).empresaGuid).toBeNull();
+  });
+
+  it("o PUT não envia o guid", () => {
+    const values = fromEmpresaResponse({ ...dto, empresaGuid: "3f2b8c1e-0000-4000-8000-000000000001" });
+    expect(toEmpresaPayload(values)).not.toHaveProperty("empresaGuid");
+  });
+});
+
 describe("toEmpresaPayload: meios de pagamento", () => {
   it("envia os quatro campos no corpo plano", () => {
     const payload = toEmpresaPayload({
