@@ -737,7 +737,7 @@ describe("OnboardingWizard: teste grátis", () => {
   it("a credencial mostra o teste desde a primeira etapa", async () => {
     renderWizard(TESTE_GRATIS);
     const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
-    expect(await within(credencial).findByText("Plano: Teste grátis · 1 mês")).toBeInTheDocument();
+    expect(await within(credencial).findByText("Plano: 1 mês grátis")).toBeInTheDocument();
   });
 
   it("envia o cadastro com tipoPlanoAdesao 0 e vai para o login", async () => {
@@ -852,7 +852,7 @@ describe("OnboardingWizard: teste grátis escolhido na etapa de plano", () => {
     await user.click(plano(/Teste gratuito/));
 
     const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
-    expect(await within(credencial).findByText("Plano: Teste grátis · 1 mês")).toBeInTheDocument();
+    expect(await within(credencial).findByText("Plano: 1 mês grátis")).toBeInTheDocument();
   });
 });
 
@@ -914,10 +914,10 @@ describe("OnboardingWizard: planos indisponíveis", () => {
     renderWizard(TESTE_GRATIS);
     await irAteConferenciaDoTeste(user);
 
-    const resumo = screen.getByRole("region", { name: "Teste grátis" });
+    const resumo = screen.getByRole("region", { name: "Mês grátis" });
     expect(resumo.textContent).not.toMatch(/\d/);
     const credencial = screen.getByRole("region", { name: "Resumo da credencial", hidden: true });
-    expect(within(credencial).getByText("Plano: Teste grátis")).toBeInTheDocument();
+    expect(within(credencial).getByText("Plano: Mês grátis")).toBeInTheDocument();
 
     await aceitarTermos(user);
     await user.click(criarConta());
