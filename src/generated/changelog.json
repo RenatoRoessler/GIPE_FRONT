@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.425",
+      "type": "feat",
+      "scope": "onboarding",
+      "title": "adiciona tour interativo no primeiro acesso",
+      "description": "Ao entrar no sistema pela primeira vez, o usuário faz um tour que destaca\ncada módulo no próprio menu (lateral no computador, barra inferior no\ncelular), com um balão explicando para que serve. Os links do menu podem\nser abertos durante o tour, que segue para o passo seguinte.\n\n- Consulta e registra a visualização em /Onboarding, por usuário.\n- Sair fecha sem registrar; Não mostrar mais e Concluir registram.\n- Botão Repetir tour na Home e no Carimbo (conveniada) reabre o tour.\n- Passos montados pelo perfil: só entram os módulos que o usuário acessa.\n- Falha na consulta ou no registro não bloqueia o uso do sistema.",
+      "date": "2026-11-11T16:49:06-03:00"
+    },
+    {
       "version": "1.0.422",
       "type": "fix",
       "scope": "patio",
