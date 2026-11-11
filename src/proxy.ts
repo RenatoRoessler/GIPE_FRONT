@@ -4,8 +4,9 @@ import { areaDaRota, podeAcessar } from "@/lib/permissoes";
 import { parseSession } from "@/lib/session";
 
 // Únicas rotas acessíveis sem login: a adesão, o fluxo de acesso (login, recuperação de senha e primeiro acesso), o comprovante e o
-// recibo do cliente (abertos pelo QR) e o contrato do mensalista (aceite pelo link do e-mail).
-const PUBLIC_PATHS = ["/adesao", "/login", "/recuperar-senha", "/alterar-senha", "/primeiro-acesso", "/comprovante", "/recibo", "/contrato"];
+// recibo do cliente (abertos pelo QR), a consulta do ticket pela placa (aberta pelo QR do cartaz) e o contrato do mensalista (aceite
+// pelo link do e-mail).
+const PUBLIC_PATHS = ["/adesao", "/login", "/recuperar-senha", "/alterar-senha", "/primeiro-acesso", "/comprovante", "/recibo", "/ticket", "/contrato"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));

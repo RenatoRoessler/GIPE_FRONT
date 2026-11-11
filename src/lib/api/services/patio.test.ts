@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ComprovanteCliente, ReciboCliente } from "@/types/veiculo";
+import type { ComprovanteCliente, ComprovantePorPlaca, ReciboCliente } from "@/types/veiculo";
 
 vi.mock("../client", () => ({ api: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }));
 
 import { api } from "../client";
 import { ApiError } from "../errors";
-import { atualizarPrisma, consultarComprovante, consultarRecibo, resolverBuscaPorToken } from "./patio";
+import { atualizarPrisma, consultarComprovante, consultarComprovantePorPlaca, consultarRecibo, resolverBuscaPorToken } from "./patio";
 
 const comprovante = { token: "227SUSYV", placa: "LWJ2686" } as ComprovanteCliente;
 
@@ -29,6 +29,39 @@ describe("consultarComprovante", () => {
   it("propaga os demais erros", async () => {
     vi.mocked(api.get).mockRejectedValue(new ApiError("server", undefined, 500));
     await expect(consultarComprovante("XXXX")).rejects.toMatchObject({ kind: "server" });
+  });
+});
+
+const porPlaca = { token: "P8WRVRQW", placa: "QQQ5Z8" } as ComprovantePorPlaca;
+
+describe("consultarComprovantePorPlaca", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("consulta o comprovante pela empresa e pela placa, sem login", async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: porPlaca });
+    await expect(consultarComprovantePorPlaca("guid-da-empresa", "QQQ5Z8")).resolves.toEqual(porPlaca);
+    expect(api.get).toHaveBeenCalledWith("/Patio/comprovante/cliente/placa", {
+      params: { empresa: "guid-da-empresa", placa: "QQQ5Z8" },
+    });
+  });
+
+  it.each([
+    ["not_found", 404],
+    ["validation", 400],
+  ] as const)("converte %s em ticket não encontrado", async (kind, status) => {
+    vi.mocked(api.get).mockRejectedValue(new ApiError(kind, undefined, status));
+    await expect(consultarComprovantePorPlaca("guid", "XXX0X00")).rejects.toMatchObject({
+      kind: "not_found",
+      status: 404,
+      message: "Ticket não encontrado.",
+    });
+  });
+
+  it("propaga os demais erros, como falha de rede e do servidor", async () => {
+    vi.mocked(api.get).mockRejectedValue(new ApiError("server", undefined, 500));
+    await expect(consultarComprovantePorPlaca("guid", "XXX0X00")).rejects.toMatchObject({ kind: "server" });
+    vi.mocked(api.get).mockRejectedValue(new ApiError("network"));
+    await expect(consultarComprovantePorPlaca("guid", "XXX0X00")).rejects.toMatchObject({ kind: "network" });
   });
 });
 

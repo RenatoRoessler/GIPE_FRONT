@@ -1,7 +1,7 @@
 import { normalizePlaca } from "@/lib/placa";
 import { PRISMA_MAX, PRISMA_MIN } from "@/lib/prisma";
 import type { ChaveRef, PatioVeiculo } from "@/types/patio";
-import type { ComprovanteCliente, EntradaPayload, EntradaRegistrada, ReciboCliente } from "@/types/veiculo";
+import type { ComprovanteCliente, ComprovantePorPlaca, EntradaPayload, EntradaRegistrada, ReciboCliente } from "@/types/veiculo";
 import type { SaidaBusca, SaidaBuscaTipo, SaidaConsulta, SaidaPayload, SaidaRegistrada } from "@/types/saida";
 import { api } from "../client";
 import { ApiError } from "../errors";
@@ -21,6 +21,22 @@ export async function consultarComprovante(token: string): Promise<ComprovanteCl
   } catch (error) {
     if (error instanceof ApiError && (error.kind === "not_found" || error.kind === "validation")) {
       throw new ApiError("not_found", "Comprovante não encontrado.", 404);
+    }
+    throw error;
+  }
+}
+
+// Público (sem login): o cliente localiza o próprio ticket pela placa, a partir do QR do cartaz da empresa.
+// [A CONFIRMAR] 404 vale para placa inexistente e para consulta fora do prazo; 404 e 400 são tratados como "não encontrado".
+export async function consultarComprovantePorPlaca(empresaGuid: string, placa: string): Promise<ComprovantePorPlaca> {
+  try {
+    const { data } = await api.get<ComprovantePorPlaca>("/Patio/comprovante/cliente/placa", {
+      params: { empresa: empresaGuid, placa },
+    });
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError && (error.kind === "not_found" || error.kind === "validation")) {
+      throw new ApiError("not_found", "Ticket não encontrado.", 404);
     }
     throw error;
   }

@@ -160,3 +160,6 @@ export type ComprovanteCliente = {
   token: string;
   valorAtual: number;
 };
+
+// GET /Patio/comprovante/cliente/placa?empresa=...&placa=...: o mesmo comprovante, localizado pela placa; devolve também o prisma.
+export type ComprovantePorPlaca = ComprovanteCliente & { prisma?: number | null };
