@@ -109,10 +109,10 @@ export async function registrarSaida(patioId: number, payload: SaidaPayload): Pr
 }
 
 // Corrige o prisma de um veículo que está no pátio; `null` apaga (só mensalista pode ficar sem).
-// [A CONFIRMAR com o back] rota e corpo: assumido PUT /Patio/{id}/prisma com { prisma }.
+// Contrato do back: /Patio/{id}/prisma com { prisma }, onde 0 significa "sem prisma". [A CONFIRMAR] o verbo (assumido PUT).
 export async function atualizarPrisma(patioId: number, prisma: number | null): Promise<void> {
   try {
-    await api.put(`/Patio/${patioId}/prisma`, { prisma });
+    await api.put(`/Patio/${patioId}/prisma`, { prisma: prisma ?? 0 });
   } catch (error) {
     if (error instanceof ApiError && error.kind === "not_found") {
       throw new ApiError("not_found", "O veículo não está no pátio.", 404);

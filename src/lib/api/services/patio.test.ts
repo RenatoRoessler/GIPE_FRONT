@@ -129,10 +129,10 @@ describe("atualizarPrisma", () => {
     expect(api.put).toHaveBeenCalledWith("/Patio/54/prisma", { prisma: 45 });
   });
 
-  it("envia null para apagar o prisma", async () => {
+  it("envia 0 para apagar o prisma", async () => {
     vi.mocked(api.put).mockResolvedValue({});
     await atualizarPrisma(54, null);
-    expect(api.put).toHaveBeenCalledWith("/Patio/54/prisma", { prisma: null });
+    expect(api.put).toHaveBeenCalledWith("/Patio/54/prisma", { prisma: 0 });
   });
 
   it("veículo que saiu vira um erro de não encontrado em português", async () => {
