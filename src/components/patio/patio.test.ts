@@ -44,14 +44,14 @@ const sem: PatioFiltros = { busca: "", tipo: "todos", categoria: "todas" };
 const placas = (itens: PatioVeiculo[]) => itens.map((item) => item.placa);
 
 describe("ordenarPatio", () => {
-  it("o que está há mais tempo vem primeiro, e o empate sai pela placa", () => {
+  it("o que entrou há menos tempo vem primeiro, e o empate sai pela placa", () => {
     const itens = [
       veiculo({ placa: "BBB1B11", minutosPermanencia: 30 }),
       veiculo({ placa: "ZZZ9Z99", minutosPermanencia: 500 }),
       veiculo({ placa: "AAA1A11", minutosPermanencia: 30 }),
     ];
 
-    expect(placas(ordenarPatio(itens))).toEqual(["ZZZ9Z99", "AAA1A11", "BBB1B11"]);
+    expect(placas(ordenarPatio(itens))).toEqual(["AAA1A11", "BBB1B11", "ZZZ9Z99"]);
   });
 
   it("não altera a lista recebida", () => {

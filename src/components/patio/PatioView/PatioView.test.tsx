@@ -141,11 +141,11 @@ describe("PatioView: topo e resumo", () => {
 });
 
 describe("PatioView: lista", () => {
-  it("mostra os veículos do que está há mais tempo para o que está há menos", async () => {
+  it("mostra os veículos do que está há menos tempo para o que está há mais", async () => {
     abrir();
     await esperarResumo("3 veículos no pátio");
 
-    expect(placasNaTela()).toEqual(["BRA2E19", "MNB7880", "ZNF7Z70"]);
+    expect(placasNaTela()).toEqual(["ZNF7Z70", "MNB7880", "BRA2E19"]);
   });
 
   it("cada veículo é um único link para o ticket, com tipo e permanência no nome", async () => {

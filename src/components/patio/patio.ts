@@ -10,10 +10,10 @@ function semAcento(texto: string): string {
     .trim();
 }
 
-// O que está há mais tempo no pátio vem primeiro; no empate, a placa. Não altera a lista recebida.
+// O que entrou há menos tempo no pátio vem primeiro; no empate, a placa. Não altera a lista recebida.
 export function ordenarPatio(itens: PatioVeiculo[]): PatioVeiculo[] {
   return [...itens].sort(
-    (a, b) => b.minutosPermanencia - a.minutosPermanencia || a.placa.localeCompare(b.placa, "pt-BR"),
+    (a, b) => a.minutosPermanencia - b.minutosPermanencia || a.placa.localeCompare(b.placa, "pt-BR"),
   );
 }
 
@@ -127,7 +127,7 @@ export function estatisticasPatio(itens: PatioVeiculo[]): PatioEstatisticas {
     percentualMensalistas: total === 0 ? 0 : Math.round((mensalistas / total) * 100),
     mediaMinutos: total === 0 ? 0 : Math.round(itens.reduce((soma, item) => soma + item.minutosPermanencia, 0) / total),
     permanenciaLonga: itens.filter((item) => item.minutosPermanencia >= PERMANENCIA_LONGA_MINUTOS).length,
-    maisAntigo: ordenarPatio(itens)[0] ?? null,
+    maisAntigo: ordenarPatio(itens).at(-1) ?? null,
     porCategoria: [...categorias]
       .map(([categoria, valor]) => ({ categoria, rotulo: rotuloCategoria(categoria), valor }))
       .sort(porMaior),
