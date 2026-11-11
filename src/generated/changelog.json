@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.416",
+      "type": "feat",
+      "scope": "patio",
+      "title": "ordena os veículos do mais novo para o mais antigo",
+      "description": "A lista do pátio passa a mostrar primeiro os veículos que entraram há\nmenos tempo, mantendo a placa como critério de desempate. O indicador\nde veículo mais antigo continua apontando para quem está há mais tempo\nno pátio.",
+      "date": "2026-11-11T10:57:21-03:00"
+    },
+    {
       "version": "1.0.414",
       "type": "fix",
       "scope": "ui",
