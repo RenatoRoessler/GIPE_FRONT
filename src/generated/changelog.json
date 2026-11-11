@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.419",
+      "type": "feat",
+      "scope": "empresa",
+      "title": "adiciona o botão Gerar Cartaz do Ticket na Home e na empresa",
+      "description": "O botão abre a impressão de um cartaz A4 com o QR code que leva o cliente à\nconsulta do ticket da empresa. Ele aparece na Home e na tela Minha empresa.\nO identificador público da empresa passa a ser lido do cadastro e é mantido\nao salvar os dados da empresa.",
+      "date": "2026-11-11T12:11:55-03:00"
+    },
+    {
+      "version": "1.0.418",
+      "type": "feat",
+      "scope": "ticket",
+      "title": "cria tela pública para o cliente consultar o ticket pela placa",
+      "description": "O cliente agora pode encontrar o próprio ticket sem login: ele abre o link\nda empresa, digita a placa e é levado ao comprovante do ticket. A tela usa\no mesmo teclado de placa da entrada e avisa quando a placa não é encontrada,\nquando a consulta falha ou quando o link é inválido.\n\nA rota /ticket/[empresaGuid] fica aberta sem sessão e fora dos buscadores.",
+      "date": "2026-11-11T12:11:55-03:00"
+    },
+    {
       "version": "1.0.416",
       "type": "feat",
       "scope": "patio",
