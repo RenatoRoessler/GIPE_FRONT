@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.433",
+      "type": "feat",
+      "scope": "servicos",
+      "title": "adiciona o módulo de Serviços (lava-rápido)",
+      "description": "Catálogo de serviços com preço por categoria (lista, detalhe, cadastro,\nedição e inativação), fila do lavador em colunas por status com troca\notimista e desfazer, cancelamento de serviço não iniciado com motivo e\nseção de serviços dentro do ticket do veículo no Pátio, com acréscimo de\nserviços e resumo de valor e tempo permitido.\n\nInclui o perfil Lavador, as áreas de permissão do módulo, o item\n\"Serviços\" no menu, o switch em Configurações e a rota /servicos.",
+      "date": "2026-11-12T17:35:54-03:00"
+    },
+    {
+      "version": "1.0.432",
+      "type": "fix",
+      "scope": "configuracoes",
+      "title": "preserva serviços e entrada direta pela câmera ao salvar",
+      "description": "O PUT /Configuracao enviava só modelo, cor e prisma e apagava os campos\nservicos e entradaDiretoCamera. O tipo, o mapper e o hook passam a ler\nos dois campos do GET e a enviar os cinco no payload, de modo que salvar\numa opção não altera as outras.",
+      "date": "2026-11-12T17:35:53-03:00"
+    },
+    {
       "version": "1.0.428",
       "type": "fix",
       "scope": "adesao",
