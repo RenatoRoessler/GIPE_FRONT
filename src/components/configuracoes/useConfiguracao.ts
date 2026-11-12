@@ -2,11 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getConfiguracao, updateConfiguracao } from "@/lib/api/services/configuracao";
-import { CONFIGURACAO_PADRAO, type Configuracao, type ConfiguracaoValues } from "@/types/configuracao";
+import { CONFIGURACAO_PADRAO, OPCOES_PADRAO, type Configuracao, type ConfiguracaoCompleta } from "@/types/configuracao";
 
 export const CONFIGURACAO_QUERY_KEY = ["configuracao"] as const;
 
-const SEM_ALTERACAO: Configuracao = { ...CONFIGURACAO_PADRAO, alteradoPorId: null, alteradoEm: null };
+const SEM_ALTERACAO: Configuracao = { ...CONFIGURACAO_PADRAO, ...OPCOES_PADRAO, alteradoPorId: null, alteradoEm: null };
 
 // Único ponto de leitura da configuração: a tela e os formulários de entrada. Enquanto carrega, ou se falhar, vale o
 // padrão da empresa, para o operador nunca ficar travado (o back continua sendo quem valida).
@@ -34,7 +34,7 @@ export function useSalvarConfiguracao() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (values: ConfiguracaoValues) => updateConfiguracao(values),
+    mutationFn: (values: ConfiguracaoCompleta) => updateConfiguracao(values),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: CONFIGURACAO_QUERY_KEY }),
   });
 }

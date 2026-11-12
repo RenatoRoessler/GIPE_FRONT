@@ -1,4 +1,4 @@
-import type { Configuracao, ConfiguracaoValues } from "@/types/configuracao";
+import type { Configuracao, ConfiguracaoCompleta } from "@/types/configuracao";
 import { api } from "../client";
 import { ConfiguracaoDto, fromConfiguracaoResponse, toConfiguracaoPayload } from "./configuracao.mapper";
 
@@ -8,6 +8,6 @@ export async function getConfiguracao(): Promise<Configuracao> {
   return fromConfiguracaoResponse(data);
 }
 
-export async function updateConfiguracao(values: ConfiguracaoValues): Promise<void> {
+export async function updateConfiguracao(values: ConfiguracaoCompleta): Promise<void> {
   await api.put("/Configuracao", toConfiguracaoPayload(values));
 }

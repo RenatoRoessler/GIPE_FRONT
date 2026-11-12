@@ -14,7 +14,7 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
-const GRAVADA = { modelo: false, cor: true, prisma: true, alteradoPorId: 48, alteradoEm: "2026-11-08T16:36:03" };
+const GRAVADA = { modelo: false, cor: true, prisma: true, servicos: false, entradaDiretoCamera: true, alteradoPorId: 48, alteradoEm: "2026-11-08T16:36:03" };
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -49,15 +49,15 @@ describe("useSalvarConfiguracao", () => {
   it("grava com o PUT", async () => {
     servico.updateConfiguracao.mockResolvedValue(undefined);
     const { result } = renderHook(() => useSalvarConfiguracao(), { wrapper });
-    await act(async () => result.current.mutateAsync({ modelo: true, cor: true, prisma: true }));
-    expect(servico.updateConfiguracao).toHaveBeenCalledWith({ modelo: true, cor: true, prisma: true });
+    await act(async () => result.current.mutateAsync({ modelo: true, cor: true, prisma: true, servicos: true, entradaDiretoCamera: false }));
+    expect(servico.updateConfiguracao).toHaveBeenCalledWith({ modelo: true, cor: true, prisma: true, servicos: true, entradaDiretoCamera: false });
   });
 
   it("propaga o ApiError", async () => {
     servico.updateConfiguracao.mockRejectedValue(new ApiError("forbidden"));
     const { result } = renderHook(() => useSalvarConfiguracao(), { wrapper });
     await act(async () => {
-      await expect(result.current.mutateAsync({ modelo: true, cor: true, prisma: false })).rejects.toBeInstanceOf(ApiError);
+      await expect(result.current.mutateAsync({ modelo: true, cor: true, prisma: false, servicos: false, entradaDiretoCamera: true })).rejects.toBeInstanceOf(ApiError);
     });
   });
 });

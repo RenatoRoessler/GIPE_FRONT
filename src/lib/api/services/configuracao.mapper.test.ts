@@ -2,16 +2,26 @@ import { describe, expect, it } from "vitest";
 import { fromConfiguracaoResponse, toConfiguracaoPayload } from "./configuracao.mapper";
 
 describe("fromConfiguracaoResponse", () => {
-  it("lê os três campos e a última alteração", () => {
+  it("lê os campos, as opções da empresa e a última alteração", () => {
     expect(
       fromConfiguracaoResponse({
         modelo: true,
         cor: false,
         prisma: true,
+        servicos: true,
+        entradaDiretoCamera: false,
         usuarioIdAlteracao: 48,
         dataAlteracao: "2026-11-08T16:36:03.122308",
       }),
-    ).toEqual({ modelo: true, cor: false, prisma: true, alteradoPorId: 48, alteradoEm: "2026-11-08T16:36:03.122308" });
+    ).toEqual({
+      modelo: true,
+      cor: false,
+      prisma: true,
+      servicos: true,
+      entradaDiretoCamera: false,
+      alteradoPorId: 48,
+      alteradoEm: "2026-11-08T16:36:03.122308",
+    });
   });
 
   it("empresa nunca alterada: sem autor nem data", () => {
@@ -20,7 +30,15 @@ describe("fromConfiguracaoResponse", () => {
   });
 
   it("campo ausente cai no padrão da empresa", () => {
-    expect(fromConfiguracaoResponse({})).toEqual({ modelo: true, cor: true, prisma: false, alteradoPorId: null, alteradoEm: null });
+    expect(fromConfiguracaoResponse({})).toEqual({
+      modelo: true,
+      cor: true,
+      prisma: false,
+      servicos: false,
+      entradaDiretoCamera: true,
+      alteradoPorId: null,
+      alteradoEm: null,
+    });
     expect(fromConfiguracaoResponse(null)).toMatchObject({ modelo: true, cor: true, prisma: false });
   });
 
@@ -34,8 +52,8 @@ describe("fromConfiguracaoResponse", () => {
 });
 
 describe("toConfiguracaoPayload", () => {
-  it("envia só os três campos", () => {
-    const valores = { modelo: true, cor: false, prisma: true, alteradoPorId: 1 } as never;
-    expect(toConfiguracaoPayload(valores)).toEqual({ modelo: true, cor: false, prisma: true });
+  it("envia os cinco campos, sem a auditoria", () => {
+    const valores = { modelo: true, cor: false, prisma: true, servicos: true, entradaDiretoCamera: false, alteradoPorId: 1 } as never;
+    expect(toConfiguracaoPayload(valores)).toEqual({ modelo: true, cor: false, prisma: true, servicos: true, entradaDiretoCamera: false });
   });
 });

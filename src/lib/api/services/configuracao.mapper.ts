@@ -1,10 +1,12 @@
-import { CONFIGURACAO_PADRAO, type Configuracao, type ConfiguracaoValues } from "@/types/configuracao";
+import { CONFIGURACAO_PADRAO, OPCOES_PADRAO, type Configuracao, type ConfiguracaoCompleta } from "@/types/configuracao";
 
 export interface ConfiguracaoDto {
   configuracaoId: number | null;
   modelo: boolean;
   cor: boolean;
   prisma: boolean;
+  entradaDiretoCamera: boolean;
+  servicos: boolean;
   usuarioId: number | null;
   dataCriacao: string | null;
   usuarioIdAlteracao: number | null;
@@ -27,11 +29,14 @@ export function fromConfiguracaoResponse(dto: Partial<ConfiguracaoDto> | null | 
     modelo: booleano(dto?.modelo, CONFIGURACAO_PADRAO.modelo),
     cor: booleano(dto?.cor, CONFIGURACAO_PADRAO.cor),
     prisma: booleano(dto?.prisma, CONFIGURACAO_PADRAO.prisma),
+    servicos: booleano(dto?.servicos, OPCOES_PADRAO.servicos),
+    entradaDiretoCamera: booleano(dto?.entradaDiretoCamera, OPCOES_PADRAO.entradaDiretoCamera),
     alteradoPorId: alteradoEm ? alteradoPorId : null,
     alteradoEm,
   };
 }
 
-export function toConfiguracaoPayload({ modelo, cor, prisma }: ConfiguracaoValues): ConfiguracaoValues {
-  return { modelo, cor, prisma };
+// Sempre os cinco campos: o PUT substitui a configuração inteira.
+export function toConfiguracaoPayload({ modelo, cor, prisma, servicos, entradaDiretoCamera }: ConfiguracaoCompleta): ConfiguracaoCompleta {
+  return { modelo, cor, prisma, servicos, entradaDiretoCamera };
 }

@@ -11,11 +11,11 @@ describe("serviço de configuração da empresa", () => {
 
   it("getConfiguracao lê GET /Configuracao", async () => {
     vi.mocked(api.get).mockResolvedValue({
-      data: { configuracaoId: 1, modelo: true, cor: true, prisma: false, usuarioIdAlteracao: 48, dataAlteracao: "2026-11-08T16:36:03" },
+      data: { configuracaoId: 1, modelo: true, cor: true, prisma: false, servicos: true, entradaDiretoCamera: false, usuarioIdAlteracao: 48, dataAlteracao: "2026-11-08T16:36:03" },
     });
     const configuracao = await getConfiguracao();
     expect(api.get).toHaveBeenCalledWith("/Configuracao");
-    expect(configuracao).toEqual({ modelo: true, cor: true, prisma: false, alteradoPorId: 48, alteradoEm: "2026-11-08T16:36:03" });
+    expect(configuracao).toEqual({ modelo: true, cor: true, prisma: false, servicos: true, entradaDiretoCamera: false, alteradoPorId: 48, alteradoEm: "2026-11-08T16:36:03" });
   });
 
   it("getConfiguracao propaga o ApiError", async () => {
@@ -23,9 +23,9 @@ describe("serviço de configuração da empresa", () => {
     await expect(getConfiguracao()).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("updateConfiguracao envia os três campos no PUT", async () => {
+  it("updateConfiguracao envia os cinco campos no PUT", async () => {
     vi.mocked(api.put).mockResolvedValue({});
-    await updateConfiguracao({ modelo: true, cor: false, prisma: true });
-    expect(api.put).toHaveBeenCalledWith("/Configuracao", { modelo: true, cor: false, prisma: true });
+    await updateConfiguracao({ modelo: true, cor: false, prisma: true, servicos: true, entradaDiretoCamera: false });
+    expect(api.put).toHaveBeenCalledWith("/Configuracao", { modelo: true, cor: false, prisma: true, servicos: true, entradaDiretoCamera: false });
   });
 });
