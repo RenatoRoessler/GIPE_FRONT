@@ -12,6 +12,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Toast } from "@/components/ui/Toast";
+import { ServicosDoVeiculo } from "@/components/servicos/ServicosDoVeiculo";
 import { SaidaVeiculoModal } from "@/components/veiculos/SaidaVeiculoModal";
 import { formatBRL } from "@/lib/money";
 import type { PatioVeiculo } from "@/types/patio";
@@ -200,6 +201,8 @@ export function TicketView({ patioId }: TicketViewProps) {
           onGuardarChave={() => setChaveDe(veiculo)}
           onEditarPrisma={() => setPrismaDe(veiculo)}
         />
+
+        <ServicosDoVeiculo idPatio={veiculo.patioId} placa={veiculo.placa} categoria={veiculo.categoria} onAviso={setAviso} />
 
         <Acoes>
           {!semToken && (

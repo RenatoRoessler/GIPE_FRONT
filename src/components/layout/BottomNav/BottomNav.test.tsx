@@ -53,7 +53,7 @@ async function abrir() {
 }
 
 const nomesDaBarra = () => Array.from(screen.getByRole("navigation", { name: "Navegação principal" }).querySelectorAll("a, button")).map((item) => item.textContent);
-const TODOS_DO_PAINEL = ["Visão Geral", "Conferência de pátio", "Financeiro", "Faturas", "Notas Fiscais", "Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"];
+const TODOS_DO_PAINEL = ["Visão Geral", "Conferência de pátio", "Serviços", "Financeiro", "Faturas", "Notas Fiscais", "Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"];
 
 describe("BottomNav: itens da barra", () => {
   it("perfil operacional: Pátio, Caixa, Entrada, Saída e Mais, com a Entrada no centro", () => {
@@ -143,7 +143,7 @@ describe("BottomNav: menu estendido", () => {
     expect(painel()).toHaveAttribute("open");
     expect(maisButton()).toHaveAttribute("aria-expanded", "true");
     expect(within(painel()).getByRole("heading", { name: "Mais", ...opcoes })).toBeInTheDocument();
-    expect(itensDoPainel()).toEqual(["Visão Geral", "Conferência de pátio", "Financeiro", "Faturas", "Notas Fiscais", "Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]);
+    expect(itensDoPainel()).toEqual(["Visão Geral", "Conferência de pátio", "Serviços", "Financeiro", "Faturas", "Notas Fiscais", "Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]);
   });
 
   it("mostra o nome completo dos itens, não o rótulo curto", async () => {
@@ -161,7 +161,7 @@ describe("BottomNav: menu estendido", () => {
     barra.capacidade = 4;
     await abrir();
 
-    expect(itensDoPainel()).toEqual(["Visão Geral", "Conferência de pátio", "Financeiro", "Faturas", "Notas Fiscais", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas"]);
+    expect(itensDoPainel()).toEqual(["Visão Geral", "Conferência de pátio", "Serviços", "Financeiro", "Faturas", "Notas Fiscais", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas"]);
   });
 
   it("marca a tela atual no painel, e só ela", async () => {
@@ -238,7 +238,7 @@ describe("BottomNav: grupos no painel", () => {
 
     expect(nomesDoGrupo("Financeiro")).toEqual(["Financeiro", "Faturas", "Notas Fiscais"]);
     expect(nomesDoGrupo("Configurações")).toEqual(["Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]);
-    expect(nomesDoGrupo("Operação")).toEqual(["Conferência de pátio"]);
+    expect(nomesDoGrupo("Operação")).toEqual(["Conferência de pátio", "Serviços"]);
   });
 
   it("o Gerente vê em Configurações só o que pode abrir", async () => {

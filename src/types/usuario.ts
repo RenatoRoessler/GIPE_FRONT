@@ -9,6 +9,7 @@ export const PERFIL_USUARIO = {
   GerenteConveniada: 6,
   UsuarioConveniada: 7,
   Financeiro: 8,
+  Lavador: 9,
 } as const;
 export type PerfilUsuario = (typeof PERFIL_USUARIO)[keyof typeof PERFIL_USUARIO];
 

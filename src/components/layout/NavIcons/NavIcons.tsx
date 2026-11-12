@@ -192,6 +192,16 @@ function StampedYardIcon(props: IconProps) {
   );
 }
 
+// Serviços (lava-rápido): uma gota com o brilho da água.
+function ServicesIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z" />
+      <path d="M9.5 15a2.5 2.5 0 0 0 2.5 2.5" />
+    </IconBase>
+  );
+}
+
 const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   dashboard: DashboardIcon,
   pricing: PricingIcon,
@@ -211,6 +221,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   checklist: ChecklistIcon,
   stampedYard: StampedYardIcon,
   bill: BillIcon,
+  services: ServicesIcon,
 };
 
 export function NavIcon({ id, ...props }: { id: NavIconId } & IconProps) {

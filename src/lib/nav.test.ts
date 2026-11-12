@@ -16,7 +16,7 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS[0].grupo).toBeUndefined();
   });
 
-  it("a Conferência de pátio é um link da área do Pátio, o último do grupo Operação, e cabe no rótulo curto", () => {
+  it("a Conferência de pátio é um link da área do Pátio, o último do grupo Operação antes dos Serviços, e cabe no rótulo curto", () => {
     expect(NAV_ITEMS.find((item) => item.label === "Conferência de pátio")).toEqual({
       label: "Conferência de pátio",
       shortLabel: "Conferência",
@@ -26,16 +26,30 @@ describe("NAV_ITEMS", () => {
       grupo: "operacao",
     });
     const operacao = NAV_ITEMS.filter((item) => item.grupo === "operacao");
-    expect(operacao[operacao.length - 1].label).toBe("Conferência de pátio");
+    expect(operacao[operacao.length - 2].label).toBe("Conferência de pátio");
   });
 
-  it("mantém os dezoito itens (um por tela), na ordem do menu", () => {
+  it("os Serviços são um link da área de Serviços, o último do grupo Operação", () => {
+    expect(NAV_ITEMS.find((item) => item.label === "Serviços")).toEqual({
+      label: "Serviços",
+      shortLabel: "Serviços",
+      href: "/servicos",
+      icon: "services",
+      area: "servicos",
+      grupo: "operacao",
+    });
+    const operacao = NAV_ITEMS.filter((item) => item.grupo === "operacao");
+    expect(operacao[operacao.length - 1].label).toBe("Serviços");
+  });
+
+  it("mantém os dezenove itens (um por tela), na ordem do menu", () => {
     expect(NAV_ITEMS.map((item) => item.label)).toEqual([
       "Visão Geral",
       "Pátio",
       "Entrada de Veículos",
       "Saída de Veículos",
       "Conferência de pátio",
+      "Serviços",
       "Financeiro",
       "Caixa",
       "Faturas",
@@ -70,13 +84,13 @@ describe("NAV_ITEMS", () => {
     expect(semRepeticao).toEqual(["operacao", "financeiro", "configuracoes"]);
   });
 
-  it("Entrada e Saída são ações (abrem modal); os outros dezesseis são links", () => {
+  it("Entrada e Saída são ações (abrem modal); os outros dezessete são links", () => {
     const acoes = NAV_ITEMS.filter(isNavAction);
     expect(acoes.map((item) => [item.label, item.acao, item.icon])).toEqual([
       ["Entrada de Veículos", "entrada", "vehicleIn"],
       ["Saída de Veículos", "saida", "vehicleOut"],
     ]);
-    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(16);
+    expect(NAV_ITEMS.filter((item) => !isNavAction(item))).toHaveLength(17);
   });
 
   it("não repete chave nem ícone", () => {
@@ -176,6 +190,7 @@ describe("navItemsPermitidos", () => {
       "Entrada de Veículos",
       "Saída de Veículos",
       "Conferência de pátio",
+      "Serviços",
       "Financeiro",
       "Caixa",
       "Faturas",
@@ -188,7 +203,7 @@ describe("navItemsPermitidos", () => {
   });
 
   it("o Caixa e o Manobrista só veem o dia a dia do pátio e do caixa", () => {
-    const esperado = ["Visão Geral", "Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio", "Caixa"];
+    const esperado = ["Visão Geral", "Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio", "Serviços", "Caixa"];
     expect(rotulos(4)).toEqual(esperado);
     expect(rotulos(3)).toEqual(esperado);
   });
@@ -204,6 +219,10 @@ describe("navItemsPermitidos", () => {
   it("o Gerente e o Usuário da conveniada vêem só o carimbo e o pátio da conveniada", () => {
     expect(rotulos(6)).toEqual(["Carimbar ticket", "Pátio da conveniada"]);
     expect(rotulos(7)).toEqual(["Carimbar ticket", "Pátio da conveniada"]);
+  });
+
+  it("o Lavador vê a visão geral e os serviços", () => {
+    expect(rotulos(9)).toEqual(["Visão Geral", "Serviços"]);
   });
 
   it("sem perfil conhecido só o Início", () => {
@@ -229,11 +248,11 @@ describe("navItemsPorPrioridade", () => {
   const rotulos = (perfil: Parameters<typeof navItemsPorPrioridade>[0]) => navItemsPorPrioridade(perfil).map((item) => item.shortLabel);
 
   it("Pátio, Entrada, Saída e Caixa vêm primeiro e o resto segue a ordem do menu", () => {
-    expect(rotulos(1)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Visão Geral", "Conferência", "Financeiro", "Faturas", "Notas", "Empresa", "Config.", "Preços", "Chaves", "Mensalistas", "Usuários", "Conveniadas"]);
+    expect(rotulos(1)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Visão Geral", "Conferência", "Serviços", "Financeiro", "Faturas", "Notas", "Empresa", "Config.", "Preços", "Chaves", "Mensalistas", "Usuários", "Conveniadas"]);
   });
 
   it("só traz o que o perfil pode abrir", () => {
-    expect(rotulos(4)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Visão Geral", "Conferência"]);
+    expect(rotulos(4)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Visão Geral", "Conferência", "Serviços"]);
     expect(rotulos(8)).toEqual(["Visão Geral", "Financeiro", "Faturas", "Notas"]);
     expect(rotulos(null)).toEqual(["Visão Geral"]);
   });
@@ -254,7 +273,7 @@ describe("dividirItensDaBarra", () => {
   const rotulos = (lista: typeof itens) => lista.map((item) => item.shortLabel);
 
   it("mostra tudo, sem Mais, quando todos cabem", () => {
-    for (const capacidade of [16, 17, 20]) {
+    for (const capacidade of [17, 18, 20]) {
       const { visiveis, excedentes } = dividirItensDaBarra(itens, capacidade);
       expect(visiveis).toEqual(itens);
       expect(excedentes).toEqual([]);
@@ -264,14 +283,14 @@ describe("dividirItensDaBarra", () => {
   it("reserva o último espaço para o Mais quando falta lugar", () => {
     const { visiveis, excedentes } = dividirItensDaBarra(itens, 5);
     expect(rotulos(visiveis)).toEqual(["Pátio", "Entrada", "Saída", "Caixa"]);
-    expect(rotulos(excedentes)).toEqual(["Visão Geral", "Conferência", "Financeiro", "Faturas", "Notas", "Empresa", "Config.", "Preços", "Chaves", "Mensalistas", "Usuários", "Conveniadas"]);
+    expect(rotulos(excedentes)).toEqual(["Visão Geral", "Conferência", "Serviços", "Financeiro", "Faturas", "Notas", "Empresa", "Config.", "Preços", "Chaves", "Mensalistas", "Usuários", "Conveniadas"]);
     expect(visiveis.length + 1).toBe(5);
   });
 
-  it("com capacidade 9 esconde oito itens: oito visíveis mais o Mais", () => {
+  it("com capacidade 9 esconde nove itens: oito visíveis mais o Mais", () => {
     const { visiveis, excedentes } = dividirItensDaBarra(itens, 9);
     expect(visiveis).toHaveLength(8);
-    expect(excedentes).toHaveLength(8);
+    expect(excedentes).toHaveLength(9);
   });
 
   it("nunca usa menos de cinco espaços", () => {
@@ -291,7 +310,7 @@ describe("dividirItensDaBarra", () => {
 
   it("perfil com poucos itens: em tela estreita o Dashboard vai para o Mais, em tela larga cabe tudo", () => {
     const operador = navItemsPorPrioridade(4);
-    expect(dividirItensDaBarra(operador, 5).excedentes.map((item) => item.shortLabel)).toEqual(["Visão Geral", "Conferência"]);
+    expect(dividirItensDaBarra(operador, 5).excedentes.map((item) => item.shortLabel)).toEqual(["Visão Geral", "Conferência", "Serviços"]);
     expect(dividirItensDaBarra(operador, 8).excedentes).toEqual([]);
     const financeiro = navItemsPorPrioridade(8);
     expect(dividirItensDaBarra(financeiro, 1)).toEqual({ visiveis: financeiro, excedentes: [] });
@@ -339,7 +358,7 @@ describe("ordenarPeloMenu", () => {
 
   it("recoloca os excedentes da barra na ordem natural do menu", () => {
     const { excedentes } = dividirItensDaBarra(navItemsPorPrioridade(1), 5);
-    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Visão Geral", "Conferência", "Financeiro", "Faturas", "Notas", "Empresa", "Config.", "Preços", "Chaves", "Mensalistas", "Usuários", "Conveniadas"]);
+    expect(ordenarPeloMenu(excedentes).map((item) => item.shortLabel)).toEqual(["Visão Geral", "Conferência", "Serviços", "Financeiro", "Faturas", "Notas", "Empresa", "Config.", "Preços", "Chaves", "Mensalistas", "Usuários", "Conveniadas"]);
   });
 });
 
@@ -380,7 +399,7 @@ describe("agruparItens", () => {
   it("o Administrador tem a Visão Geral sem grupo e, depois, Operação, Financeiro e Configurações, com os itens na ordem do menu", () => {
     expect(rotulos(1)).toEqual([
       [null, ["Visão Geral"]],
-      ["Operação", ["Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio"]],
+      ["Operação", ["Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio", "Serviços"]],
       ["Financeiro", ["Financeiro", "Caixa", "Faturas", "Notas Fiscais"]],
       ["Configurações", ["Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]],
     ]);
@@ -389,7 +408,7 @@ describe("agruparItens", () => {
   it("grupo sem item permitido não aparece", () => {
     expect(rotulos(4)).toEqual([
       [null, ["Visão Geral"]],
-      ["Operação", ["Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio"]],
+      ["Operação", ["Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio", "Serviços"]],
       ["Financeiro", ["Caixa"]],
     ]);
     expect(rotulos(8)).toEqual([

@@ -14,11 +14,20 @@ import type { Configuracao, ConfiguracaoValues } from "@/types/configuracao";
 import { useSalvarConfiguracao } from "../useConfiguracao";
 import { Auditoria, Cartao, Efeito, Fieldset, Legenda, Linha, Linhas, Rodape } from "./ConfiguracaoEntradaForm.styles";
 
+// O que a tela edita: os dados da entrada e o interruptor de serviços. A câmera direta só é preservada.
+type Valores = ConfiguracaoValues & { servicos: boolean };
+
 const OPCOES: { campo: keyof ConfiguracaoValues; rotulo: string; efeito: string }[] = [
   { campo: "modelo", rotulo: "Modelo obrigatório", efeito: "Pede o modelo do carro (ex.: Corolla)." },
   { campo: "cor", rotulo: "Cor obrigatória", efeito: "Pede a cor do carro." },
   { campo: "prisma", rotulo: "Prisma obrigatório", efeito: "Pede o número do prisma (de 1 a 999). Mensalista pode entrar sem ele." },
 ];
+
+const OPCAO_SERVICOS = {
+  campo: "servicos",
+  rotulo: "Serviços (lava-rápido)",
+  efeito: "Permite acrescentar serviços, como lavagem, aos veículos no pátio. Desligado, o módulo Serviços não aceita novos serviços nos veículos.",
+} as const;
 
 export interface ConfiguracaoEntradaFormProps {
   initial: Configuracao;
@@ -29,12 +38,13 @@ export interface ConfiguracaoEntradaFormProps {
 export function ConfiguracaoEntradaForm({ initial, podeEditar }: ConfiguracaoEntradaFormProps) {
   const { toast, showToast, dismissToast } = useToast();
   const salvar = useSalvarConfiguracao();
-  const [gravada, setGravada] = useState<ConfiguracaoValues>({ modelo: initial.modelo, cor: initial.cor, prisma: initial.prisma });
+  const [gravada, setGravada] = useState<Valores>({ modelo: initial.modelo, cor: initial.cor, prisma: initial.prisma, servicos: initial.servicos });
 
   const form = useAppForm({
     defaultValues: gravada,
     onSubmit: async ({ value }) => {
-      await salvar.mutateAsync(value).then(
+      // O PUT leva a configuração inteira: o que esta tela não edita segue como está.
+      await salvar.mutateAsync({ ...value, entradaDiretoCamera: initial.entradaDiretoCamera }).then(
         () => {
           setGravada(value);
           form.reset(value);
@@ -48,7 +58,7 @@ export function ConfiguracaoEntradaForm({ initial, podeEditar }: ConfiguracaoEnt
   });
 
   const valores = useStore(form.store, (state) => state.values);
-  const alterado = OPCOES.some(({ campo }) => valores[campo] !== gravada[campo]);
+  const alterado = [...OPCOES, OPCAO_SERVICOS].some(({ campo }) => valores[campo] !== gravada[campo]);
   const salvando = salvar.isPending;
 
   return (
@@ -77,6 +87,20 @@ export function ConfiguracaoEntradaForm({ initial, podeEditar }: ConfiguracaoEnt
               <Efeito id={`configuracao-${campo}`}>{efeito}</Efeito>
             </Linha>
           ))}
+        </Linhas>
+      </Fieldset>
+
+      <Fieldset>
+        <Legenda>Serviços</Legenda>
+        <Linhas>
+          <Linha $checked={valores.servicos}>
+            <form.AppField name={OPCAO_SERVICOS.campo}>
+              {(field) => (
+                <field.SwitchField label={OPCAO_SERVICOS.rotulo} disabled={!podeEditar || salvando} aria-describedby={`configuracao-${OPCAO_SERVICOS.campo}`} />
+              )}
+            </form.AppField>
+            <Efeito id={`configuracao-${OPCAO_SERVICOS.campo}`}>{OPCAO_SERVICOS.efeito}</Efeito>
+          </Linha>
         </Linhas>
       </Fieldset>
 

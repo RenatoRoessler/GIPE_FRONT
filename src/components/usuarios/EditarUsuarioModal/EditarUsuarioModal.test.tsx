@@ -171,8 +171,8 @@ describe("EditarUsuarioModal", () => {
   });
 
   it("perfil fora do enum aparece como opção desabilitada", () => {
-    renderWithProviders(<EditarUsuarioModal usuario={usuario({ perfil: 9, perfilDescricao: "Auditor" })} {...handlers} />);
+    renderWithProviders(<EditarUsuarioModal usuario={usuario({ perfil: 99, perfilDescricao: "Auditor" })} {...handlers} />);
     expect(screen.getByRole("option", { name: "Auditor" })).toBeDisabled();
-    expect(screen.getByLabelText("Perfil")).toHaveValue("9");
+    expect(screen.getByLabelText("Perfil")).toHaveValue("99");
   });
 });

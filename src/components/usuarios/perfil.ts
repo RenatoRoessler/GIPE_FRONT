@@ -9,6 +9,7 @@ export const PERFIL_LABEL: Record<PerfilUsuario, string> = {
   [PERFIL_USUARIO.GerenteConveniada]: "Gerente Conveniada",
   [PERFIL_USUARIO.UsuarioConveniada]: "Usuário Conveniada",
   [PERFIL_USUARIO.Financeiro]: "Financeiro",
+  [PERFIL_USUARIO.Lavador]: "Lavador",
 };
 
 // Perfis que esta tela atribui, na ordem de exibição no Select.

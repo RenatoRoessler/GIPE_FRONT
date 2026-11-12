@@ -1,0 +1,1 @@
+export { ServicosMasterDetail } from "./ServicosMasterDetail";

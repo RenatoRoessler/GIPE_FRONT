@@ -14,15 +14,15 @@ describe("perfil", () => {
   });
 
   it("perfil desconhecido usa a descrição do back e, sem ela, o número", () => {
-    expect(isPerfilConhecido(9)).toBe(false);
-    expect(formatPerfil(9, "Auditor")).toBe("Auditor");
-    expect(formatPerfil(9)).toBe("Perfil 9");
+    expect(isPerfilConhecido(99)).toBe(false);
+    expect(formatPerfil(99, "Auditor")).toBe("Auditor");
+    expect(formatPerfil(99)).toBe("Perfil 99");
   });
 
   it("só os perfis do estacionamento são atribuíveis", () => {
     expect(isPerfilAtribuivel(8)).toBe(true);
     expect(isPerfilAtribuivel(5)).toBe(false);
-    expect(isPerfilAtribuivel(9)).toBe(false);
+    expect(isPerfilAtribuivel(99)).toBe(false);
   });
 
   it("oferece os cinco perfis no Select", () => {

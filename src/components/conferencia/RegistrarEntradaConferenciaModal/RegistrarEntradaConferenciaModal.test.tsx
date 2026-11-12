@@ -42,7 +42,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(registrarEntradaSemTicket).mockResolvedValue({ patioId: 5 });
   // Padrão da empresa: modelo e cor obrigatórios, prisma opcional.
-  vi.mocked(getConfiguracao).mockResolvedValue({ modelo: true, cor: true, prisma: false, alteradoPorId: null, alteradoEm: null });
+  vi.mocked(getConfiguracao).mockResolvedValue({ modelo: true, cor: true, prisma: false, servicos: false, entradaDiretoCamera: true, alteradoPorId: null, alteradoEm: null });
 });
 
 describe("RegistrarEntradaConferenciaModal", () => {
@@ -136,7 +136,7 @@ describe("RegistrarEntradaConferenciaModal", () => {
 
 describe("RegistrarEntradaConferenciaModal: regras da empresa", () => {
   const configurar = (regras: { modelo?: boolean; cor?: boolean; prisma?: boolean }) =>
-    vi.mocked(getConfiguracao).mockResolvedValue({ modelo: true, cor: true, prisma: false, alteradoPorId: 1, alteradoEm: "2026-11-08T16:36:03", ...regras });
+    vi.mocked(getConfiguracao).mockResolvedValue({ modelo: true, cor: true, prisma: false, servicos: false, entradaDiretoCamera: true, alteradoPorId: 1, alteradoEm: "2026-11-08T16:36:03", ...regras });
 
   it("com o prisma obrigatório mostra o campo, pede no rodapé e envia o prisma", async () => {
     configurar({ prisma: true });

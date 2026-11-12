@@ -11,7 +11,7 @@ vi.mock("@/contexts/CurrentUserContext", () => ({ useCurrentUser: () => sessao.a
 
 import { ConfiguracoesPage } from "./ConfiguracoesPage";
 
-const GRAVADA = { modelo: true, cor: true, prisma: false, alteradoPorId: null, alteradoEm: null };
+const GRAVADA = { modelo: true, cor: true, prisma: false, servicos: false, entradaDiretoCamera: true, alteradoPorId: null, alteradoEm: null };
 
 beforeEach(() => {
   vi.clearAllMocks();

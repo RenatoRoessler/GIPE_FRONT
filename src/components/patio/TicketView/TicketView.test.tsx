@@ -128,7 +128,7 @@ beforeEach(() => {
   vi.mocked(listPatio).mockReset();
   vi.mocked(consultarComprovante).mockReset().mockResolvedValue(comprovante);
   // Padrão da empresa: prisma desligado.
-  vi.mocked(getConfiguracao).mockReset().mockResolvedValue({ modelo: true, cor: true, prisma: false, alteradoPorId: null, alteradoEm: null });
+  vi.mocked(getConfiguracao).mockReset().mockResolvedValue({ modelo: true, cor: true, prisma: false, servicos: false, entradaDiretoCamera: true, alteradoPorId: null, alteradoEm: null });
   vi.mocked(listQuadros)
     .mockReset()
     .mockResolvedValue([QUADRO] as never);
@@ -325,7 +325,7 @@ describe("TicketView: popup", () => {
 
 describe("TicketView: prisma", () => {
   const empresaComPrisma = () =>
-    vi.mocked(getConfiguracao).mockResolvedValue({ modelo: true, cor: true, prisma: true, alteradoPorId: null, alteradoEm: null });
+    vi.mocked(getConfiguracao).mockResolvedValue({ modelo: true, cor: true, prisma: true, servicos: false, entradaDiretoCamera: true, alteradoPorId: null, alteradoEm: null });
 
   it("com a empresa sem prisma e o veículo sem prisma, o item não aparece", async () => {
     abrir();

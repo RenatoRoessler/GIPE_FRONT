@@ -35,6 +35,7 @@ describe("SideNav", () => {
       "Entrada de Veículos",
       "Saída de Veículos",
       "Conferência de pátio",
+      "Serviços",
       "Financeiro",
       "Caixa",
       "Faturas",
@@ -90,7 +91,7 @@ describe("SideNav: grupos", () => {
   it("o Administrador vê Operação, Financeiro e Configurações, nessa ordem, cada um com os seus itens", () => {
     renderWithTheme(<SideNav />);
 
-    expect(nomesDoGrupo("Operação")).toEqual(["Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio"]);
+    expect(nomesDoGrupo("Operação")).toEqual(["Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio", "Serviços"]);
     expect(nomesDoGrupo("Financeiro")).toEqual(["Financeiro", "Caixa", "Faturas", "Notas Fiscais"]);
     expect(nomesDoGrupo("Configurações")).toEqual(["Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]);
     const titulos = Array.from(document.querySelectorAll('nav[aria-label="Menu lateral"] [id]')).map((titulo) => titulo.textContent);
@@ -120,7 +121,7 @@ describe("SideNav: grupos", () => {
     sessao.atual = { user: { name: "Beto", perfil: 4 }, isLoading: false };
     renderWithTheme(<SideNav />);
 
-    expect(nomesDoGrupo("Operação")).toEqual(["Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio"]);
+    expect(nomesDoGrupo("Operação")).toEqual(["Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio", "Serviços"]);
     expect(nomesDoGrupo("Financeiro")).toEqual(["Caixa"]);
     expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
   });

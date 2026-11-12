@@ -27,13 +27,19 @@ export const AREA = {
   Carimbo: "carimbo",
   // Veículos carimbados pela conveniada que ainda estão no pátio dos estacionamentos com convênio.
   PatioConveniada: "patio-conveniada",
+  // Catálogo e fila de serviços (lava-rápido): ver o catálogo e a fila e trocar o status de um serviço.
+  Servicos: "servicos",
+  // Cadastrar, editar e inativar serviços do catálogo.
+  ServicosCatalogo: "servicos.catalogo",
+  // Acrescentar serviços a um veículo no pátio e cancelar os que o cliente desistiu.
+  ServicosPatio: "servicos.patio",
 } as const;
 export type Area = (typeof AREA)[keyof typeof AREA];
 
 // Permissão por módulo (tela de permissões): quando existir, substitui a regra padrão da área.
 export type PermissoesPorModulo = Partial<Record<Area, readonly PerfilUsuario[]>>;
 
-const { Administrador, Gerente, Caixa, Manobrista, Financeiro, AdministradorConveniada, GerenteConveniada, UsuarioConveniada } =
+const { Administrador, Gerente, Caixa, Manobrista, Financeiro, Lavador, AdministradorConveniada, GerenteConveniada, UsuarioConveniada } =
   PERFIL_USUARIO;
 
 const TODOS: readonly PerfilUsuario[] = Object.values(PERFIL_USUARIO);
@@ -63,6 +69,9 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.QuadroChaves]: [Administrador, Gerente],
   [AREA.Carimbo]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
   [AREA.PatioConveniada]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
+  [AREA.Servicos]: [Administrador, Gerente, Caixa, Manobrista, Lavador],
+  [AREA.ServicosCatalogo]: [Administrador, Gerente],
+  [AREA.ServicosPatio]: [Administrador, Gerente, Caixa, Manobrista],
 };
 
 // Sem perfil conhecido, só o acesso mínimo: o Início (e, fora das áreas, a troca da própria senha e o sair).
@@ -94,6 +103,7 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/quadros-chaves", AREA.QuadroChaves],
   ["/carimbo", AREA.Carimbo],
   ["/patio-conveniada", AREA.PatioConveniada],
+  ["/servicos", AREA.Servicos],
 ];
 
 // Rotas da área logada abertas a qualquer usuário autenticado.

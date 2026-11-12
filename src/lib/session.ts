@@ -24,6 +24,7 @@ const PERFIL_POR_ROLE: Record<string, PerfilUsuario> = {
   GerenteConveniada: PERFIL_USUARIO.GerenteConveniada,
   UsuarioConveniada: PERFIL_USUARIO.UsuarioConveniada,
   Financeiro: PERFIL_USUARIO.Financeiro,
+  Lavador: PERFIL_USUARIO.Lavador,
 };
 
 function perfilDeUmaRole(role: unknown): PerfilUsuario | null {

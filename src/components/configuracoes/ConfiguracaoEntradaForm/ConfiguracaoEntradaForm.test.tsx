@@ -10,7 +10,7 @@ vi.mock("@/lib/api/services/configuracao", () => servico);
 
 import { ConfiguracaoEntradaForm } from "./ConfiguracaoEntradaForm";
 
-const PADRAO: Configuracao = { modelo: true, cor: true, prisma: false, alteradoPorId: null, alteradoEm: null };
+const PADRAO: Configuracao = { modelo: true, cor: true, prisma: false, servicos: false, entradaDiretoCamera: true, alteradoPorId: null, alteradoEm: null };
 
 function renderizar(initial: Configuracao = PADRAO, podeEditar = true) {
   return renderWithProviders(<ConfiguracaoEntradaForm initial={initial} podeEditar={podeEditar} />);
@@ -56,13 +56,46 @@ describe("ConfiguracaoEntradaForm", () => {
     expect(screen.getByRole("button", { name: "Salvar" })).toBeDisabled();
   });
 
+  it("salva preservando as opções que a tela não edita (serviços e câmera direta)", async () => {
+    servico.updateConfiguracao.mockResolvedValue(undefined);
+    renderizar({ ...PADRAO, servicos: true, entradaDiretoCamera: false });
+    await userEvent.click(chave("Cor obrigatória"));
+    await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() =>
+      expect(servico.updateConfiguracao).toHaveBeenCalledWith({ modelo: true, cor: false, prisma: false, servicos: true, entradaDiretoCamera: false }),
+    );
+  });
+
+  it("ligar Serviços habilita Salvar e envia servicos: true", async () => {
+    servico.updateConfiguracao.mockResolvedValue(undefined);
+    renderizar({ ...PADRAO, entradaDiretoCamera: false });
+    expect(chave("Serviços (lava-rápido)")).toHaveAttribute("aria-checked", "false");
+    await userEvent.click(chave("Serviços (lava-rápido)"));
+    await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() =>
+      expect(servico.updateConfiguracao).toHaveBeenCalledWith({ modelo: true, cor: true, prisma: false, servicos: true, entradaDiretoCamera: false }),
+    );
+  });
+
+  it("mostra Serviços ligado quando a empresa já o usa e desliga ao salvar", async () => {
+    servico.updateConfiguracao.mockResolvedValue(undefined);
+    renderizar({ ...PADRAO, servicos: true });
+    expect(chave("Serviços (lava-rápido)")).toHaveAttribute("aria-checked", "true");
+    await userEvent.click(chave("Serviços (lava-rápido)"));
+    await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() => expect(servico.updateConfiguracao).toHaveBeenCalledWith(expect.objectContaining({ servicos: false })));
+  });
+
   it("salva os três campos, confirma e deixa de ter alterações", async () => {
     servico.updateConfiguracao.mockResolvedValue(undefined);
     renderizar();
     await userEvent.click(chave("Prisma obrigatório"));
     await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
 
-    await waitFor(() => expect(servico.updateConfiguracao).toHaveBeenCalledWith({ modelo: true, cor: true, prisma: true }));
+    await waitFor(() => expect(servico.updateConfiguracao).toHaveBeenCalledWith({ modelo: true, cor: true, prisma: true, servicos: false, entradaDiretoCamera: true }));
     expect(await screen.findByText("Configuração salva.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Salvar" })).toBeDisabled();
     expect(chave("Prisma obrigatório")).toHaveAttribute("aria-checked", "true");

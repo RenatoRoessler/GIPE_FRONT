@@ -4,13 +4,13 @@ import { describe, expect, it } from "vitest";
 import { PERFIL_USUARIO, type PerfilUsuario } from "@/types/usuario";
 import { AREA, areaDaRota, podeAcessar, ROTAS_SEM_AREA, type Area } from "./permissoes";
 
-const { Administrador, Gerente, Caixa, Manobrista, Financeiro, AdministradorConveniada, GerenteConveniada, UsuarioConveniada } =
+const { Administrador, Gerente, Caixa, Manobrista, Financeiro, Lavador, AdministradorConveniada, GerenteConveniada, UsuarioConveniada } =
   PERFIL_USUARIO;
 
-const TODOS: PerfilUsuario[] = [Administrador, Gerente, Caixa, Manobrista, Financeiro, AdministradorConveniada, GerenteConveniada, UsuarioConveniada];
+const TODOS: PerfilUsuario[] = [Administrador, Gerente, Caixa, Manobrista, Financeiro, Lavador, AdministradorConveniada, GerenteConveniada, UsuarioConveniada];
 
 const PERMITIDOS: Record<Area, PerfilUsuario[]> = {
-  [AREA.Inicio]: [Administrador, Gerente, Caixa, Manobrista, Financeiro],
+  [AREA.Inicio]: [Administrador, Gerente, Caixa, Manobrista, Financeiro, Lavador],
   [AREA.Patio]: [Administrador, Gerente, Caixa, Manobrista],
   [AREA.Caixa]: [Administrador, Gerente, Caixa, Manobrista],
   [AREA.CaixaSangria]: [Administrador, Gerente, Caixa],
@@ -27,6 +27,9 @@ const PERMITIDOS: Record<Area, PerfilUsuario[]> = {
   [AREA.QuadroChaves]: [Administrador, Gerente],
   [AREA.Carimbo]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
   [AREA.PatioConveniada]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
+  [AREA.Servicos]: [Administrador, Gerente, Caixa, Manobrista, Lavador],
+  [AREA.ServicosCatalogo]: [Administrador, Gerente],
+  [AREA.ServicosPatio]: [Administrador, Gerente, Caixa, Manobrista],
 };
 
 describe("podeAcessar", () => {
@@ -78,6 +81,8 @@ describe("areaDaRota", () => {
     expect(areaDaRota("/carimbo/qualquer")).toBe(AREA.Carimbo);
     expect(areaDaRota("/patio-conveniada")).toBe(AREA.PatioConveniada);
     expect(areaDaRota("/patio-conveniada/qualquer")).toBe(AREA.PatioConveniada);
+    expect(areaDaRota("/servicos")).toBe(AREA.Servicos);
+    expect(areaDaRota("/servicos/qualquer")).toBe(AREA.Servicos);
   });
 
   it("o histórico de caixas é uma área própria, o resto do caixa não", () => {

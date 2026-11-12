@@ -72,7 +72,7 @@ describe("UsuariosList", () => {
   });
 
   it("marca a linha inativa e mostra perfil desconhecido", async () => {
-    listar.mockResolvedValue([usuario({ usuarioId: 3, nome: "Zé", email: "ze@exemplo.com", perfil: 9, perfilDescricao: "Auditor", ativo: false })]);
+    listar.mockResolvedValue([usuario({ usuarioId: 3, nome: "Zé", email: "ze@exemplo.com", perfil: 99, perfilDescricao: "Auditor", ativo: false })]);
     renderWithProviders(<UsuariosList {...handlers} />);
     expect(await screen.findByText("Auditor")).toBeInTheDocument();
     expect(screen.getByText("Zé").closest("tr")).toHaveAttribute("data-inativo", "true");

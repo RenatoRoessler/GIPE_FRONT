@@ -1,7 +1,7 @@
 import { AREA, podeAcessar, type Area } from "@/lib/permissoes";
 import type { PerfilUsuario } from "@/types/usuario";
 
-export type NavIconId = "dashboard" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "company" | "settings" | "invoice" | "finance" | "keys" | "agreement" | "stamp" | "checklist" | "stampedYard" | "bill";
+export type NavIconId = "dashboard" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "company" | "settings" | "invoice" | "finance" | "keys" | "agreement" | "stamp" | "checklist" | "stampedYard" | "bill" | "services";
 
 // Ações do menu que abrem um modal por cima da tela atual, em vez de levar a uma página.
 export type NavAction = "entrada" | "saida";
@@ -54,6 +54,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Entrada de Veículos", shortLabel: "Entrada", acao: "entrada", icon: "vehicleIn", area: AREA.Patio, grupo: "operacao" },
   { label: "Saída de Veículos", shortLabel: "Saída", acao: "saida", icon: "vehicleOut", area: AREA.Patio, grupo: "operacao" },
   { label: "Conferência de pátio", shortLabel: "Conferência", href: "/conferencia-patio", icon: "checklist", area: AREA.Patio, grupo: "operacao" },
+  { label: "Serviços", shortLabel: "Serviços", href: "/servicos", icon: "services", area: AREA.Servicos, grupo: "operacao" },
   { label: "Financeiro", shortLabel: "Financeiro", href: "/financeiro", icon: "finance", area: AREA.Financeiro, grupo: "financeiro" },
   { label: "Caixa", shortLabel: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa, grupo: "financeiro" },
   { label: "Faturas", shortLabel: "Faturas", href: "/faturas", icon: "bill", area: AREA.Faturas, grupo: "financeiro" },

@@ -25,6 +25,10 @@ export const CONTEUDO_MODULOS: Record<string, ConteudoModulo> = {
     texto:
       "Serve para conferir, placa a placa, se os veículos que o sistema diz estar no pátio estão mesmo lá. Você resolve as diferenças na hora e o resultado fica registrado.",
   },
+  "/servicos": {
+    texto:
+      "Cuida dos serviços do lava-rápido: o catálogo com preço por categoria de veículo e a fila de quem executa. Cada serviço passa de aguardando a em execução e a pronto, e dá para cancelar o que o cliente desistiu.",
+  },
   "/financeiro": {
     texto:
       "Reúne o fluxo de caixa do período: estacionamento rotativo, mensalidades e lançamentos. Também é onde você cadastra categorias de receita e despesa e lança o que foi pago.",

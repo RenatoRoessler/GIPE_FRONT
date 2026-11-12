@@ -35,7 +35,7 @@ describe("MenuSheet: grupos", () => {
 
     const nav = screen.getByRole("navigation", { name: "Outras telas", ...opcoes });
     expect(within(nav).getAllByRole("listitem", opcoes)[0]).toHaveTextContent("Visão Geral");
-    expect(nomesDoGrupo("Operação")).toEqual(["Conferência de pátio"]);
+    expect(nomesDoGrupo("Operação")).toEqual(["Conferência de pátio", "Serviços"]);
     expect(nomesDoGrupo("Financeiro")).toEqual(["Financeiro", "Faturas", "Notas Fiscais"]);
     expect(nomesDoGrupo("Configurações")).toEqual(["Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]);
   });
