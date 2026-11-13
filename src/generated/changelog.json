@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.437",
+      "type": "feat",
+      "scope": "servicos",
+      "title": "melhora o layout dos serviços no ticket do pátio",
+      "description": "No ticket do veículo, o cartão de serviços agora mostra cada serviço com\nstatus e valor, o subtotal e o botão para adicionar. O valor até agora\npassa a mostrar a divisão entre estadia e serviços e, havendo serviço\nainda não pronto, um aviso aparece acima da saída sem bloquear o registro.\n\n- Adicionar serviços abre uma folha com busca, duração aproximada, preço\n  da categoria do veículo (ou \"Grátis\") e o total no rodapé.\n- O detalhe do serviço permite trocar o status e remover o serviço que\n  ainda está na fila, informando o motivo.\n- O comprovante de entrada do cliente mostra estadia e serviços e o\n  cartão \"Seus serviços\" com o andamento, quando o sistema informar os\n  serviços do veículo.\n- Os status passam a se chamar \"Na fila\", \"Em andamento\" e \"Pronto\" em\n  todas as telas, inclusive na fila do lavador.\n- A troca de status aparece na hora no ticket e volta atrás se falhar.",
+      "date": "2026-11-13T09:31:21-03:00"
+    },
+    {
       "version": "1.0.433",
       "type": "feat",
       "scope": "servicos",
