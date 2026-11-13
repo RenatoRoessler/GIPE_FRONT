@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.439",
+      "type": "feat",
+      "scope": "comprovante",
+      "title": "mostra a próxima faixa de valor no comprovante do cliente",
+      "description": "O comprovante público agora informa quando o valor muda para a faixa\nseguinte e quanto passa a ser (ex.: \"Próxima faixa às 09:43: R$ 365,00\"),\nusando o campo proximaFaixa devolvido pela consulta. Sem o campo ou sem\npróxima faixa, nada é exibido.",
+      "date": "2026-11-13T16:16:01-03:00"
+    },
+    {
       "version": "1.0.437",
       "type": "feat",
       "scope": "servicos",
