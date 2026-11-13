@@ -142,6 +142,12 @@ export type ReciboCliente = {
 };
 
 // GET /Patio/comprovante/cliente?token=...
+export type ProximaFaixa = {
+  // ISO sem fuso.
+  dataHora: string;
+  valor: number;
+};
+
 export type ComprovanteCliente = {
   cnpj: string;
   razaoSocial: string;
@@ -161,6 +167,8 @@ export type ComprovanteCliente = {
   sequencial: number;
   token: string;
   valorAtual: number;
+  // Quando o valor muda para a faixa seguinte da tabela; ausente/nulo se não houver próxima faixa. Valor em reais.
+  proximaFaixa?: ProximaFaixa | null;
   // [A CONFIRMAR com o back] Ausentes enquanto o comprovante público não devolver os serviços do veículo.
   servicos?: ServicoDoComprovante[];
   // Em reais; soma dos serviços não cancelados.

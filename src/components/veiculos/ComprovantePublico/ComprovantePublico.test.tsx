@@ -84,6 +84,21 @@ describe("ComprovantePublico", () => {
     expect(screen.queryByRole("region", { name: "Seus serviços" })).not.toBeInTheDocument();
   });
 
+  it("mostra quando e para quanto o valor muda na próxima faixa", async () => {
+    vi.mocked(consultarComprovante).mockResolvedValue({ ...comprovante, proximaFaixa: { dataHora: "2026-11-13T09:43:39.015683", valor: 365 } });
+    renderWithProviders(<ComprovantePublico token="227SUSYV" />);
+
+    expect(await screen.findByText(/Próxima faixa às 09:43/)).toHaveTextContent(/R\$\s*365,00/);
+  });
+
+  it("sem próxima faixa, não mostra a linha", async () => {
+    vi.mocked(consultarComprovante).mockResolvedValue({ ...comprovante, proximaFaixa: null });
+    renderWithProviders(<ComprovantePublico token="227SUSYV" />);
+
+    await screen.findByRole("heading", { name: "Estacionamento Central" });
+    expect(screen.queryByText(/Próxima faixa/)).not.toBeInTheDocument();
+  });
+
   it("com a lista de serviços vazia, também fica como antes", async () => {
     vi.mocked(consultarComprovante).mockResolvedValue({ ...comprovante, servicos: [] });
     renderWithProviders(<ComprovantePublico token="227SUSYV" />);

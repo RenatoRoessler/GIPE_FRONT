@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
-import { formatDateTime } from "@/components/caixa/format";
+import { formatDateTime, formatTime } from "@/components/caixa/format";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { formatCentavos } from "@/components/servicos/format";
@@ -147,6 +147,11 @@ function Comprovante({ comprovante }: { comprovante: ComprovanteCliente }) {
             Valor até agora: <strong>{formatBRL(comprovante.valorAtual)}</strong>
           </span>
         </Elapsed>
+        {comprovante.proximaFaixa && (
+          <Muted>
+            Próxima faixa às {formatTime(comprovante.proximaFaixa.dataHora)}: <strong>{formatBRL(comprovante.proximaFaixa.valor)}</strong>
+          </Muted>
+        )}
         {divisao && (
           <Composicao aria-label="Composição do valor">
             <div>
