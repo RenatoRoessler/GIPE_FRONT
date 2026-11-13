@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SERVICOS_DO_VEICULO_KEY, servicosDoVeiculoKey } from "./servicosKeys";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
-import { formatCentavos, formatDuracao, formatTempoPermitido } from "./format";
+import { formatCentavos, formatCentavosOuGratis, formatDuracao, formatDuracaoNatural, formatTempoPermitido } from "./format";
 
 describe("formatCentavos", () => {
   it("mostra reais com vírgula", () => {
@@ -34,5 +34,26 @@ describe("chaves de consulta", () => {
   it("os serviços do veículo ficam sob a chave do pátio, para a invalidação do pátio os alcançar", () => {
     expect(servicosDoVeiculoKey(30, false).slice(0, PATIO_QUERY_KEY.length)).toEqual([...PATIO_QUERY_KEY]);
     expect(servicosDoVeiculoKey(30, true)).toEqual([...SERVICOS_DO_VEICULO_KEY, 30, true]);
+  });
+});
+
+describe("formatDuracaoNatural", () => {
+  it("diz minutos abaixo de uma hora e horas a partir dela", () => {
+    expect(formatDuracaoNatural(40)).toBe("cerca de 40 min");
+    expect(formatDuracaoNatural(60)).toBe("cerca de 1h");
+    expect(formatDuracaoNatural(90)).toBe("cerca de 1h30");
+    expect(formatDuracaoNatural(125)).toBe("cerca de 2h05");
+  });
+
+  it("sem duração, devolve vazio", () => {
+    expect(formatDuracaoNatural(null)).toBe("");
+    expect(formatDuracaoNatural(0)).toBe("");
+  });
+});
+
+describe("formatCentavosOuGratis", () => {
+  it("zero é Grátis e o resto é valor", () => {
+    expect(formatCentavosOuGratis(0)).toBe("Grátis");
+    expect(formatCentavosOuGratis(3000)).toBe("R$ 30,00");
   });
 });

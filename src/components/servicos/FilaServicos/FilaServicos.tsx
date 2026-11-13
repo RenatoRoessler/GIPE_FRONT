@@ -35,8 +35,8 @@ import {
 } from "./FilaServicos.styles";
 
 const VAZIO_DA_COLUNA: Record<StatusDaFila, string> = {
-  [STATUS_SERVICO.Aguardando]: "Nenhum serviço aguardando.",
-  [STATUS_SERVICO.EmExecucao]: "Nenhum serviço em execução.",
+  [STATUS_SERVICO.Aguardando]: "Nenhum serviço na fila.",
+  [STATUS_SERVICO.EmExecucao]: "Nenhum serviço em andamento.",
   [STATUS_SERVICO.Pronto]: "Nenhum serviço pronto.",
 };
 

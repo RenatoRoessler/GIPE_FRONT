@@ -16,3 +16,17 @@ export function formatDuracao(minutos: number | null): string {
 export function formatTempoPermitido(minutos: number | null): string {
   return minutos === null ? "Sem tempo permitido" : formatDuracao(minutos);
 }
+
+// 40 -> "cerca de 40 min"; 60 -> "cerca de 1h"; 90 -> "cerca de 1h30". Sem valor, vazio: quem usa omite o trecho.
+export function formatDuracaoNatural(minutos: number | null): string {
+  if (minutos === null || minutos <= 0) return "";
+  if (minutos < 60) return `cerca de ${minutos} min`;
+  const horas = Math.floor(minutos / 60);
+  const resto = minutos % 60;
+  return resto === 0 ? `cerca de ${horas}h` : `cerca de ${horas}h${String(resto).padStart(2, "0")}`;
+}
+
+// Serviço sem custo aparece como "Grátis", não como "R$ 0,00".
+export function formatCentavosOuGratis(centavos: number): string {
+  return centavos === 0 ? "Grátis" : formatCentavos(centavos);
+}

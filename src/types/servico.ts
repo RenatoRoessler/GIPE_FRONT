@@ -53,6 +53,20 @@ export interface ServicoDoVeiculo {
   tempoPermitidoMinutos: number | null;
   status: StatusServico;
   motivoCancelamento: string | null;
+  // O back pode não mandar estes quatro: ausente é nulo e a tela omite o trecho que depende deles.
+  adicionadoEm: string | null;
+  adicionadoPor: string | null;
+  previsaoEm: string | null;
+  prontoEm: string | null;
+}
+
+// Um serviço do veículo como o cliente o vê no comprovante público (sem ids internos nem cancelados).
+export interface ServicoDoComprovante {
+  nome: string;
+  valorCentavos: number;
+  status: StatusServico;
+  previsaoEm: string | null;
+  prontoEm: string | null;
 }
 
 export interface ServicosDoVeiculo {

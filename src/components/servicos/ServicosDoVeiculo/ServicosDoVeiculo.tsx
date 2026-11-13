@@ -1,21 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { formatTime } from "@/components/caixa/format";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Switch } from "@/components/ui/Switch";
+import { rotuloCategoria } from "@/components/patio/patio";
 import { useCan } from "@/hooks/useCan";
 import { AREA } from "@/lib/permissoes";
-import { STATUS_SERVICO } from "@/types/servico";
 import { AcrescentarServicosModal } from "../AcrescentarServicosModal";
-import { CancelarServicoDialog } from "../CancelarServicoDialog";
-import { formatCentavos, formatDuracao } from "../format";
-import { podeCancelar, STATUS_ROTULO, STATUS_TOM } from "../status";
+import { formatCentavos } from "../format";
+import { resumirServicos } from "../resumo";
+import { ServicoDetalheSheet } from "../ServicoDetalheSheet";
+import { ServicoLinha } from "../ServicoLinha";
 import { useServicosDoVeiculo, useServicosHabilitados } from "../useServicosDoVeiculo";
-import { Cabecalho, Cancelar, Linha, Lista, Motivo, Nome, Principal, Resumo, Secao, Titulo, Valor, Vazio } from "./ServicosDoVeiculo.styles";
+import { Adicionar, BotaoVazio, Cabecalho, Lista, Secao, Subtotal, Titulo } from "./ServicosDoVeiculo.styles";
 
 export interface ServicosDoVeiculoProps {
   idPatio: number;
@@ -24,30 +22,37 @@ export interface ServicosDoVeiculoProps {
   categoria: number;
   // Recebe o aviso de sucesso (o ticket o mostra no seu Toast).
   onAviso: (mensagem: string) => void;
+  // Diz ao ticket quando uma folha de serviços está aberta, para ele não se atualizar debaixo dela.
+  onFolhaAberta?: (aberta: boolean) => void;
 }
 
-// Serviços do veículo dentro do ticket do Pátio: o que foi pedido, quanto vale e até quando a permanência é livre.
-// Só existe quando a empresa liga os serviços na configuração.
-export function ServicosDoVeiculo({ idPatio, placa, categoria, onAviso }: ServicosDoVeiculoProps) {
+function Gota() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z" />
+    </svg>
+  );
+}
+
+// Serviços do veículo dentro do ticket do Pátio: o que foi pedido, em que pé está e quanto vale. Só existe quando a
+// empresa liga os serviços na configuração. Cancelados não aparecem: o ticket mostra o que vai ser cobrado.
+export function ServicosDoVeiculo({ idPatio, placa, categoria, onAviso, onFolhaAberta }: ServicosDoVeiculoProps) {
   const habilitado = useServicosHabilitados();
   const podeGerir = useCan(AREA.ServicosPatio);
-  const [mostrarCancelados, setMostrarCancelados] = useState(false);
+  const podeAgir = useCan(AREA.Servicos);
   const [acrescentando, setAcrescentando] = useState(false);
-  const [cancelando, setCancelando] = useState<{ patioServicoId: number; nomeServico: string } | null>(null);
-  const servicos = useServicosDoVeiculo(idPatio, mostrarCancelados, habilitado);
+  const [detalheId, setDetalheId] = useState<number | null>(null);
+  const servicos = useServicosDoVeiculo(idPatio, false, habilitado);
+  const { ativos, subtotalCentavos } = resumirServicos(servicos.data);
+  const detalhe = ativos.find((servico) => servico.id === detalheId) ?? null;
+  const folhaAberta = acrescentando || detalhe !== null;
+
+  useEffect(() => {
+    onFolhaAberta?.(folhaAberta);
+    return () => onFolhaAberta?.(false);
+  }, [folhaAberta, onFolhaAberta]);
 
   if (!habilitado) return null;
-
-  const dados = servicos.data;
-  const resumo = dados
-    ? [
-        `Serviços ${formatCentavos(dados.valorServicosCentavos)}`,
-        dados.tempoPermitidoMinutos === null ? null : `tempo permitido ${formatDuracao(dados.tempoPermitidoMinutos)}`,
-        dados.livreAte ? `livre até ${formatTime(dados.livreAte)}` : null,
-      ]
-        .filter(Boolean)
-        .join(" · ")
-    : null;
 
   function corpo() {
     if (servicos.isPending) {
@@ -67,67 +72,57 @@ export function ServicosDoVeiculo({ idPatio, placa, categoria, onAviso }: Servic
         </>
       );
     }
-    if (servicos.data.servicos.length === 0) {
-      return <Vazio>Nenhum serviço neste veículo.</Vazio>;
+    if (ativos.length === 0) {
+      return podeGerir ? (
+        <BotaoVazio type="button" onClick={() => setAcrescentando(true)}>
+          <span aria-hidden="true">+</span> Adicionar serviço
+        </BotaoVazio>
+      ) : null;
     }
     return (
-      <Lista aria-label={`Serviços de ${placa}`}>
-        {servicos.data.servicos.map((servico) => {
-          const cancelado = servico.status === STATUS_SERVICO.Cancelado;
-          return (
-            <Linha key={servico.id} $cancelado={cancelado}>
-              <Principal>
-                <Nome $cancelado={cancelado}>{servico.nome}</Nome>
-                <StatusBadge tone={STATUS_TOM[servico.status]}>{STATUS_ROTULO[servico.status]}</StatusBadge>
-                <Valor>{formatCentavos(servico.valorCentavos)}</Valor>
-              </Principal>
-              {cancelado && servico.motivoCancelamento && <Motivo>Motivo: {servico.motivoCancelamento}</Motivo>}
-              {podeGerir && podeCancelar(servico.status) && (
-                <Cancelar type="button" onClick={() => setCancelando({ patioServicoId: servico.id, nomeServico: servico.nome })}>
-                  Cancelar serviço
-                </Cancelar>
-              )}
-            </Linha>
-          );
-        })}
-      </Lista>
+      <>
+        <Lista aria-label={`Serviços de ${placa}`}>
+          {ativos.map((servico) => (
+            <ServicoLinha key={servico.id} servico={servico} onAcoes={podeAgir ? (item) => setDetalheId(item.id) : undefined} />
+          ))}
+        </Lista>
+        <Subtotal>
+          Subtotal serviços <b>{formatCentavos(subtotalCentavos)}</b>
+        </Subtotal>
+      </>
     );
   }
+
+  const comServicos = ativos.length > 0;
 
   return (
     <Secao aria-label="Serviços do veículo">
       <Cabecalho>
-        <Titulo>Serviços</Titulo>
-        {podeGerir && (
-          <Button variant="secondary" size="sm" onClick={() => setAcrescentando(true)}>
-            Acrescentar serviços
-          </Button>
+        <Titulo>
+          <Gota />
+          {comServicos ? `Serviços · ${ativos.length}` : "Serviços adicionais"}
+        </Titulo>
+        {podeGerir && comServicos && (
+          <Adicionar type="button" onClick={() => setAcrescentando(true)}>
+            + Adicionar
+          </Adicionar>
         )}
       </Cabecalho>
-      {resumo && <Resumo>{resumo}</Resumo>}
       {corpo()}
-      <Switch label="Mostrar cancelados" checked={mostrarCancelados} onCheckedChange={setMostrarCancelados} />
       {acrescentando && (
         <AcrescentarServicosModal
           idPatio={idPatio}
+          placa={placa}
           categoria={categoria}
+          categoriaRotulo={rotuloCategoria(categoria)}
           onClose={() => setAcrescentando(false)}
           onAcrescentado={(quantidade) => {
             setAcrescentando(false);
-            onAviso(quantidade === 1 ? "Serviço acrescentado." : "Serviços acrescentados.");
+            onAviso(quantidade === 1 ? "Serviço adicionado." : "Serviços adicionados.");
           }}
         />
       )}
-      {cancelando && (
-        <CancelarServicoDialog
-          item={{ idPatio, placa, ...cancelando }}
-          onClose={() => setCancelando(null)}
-          onCancelado={() => {
-            setCancelando(null);
-            onAviso("Serviço cancelado.");
-          }}
-        />
-      )}
+      {detalhe && <ServicoDetalheSheet idPatio={idPatio} placa={placa} servico={detalhe} onClose={() => setDetalheId(null)} onAviso={onAviso} />}
     </Secao>
   );
 }

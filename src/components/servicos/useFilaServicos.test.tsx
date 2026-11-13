@@ -3,12 +3,12 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
-import type { ItemFila } from "@/types/servico";
+import type { ItemFila, ServicosDoVeiculo } from "@/types/servico";
 
 const servico = vi.hoisted(() => ({ listFila: vi.fn(), atualizarStatusServico: vi.fn() }));
 vi.mock("@/lib/api/services/servico", () => servico);
 
-import { filaServicosKey } from "./servicosKeys";
+import { filaServicosKey, servicosDoVeiculoKey } from "./servicosKeys";
 import { useAtualizarStatusServico } from "./useAtualizarStatusServico";
 import { INTERVALO_FILA_MS, useFilaServicos } from "./useFilaServicos";
 
@@ -153,5 +153,66 @@ describe("useAtualizarStatusServico", () => {
 
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ["servicos", "fila"] });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ["patio"] });
+  });
+
+  describe("serviços do veículo no ticket", () => {
+    const doVeiculo = (status: ServicosDoVeiculo["servicos"][number]["status"]): ServicosDoVeiculo => ({
+      valorServicosCentavos: 5000,
+      tempoPermitidoMinutos: null,
+      livreAte: null,
+      servicos: [1, 2].map((id) => ({
+        id,
+        servicoId: id,
+        nome: `Serviço ${id}`,
+        valorCentavos: 2500,
+        tempoPermitidoMinutos: null,
+        status: id === 1 ? status : 1,
+        motivoCancelamento: null,
+        adicionadoEm: null,
+        adicionadoPor: null,
+        previsaoEm: null,
+        prontoEm: null,
+      })),
+    });
+
+    const statusDe = (client: QueryClient, chave: ReturnType<typeof servicosDoVeiculoKey>) =>
+      client.getQueryData<ServicosDoVeiculo>(chave)?.servicos.map((linha) => [linha.id, linha.status]);
+
+    function prepararVeiculo() {
+      const client = prepararFila();
+      client.setQueryData(servicosDoVeiculoKey(31, false), doVeiculo(1));
+      client.setQueryData(servicosDoVeiculoKey(31, true), doVeiculo(1));
+      // Outro veículo não é tocado.
+      client.setQueryData(servicosDoVeiculoKey(99, false), doVeiculo(1));
+      return client;
+    }
+
+    it("muda o serviço na lista do veículo na hora, nas duas consultas, sem tocar em outro veículo", async () => {
+      servico.atualizarStatusServico.mockReturnValue(new Promise<void>(() => {}));
+      const client = prepararVeiculo();
+      const { result } = renderHook(() => useAtualizarStatusServico(), { wrapper: comCliente(client) });
+
+      act(() => {
+        result.current.mutate(troca);
+      });
+
+      await waitFor(() => expect(statusDe(client, servicosDoVeiculoKey(31, false))).toEqual([[1, 2], [2, 1]]));
+      expect(statusDe(client, servicosDoVeiculoKey(31, true))).toEqual([[1, 2], [2, 1]]);
+      expect(statusDe(client, servicosDoVeiculoKey(99, false))).toEqual([[1, 1], [2, 1]]);
+    });
+
+    it("se o back recusar, a lista do veículo volta ao que era", async () => {
+      servico.atualizarStatusServico.mockRejectedValue(new ApiError("network"));
+      servico.listFila.mockImplementation(() => new Promise(() => {}));
+      const client = prepararVeiculo();
+      const { result } = renderHook(() => useAtualizarStatusServico(), { wrapper: comCliente(client) });
+
+      await act(async () => {
+        await expect(result.current.mutateAsync(troca)).rejects.toBeInstanceOf(ApiError);
+      });
+
+      expect(statusDe(client, servicosDoVeiculoKey(31, false))).toEqual([[1, 1], [2, 1]]);
+      expect(statusDe(client, servicosDoVeiculoKey(31, true))).toEqual([[1, 1], [2, 1]]);
+    });
   });
 });

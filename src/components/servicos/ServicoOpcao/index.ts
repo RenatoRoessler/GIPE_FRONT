@@ -1,0 +1,1 @@
+export { ServicoOpcao } from "./ServicoOpcao";

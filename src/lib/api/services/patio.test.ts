@@ -18,6 +18,26 @@ describe("consultarComprovante", () => {
     expect(api.get).toHaveBeenCalledWith("/Patio/comprovante/cliente", { params: { token: "227SUSYV" } });
   });
 
+  it("converte os serviços do comprovante e deixa de fora o cancelado", async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      data: {
+        ...comprovante,
+        servicos: [
+          { nome: "Lavagem", valor: 30, status: 2 },
+          { nome: "Cera", valor: 80, status: 4 },
+        ],
+      },
+    });
+    await expect(consultarComprovante("227SUSYV")).resolves.toMatchObject({
+      servicos: [{ nome: "Lavagem", valorCentavos: 3000, status: 2, previsaoEm: null, prontoEm: null }],
+    });
+  });
+
+  it("sem serviços na resposta, devolve o comprovante sem o campo", async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: comprovante });
+    expect(await consultarComprovante("227SUSYV")).not.toHaveProperty("servicos");
+  });
+
   it.each([
     ["not_found", 404],
     ["validation", 400],
@@ -42,6 +62,13 @@ describe("consultarComprovantePorPlaca", () => {
     await expect(consultarComprovantePorPlaca("guid-da-empresa", "QQQ5Z8")).resolves.toEqual(porPlaca);
     expect(api.get).toHaveBeenCalledWith("/Patio/comprovante/cliente/placa", {
       params: { empresa: "guid-da-empresa", placa: "QQQ5Z8" },
+    });
+  });
+
+  it("converte os serviços também no comprovante pela placa", async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: { ...porPlaca, servicos: [{ nome: "Lavagem", valor: 30, status: 3, prontoEm: "2026-11-11T21:40:00" }] } });
+    await expect(consultarComprovantePorPlaca("guid", "QQQ5Z8")).resolves.toMatchObject({
+      servicos: [{ nome: "Lavagem", valorCentavos: 3000, status: 3, prontoEm: "2026-11-11T21:40:00" }],
     });
   });
 

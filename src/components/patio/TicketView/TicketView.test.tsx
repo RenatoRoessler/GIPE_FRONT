@@ -15,6 +15,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/api/services/patio", () => ({ listPatio: vi.fn(), consultarComprovante: vi.fn() }));
 vi.mock("@/lib/api/services/configuracao", () => ({ getConfiguracao: vi.fn(), updateConfiguracao: vi.fn() }));
 vi.mock("@/lib/api/services/quadroChaves", () => ({ listQuadros: vi.fn(), escolherQuadroChave: vi.fn() }));
+vi.mock("@/lib/api/services/servico", () => ({ listServicosDoVeiculo: vi.fn(), listServicos: vi.fn(), acrescentarServicos: vi.fn(), cancelarServico: vi.fn(), atualizarStatusServico: vi.fn(), listFila: vi.fn() }));
 vi.mock("@/contexts/CurrentUserContext", () => ({
   useCurrentUser: () => ({ user: { id: "x", name: "Renato", email: "r@e.com", perfil: 1 }, isLoading: false }),
 }));
@@ -62,6 +63,8 @@ vi.mock("@/components/quadros/GuardarChaveModal", () => ({
 import { getConfiguracao } from "@/lib/api/services/configuracao";
 import { consultarComprovante, listPatio } from "@/lib/api/services/patio";
 import { listQuadros } from "@/lib/api/services/quadroChaves";
+import { listServicosDoVeiculo } from "@/lib/api/services/servico";
+import { STATUS_SERVICO, type ServicoDoVeiculo } from "@/types/servico";
 import { TicketView } from "./TicketView";
 
 function veiculo(extra: Partial<PatioVeiculo> = {}): PatioVeiculo {
@@ -132,6 +135,7 @@ beforeEach(() => {
   vi.mocked(listQuadros)
     .mockReset()
     .mockResolvedValue([QUADRO] as never);
+  vi.mocked(listServicosDoVeiculo).mockReset();
 });
 
 describe("TicketView: dados", () => {
@@ -373,5 +377,94 @@ describe("TicketView: prisma", () => {
     await user.click(await screen.findByRole("button", { name: "Cancelar prisma" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Prisma" })).not.toBeInTheDocument());
     expect(screen.queryByText("Prisma atualizado.")).not.toBeInTheDocument();
+  });
+});
+
+describe("TicketView: serviços", () => {
+  const doVeiculo = (id: number, nome: string, status: ServicoDoVeiculo["status"]): ServicoDoVeiculo => ({
+    id,
+    servicoId: id,
+    nome,
+    valorCentavos: 2500,
+    tempoPermitidoMinutos: null,
+    status,
+    motivoCancelamento: null,
+    adicionadoEm: null,
+    adicionadoPor: null,
+    previsaoEm: null,
+    prontoEm: null,
+  });
+
+  function comServicos(servicos: ServicoDoVeiculo[], valorServicosCentavos = 5000) {
+    vi.mocked(getConfiguracao).mockResolvedValue({ modelo: true, cor: true, prisma: false, servicos: true, entradaDiretoCamera: true, alteradoPorId: null, alteradoEm: null });
+    vi.mocked(listServicosDoVeiculo).mockResolvedValue({ valorServicosCentavos, tempoPermitidoMinutos: null, livreAte: null, servicos });
+    // O valor até agora que o back devolve já inclui os serviços.
+    vi.mocked(consultarComprovante).mockResolvedValue({ ...comprovante, valorAtual: 90 });
+  }
+
+  it("mostra o total e como ele se divide entre estadia e serviços, e a saída leva o total", async () => {
+    comServicos([doVeiculo(1, "Lavagem", STATUS_SERVICO.EmExecucao), doVeiculo(2, "Aspiração", STATUS_SERVICO.Pronto)]);
+    abrir();
+
+    expect(await screen.findByText("R$ 90,00")).toBeInTheDocument();
+    expect(await screen.findByText("R$ 40,00 estadia + R$ 50,00 serviços")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Registrar saída · R$ 90,00" })).toBeInTheDocument();
+  });
+
+  it("avisa que há serviço pendente, sem bloquear a saída", async () => {
+    comServicos([doVeiculo(1, "Lavagem", STATUS_SERVICO.EmExecucao), doVeiculo(2, "Aspiração", STATUS_SERVICO.Pronto)]);
+    abrir();
+
+    expect(await screen.findByText("1 serviço ainda não está pronto.")).toHaveAttribute("role", "status");
+    expect(screen.getByRole("button", { name: /Registrar saída/ })).toBeEnabled();
+  });
+
+  it("no plural, conta os pendentes", async () => {
+    comServicos([doVeiculo(1, "Lavagem", STATUS_SERVICO.Aguardando), doVeiculo(2, "Aspiração", STATUS_SERVICO.EmExecucao)]);
+    abrir();
+
+    expect(await screen.findByText("2 serviços ainda não estão prontos.")).toBeInTheDocument();
+  });
+
+  it("com todos prontos, o aviso some", async () => {
+    comServicos([doVeiculo(1, "Lavagem", STATUS_SERVICO.Pronto)], 2500);
+    abrir();
+
+    await screen.findByText("R$ 65,00 estadia + R$ 25,00 serviços");
+    expect(screen.queryByText(/ainda não está|ainda não estão/)).not.toBeInTheDocument();
+  });
+
+  it("serviço cancelado não conta no aviso nem na divisão", async () => {
+    comServicos([doVeiculo(1, "Lavagem", STATUS_SERVICO.Cancelado)], 0);
+    abrir();
+
+    expect(await screen.findByText("R$ 90,00")).toBeInTheDocument();
+    expect(screen.queryByText(/estadia \+/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ainda não está|ainda não estão/)).not.toBeInTheDocument();
+  });
+
+  it("sem serviço no veículo, o valor aparece como antes", async () => {
+    comServicos([], 0);
+    abrir();
+
+    expect(await screen.findByText("R$ 90,00")).toBeInTheDocument();
+    expect(screen.queryByText(/estadia \+/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ainda não está|ainda não estão/)).not.toBeInTheDocument();
+  });
+
+  it("mensalista continua com Mensal, sem divisão do valor", async () => {
+    comServicos([doVeiculo(1, "Lavagem", STATUS_SERVICO.Aguardando)]);
+    abrir([veiculo({ mensalista: true })]);
+
+    expect(await screen.findByText("Mensal")).toBeInTheDocument();
+    expect(screen.queryByText(/estadia \+/)).not.toBeInTheDocument();
+  });
+
+  it("com os serviços desligados, nada de serviços é consultado", async () => {
+    abrir();
+    await screen.findByText("R$ 12,00");
+
+    expect(listServicosDoVeiculo).not.toHaveBeenCalled();
+    expect(screen.queryByText(/estadia \+/)).not.toBeInTheDocument();
   });
 });

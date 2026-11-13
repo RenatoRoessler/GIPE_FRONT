@@ -2,8 +2,8 @@ import type { StatusBadgeTone } from "@/components/ui/StatusBadge/StatusBadge.st
 import { STATUS_SERVICO, type StatusServico } from "@/types/servico";
 
 export const STATUS_ROTULO: Record<StatusServico, string> = {
-  [STATUS_SERVICO.Aguardando]: "Aguardando",
-  [STATUS_SERVICO.EmExecucao]: "Em execução",
+  [STATUS_SERVICO.Aguardando]: "Na fila",
+  [STATUS_SERVICO.EmExecucao]: "Em andamento",
   [STATUS_SERVICO.Pronto]: "Pronto",
   [STATUS_SERVICO.Cancelado]: "Cancelado",
 };
@@ -35,7 +35,7 @@ export function acaoDeStatus(status: StatusServico): AcaoDeStatus | null {
     case STATUS_SERVICO.EmExecucao:
       return { rotulo: "Marcar como pronto", destino: STATUS_SERVICO.Pronto, correcao: false };
     case STATUS_SERVICO.Pronto:
-      return { rotulo: "Voltar para em execução", destino: STATUS_SERVICO.EmExecucao, correcao: true };
+      return { rotulo: "Voltar para em andamento", destino: STATUS_SERVICO.EmExecucao, correcao: true };
     default:
       return null;
   }
@@ -50,9 +50,9 @@ export function podeCancelar(status: StatusServico): boolean {
 export function avisoDeStatus(destino: StatusServico): string {
   switch (destino) {
     case STATUS_SERVICO.Aguardando:
-      return "Serviço voltou para aguardando.";
+      return "Serviço voltou para a fila.";
     case STATUS_SERVICO.EmExecucao:
-      return "Serviço em execução.";
+      return "Serviço em andamento.";
     case STATUS_SERVICO.Pronto:
       return "Serviço pronto.";
     default:

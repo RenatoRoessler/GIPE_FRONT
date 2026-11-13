@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
@@ -54,6 +54,43 @@ describe("ComprovantePublico", () => {
     expect(screen.getByRole("img", { name: "QR code de saída do veículo" })).toBeInTheDocument();
     expect(screen.getByText("227SUSYV")).toBeInTheDocument();
     expect(screen.queryByText(/66\.?326/)).not.toBeInTheDocument();
+  });
+
+  it("com serviços, divide o valor em estadia e serviços e mostra o cartão de serviços", async () => {
+    vi.mocked(consultarComprovante).mockResolvedValue({
+      ...comprovante,
+      valorAtual: 90,
+      servicos: [
+        { nome: "Lavagem simples", valorCentavos: 3000, status: 2, previsaoEm: "2026-11-11T22:20:00", prontoEm: null },
+        { nome: "Aspiração interna", valorCentavos: 2000, status: 3, previsaoEm: null, prontoEm: "2026-11-11T21:40:00" },
+      ],
+    });
+    renderWithProviders(<ComprovantePublico token="227SUSYV" />);
+
+    const composicao = await screen.findByLabelText("Composição do valor");
+    expect(within(composicao).getByText("Estadia").nextElementSibling).toHaveTextContent("R$ 40,00");
+    expect(within(composicao).getByText("Serviços (2)").nextElementSibling).toHaveTextContent("R$ 50,00");
+    expect(screen.getByText(/R\$\s*90,00/)).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Seus serviços" })).toBeInTheDocument();
+    expect(screen.getByText("1 de 2 prontos")).toBeInTheDocument();
+  });
+
+  it("sem serviços, o comprovante fica como antes", async () => {
+    vi.mocked(consultarComprovante).mockResolvedValue(comprovante);
+    renderWithProviders(<ComprovantePublico token="227SUSYV" />);
+
+    await screen.findByRole("heading", { name: "Estacionamento Central" });
+    expect(screen.queryByLabelText("Composição do valor")).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Seus serviços" })).not.toBeInTheDocument();
+  });
+
+  it("com a lista de serviços vazia, também fica como antes", async () => {
+    vi.mocked(consultarComprovante).mockResolvedValue({ ...comprovante, servicos: [] });
+    renderWithProviders(<ComprovantePublico token="227SUSYV" />);
+
+    await screen.findByRole("heading", { name: "Estacionamento Central" });
+    expect(screen.queryByLabelText("Composição do valor")).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Seus serviços" })).not.toBeInTheDocument();
   });
 
   it("mostra a marca Murel no topo, acima do nome da empresa", async () => {

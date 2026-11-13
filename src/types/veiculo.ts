@@ -1,3 +1,5 @@
+import type { ServicoDoComprovante } from "./servico";
+
 // "Todas" (99) existe só na tabela de preço e não é categoria de veículo.
 export const CATEGORIA_VEICULO = {
   Moto: 1,
@@ -159,6 +161,10 @@ export type ComprovanteCliente = {
   sequencial: number;
   token: string;
   valorAtual: number;
+  // [A CONFIRMAR com o back] Ausentes enquanto o comprovante público não devolver os serviços do veículo.
+  servicos?: ServicoDoComprovante[];
+  // Em reais; soma dos serviços não cancelados.
+  valorServicos?: number;
 };
 
 // GET /Patio/comprovante/cliente/placa?empresa=...&placa=...: o mesmo comprovante, localizado pela placa; devolve também o prisma.

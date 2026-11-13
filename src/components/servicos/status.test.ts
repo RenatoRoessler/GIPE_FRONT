@@ -8,7 +8,7 @@ describe("status do serviço", () => {
       expect(STATUS_ROTULO[status]).toBeTruthy();
       expect(STATUS_TOM[status]).toBeTruthy();
     }
-    expect(STATUS_ROTULO[STATUS_SERVICO.EmExecucao]).toBe("Em execução");
+    expect(STATUS_ROTULO[STATUS_SERVICO.EmExecucao]).toBe("Em andamento");
   });
 
   it("a fila tem três colunas, sem o cancelado", () => {
@@ -18,7 +18,7 @@ describe("status do serviço", () => {
   it("a ação principal avança o serviço e Pronto só volta para em execução", () => {
     expect(acaoDeStatus(STATUS_SERVICO.Aguardando)).toEqual({ rotulo: "Iniciar", destino: 2, correcao: false });
     expect(acaoDeStatus(STATUS_SERVICO.EmExecucao)).toEqual({ rotulo: "Marcar como pronto", destino: 3, correcao: false });
-    expect(acaoDeStatus(STATUS_SERVICO.Pronto)).toEqual({ rotulo: "Voltar para em execução", destino: 2, correcao: true });
+    expect(acaoDeStatus(STATUS_SERVICO.Pronto)).toEqual({ rotulo: "Voltar para em andamento", destino: 2, correcao: true });
   });
 
   it("serviço cancelado não tem ação", () => {
@@ -33,8 +33,8 @@ describe("status do serviço", () => {
   });
 
   it("cada destino tem um aviso", () => {
-    expect(avisoDeStatus(2)).toBe("Serviço em execução.");
+    expect(avisoDeStatus(2)).toBe("Serviço em andamento.");
     expect(avisoDeStatus(3)).toBe("Serviço pronto.");
-    expect(avisoDeStatus(1)).toBe("Serviço voltou para aguardando.");
+    expect(avisoDeStatus(1)).toBe("Serviço voltou para a fila.");
   });
 });

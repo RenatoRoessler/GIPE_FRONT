@@ -196,6 +196,34 @@ export const Elapsed = styled.div`
   }
 `;
 
+// Como o valor se divide, só quando há serviços: estadia e serviços, uma linha cada.
+export const Composicao = styled.dl`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[1]}px;
+  margin: 0;
+  padding-top: ${({ theme }) => theme.space[3]}px;
+  border-top: 1px dashed ${({ theme }) => theme.colors.border};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: ${({ theme }) => theme.space[2]}px;
+  }
+
+  dt {
+    color: ${({ theme }) => theme.colors.textMuted};
+  }
+
+  dd {
+    margin: 0;
+    font-family: ${({ theme }) => theme.fontFamilies.mono};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
+    font-variant-numeric: tabular-nums;
+  }
+`;
+
 export const Facts = styled.dl`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromFilaResponse, fromServicoResponse, fromServicosDoVeiculoResponse, fromServicosResponse } from "./servico.mapper";
+import { fromFilaResponse, fromServicoResponse, fromServicosDoComprovante, fromServicosDoVeiculoResponse, fromServicosResponse } from "./servico.mapper";
 
 const servicoDto = {
   servicoId: 7,
@@ -78,6 +78,8 @@ describe("fromServicosResponse", () => {
   });
 });
 
+const SEM_MOMENTOS = { adicionadoEm: null, adicionadoPor: null, previsaoEm: null, prontoEm: null };
+
 describe("fromServicosDoVeiculoResponse", () => {
   it("lê as somas, o livre até e os serviços", () => {
     const veiculo = fromServicosDoVeiculoResponse({
@@ -95,8 +97,8 @@ describe("fromServicosDoVeiculoResponse", () => {
       tempoPermitidoMinutos: 120,
       livreAte: "2026-11-11T16:30:00",
       servicos: [
-        { id: 11, servicoId: 7, nome: "Lavagem", valorCentavos: 4000, tempoPermitidoMinutos: 60, status: 2, motivoCancelamento: null },
-        { id: 12, servicoId: 8, nome: "Cera", valorCentavos: 5050, tempoPermitidoMinutos: null, status: 4, motivoCancelamento: "Cliente desistiu" },
+        { id: 11, servicoId: 7, nome: "Lavagem", valorCentavos: 4000, tempoPermitidoMinutos: 60, status: 2, motivoCancelamento: null, ...SEM_MOMENTOS },
+        { id: 12, servicoId: 8, nome: "Cera", valorCentavos: 5050, tempoPermitidoMinutos: null, status: 4, motivoCancelamento: "Cliente desistiu", ...SEM_MOMENTOS },
       ],
     });
   });
@@ -135,5 +137,53 @@ describe("fromFilaResponse", () => {
   it("resposta fora do formato vira lista vazia", () => {
     expect(fromFilaResponse(null)).toEqual([]);
     expect(fromFilaResponse("x")).toEqual([]);
+  });
+});
+
+describe("momentos do serviço do veículo", () => {
+  it("lê quem adicionou, quando, a previsão e a hora em que ficou pronto", () => {
+    const [servico] = fromServicosDoVeiculoResponse({
+      servicos: [
+        {
+          patioServicoId: 1,
+          nome: "Lavagem",
+          status: 3,
+          adicionadoEm: "2026-11-11T21:10:00",
+          adicionadoPor: "Everton",
+          previsaoEm: "2026-11-11T22:20:00",
+          prontoEm: "2026-11-11T21:40:00",
+        },
+      ],
+    }).servicos;
+
+    expect(servico).toMatchObject({ adicionadoEm: "2026-11-11T21:10:00", adicionadoPor: "Everton", previsaoEm: "2026-11-11T22:20:00", prontoEm: "2026-11-11T21:40:00" });
+  });
+
+  it("aceita os nomes alternativos", () => {
+    const [servico] = fromServicosDoVeiculoResponse({
+      servicos: [{ patioServicoId: 1, nome: "Cera", status: 2, dataCriacao: "2026-11-11T21:10:00", usuarioNome: "Ana", previsaoConclusao: "2026-11-11T22:00:00", concluidoEm: "2026-11-11T21:50:00" }],
+    }).servicos;
+
+    expect(servico).toMatchObject({ adicionadoEm: "2026-11-11T21:10:00", adicionadoPor: "Ana", previsaoEm: "2026-11-11T22:00:00", prontoEm: "2026-11-11T21:50:00" });
+  });
+});
+
+describe("fromServicosDoComprovante", () => {
+  it("lê os serviços, converte o valor para centavos e deixa de fora o cancelado", () => {
+    expect(
+      fromServicosDoComprovante([
+        { nome: "Lavagem simples", valor: 30, status: 2, previsaoEm: "2026-11-11T22:20:00" },
+        { nome: "Aspiração interna", valor: 20.5, status: 3, prontoEm: "2026-11-11T21:40:00" },
+        { nome: "Cera", valor: 80, status: 4 },
+      ]),
+    ).toEqual([
+      { nome: "Lavagem simples", valorCentavos: 3000, status: 2, previsaoEm: "2026-11-11T22:20:00", prontoEm: null },
+      { nome: "Aspiração interna", valorCentavos: 2050, status: 3, previsaoEm: null, prontoEm: "2026-11-11T21:40:00" },
+    ]);
+  });
+
+  it("descarta item inválido e aceita ausência", () => {
+    expect(fromServicosDoComprovante([{ nome: "X", status: 9 }, { valor: 1, status: 1 }, null, "x"])).toEqual([]);
+    expect(fromServicosDoComprovante(undefined)).toEqual([]);
   });
 });

@@ -90,10 +90,10 @@ describe("FilaServicos: desktop", () => {
   it("mostra as três colunas, cada uma com nome e contagem", async () => {
     renderWithProviders(<FilaServicos />);
 
-    const aguardando = await screen.findByRole("region", { name: "Aguardando, 2 serviços" });
+    const aguardando = await screen.findByRole("region", { name: "Na fila, 2 serviços" });
     expect(within(aguardando).getByText("Lavagem completa")).toBeInTheDocument();
     expect(within(aguardando).getByText("Prisma 12")).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Em execução, 1 serviço" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Em andamento, 1 serviço" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Pronto, 1 serviço" })).toBeInTheDocument();
   });
 
@@ -101,7 +101,7 @@ describe("FilaServicos: desktop", () => {
     api.listFila.mockResolvedValue([item(1, "Cera", STATUS_SERVICO.Aguardando, "ABC1D23")]);
     renderWithProviders(<FilaServicos />);
 
-    expect(await screen.findByText("Nenhum serviço em execução.")).toBeInTheDocument();
+    expect(await screen.findByText("Nenhum serviço em andamento.")).toBeInTheDocument();
     expect(screen.getByText("Nenhum serviço pronto.")).toBeInTheDocument();
   });
 
@@ -129,25 +129,25 @@ describe("FilaServicos: desktop", () => {
 
     expect(screen.getAllByRole("button", { name: "Iniciar" })).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Marcar como pronto" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Voltar para em execução" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Voltar para em andamento" })).toBeInTheDocument();
   });
 });
 
 describe("FilaServicos: trocar o status", () => {
   it("envia a troca, avisa e oferece desfazer", async () => {
     renderWithProviders(<FilaServicos />);
-    const aguardando = await screen.findByRole("region", { name: "Aguardando, 2 serviços" });
+    const aguardando = await screen.findByRole("region", { name: "Na fila, 2 serviços" });
 
     await userEvent.click(within(aguardando).getAllByRole("button", { name: "Iniciar" })[0]);
 
     await waitFor(() => expect(api.atualizarStatusServico).toHaveBeenCalledWith(101, 1, STATUS_SERVICO.EmExecucao));
-    expect(await screen.findByText("Serviço em execução.")).toBeInTheDocument();
+    expect(await screen.findByText("Serviço em andamento.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Desfazer" })).toBeInTheDocument();
   });
 
   it("desfazer manda o serviço de volta ao status de antes", async () => {
     renderWithProviders(<FilaServicos />);
-    const aguardando = await screen.findByRole("region", { name: "Aguardando, 2 serviços" });
+    const aguardando = await screen.findByRole("region", { name: "Na fila, 2 serviços" });
     await userEvent.click(within(aguardando).getAllByRole("button", { name: "Iniciar" })[0]);
 
     await userEvent.click(await screen.findByRole("button", { name: "Desfazer" }));
@@ -159,7 +159,7 @@ describe("FilaServicos: trocar o status", () => {
   it("se o back recusar, o cartão volta e aparece o erro", async () => {
     api.atualizarStatusServico.mockRejectedValue(new ApiError("validation", "Serviço já foi cancelado."));
     renderWithProviders(<FilaServicos />);
-    const aguardando = await screen.findByRole("region", { name: "Aguardando, 2 serviços" });
+    const aguardando = await screen.findByRole("region", { name: "Na fila, 2 serviços" });
 
     await userEvent.click(within(aguardando).getAllByRole("button", { name: "Iniciar" })[0]);
 
@@ -169,10 +169,10 @@ describe("FilaServicos: trocar o status", () => {
 
   it("voltar um serviço pronto não oferece desfazer", async () => {
     renderWithProviders(<FilaServicos />);
-    await userEvent.click(await screen.findByRole("button", { name: "Voltar para em execução" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Voltar para em andamento" }));
 
     await waitFor(() => expect(api.atualizarStatusServico).toHaveBeenCalledWith(104, 4, STATUS_SERVICO.EmExecucao));
-    expect(await screen.findByText("Serviço em execução.")).toBeInTheDocument();
+    expect(await screen.findByText("Serviço em andamento.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Desfazer" })).not.toBeInTheDocument();
   });
 });
@@ -233,8 +233,8 @@ describe("FilaServicos: celular", () => {
   it("mostra abas com a contagem e só a coluna escolhida", async () => {
     renderWithProviders(<FilaServicos />);
 
-    expect(await screen.findByRole("tab", { name: "Aguardando (2)" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("tab", { name: "Em execução (1)" })).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Na fila (2)" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Em andamento (1)" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Pronto (1)" })).toBeInTheDocument();
     expect(screen.getByText("Lavagem completa")).toBeInTheDocument();
     expect(screen.queryByText("Cera")).not.toBeInTheDocument();

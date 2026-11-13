@@ -5,6 +5,8 @@ import { useState, type ReactNode } from "react";
 import { formatDateTime } from "@/components/caixa/format";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
+import { formatCentavos } from "@/components/servicos/format";
+import { dividirValor } from "@/components/servicos/resumo";
 import { PlateDisplay } from "@/components/ui/PlateDisplay";
 import { QrCode } from "@/components/ui/QrCode";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -15,6 +17,7 @@ import { formatPhone } from "@/lib/phone";
 import type { ComprovanteCliente } from "@/types/veiculo";
 import { formatPermanencia } from "./format";
 import { baixarReciboPdf } from "./reciboPdf";
+import { ServicosDoComprovante } from "./ServicosDoComprovante";
 import {
   ActionButton,
   ActionError,
@@ -23,6 +26,7 @@ import {
   Card,
   Column,
   Company,
+  Composicao,
   Elapsed,
   ExitCard,
   Eyebrow,
@@ -102,6 +106,10 @@ function mapsUrl(endereco: string): string {
 function Comprovante({ comprovante }: { comprovante: ComprovanteCliente }) {
   const veiculo = [comprovante.modelo, comprovante.cor].filter(Boolean).join(" · ");
   const telefoneDigits = comprovante.telefone?.replace(/\D/g, "") ?? "";
+  // Só com serviços o valor se divide em estadia e serviços; sem eles (ou sem o campo na resposta) nada muda.
+  const servicos = comprovante.servicos ?? [];
+  const somaDosServicos = servicos.reduce((soma, servico) => soma + servico.valorCentavos, 0);
+  const divisao = servicos.length > 0 ? dividirValor(comprovante.valorAtual, somaDosServicos) : null;
   const [baixando, setBaixando] = useState(false);
   const [erroPdf, setErroPdf] = useState(false);
 
@@ -139,6 +147,18 @@ function Comprovante({ comprovante }: { comprovante: ComprovanteCliente }) {
             Valor até agora: <strong>{formatBRL(comprovante.valorAtual)}</strong>
           </span>
         </Elapsed>
+        {divisao && (
+          <Composicao aria-label="Composição do valor">
+            <div>
+              <dt>Estadia</dt>
+              <dd>{formatCentavos(divisao.estadiaCentavos)}</dd>
+            </div>
+            <div>
+              <dt>Serviços ({servicos.length})</dt>
+              <dd>{formatCentavos(divisao.servicosCentavos)}</dd>
+            </div>
+          </Composicao>
+        )}
         <Facts>
           <div>
             <dt>Placa</dt>
@@ -160,6 +180,7 @@ function Comprovante({ comprovante }: { comprovante: ComprovanteCliente }) {
           </div>
         </Facts>
       </Card>
+      <ServicosDoComprovante servicos={comprovante.servicos} />
       <Actions>
         <ActionButton type="button" onClick={() => void baixarPdf()} disabled={baixando}>
           <ActionIcon>

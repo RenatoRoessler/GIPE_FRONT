@@ -12,7 +12,10 @@ import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Toast } from "@/components/ui/Toast";
+import { formatCentavos } from "@/components/servicos/format";
+import { avisoDePendentes, dividirValor, resumirServicos } from "@/components/servicos/resumo";
 import { ServicosDoVeiculo } from "@/components/servicos/ServicosDoVeiculo";
+import { useServicosDoVeiculo, useServicosHabilitados } from "@/components/servicos/useServicosDoVeiculo";
 import { SaidaVeiculoModal } from "@/components/veiculos/SaidaVeiculoModal";
 import { formatBRL } from "@/lib/money";
 import type { PatioVeiculo } from "@/types/patio";
@@ -24,6 +27,7 @@ import { usePatioVeiculo } from "../usePatioVeiculo";
 import { TicketItens } from "./TicketItens";
 import {
   Acoes,
+  Apoio,
   Aviso,
   Coluna,
   Colunas,
@@ -31,6 +35,7 @@ import {
   Destaque,
   Destaques,
   Estado,
+  Pendencia,
   PlacaGrande,
   QrBotao,
   SaidaBotao,
@@ -63,12 +68,21 @@ export function TicketView({ patioId }: TicketViewProps) {
   const [chaveDe, setChaveDe] = useState<PatioVeiculo | null>(null);
   const [prismaDe, setPrismaDe] = useState<PatioVeiculo | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  // Com a folha de serviços aberta o ticket também não se atualiza debaixo do operador.
+  const [folhaServicos, setFolhaServicos] = useState(false);
 
-  const { veiculo, carregando, ausente, erro, atualizando, recarregar } = usePatioVeiculo(patioId, { pausado: saida !== null || chaveDe !== null || prismaDe !== null });
+  const { veiculo, carregando, ausente, erro, atualizando, recarregar } = usePatioVeiculo(patioId, {
+    pausado: saida !== null || chaveDe !== null || prismaDe !== null || folhaServicos,
+  });
   const { configuracao } = useConfiguracao();
   const { data: quadros } = useQuadros();
   const comQuadros = (quadros?.length ?? 0) > 0;
   const comprovante = useComprovanteTicket(veiculo?.token ?? null);
+  // Mesma consulta do cartão de serviços (mesma chave): o ticket só precisa do resumo para o valor e o aviso.
+  const servicosHabilitados = useServicosHabilitados();
+  const servicosDoVeiculo = useServicosDoVeiculo(patioId, false, servicosHabilitados);
+  const resumoServicos = resumirServicos(servicosDoVeiculo.data);
+  const avisoPendentes = servicosHabilitados ? avisoDePendentes(resumoServicos.pendentes) : null;
 
   function voltar() {
     router.replace(listaHref);
@@ -164,6 +178,9 @@ export function TicketView({ patioId }: TicketViewProps) {
   else if (valor !== null) valorTexto = formatBRL(valor);
   else if (!semToken && comprovante.isPending) valorTexto = <Skeleton width="96px" height="28px" />;
 
+  // Com serviços, mostra como o total se divide; o total é o do back (o mesmo que a saída cobra).
+  const divisao = servicosHabilitados && !mensalista && valor !== null && resumoServicos.ativos.length > 0 ? dividirValor(valor, resumoServicos.subtotalCentavos) : null;
+
   return janela(
     <Colunas>
       <Coluna>
@@ -183,6 +200,11 @@ export function TicketView({ patioId }: TicketViewProps) {
           <Destaque>
             <dt>Valor até agora</dt>
             <dd>{valorTexto}</dd>
+            {divisao && (
+              <Apoio>
+                {formatCentavos(divisao.estadiaCentavos)} estadia + {formatCentavos(divisao.servicosCentavos)} serviços
+              </Apoio>
+            )}
             {!mensalista && comprovante.isError && (
               <TentarValor type="button" onClick={() => void comprovante.refetch()}>
                 Tentar novamente
@@ -202,9 +224,18 @@ export function TicketView({ patioId }: TicketViewProps) {
           onEditarPrisma={() => setPrismaDe(veiculo)}
         />
 
-        <ServicosDoVeiculo idPatio={veiculo.patioId} placa={veiculo.placa} categoria={veiculo.categoria} onAviso={setAviso} />
+        <ServicosDoVeiculo idPatio={veiculo.patioId} placa={veiculo.placa} categoria={veiculo.categoria} onAviso={setAviso} onFolhaAberta={setFolhaServicos} />
 
         <Acoes>
+          {avisoPendentes && (
+            <Pendencia role="status">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v6M12 16.5v.5" />
+              </svg>
+              {avisoPendentes}
+            </Pendencia>
+          )}
           {!semToken && (
             <QrBotao id={QR_BOTAO_ID} type="button" variant="secondary" onClick={() => abrirComprovante(veiculo.patioId)}>
               Mostrar QR do ticket ao cliente

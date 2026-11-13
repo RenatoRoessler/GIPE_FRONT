@@ -1,5 +1,5 @@
 import { CATEGORIA_ROTULO, isStatusServico, STATUS_SERVICO } from "@/types/servico";
-import type { ItemFila, PrecoServico, Servico, ServicoDoVeiculo, ServicosDoVeiculo, StatusServico } from "@/types/servico";
+import type { ItemFila, PrecoServico, Servico, ServicoDoComprovante, ServicoDoVeiculo, ServicosDoVeiculo, StatusServico } from "@/types/servico";
 import { toNumber, toText } from "./mapperUtils";
 
 // O swagger não descreve o corpo das respostas: os nomes de campo vêm da descrição dos endpoints e cada leitura aceita
@@ -75,7 +75,30 @@ function fromServicoDoVeiculo(raw: unknown): ServicoDoVeiculo | null {
     tempoPermitidoMinutos: minutosOuNulo(raw.tempoPermitidoMinutos),
     status,
     motivoCancelamento: toText(primeiro(raw, "motivoCancelamento", "motivo")),
+    ...momentosDoServico(raw),
+    adicionadoEm: toText(primeiro(raw, "adicionadoEm", "dataCriacao", "dataInclusao")),
+    adicionadoPor: toText(primeiro(raw, "adicionadoPor", "usuario", "usuarioNome")),
   };
+}
+
+// Previsão e hora em que ficou pronto: o back ainda não confirmou os nomes, então aceita mais de um.
+function momentosDoServico(raw: Record<string, unknown>): { previsaoEm: string | null; prontoEm: string | null } {
+  return {
+    previsaoEm: toText(primeiro(raw, "previsaoEm", "previsaoConclusao")),
+    prontoEm: toText(primeiro(raw, "prontoEm", "dataPronto", "concluidoEm")),
+  };
+}
+
+// Serviços do comprovante público: o cancelado não aparece e item sem nome ou sem status válido é descartado.
+export function fromServicosDoComprovante(raw: unknown): ServicoDoComprovante[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item): ServicoDoComprovante[] => {
+    if (!isRecord(item)) return [];
+    const nome = toText(primeiro(item, "nome", "nomeServico"));
+    const status = toNumber(item.status);
+    if (nome === null || !isStatusServico(status) || status === STATUS_SERVICO.Cancelado) return [];
+    return [{ nome, valorCentavos: centavos(primeiro(item, "valor", "valorServico")), status, ...momentosDoServico(item) }];
+  });
 }
 
 export function fromServicosDoVeiculoResponse(raw: unknown): ServicosDoVeiculo {

@@ -10,6 +10,8 @@ const api = vi.hoisted(() => ({
   listServicos: vi.fn(),
   acrescentarServicos: vi.fn(),
   cancelarServico: vi.fn(),
+  atualizarStatusServico: vi.fn(),
+  listFila: vi.fn(),
 }));
 vi.mock("@/lib/api/services/servico", () => api);
 
@@ -32,10 +34,14 @@ const doVeiculo = (id: number, nome: string, status: ServicoDoVeiculo["status"],
   id,
   servicoId: id,
   nome,
-  valorCentavos: 5000,
+  valorCentavos: 2500,
   tempoPermitidoMinutos: 60,
   status,
   motivoCancelamento: null,
+  adicionadoEm: null,
+  adicionadoPor: null,
+  previsaoEm: null,
+  prontoEm: null,
   ...extra,
 });
 
@@ -45,6 +51,8 @@ const DADOS: ServicosDoVeiculoDados = {
   livreAte: "2026-11-12T15:30:00",
   servicos: [doVeiculo(1, "Lavagem", STATUS_SERVICO.Aguardando), doVeiculo(2, "Cera", STATUS_SERVICO.Pronto)],
 };
+
+const SEM_SERVICOS: ServicosDoVeiculoDados = { ...DADOS, valorServicosCentavos: 0, servicos: [] };
 
 const catalogo = (id: number, nome: string, precos: Servico["precos"]): Servico => ({
   id,
@@ -68,9 +76,11 @@ beforeAll(() => {
   };
 });
 
-function renderizar(onAviso = vi.fn()) {
-  renderWithProviders(<ServicosDoVeiculo idPatio={7} placa="ABC1D23" categoria={2} onAviso={onAviso} />);
-  return onAviso;
+function renderizar() {
+  const onAviso = vi.fn();
+  const onFolhaAberta = vi.fn();
+  renderWithProviders(<ServicosDoVeiculo idPatio={7} placa="ABC1D23" categoria={2} onAviso={onAviso} onFolhaAberta={onFolhaAberta} />);
+  return { onAviso, onFolhaAberta };
 }
 
 beforeEach(() => {
@@ -80,7 +90,9 @@ beforeEach(() => {
   api.listServicosDoVeiculo.mockResolvedValue(DADOS);
   api.listServicos.mockResolvedValue([catalogo(10, "Polimento", [preco(2, 8000)]), catalogo(11, "Caminhão", [preco(5, 20000)]), catalogo(12, "Vitrificação", [preco(99, 30000)])]);
   api.acrescentarServicos.mockResolvedValue(undefined);
-  api.cancelarServico.mockResolvedValue(undefined);
+  api.cancelarServico.mockResolvedValue(SEM_SERVICOS);
+  api.atualizarStatusServico.mockResolvedValue(undefined);
+  api.listFila.mockResolvedValue([]);
 });
 
 describe("ServicosDoVeiculo", () => {
@@ -93,61 +105,72 @@ describe("ServicosDoVeiculo", () => {
     expect(api.listServicosDoVeiculo).not.toHaveBeenCalled();
   });
 
-  it("lista os serviços com status e valor, e o resumo do back", async () => {
+  it("sem serviço, mostra o botão tracejado para adicionar", async () => {
+    api.listServicosDoVeiculo.mockResolvedValue(SEM_SERVICOS);
+    renderizar();
+
+    expect(await screen.findByRole("button", { name: "Adicionar serviço" })).toBeInTheDocument();
+    expect(screen.getByText("Serviços adicionais")).toBeInTheDocument();
+  });
+
+  it("sem serviço, quem não gere serviços não vê o botão", async () => {
+    sessao.atual = { user: { name: "Leo", perfil: 9 }, isLoading: false };
+    api.listServicosDoVeiculo.mockResolvedValue(SEM_SERVICOS);
+    renderizar();
+
+    await waitFor(() => expect(api.listServicosDoVeiculo).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByRole("status", { name: "Carregando os serviços do veículo" })).not.toBeInTheDocument());
+    expect(screen.getByText("Serviços adicionais")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Adicionar/ })).not.toBeInTheDocument();
+  });
+
+  it("com serviços, lista nome, valor e status, o subtotal do back e a contagem", async () => {
     renderizar();
 
     const lista = await screen.findByRole("list", { name: "Serviços de ABC1D23" });
     expect(within(lista).getByText("Lavagem")).toBeInTheDocument();
-    expect(within(lista).getByText("Aguardando")).toBeInTheDocument();
+    expect(within(lista).getByText("Na fila")).toBeInTheDocument();
     expect(within(lista).getByText("Pronto")).toBeInTheDocument();
-    expect(screen.getByText(/Serviços R\$\s50,00 · tempo permitido 60 min · 1 h · livre até 15:30/)).toBeInTheDocument();
+    expect(screen.getByText("Serviços · 2")).toBeInTheDocument();
+    expect(screen.getByText(/Subtotal serviços/)).toHaveTextContent("R$ 50,00");
+    expect(screen.getByRole("button", { name: "+ Adicionar" })).toBeInTheDocument();
   });
 
-  it("mostra os cancelados, com o motivo, só quando o interruptor liga", async () => {
-    api.listServicosDoVeiculo.mockImplementation((_id: number, { incluirCancelados }: { incluirCancelados: boolean }) =>
-      Promise.resolve(
-        incluirCancelados
-          ? { ...DADOS, servicos: [...DADOS.servicos, doVeiculo(3, "Enceramento", STATUS_SERVICO.Cancelado, { motivoCancelamento: "Cliente desistiu" })] }
-          : DADOS,
-      ),
-    );
+  it("não mostra serviço cancelado nem pede ao back que o inclua", async () => {
+    api.listServicosDoVeiculo.mockResolvedValue({ ...DADOS, servicos: [...DADOS.servicos, doVeiculo(3, "Enceramento", STATUS_SERVICO.Cancelado, { motivoCancelamento: "Cliente desistiu" })] });
     renderizar();
+
     await screen.findByText("Lavagem");
     expect(screen.queryByText("Enceramento")).not.toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("switch", { name: "Mostrar cancelados" }));
-
-    expect(await screen.findByText("Enceramento")).toBeInTheDocument();
-    expect(screen.getByText("Motivo: Cliente desistiu")).toBeInTheDocument();
+    expect(screen.getByText("Serviços · 2")).toBeInTheDocument();
+    expect(api.listServicosDoVeiculo).toHaveBeenCalledWith(7, { incluirCancelados: false });
+    expect(screen.queryByRole("switch", { name: "Mostrar cancelados" })).not.toBeInTheDocument();
   });
 
-  it("só o serviço Aguardando tem Cancelar", async () => {
+  it("não repete o resumo de tempo permitido no ticket", async () => {
     renderizar();
     await screen.findByText("Lavagem");
 
-    expect(screen.getAllByRole("button", { name: "Cancelar serviço" })).toHaveLength(1);
+    expect(screen.queryByText(/tempo permitido/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/livre até/)).not.toBeInTheDocument();
   });
 
-  it("cancela com o motivo e avisa", async () => {
-    const onAviso = renderizar();
-    await screen.findByText("Lavagem");
-    await userEvent.click(screen.getByRole("button", { name: "Cancelar serviço" }));
-
-    const dialogo = await screen.findByRole("dialog");
-    await userEvent.type(within(dialogo).getByLabelText("Motivo"), "Engano");
-    await userEvent.click(within(dialogo).getByRole("button", { name: "Cancelar serviço" }));
-
-    await waitFor(() => expect(api.cancelarServico).toHaveBeenCalledWith(7, 1, "Engano"));
-    await waitFor(() => expect(onAviso).toHaveBeenCalledWith("Serviço cancelado."));
-  });
-
-  it("o Lavador só vê, sem acrescentar nem cancelar", async () => {
+  it("o Lavador troca o status pelo menu, mas não adiciona", async () => {
     sessao.atual = { user: { name: "Leo", perfil: 9 }, isLoading: false };
     renderizar();
     await screen.findByText("Lavagem");
 
-    expect(screen.queryByRole("button", { name: "Acrescentar serviços" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Cancelar serviço" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "+ Adicionar" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ações de Lavagem" })).toBeInTheDocument();
+  });
+
+  it("perfil sem permissão de serviços só lê: nem adicionar nem menu", async () => {
+    sessao.atual = { user: { name: "Zé", perfil: 6 }, isLoading: false };
+    renderizar();
+    await screen.findByText("Lavagem");
+
+    expect(screen.queryByRole("button", { name: "+ Adicionar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Ações de/ })).not.toBeInTheDocument();
   });
 
   it("mostra o erro e tenta de novo", async () => {
@@ -161,51 +184,54 @@ describe("ServicosDoVeiculo", () => {
   });
 });
 
-describe("ServicosDoVeiculo: acrescentar", () => {
+describe("ServicosDoVeiculo: adicionar", () => {
   async function abrir() {
-    const onAviso = renderizar();
+    const avisos = renderizar();
     await screen.findByText("Lavagem");
-    await userEvent.click(screen.getByRole("button", { name: "Acrescentar serviços" }));
-    return { onAviso, dialogo: await screen.findByRole("dialog") };
+    await userEvent.click(screen.getByRole("button", { name: "+ Adicionar" }));
+    return { ...avisos, folha: await screen.findByRole("dialog", { name: "Adicionar serviços" }) };
   }
 
-  it("desabilita o que não atende a categoria do veículo", async () => {
-    const { dialogo } = await abrir();
+  it("abre a folha com o que atende a categoria do veículo e avisa a pausa", async () => {
+    const { folha, onFolhaAberta } = await abrir();
 
-    expect(await within(dialogo).findByRole("checkbox", { name: /Polimento/ })).toBeEnabled();
-    expect(within(dialogo).getByRole("checkbox", { name: /Vitrificação/ })).toBeEnabled();
-    expect(within(dialogo).getByRole("checkbox", { name: /Caminhão/ })).toBeDisabled();
-    expect(within(dialogo).getByText("Não atende a categoria deste veículo.")).toBeInTheDocument();
-  });
-
-  it("soma o total escolhido e só liga com algo marcado", async () => {
-    const { dialogo } = await abrir();
-    const acrescentar = within(dialogo).getByRole("button", { name: "Acrescentar" });
-    expect(acrescentar).toBeDisabled();
-
-    await userEvent.click(await within(dialogo).findByRole("checkbox", { name: /Polimento/ }));
-    await userEvent.click(within(dialogo).getByRole("checkbox", { name: /Vitrificação/ }));
-
-    expect(within(dialogo).getByText(/Total R\$\s380,00/)).toBeInTheDocument();
-    expect(acrescentar).toBeEnabled();
+    expect(await within(folha).findByRole("checkbox", { name: /Polimento/ })).toBeEnabled();
+    expect(within(folha).getByRole("checkbox", { name: /Vitrificação/ })).toBeEnabled();
+    expect(within(folha).getByRole("checkbox", { name: /Caminhão/ })).toBeDisabled();
+    expect(onFolhaAberta).toHaveBeenLastCalledWith(true);
   });
 
   it("envia os serviços escolhidos e avisa", async () => {
-    const { onAviso, dialogo } = await abrir();
-    await userEvent.click(await within(dialogo).findByRole("checkbox", { name: /Polimento/ }));
-    await userEvent.click(within(dialogo).getByRole("button", { name: "Acrescentar" }));
+    const { onAviso, onFolhaAberta, folha } = await abrir();
+    await userEvent.click(await within(folha).findByRole("checkbox", { name: /Polimento/ }));
+    await userEvent.click(within(folha).getByRole("button", { name: /Adicionar ao ticket/ }));
 
     await waitFor(() => expect(api.acrescentarServicos).toHaveBeenCalledWith(7, [10]));
-    await waitFor(() => expect(onAviso).toHaveBeenCalledWith("Serviço acrescentado."));
+    await waitFor(() => expect(onAviso).toHaveBeenCalledWith("Serviço adicionado."));
+    await waitFor(() => expect(onFolhaAberta).toHaveBeenLastCalledWith(false));
   });
 
   it("mostra o erro do back e mantém a escolha", async () => {
     api.acrescentarServicos.mockRejectedValue(new ApiError("validation", "Serviço já acrescentado."));
-    const { dialogo } = await abrir();
-    await userEvent.click(await within(dialogo).findByRole("checkbox", { name: /Polimento/ }));
-    await userEvent.click(within(dialogo).getByRole("button", { name: "Acrescentar" }));
+    const { folha } = await abrir();
+    await userEvent.click(await within(folha).findByRole("checkbox", { name: /Polimento/ }));
+    await userEvent.click(within(folha).getByRole("button", { name: /Adicionar ao ticket/ }));
 
-    expect(await within(dialogo).findByText("Serviço já acrescentado.")).toBeInTheDocument();
-    expect(within(dialogo).getByRole("checkbox", { name: /Polimento/ })).toBeChecked();
+    expect(await within(folha).findByText("Serviço já acrescentado.")).toBeInTheDocument();
+    expect(within(folha).getByRole("checkbox", { name: /Polimento/ })).toBeChecked();
+  });
+});
+
+describe("ServicosDoVeiculo: detalhe", () => {
+  it("o menu abre o detalhe do serviço e trocar o status chama a API", async () => {
+    const { onFolhaAberta } = renderizar();
+    await screen.findByText("Lavagem");
+    await userEvent.click(screen.getByRole("button", { name: "Ações de Lavagem" }));
+
+    const folha = await screen.findByRole("dialog", { name: "Lavagem" });
+    expect(onFolhaAberta).toHaveBeenLastCalledWith(true);
+    await userEvent.click(within(folha).getByRole("radio", { name: "Em andamento" }));
+
+    await waitFor(() => expect(api.atualizarStatusServico).toHaveBeenCalledWith(7, 1, STATUS_SERVICO.EmExecucao));
   });
 });

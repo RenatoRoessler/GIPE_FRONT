@@ -93,6 +93,28 @@ export const Destaque = styled.div`
   }
 `;
 
+// Como o valor se divide: a estadia e os serviços, abaixo do total.
+export const Apoio = styled.small`
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-variant-numeric: tabular-nums;
+`;
+
+// Serviço ainda não pronto: só informa, a saída continua liberada.
+export const Pendencia = styled.p`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[2]}px;
+  margin: 0;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+
+  svg {
+    flex-shrink: 0;
+    color: ${({ theme }) => theme.colors.warn};
+  }
+`;
+
 export const TentarValor = styled.button`
   align-self: flex-start;
   min-height: 44px;

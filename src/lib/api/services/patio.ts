@@ -6,6 +6,7 @@ import type { SaidaBusca, SaidaBuscaTipo, SaidaConsulta, SaidaPayload, SaidaRegi
 import { api } from "../client";
 import { ApiError } from "../errors";
 import { toNumber, toText } from "./mapperUtils";
+import { fromServicosDoComprovante } from "./servico.mapper";
 
 // Responde 200 ou 201; os erros (sem caixa aberto, veículo já no pátio, ticket em uso) sobem como ApiError.
 export async function registrarEntrada(payload: EntradaPayload): Promise<EntradaRegistrada> {
@@ -13,11 +14,17 @@ export async function registrarEntrada(payload: EntradaPayload): Promise<Entrada
   return data;
 }
 
+// Os serviços do veículo só existem no comprovante quando o back os devolve; sem o campo, a resposta passa como veio.
+function comServicos<T extends ComprovanteCliente>(data: T): T {
+  const bruto: unknown = (data as { servicos?: unknown }).servicos;
+  return bruto === undefined || bruto === null ? data : { ...data, servicos: fromServicosDoComprovante(bruto) };
+}
+
 // Público (sem login). [A CONFIRMAR] código devolvido para token inexistente: 404 e 400 são tratados como "não encontrado".
 export async function consultarComprovante(token: string): Promise<ComprovanteCliente> {
   try {
     const { data } = await api.get<ComprovanteCliente>("/Patio/comprovante/cliente", { params: { token } });
-    return data;
+    return comServicos(data);
   } catch (error) {
     if (error instanceof ApiError && (error.kind === "not_found" || error.kind === "validation")) {
       throw new ApiError("not_found", "Comprovante não encontrado.", 404);
@@ -33,7 +40,7 @@ export async function consultarComprovantePorPlaca(empresaGuid: string, placa: s
     const { data } = await api.get<ComprovantePorPlaca>("/Patio/comprovante/cliente/placa", {
       params: { empresa: empresaGuid, placa },
     });
-    return data;
+    return comServicos(data);
   } catch (error) {
     if (error instanceof ApiError && (error.kind === "not_found" || error.kind === "validation")) {
       throw new ApiError("not_found", "Ticket não encontrado.", 404);
