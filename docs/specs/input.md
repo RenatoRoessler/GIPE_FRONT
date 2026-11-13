@@ -1,19 +1,16 @@
-criar fluxo de enbording
+melhorar layout do serviço
 
-deve criar um tur de onbonding ao usuário entrar no ssitema, deve passar por todos os modulos diponiveis e fazer uma explicação completada
+na tela do item do patio deve ficar assim ![alt text](<WhatsApp Image 2026-11-12 at 20.55.25.jpeg>)
+ao clicar em adicionar ![alt text](2.jpeg)
+depois de adicionado ![alt text](3.jpeg)
+detalhes de um serviço ![alt text](4.jpeg)
+no comprovante de entrada quando tiver um serviço ![alt text](6.jpeg)
 
-endpoint para consultar se já fez o onbordin
-
-/api/v1/Onboarding
-
+no endpoint de comprovante/cliente foi adicionado o "servicos": [
 {
-"onboardingId": null,
-"visualizado": false,
-"dataVisualizacao": null
+"nome": "Lavagem",
+"valor": 100.00,
+"status": 2,
+"statusDescricao": "Em execução"
 }
-
-put
-/api/v1/Onboarding
-{
-"visualizado": true
-}
+],
