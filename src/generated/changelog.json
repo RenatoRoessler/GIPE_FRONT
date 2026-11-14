@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.443",
+      "type": "feat",
+      "scope": "servicos",
+      "title": "refaz o catálogo de serviços com cadastro em página e preço por categoria",
+      "description": "A lista de serviços e o cadastro seguem os protótipos: no desktop o cadastro abre em\npágina inteira (/servicos/catalogo/novo e /<id>); no celular, em três passos. Cada\ncategoria tem valor, duração e tempo grátis no pátio, de acordo com a API. Remove o\nmaster-detail e o modal antigos.",
+      "date": "2026-11-14T16:23:12-03:00"
+    },
+    {
+      "version": "1.0.442",
+      "type": "feat",
+      "scope": "servicos",
+      "title": "separa a fila de serviços do catálogo no menu",
+      "description": "A fila do lavador (Lavador, Manobrista e Caixa) ganha o item \"Fila de serviços\"\ne o catálogo fica para Administrador e Gerente. A fila mostra a faixa de status\nno cartão, o tempo de cada serviço, o resumo e os motivos rápidos de cancelamento.\nLinks antigos de /servicos levam ao catálogo para quem não vê a fila.",
+      "date": "2026-11-14T16:23:12-03:00"
+    },
+    {
       "version": "1.0.439",
       "type": "feat",
       "scope": "comprovante",
