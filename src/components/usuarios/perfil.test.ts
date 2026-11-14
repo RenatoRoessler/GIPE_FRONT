@@ -25,7 +25,7 @@ describe("perfil", () => {
     expect(isPerfilAtribuivel(99)).toBe(false);
   });
 
-  it("oferece os cinco perfis no Select", () => {
-    expect(PERFIL_OPTIONS.map((option) => option.value)).toEqual([1, 2, 4, 3, 8]);
+  it("oferece os seis perfis no Select", () => {
+    expect(PERFIL_OPTIONS.map((option) => option.value)).toEqual([1, 2, 4, 3, 8, 9]);
   });
 });

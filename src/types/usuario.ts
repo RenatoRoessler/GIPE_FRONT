@@ -1,5 +1,5 @@
 // ETipoUsuario do back. Os perfis da conveniada (5 a 7) existem no enum, mas o cadastro de uma empresa de
-// estacionamento só atribui os do tipo Administrador (1, 2, 3, 4 e 8).
+// estacionamento só atribui os do tipo Administrador (1, 2, 3, 4, 8 e 9).
 export const PERFIL_USUARIO = {
   Administrador: 1,
   Gerente: 2,
@@ -23,6 +23,7 @@ export const PERFIS_ESTACIONAMENTO = [
   PERFIL_USUARIO.Caixa,
   PERFIL_USUARIO.Manobrista,
   PERFIL_USUARIO.Financeiro,
+  PERFIL_USUARIO.Lavador,
 ] as const;
 export type PerfilEstacionamento = (typeof PERFIS_ESTACIONAMENTO)[number];
 
