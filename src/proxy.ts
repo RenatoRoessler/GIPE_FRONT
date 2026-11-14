@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/auth";
 import { areaDaRota, podeAcessar } from "@/lib/permissoes";
+import { destinoLegadoDeServicos } from "@/lib/servicosRotas";
 import { parseSession } from "@/lib/session";
 
 // Únicas rotas acessíveis sem login: a adesão, o fluxo de acesso (login, recuperação de senha e primeiro acesso), o comprovante e o
@@ -22,8 +23,16 @@ export function proxy(request: NextRequest) {
 
   // Só barra a área que o perfil não pode abrir; a assinatura do token é validada pelo back em cada chamada.
   // Token ilegível ou sem role conhecida vale como perfil nulo, que só acessa o início.
+  const perfil = parseSession(token)?.perfil;
+
+  // Endereços antigos de Serviços (tela única com abas): quem só vê o catálogo vai a ele em vez de cair no acesso negado.
+  const destinoDeServicos = destinoLegadoDeServicos(perfil, pathname, request.nextUrl.searchParams);
+  if (destinoDeServicos) {
+    return NextResponse.redirect(new URL(destinoDeServicos, request.url));
+  }
+
   const area = areaDaRota(pathname);
-  if (area && !podeAcessar(parseSession(token)?.perfil, area)) {
+  if (area && !podeAcessar(perfil, area)) {
     return NextResponse.redirect(new URL("/acesso-negado", request.url));
   }
 

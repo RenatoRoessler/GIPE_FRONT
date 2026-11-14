@@ -27,8 +27,13 @@ export const AREA = {
   Carimbo: "carimbo",
   // Veículos carimbados pela conveniada que ainda estão no pátio dos estacionamentos com convênio.
   PatioConveniada: "patio-conveniada",
-  // Catálogo e fila de serviços (lava-rápido): ver o catálogo e a fila e trocar o status de um serviço.
+  // Trocar o status de um serviço (lava-rápido) e ver os serviços de um veículo; vale dentro do ticket do Pátio. O menu e as
+  // rotas de Serviços usam `ServicosFila` e `ServicosCatalogoConsulta`.
   Servicos: "servicos",
+  // Fila de serviços (lava-rápido), no menu de Operação: quem executa os serviços dos veículos no pátio.
+  ServicosFila: "servicos.fila",
+  // Abrir o catálogo de serviços, no menu de Configurações (a mesma regra de quem o mantém: Administrador e Gerente).
+  ServicosCatalogoConsulta: "servicos.catalogo.consulta",
   // Cadastrar, editar e inativar serviços do catálogo.
   ServicosCatalogo: "servicos.catalogo",
   // Acrescentar serviços a um veículo no pátio e cancelar os que o cliente desistiu.
@@ -70,6 +75,8 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.Carimbo]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
   [AREA.PatioConveniada]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
   [AREA.Servicos]: [Administrador, Gerente, Caixa, Manobrista, Lavador],
+  [AREA.ServicosFila]: [Caixa, Manobrista, Lavador],
+  [AREA.ServicosCatalogoConsulta]: [Administrador, Gerente],
   [AREA.ServicosCatalogo]: [Administrador, Gerente],
   [AREA.ServicosPatio]: [Administrador, Gerente, Caixa, Manobrista],
 };
@@ -103,7 +110,8 @@ const AREA_POR_ROTA: readonly (readonly [string, Area])[] = [
   ["/quadros-chaves", AREA.QuadroChaves],
   ["/carimbo", AREA.Carimbo],
   ["/patio-conveniada", AREA.PatioConveniada],
-  ["/servicos", AREA.Servicos],
+  ["/servicos", AREA.ServicosFila],
+  ["/servicos/catalogo", AREA.ServicosCatalogoConsulta],
 ];
 
 // Rotas da área logada abertas a qualquer usuário autenticado.

@@ -53,7 +53,7 @@ async function abrir() {
 }
 
 const nomesDaBarra = () => Array.from(screen.getByRole("navigation", { name: "Navegação principal" }).querySelectorAll("a, button")).map((item) => item.textContent);
-const TODOS_DO_PAINEL = ["Visão Geral", "Conferência de pátio", "Serviços", "Financeiro", "Faturas", "Notas Fiscais", "Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"];
+const TODOS_DO_PAINEL = ["Visão Geral", "Conferência de pátio", "Financeiro", "Faturas", "Notas Fiscais", "Minha Empresa", "Configurações", "Gestão de Preços", "Catálogo de serviços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"];
 
 describe("BottomNav: itens da barra", () => {
   it("perfil operacional: Pátio, Caixa, Entrada, Saída e Mais, com a Entrada no centro", () => {
@@ -113,6 +113,7 @@ describe("BottomNav: itens da barra", () => {
 
     expect(screen.getByRole("link", { name: "Visão Geral" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Notas" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Catálogo" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrada" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
   });
@@ -143,7 +144,7 @@ describe("BottomNav: menu estendido", () => {
     expect(painel()).toHaveAttribute("open");
     expect(maisButton()).toHaveAttribute("aria-expanded", "true");
     expect(within(painel()).getByRole("heading", { name: "Mais", ...opcoes })).toBeInTheDocument();
-    expect(itensDoPainel()).toEqual(["Visão Geral", "Conferência de pátio", "Serviços", "Financeiro", "Faturas", "Notas Fiscais", "Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]);
+    expect(itensDoPainel()).toEqual(["Visão Geral", "Conferência de pátio", "Financeiro", "Faturas", "Notas Fiscais", "Minha Empresa", "Configurações", "Gestão de Preços", "Catálogo de serviços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]);
   });
 
   it("mostra o nome completo dos itens, não o rótulo curto", async () => {
@@ -161,7 +162,7 @@ describe("BottomNav: menu estendido", () => {
     barra.capacidade = 4;
     await abrir();
 
-    expect(itensDoPainel()).toEqual(["Visão Geral", "Conferência de pátio", "Serviços", "Financeiro", "Faturas", "Notas Fiscais", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas"]);
+    expect(itensDoPainel()).toEqual(["Visão Geral", "Conferência de pátio", "Financeiro", "Faturas", "Notas Fiscais", "Configurações", "Gestão de Preços", "Catálogo de serviços", "Quadros de Chaves", "Mensalistas"]);
   });
 
   it("marca a tela atual no painel, e só ela", async () => {
@@ -237,15 +238,15 @@ describe("BottomNav: grupos no painel", () => {
     expect(itensDoPainel()[0]).toBe("Visão Geral");
 
     expect(nomesDoGrupo("Financeiro")).toEqual(["Financeiro", "Faturas", "Notas Fiscais"]);
-    expect(nomesDoGrupo("Configurações")).toEqual(["Minha Empresa", "Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]);
-    expect(nomesDoGrupo("Operação")).toEqual(["Conferência de pátio", "Serviços"]);
+    expect(nomesDoGrupo("Configurações")).toEqual(["Minha Empresa", "Configurações", "Gestão de Preços", "Catálogo de serviços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]);
+    expect(nomesDoGrupo("Operação")).toEqual(["Conferência de pátio"]);
   });
 
   it("o Gerente vê em Configurações só o que pode abrir", async () => {
     sessao.atual = { user: { name: "Gil", perfil: 2 }, isLoading: false };
     await abrir();
 
-    expect(nomesDoGrupo("Configurações")).toEqual(["Configurações", "Gestão de Preços", "Quadros de Chaves", "Mensalistas"]);
+    expect(nomesDoGrupo("Configurações")).toEqual(["Configurações", "Gestão de Preços", "Catálogo de serviços", "Quadros de Chaves", "Mensalistas"]);
   });
 
   it("a barra inferior não ganha título de grupo", () => {
@@ -287,5 +288,42 @@ describe("BottomNav: Mais destacado", () => {
 
     expect(screen.getByRole("link", { name: "Caixa" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Pátio" })).not.toHaveAttribute("aria-current");
+  });
+});
+
+describe("BottomNav: Fila e Catálogo de serviços", () => {
+  it("o Caixa tem a Fila de serviços no painel do Mais, e o Catálogo não aparece", async () => {
+    sessao.atual = { user: { name: "Beto", perfil: 4 }, isLoading: false };
+    await abrir();
+
+    expect(itensDoPainel()).toContain("Fila de serviços");
+    expect(itensDoPainel()).not.toContain("Catálogo de serviços");
+    expect(within(painel()).getByRole("link", { name: "Fila de serviços", ...opcoes })).toHaveAttribute("href", "/servicos");
+  });
+
+  it("o Gerente tem o Catálogo de serviços no painel do Mais, em Configurações, e a fila não aparece", async () => {
+    sessao.atual = { user: { name: "Gil", perfil: 2 }, isLoading: false };
+    await abrir();
+
+    expect(itensDoPainel()).toContain("Catálogo de serviços");
+    expect(itensDoPainel()).not.toContain("Fila de serviços");
+    expect(within(painel()).getByRole("link", { name: "Catálogo de serviços", ...opcoes })).toHaveAttribute("href", "/servicos/catalogo");
+  });
+
+  it("o Lavador vê a Visão Geral e a Fila na barra, com o rótulo curto, sem Mais", () => {
+    sessao.atual = { user: { name: "Lu", perfil: 9 }, isLoading: false };
+    renderWithTheme(<BottomNav />);
+
+    expect(nomesDaBarra()).toEqual(["Visão Geral", "Fila"]);
+    expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
+  });
+
+  it("o Financeiro não tem a Fila nem o Catálogo de serviços", () => {
+    sessao.atual = { user: { name: "Ana", perfil: 8 }, isLoading: false };
+    barra.capacidade = 4;
+    renderWithTheme(<BottomNav />);
+
+    expect(nomesDaBarra()).toEqual(["Visão Geral", "Financeiro", "Faturas", "Notas"]);
+    expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
   });
 });

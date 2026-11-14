@@ -165,3 +165,52 @@ describe("proxy: arquivos que o navegador busca sem cookie", () => {
     expect(passaPeloProxy(caminho)).toBe(true);
   });
 });
+
+const LAVADOR = 9;
+
+describe("proxy: Serviços (fila e catálogo)", () => {
+  it.each([ADMINISTRADOR, GERENTE])("perfil %i em /servicos vai ao catálogo, com ou sem ?aba=", (perfil) => {
+    for (const caminho of ["/servicos", "/servicos?aba=catalogo", "/servicos?aba=fila"]) {
+      const resposta = chamar(caminho, tokenDoPerfil(String(perfil)));
+      expect(resposta.status).toBe(307);
+      expect(resposta.headers.get("location")).toBe("http://localhost/servicos/catalogo");
+    }
+  });
+
+  it("mantém a seleção válida do endereço antigo e descarta a inválida", () => {
+    const token = tokenDoPerfil(String(GERENTE));
+    expect(chamar("/servicos?aba=catalogo&servico=7", token).headers.get("location")).toBe("http://localhost/servicos/catalogo?servico=7");
+    expect(chamar("/servicos?aba=catalogo&servico=abc", token).headers.get("location")).toBe("http://localhost/servicos/catalogo");
+  });
+
+  it.each([CAIXA, MANOBRISTA, LAVADOR])("perfil %i abre a fila em /servicos, mesmo com ?aba=catalogo", (perfil) => {
+    const token = tokenDoPerfil(String(perfil));
+    expect(chamar("/servicos", token).headers.get("location")).toBeNull();
+    expect(chamar("/servicos?aba=catalogo&servico=7", token).headers.get("location")).toBeNull();
+  });
+
+  it.each([ADMINISTRADOR, GERENTE])("perfil %i abre /servicos/catalogo", (perfil) => {
+    const token = tokenDoPerfil(String(perfil));
+    expect(chamar("/servicos/catalogo", token).headers.get("location")).toBeNull();
+    expect(chamar("/servicos/catalogo?servico=7", token).headers.get("location")).toBeNull();
+  });
+
+  it.each([CAIXA, MANOBRISTA, LAVADOR, FINANCEIRO])("perfil %i em /servicos/catalogo vai ao acesso negado", (perfil) => {
+    const resposta = chamar("/servicos/catalogo", tokenDoPerfil(String(perfil)));
+    expect(resposta.status).toBe(307);
+    expect(resposta.headers.get("location")).toBe("http://localhost/acesso-negado");
+  });
+
+  it("Financeiro e conveniada não têm fila nem catálogo: vão ao acesso negado, sem redirecionar ao catálogo", () => {
+    for (const perfil of [FINANCEIRO, ADMIN_CONVENIADA]) {
+      for (const caminho of ["/servicos", "/servicos/catalogo"]) {
+        expect(chamar(caminho, tokenDoPerfil(String(perfil))).headers.get("location")).toBe("http://localhost/acesso-negado");
+      }
+    }
+  });
+
+  it("sem sessão vai ao login, sem passar pelo redirecionamento de Serviços", () => {
+    expect(chamar("/servicos").headers.get("location")).toBe("http://localhost/login");
+    expect(chamar("/servicos/catalogo").headers.get("location")).toBe("http://localhost/login");
+  });
+});

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Input } from "@/components/ui/Input";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { filtrarServicos, precoParaCategoria } from "../catalogo";
+import { duracaoParaCategoria, filtrarServicos, precoParaCategoria } from "../catalogo";
 import { formatCentavos } from "../format";
 import { ServicoOpcao } from "../ServicoOpcao";
 import { useServicos } from "../useServicos";
@@ -90,6 +90,7 @@ export function AcrescentarServicosModal({ idPatio, placa, categoria, categoriaR
             <ServicoOpcao
               servico={servico}
               precoCentavos={precoParaCategoria(servico, categoria)}
+              duracaoMinutos={duracaoParaCategoria(servico, categoria)}
               marcado={escolhidos.includes(servico.id)}
               desabilitado={enviando}
               onAlternar={alternar}

@@ -27,7 +27,11 @@ export const CONTEUDO_MODULOS: Record<string, ConteudoModulo> = {
   },
   "/servicos": {
     texto:
-      "Cuida dos serviços do lava-rápido: o catálogo com preço por categoria de veículo e a fila de quem executa. Cada serviço passa de aguardando a em execução e a pronto, e dá para cancelar o que o cliente desistiu.",
+      "É a fila de quem executa os serviços do lava-rápido nos veículos do pátio. Cada serviço passa de na fila a em andamento e a pronto, com um toque, e dá para cancelar o que o cliente desistiu antes de começar.",
+  },
+  "/servicos/catalogo": {
+    texto:
+      "É o catálogo de serviços do lava-rápido: o nome, a descrição, o tempo previsto e o preço de cada serviço por categoria de veículo. Quem mantém o catálogo cadastra, edita e inativa; quem só consulta vê os preços.",
   },
   "/financeiro": {
     texto:

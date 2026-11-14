@@ -41,6 +41,12 @@ export function acaoDeStatus(status: StatusServico): AcaoDeStatus | null {
   }
 }
 
+// A segunda ação do cartão, discreta: desfazer o último passo. Só o serviço em andamento tem uma além da principal (voltar
+// para a fila); em Pronto a principal já é a correção, e Na fila não há para onde voltar.
+export function acaoSecundaria(status: StatusServico): AcaoDeStatus | null {
+  return status === STATUS_SERVICO.EmExecucao ? { rotulo: "Voltar para a fila", destino: STATUS_SERVICO.Aguardando, correcao: true } : null;
+}
+
 // Só serviço Aguardando (ainda não iniciado) pode ser cancelado.
 export function podeCancelar(status: StatusServico): boolean {
   return status === STATUS_SERVICO.Aguardando;

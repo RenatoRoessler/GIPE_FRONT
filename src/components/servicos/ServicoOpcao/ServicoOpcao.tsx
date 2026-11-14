@@ -3,7 +3,7 @@
 import { useId } from "react";
 import type { Servico } from "@/types/servico";
 import { formatCentavosOuGratis, formatDuracaoNatural } from "../format";
-import { Caixa, Detalhe, Entrada, Linha, Nome, Preco, Texto } from "./ServicoOpcao.styles";
+import { APartirDe, Caixa, Detalhe, Entrada, Linha, Nome, Preco, Texto } from "./ServicoOpcao.styles";
 
 export interface ServicoOpcaoProps {
   servico: Servico;
@@ -11,15 +11,19 @@ export interface ServicoOpcaoProps {
   precoCentavos: number | null;
   marcado: boolean;
   desabilitado?: boolean;
+  // O preço varia por categoria e o mostrado é o menor (a prévia do cadastro).
+  aPartirDe?: boolean;
+  // Duração prevista nesta categoria; sem ela, a do serviço (quando houver).
+  duracaoMinutos?: number | null;
   onAlternar: (id: number, marcado: boolean) => void;
 }
 
 // Uma linha da folha de adicionar serviços: a linha toda é o alvo de toque (≥ 44px) e alterna a seleção.
-export function ServicoOpcao({ servico, precoCentavos, marcado, desabilitado = false, onAlternar }: ServicoOpcaoProps) {
+export function ServicoOpcao({ servico, precoCentavos, marcado, desabilitado = false, aPartirDe = false, duracaoMinutos, onAlternar }: ServicoOpcaoProps) {
   const detalheId = useId();
   const atende = precoCentavos !== null;
   const detalhe = atende
-    ? [servico.descricao, formatDuracaoNatural(servico.duracaoMinutos)].filter(Boolean).join(" · ")
+    ? [servico.descricao, formatDuracaoNatural(duracaoMinutos === undefined ? servico.duracaoMinutos : duracaoMinutos)].filter(Boolean).join(" · ")
     : "Não atende esta categoria";
 
   return (
@@ -40,7 +44,10 @@ export function ServicoOpcao({ servico, precoCentavos, marcado, desabilitado = f
         <Nome>{servico.nome}</Nome>
         {detalhe && <Detalhe id={detalheId}>{detalhe}</Detalhe>}
       </Texto>
-      <Preco $apagado={!atende}>{atende ? formatCentavosOuGratis(precoCentavos) : "—"}</Preco>
+      <Preco $apagado={!atende}>
+        {atende && aPartirDe && <APartirDe>a partir de</APartirDe>}
+        {atende ? formatCentavosOuGratis(precoCentavos) : "—"}
+      </Preco>
     </Linha>
   );
 }

@@ -4,7 +4,7 @@ import { PERFIL_USUARIO } from "@/types/usuario";
 import { CONTEUDO_MODULOS } from "./conteudo";
 import { montarPassos } from "./passos";
 
-const { Administrador, Caixa, Manobrista, Financeiro, GerenteConveniada, UsuarioConveniada, AdministradorConveniada } = PERFIL_USUARIO;
+const { Administrador, Gerente, Caixa, Manobrista, Financeiro, Lavador, GerenteConveniada, UsuarioConveniada, AdministradorConveniada } = PERFIL_USUARIO;
 
 describe("conteúdo dos módulos", () => {
   it("todo item do menu tem explicação, para o tour não deixar módulo sem texto", () => {
@@ -67,5 +67,33 @@ describe("montarPassos", () => {
       expect(passos.at(-1)?.id).toBe("pronto");
       expect(passos.some((passo) => passo.id === "/usuarios")).toBe(false);
     }
+  });
+});
+
+describe("montarPassos: Fila e Catálogo de serviços", () => {
+  const passo = (perfil: Parameters<typeof montarPassos>[0], id: string) => montarPassos(perfil).find((candidato) => candidato.id === id);
+
+  it("Lavador, Manobrista e Caixa têm o passo da fila, em Operação, e não o do catálogo", () => {
+    for (const perfil of [Lavador, Manobrista, Caixa]) {
+      expect(passo(perfil, "/servicos")).toMatchObject({ titulo: "Fila de serviços", icone: "services", onde: "No menu, em Operação." });
+      expect(passo(perfil, "/servicos/catalogo")).toBeUndefined();
+    }
+  });
+
+  it("Administrador e Gerente têm o passo do catálogo, em Configurações, e não o da fila", () => {
+    for (const perfil of [Administrador, Gerente]) {
+      expect(passo(perfil, "/servicos/catalogo")).toMatchObject({ titulo: "Catálogo de serviços", icone: "catalog", onde: "No menu, em Configurações." });
+      expect(passo(perfil, "/servicos")).toBeUndefined();
+    }
+  });
+
+  it("o Financeiro não tem passo de serviços", () => {
+    expect(passo(Financeiro, "/servicos")).toBeUndefined();
+    expect(passo(Financeiro, "/servicos/catalogo")).toBeUndefined();
+  });
+
+  it("o texto de cada passo fala só da sua tela", () => {
+    expect(CONTEUDO_MODULOS["/servicos"].texto).not.toMatch(/catálogo/i);
+    expect(CONTEUDO_MODULOS["/servicos/catalogo"].texto).not.toMatch(/fila/i);
   });
 });

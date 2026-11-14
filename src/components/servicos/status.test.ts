@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { STATUS_SERVICO } from "@/types/servico";
-import { acaoDeStatus, avisoDeStatus, podeCancelar, STATUS_DA_FILA, STATUS_ROTULO, STATUS_TOM } from "./status";
+import { acaoDeStatus, acaoSecundaria, avisoDeStatus, podeCancelar, STATUS_DA_FILA, STATUS_ROTULO, STATUS_TOM } from "./status";
 
 describe("status do serviço", () => {
   it("todo status tem rótulo e tom", () => {
@@ -19,6 +19,13 @@ describe("status do serviço", () => {
     expect(acaoDeStatus(STATUS_SERVICO.Aguardando)).toEqual({ rotulo: "Iniciar", destino: 2, correcao: false });
     expect(acaoDeStatus(STATUS_SERVICO.EmExecucao)).toEqual({ rotulo: "Marcar como pronto", destino: 3, correcao: false });
     expect(acaoDeStatus(STATUS_SERVICO.Pronto)).toEqual({ rotulo: "Voltar para em andamento", destino: 2, correcao: true });
+  });
+
+  it("só o serviço em andamento tem uma segunda ação: voltar para a fila", () => {
+    expect(acaoSecundaria(STATUS_SERVICO.EmExecucao)).toEqual({ rotulo: "Voltar para a fila", destino: 1, correcao: true });
+    expect(acaoSecundaria(STATUS_SERVICO.Aguardando)).toBeNull();
+    expect(acaoSecundaria(STATUS_SERVICO.Pronto)).toBeNull();
+    expect(acaoSecundaria(STATUS_SERVICO.Cancelado)).toBeNull();
   });
 
   it("serviço cancelado não tem ação", () => {

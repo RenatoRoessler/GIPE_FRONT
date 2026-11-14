@@ -2,19 +2,34 @@
 
 import styled from "styled-components";
 
+// Cabeçalho da fila: hora e atualização, resumo por status e busca, um abaixo do outro.
 export const Cabecalho = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[3]}px;
+  margin-bottom: ${({ theme }) => theme.space[3]}px;
+`;
+
+export const Topo = styled.div`
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: ${({ theme }) => theme.space[2]}px;
-  margin-bottom: ${({ theme }) => theme.space[3]}px;
 `;
 
-export const Titulo = styled.h2`
-  margin: 0;
-  font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+export const Eyebrow = styled.span`
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-family: ${({ theme }) => theme.fontFamilies.mono};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+`;
+
+export const Busca = styled.div`
+  max-width: 360px;
 `;
 
 export const Atualizado = styled.span`

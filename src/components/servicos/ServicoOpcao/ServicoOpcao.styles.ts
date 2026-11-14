@@ -72,9 +72,19 @@ export const Detalhe = styled.span`
 
 export const Preco = styled.span<{ $apagado: boolean }>`
   flex-shrink: 0;
+  text-align: right;
   color: ${({ theme, $apagado }) => ($apagado ? theme.colors.textMuted : theme.colors.text)};
   font-family: ${({ theme }) => theme.fontFamilies.mono};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   font-variant-numeric: tabular-nums;
+`;
+
+// "a partir de", quando o preço varia por categoria (a prévia do cadastro mostra o menor valor).
+export const APartirDe = styled.small`
+  display: block;
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-family: ${({ theme }) => theme.fontFamilies.sans};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
 `;

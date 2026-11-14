@@ -202,6 +202,16 @@ function ServicesIcon(props: IconProps) {
   );
 }
 
+// Catálogo de serviços: uma lista com marcadores.
+function CatalogIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M9 6h11M9 12h11M9 18h11" />
+      <path d="M4 6h.01M4 12h.01M4 18h.01" />
+    </IconBase>
+  );
+}
+
 const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   dashboard: DashboardIcon,
   pricing: PricingIcon,
@@ -222,6 +232,7 @@ const ICONS: Record<NavIconId, (props: IconProps) => React.JSX.Element> = {
   stampedYard: StampedYardIcon,
   bill: BillIcon,
   services: ServicesIcon,
+  catalog: CatalogIcon,
 };
 
 export function NavIcon({ id, ...props }: { id: NavIconId } & IconProps) {

@@ -28,6 +28,8 @@ const PERMITIDOS: Record<Area, PerfilUsuario[]> = {
   [AREA.Carimbo]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
   [AREA.PatioConveniada]: [AdministradorConveniada, GerenteConveniada, UsuarioConveniada],
   [AREA.Servicos]: [Administrador, Gerente, Caixa, Manobrista, Lavador],
+  [AREA.ServicosFila]: [Caixa, Manobrista, Lavador],
+  [AREA.ServicosCatalogoConsulta]: [Administrador, Gerente],
   [AREA.ServicosCatalogo]: [Administrador, Gerente],
   [AREA.ServicosPatio]: [Administrador, Gerente, Caixa, Manobrista],
 };
@@ -81,8 +83,11 @@ describe("areaDaRota", () => {
     expect(areaDaRota("/carimbo/qualquer")).toBe(AREA.Carimbo);
     expect(areaDaRota("/patio-conveniada")).toBe(AREA.PatioConveniada);
     expect(areaDaRota("/patio-conveniada/qualquer")).toBe(AREA.PatioConveniada);
-    expect(areaDaRota("/servicos")).toBe(AREA.Servicos);
-    expect(areaDaRota("/servicos/qualquer")).toBe(AREA.Servicos);
+    expect(areaDaRota("/servicos")).toBe(AREA.ServicosFila);
+    expect(areaDaRota("/servicos/qualquer")).toBe(AREA.ServicosFila);
+    expect(areaDaRota("/servicos/catalogo")).toBe(AREA.ServicosCatalogoConsulta);
+    expect(areaDaRota("/servicos/catalogo/qualquer")).toBe(AREA.ServicosCatalogoConsulta);
+    expect(areaDaRota("/servicos/catalogos")).toBe(AREA.ServicosFila);
   });
 
   it("o histórico de caixas é uma área própria, o resto do caixa não", () => {
@@ -132,5 +137,33 @@ describe("Faturas", () => {
 
     expect(podeAcessar(Caixa, AREA.Faturas, overrides)).toBe(true);
     expect(podeAcessar(Financeiro, AREA.Faturas, overrides)).toBe(false);
+  });
+});
+
+describe("Serviços: fila e catálogo", () => {
+  it("a fila é de Caixa, Manobrista e Lavador; Administrador e Gerente ficam fora", () => {
+    for (const perfil of [Caixa, Manobrista, Lavador]) expect(podeAcessar(perfil, AREA.ServicosFila)).toBe(true);
+    for (const perfil of [Administrador, Gerente, Financeiro]) expect(podeAcessar(perfil, AREA.ServicosFila)).toBe(false);
+  });
+
+  it("o catálogo abre só para Administrador e Gerente, os mesmos que o mantêm", () => {
+    for (const perfil of [Administrador, Gerente]) {
+      expect(podeAcessar(perfil, AREA.ServicosCatalogoConsulta)).toBe(true);
+      expect(podeAcessar(perfil, AREA.ServicosCatalogo)).toBe(true);
+    }
+    for (const perfil of [Caixa, Manobrista, Lavador, Financeiro]) expect(podeAcessar(perfil, AREA.ServicosCatalogoConsulta)).toBe(false);
+  });
+
+  it("o Financeiro não tem acesso a serviços: nem à fila nem ao catálogo", () => {
+    for (const area of [AREA.ServicosFila, AREA.ServicosCatalogoConsulta, AREA.ServicosCatalogo, AREA.ServicosPatio, AREA.Servicos]) {
+      expect(podeAcessar(Financeiro, area)).toBe(false);
+    }
+  });
+
+  it("as ações dentro do ticket do Pátio seguem como estavam", () => {
+    expect(podeAcessar(Administrador, AREA.Servicos)).toBe(true);
+    expect(podeAcessar(Gerente, AREA.Servicos)).toBe(true);
+    expect(podeAcessar(Gerente, AREA.ServicosPatio)).toBe(true);
+    expect(podeAcessar(Lavador, AREA.ServicosPatio)).toBe(false);
   });
 });

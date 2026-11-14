@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 import { ErroSemPermissao } from "@/components/layout/ErroSemPermissao";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
+import { Input } from "@/components/ui/Input";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Tabs } from "@/components/ui/Tabs";
 import { Toast } from "@/components/ui/Toast";
 import { useCan } from "@/hooks/useCan";
+import { useAgora } from "@/hooks/useAgora";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useToast } from "@/hooks/useToast";
 import { ApiError } from "@/lib/api/errors";
@@ -16,29 +18,37 @@ import { AREA } from "@/lib/permissoes";
 import { STATUS_SERVICO, type ItemFila, type StatusServico } from "@/types/servico";
 import { CancelarServicoDialog } from "../CancelarServicoDialog";
 import { FilaCard } from "../FilaCard";
-import { PARAM_ABA, PARAM_STATUS } from "../params";
+import { filtrarFila, outrosNoCarro } from "../fila";
+import { PARAM_STATUS } from "../params";
+import { ResumoDaFila } from "../ResumoDaFila";
 import { avisoDeStatus, STATUS_DA_FILA, STATUS_ROTULO, type AcaoDeStatus, type StatusDaFila } from "../status";
 import { useAtualizarStatusServico } from "../useAtualizarStatusServico";
 import { useFilaServicos } from "../useFilaServicos";
 import {
   Atualizado,
   BotaoDesfazer,
+  Busca,
   Cabecalho,
   Coluna,
   Colunas,
   Desfazer,
   Estado,
-  Titulo,
+  Eyebrow,
+  Topo,
   TituloColuna,
   Vazio,
   VisuallyHidden,
 } from "./FilaServicos.styles";
 
 const VAZIO_DA_COLUNA: Record<StatusDaFila, string> = {
-  [STATUS_SERVICO.Aguardando]: "Nenhum serviço na fila.",
-  [STATUS_SERVICO.EmExecucao]: "Nenhum serviço em andamento.",
-  [STATUS_SERVICO.Pronto]: "Nenhum serviço pronto.",
+  [STATUS_SERVICO.Aguardando]: "Nenhum carro esperando serviço.",
+  [STATUS_SERVICO.EmExecucao]: "Ninguém lavando agora.",
+  [STATUS_SERVICO.Pronto]: "Nenhum carro pronto aguardando retirada.",
 };
+
+// Os tempos do cartão são em minutos: renovar a cada 30 s basta, sem redesenhar a fila a cada segundo.
+const INTERVALO_DOS_TEMPOS_MS = 30_000;
+const hora = new Intl.DateTimeFormat("pt-BR", { timeStyle: "short" });
 
 const PRAZO_DO_DESFAZER_MS = 6_000;
 
@@ -63,6 +73,13 @@ function anuncio(item: ItemFila, destino: StatusServico): string {
   return `Serviço de ${item.nomeServico}, placa ${item.placa}, ${STATUS_ROTULO[destino].toLowerCase()}`;
 }
 
+// "Atualizado há N s" muda a cada segundo; fica num componente próprio para só ele ser redesenhado, e não a fila inteira.
+function AtualizadoHa({ atualizadoEm }: { atualizadoEm: number }) {
+  const agora = useAgora(1000);
+  const texto = textoAtualizado(atualizadoEm, agora);
+  return texto ? <Atualizado>{texto}</Atualizado> : null;
+}
+
 interface Desfazimento {
   mensagem: string;
   item: ItemFila;
@@ -84,21 +101,18 @@ export function FilaServicos() {
   const [cancelando, setCancelando] = useState<ItemFila | null>(null);
   const [desfazimento, setDesfazimento] = useState<Desfazimento | null>(null);
   const [anunciado, setAnunciado] = useState("");
-  const [agora, setAgora] = useState(() => Date.now());
-
-  useEffect(() => {
-    const timer = setInterval(() => setAgora(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
+  const [busca, setBusca] = useState("");
+  const agora = useAgora(INTERVALO_DOS_TEMPOS_MS);
   useEffect(() => {
     if (!desfazimento) return;
     const timer = setTimeout(() => setDesfazimento(null), PRAZO_DO_DESFAZER_MS);
     return () => clearTimeout(timer);
   }, [desfazimento]);
 
-  const porStatus = (status: StatusServico) => fila.itens.filter((item) => item.status === status);
-  const total = STATUS_DA_FILA.reduce((soma, status) => soma + porStatus(status).length, 0);
+  // A busca por placa ou prisma só filtra o que se vê; o resumo e o "+N no carro" contam a fila inteira.
+  const visiveis = filtrarFila(fila.itens, busca);
+  const buscando = busca.trim() !== "";
+  const porStatus = (status: StatusServico) => visiveis.filter((item) => item.status === status);
   const statusAtual = statusDaUrl(searchParams.get(PARAM_STATUS));
 
   function trocarStatus(item: ItemFila, destino: StatusServico, comDesfazer: boolean) {
@@ -139,7 +153,7 @@ export function FilaServicos() {
   }
 
   function escolherStatus(id: string) {
-    router.replace(`${pathname}?${PARAM_ABA}=fila&${PARAM_STATUS}=${id}`, { scroll: false });
+    router.replace(`${pathname}?${PARAM_STATUS}=${id}`, { scroll: false });
   }
 
   if (fila.erro instanceof ApiError && fila.erro.kind === "forbidden") {
@@ -160,7 +174,15 @@ export function FilaServicos() {
           <Vazio>{VAZIO_DA_COLUNA[status]}</Vazio>
         ) : (
           itens.map((item) => (
-            <FilaCard key={item.patioServicoId} item={item} podeCancelarServico={podeCancelarServico} onAcao={aoAcionar} onCancelar={setCancelando} />
+            <FilaCard
+              key={item.patioServicoId}
+              item={item}
+              agora={agora}
+              outros={outrosNoCarro(fila.itens, item)}
+              podeCancelarServico={podeCancelarServico}
+              onAcao={aoAcionar}
+              onCancelar={setCancelando}
+            />
           ))
         )}
       </Coluna>
@@ -179,8 +201,18 @@ export function FilaServicos() {
         </div>
       );
     }
-    if (!fila.erro && total === 0) {
+    if (!fila.erro && fila.itens.length === 0) {
       return <Vazio>Nenhum serviço na fila. Os serviços acrescentados aos veículos aparecem aqui.</Vazio>;
+    }
+    if (buscando && visiveis.length === 0) {
+      return (
+        <Estado>
+          <Vazio>Nenhum serviço encontrado para essa placa ou prisma.</Vazio>
+          <Button variant="secondary" size="sm" onClick={() => setBusca("")}>
+            Limpar busca
+          </Button>
+        </Estado>
+      );
     }
     if (celular) {
       const abas = STATUS_DA_FILA.map((status) => ({ id: String(status), label: `${STATUS_ROTULO[status]} (${porStatus(status).length})` }));
@@ -193,13 +225,28 @@ export function FilaServicos() {
     return <Colunas>{STATUS_DA_FILA.map(colunaDe)}</Colunas>;
   }
 
-  const atualizado = textoAtualizado(fila.atualizadoEm, agora);
-
   return (
     <section aria-label="Fila de serviços">
       <Cabecalho>
-        <Titulo>Fila de serviços{!fila.carregando && ` (${total})`}</Titulo>
-        {atualizado && <Atualizado>{atualizado}</Atualizado>}
+        <Topo>
+          <Eyebrow>Lava-rápido · agora {hora.format(agora)}</Eyebrow>
+          <AtualizadoHa atualizadoEm={fila.atualizadoEm} />
+        </Topo>
+        {!fila.carregando && !fila.erro && <ResumoDaFila itens={fila.itens} agora={agora} />}
+        <Busca>
+          <Input
+            label="Placa ou prisma"
+            type="search"
+            autoComplete="off"
+            autoCapitalize="characters"
+            placeholder="Placa ou prisma"
+            value={busca}
+            onChange={(event) => setBusca(event.target.value.toUpperCase())}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setBusca("");
+            }}
+          />
+        </Busca>
       </Cabecalho>
       {fila.erro && (
         <Estado>

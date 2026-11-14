@@ -101,8 +101,8 @@ describe("FilaServicos: desktop", () => {
     api.listFila.mockResolvedValue([item(1, "Cera", STATUS_SERVICO.Aguardando, "ABC1D23")]);
     renderWithProviders(<FilaServicos />);
 
-    expect(await screen.findByText("Nenhum serviço em andamento.")).toBeInTheDocument();
-    expect(screen.getByText("Nenhum serviço pronto.")).toBeInTheDocument();
+    expect(await screen.findByText("Ninguém lavando agora.")).toBeInTheDocument();
+    expect(screen.getByText("Nenhum carro pronto aguardando retirada.")).toBeInTheDocument();
   });
 
   it("diz quando a fila toda está vazia", async () => {
@@ -247,6 +247,6 @@ describe("FilaServicos: celular", () => {
     expect(await screen.findByText("Cera")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("tab", { name: "Pronto (1)" }));
 
-    expect(navegacao.replace).toHaveBeenCalledWith("/servicos?aba=fila&status=3", { scroll: false });
+    expect(navegacao.replace).toHaveBeenCalledWith("/servicos?status=3", { scroll: false });
   });
 });

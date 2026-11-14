@@ -8,23 +8,25 @@ import { Modal } from "@/components/ui/Modal";
 import { Textarea } from "@/components/ui/Textarea";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import type { ItemFila } from "@/types/servico";
+import { MotivosRapidos } from "../MotivosRapidos";
 import { MOTIVO_MAXIMO, useCancelarServico } from "../useServicosDoVeiculo";
-import { Corpo, Resumo } from "./CancelarServicoDialog.styles";
+import { Corpo, Efeito, Resumo } from "./CancelarServicoDialog.styles";
 
 export interface CancelarServicoDialogProps {
-  item: Pick<ItemFila, "idPatio" | "patioServicoId" | "nomeServico" | "placa">;
+  item: Pick<ItemFila, "idPatio" | "patioServicoId" | "nomeServico" | "placa"> & Partial<Pick<ItemFila, "modelo">>;
   onClose: () => void;
   onCancelado: () => void;
 }
 
-// Cancela um serviço que ainda não começou. O motivo é obrigatório: o botão só liga com ele preenchido. No celular
-// vira folha inferior; no desktop, janela.
+// Cancela um serviço que ainda não começou. O motivo é obrigatório: o botão só liga com ele preenchido, e os motivos mais
+// comuns preenchem o campo com um toque. No celular vira folha inferior; no desktop, janela.
 export function CancelarServicoDialog({ item, onClose, onCancelado }: CancelarServicoDialogProps) {
   const celular = useIsMobile();
   const cancelar = useCancelarServico(item.idPatio);
   const [motivo, setMotivo] = useState("");
   const enviando = cancelar.isPending;
   const valido = motivo.trim() !== "" && motivo.trim().length <= MOTIVO_MAXIMO;
+  const titulo = `Cancelar ${item.nomeServico.toLowerCase()}?`;
 
   function confirmar() {
     cancelar.mutate({ patioServicoId: item.patioServicoId, motivo }, { onSuccess: onCancelado });
@@ -33,9 +35,13 @@ export function CancelarServicoDialog({ item, onClose, onCancelado }: CancelarSe
   const corpo = (
     <Corpo>
       <Resumo>
-        {item.nomeServico} · placa {item.placa}
+        {[item.placa, item.modelo].filter(Boolean).join(" · ")}
       </Resumo>
+      <Efeito>
+        O serviço sai do valor e do tempo grátis do carro. Sem outro serviço, a permanência volta a ser cobrada pela tabela do rotativo desde a entrada.
+      </Efeito>
       {cancelar.isError && <ErrorBanner role="alert">{cancelar.error.message}</ErrorBanner>}
+      <MotivosRapidos valor={motivo} onEscolher={setMotivo} desabilitado={enviando} />
       <Textarea
         label="Motivo"
         value={motivo}
@@ -49,7 +55,7 @@ export function CancelarServicoDialog({ item, onClose, onCancelado }: CancelarSe
   const rodape = (
     <>
       <Button type="button" variant="secondary" onClick={onClose} disabled={enviando}>
-        Voltar
+        Manter
       </Button>
       <Button type="button" variant="danger" onClick={confirmar} disabled={!valido || enviando}>
         {enviando ? "Cancelando..." : "Cancelar serviço"}
@@ -58,11 +64,11 @@ export function CancelarServicoDialog({ item, onClose, onCancelado }: CancelarSe
   );
 
   return celular ? (
-    <BottomSheet open title="Cancelar serviço" onClose={onClose} footer={rodape}>
+    <BottomSheet open title={titulo} onClose={onClose} footer={rodape}>
       {corpo}
     </BottomSheet>
   ) : (
-    <Modal open title="Cancelar serviço" onClose={onClose} footer={rodape} closeOnBackdrop={false}>
+    <Modal open title={titulo} onClose={onClose} footer={rodape} closeOnBackdrop={false}>
       {corpo}
     </Modal>
   );

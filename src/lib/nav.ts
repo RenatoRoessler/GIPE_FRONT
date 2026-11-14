@@ -1,7 +1,7 @@
 import { AREA, podeAcessar, type Area } from "@/lib/permissoes";
 import type { PerfilUsuario } from "@/types/usuario";
 
-export type NavIconId = "dashboard" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "company" | "settings" | "invoice" | "finance" | "keys" | "agreement" | "stamp" | "checklist" | "stampedYard" | "bill" | "services";
+export type NavIconId = "dashboard" | "pricing" | "users" | "members" | "vehicleIn" | "vehicleOut" | "yard" | "cashier" | "company" | "settings" | "invoice" | "finance" | "keys" | "agreement" | "stamp" | "checklist" | "stampedYard" | "bill" | "services" | "catalog";
 
 // Ações do menu que abrem um modal por cima da tela atual, em vez de levar a uma página.
 export type NavAction = "entrada" | "saida";
@@ -54,7 +54,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Entrada de Veículos", shortLabel: "Entrada", acao: "entrada", icon: "vehicleIn", area: AREA.Patio, grupo: "operacao" },
   { label: "Saída de Veículos", shortLabel: "Saída", acao: "saida", icon: "vehicleOut", area: AREA.Patio, grupo: "operacao" },
   { label: "Conferência de pátio", shortLabel: "Conferência", href: "/conferencia-patio", icon: "checklist", area: AREA.Patio, grupo: "operacao" },
-  { label: "Serviços", shortLabel: "Serviços", href: "/servicos", icon: "services", area: AREA.Servicos, grupo: "operacao" },
+  { label: "Fila de serviços", shortLabel: "Fila", href: "/servicos", icon: "services", area: AREA.ServicosFila, grupo: "operacao" },
   { label: "Financeiro", shortLabel: "Financeiro", href: "/financeiro", icon: "finance", area: AREA.Financeiro, grupo: "financeiro" },
   { label: "Caixa", shortLabel: "Caixa", href: "/caixa", icon: "cashier", area: AREA.Caixa, grupo: "financeiro" },
   { label: "Faturas", shortLabel: "Faturas", href: "/faturas", icon: "bill", area: AREA.Faturas, grupo: "financeiro" },
@@ -62,6 +62,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Minha Empresa", shortLabel: "Empresa", href: "/minha-empresa", icon: "company", area: AREA.Empresa, grupo: "configuracoes" },
   { label: "Configurações", shortLabel: "Config.", href: "/configuracoes", icon: "settings", area: AREA.Configuracoes, grupo: "configuracoes" },
   { label: "Gestão de Preços", shortLabel: "Preços", href: "/precos", icon: "pricing", area: AREA.Precos, grupo: "configuracoes" },
+  { label: "Catálogo de serviços", shortLabel: "Catálogo", href: "/servicos/catalogo", icon: "catalog", area: AREA.ServicosCatalogoConsulta, grupo: "configuracoes" },
   { label: "Quadros de Chaves", shortLabel: "Chaves", href: "/quadros-chaves", icon: "keys", area: AREA.QuadroChaves, grupo: "configuracoes" },
   { label: "Mensalistas", shortLabel: "Mensalistas", href: "/mensalistas", icon: "members", area: AREA.Mensalistas, grupo: "configuracoes" },
   { label: "Gestão de Usuários", shortLabel: "Usuários", href: "/usuarios", icon: "users", area: AREA.Usuarios, grupo: "configuracoes" },
@@ -139,12 +140,13 @@ const MIN_SLOTS = 5;
 const COMPACTA_ABAIXO = 8;
 const ITENS_NA_BARRA_COMPACTA = BAR_PRIORITY.length;
 
-// Separa os itens que cabem na barra dos que vão para o menu estendido. Se nem todos cabem, o último
+// Separa os itens que cabem na barra dos que vão para o menu estendido. Se todos cabem nos espaços (pelo menos cinco), a
+// barra os mostra e não há "Mais": um botão só para esconder um item não ajuda ninguém. Se nem todos cabem, o último
 // espaço é do botão "Mais", então um a menos é mostrado.
 export function dividirItensDaBarra<T>(itens: T[], capacidade: number): { visiveis: T[]; excedentes: T[] } {
   const slots = Math.max(capacidade, MIN_SLOTS);
   const mostrados = slots < COMPACTA_ABAIXO ? ITENS_NA_BARRA_COMPACTA : slots - 1;
-  if (itens.length <= mostrados || (slots >= COMPACTA_ABAIXO && itens.length <= slots)) {
+  if (itens.length <= slots) {
     return { visiveis: itens, excedentes: [] };
   }
   return { visiveis: itens.slice(0, mostrados), excedentes: itens.slice(mostrados) };

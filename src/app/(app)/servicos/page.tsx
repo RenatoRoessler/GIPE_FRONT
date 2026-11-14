@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { ServicosEsqueleto, ServicosPage } from "@/components/servicos/ServicosPage";
+import { FilaServicosEsqueleto, FilaServicosPage } from "@/components/servicos/FilaServicosPage";
 
-// `ServicosPage` lê a aba e a seleção da URL: o Suspense deixa o resto da página sair pré-renderizado.
-export default function ServicosRoute() {
+// `FilaServicos` lê a coluna da URL: o Suspense deixa o resto da página sair pré-renderizado.
+export default function FilaServicosRoute() {
   return (
-    <Suspense fallback={<ServicosEsqueleto />}>
-      <ServicosPage />
+    <Suspense fallback={<FilaServicosEsqueleto />}>
+      <FilaServicosPage />
     </Suspense>
   );
 }
