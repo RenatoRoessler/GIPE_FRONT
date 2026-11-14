@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.445",
+      "type": "feat",
+      "scope": "usuarios",
+      "title": "permite cadastrar usuários com o perfil Lavador",
+      "description": "O cadastro de usuários passa a oferecer o perfil Lavador (9) junto dos\ndemais perfis do estacionamento, para quem executa os serviços da fila.",
+      "date": "2026-11-14T16:45:42-03:00"
+    },
+    {
       "version": "1.0.443",
       "type": "feat",
       "scope": "servicos",
