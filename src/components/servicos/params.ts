@@ -1,5 +1,4 @@
-// Parâmetros do endereço do módulo, num arquivo à parte para a página e o catálogo não se importarem em círculo.
-export const PARAM_ABA = "aba";
+// Parâmetros do endereço do módulo: a fila e o catálogo têm cada um a sua página, sem abas.
 export const PARAM_SERVICO = "servico";
 // Coluna da fila escolhida no celular.
 export const PARAM_STATUS = "status";

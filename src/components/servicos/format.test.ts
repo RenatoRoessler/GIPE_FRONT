@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SERVICOS_DO_VEICULO_KEY, servicosDoVeiculoKey } from "./servicosKeys";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
-import { formatCentavos, formatCentavosOuGratis, formatDuracao, formatDuracaoNatural, formatTempoPermitido } from "./format";
+import { extensoDeMinutos, formatCentavos, formatCentavosOuGratis, formatDuracao, formatDuracaoNatural, formatTempoPermitido, textoDoComprovante } from "./format";
 
 describe("formatCentavos", () => {
   it("mostra reais com vírgula", () => {
@@ -55,5 +55,31 @@ describe("formatCentavosOuGratis", () => {
   it("zero é Grátis e o resto é valor", () => {
     expect(formatCentavosOuGratis(0)).toBe("Grátis");
     expect(formatCentavosOuGratis(3000)).toBe("R$ 30,00");
+  });
+});
+
+describe("extensoDeMinutos", () => {
+  it("escreve horas e minutos por extenso, no singular e no plural", () => {
+    expect(extensoDeMinutos(1)).toBe("1 minuto");
+    expect(extensoDeMinutos(40)).toBe("40 minutos");
+    expect(extensoDeMinutos(60)).toBe("1 hora");
+    expect(extensoDeMinutos(90)).toBe("1 hora e 30 minutos");
+    expect(extensoDeMinutos(120)).toBe("2 horas");
+    expect(extensoDeMinutos(121)).toBe("2 horas e 1 minuto");
+  });
+});
+
+describe("textoDoComprovante", () => {
+  it("diz quanto leva e quanto o carro fica no pátio sem pagar", () => {
+    expect(textoDoComprovante({ duracaoMinutos: 60, tempoPermitidoMinutos: 120 })).toEqual({
+      previsao: "Após iniciar o serviço, finaliza em cerca de 1 hora.",
+      permanencia: "Seu carro pode ficar 2 horas no pátio sem pagar estacionamento. Depois disso, cobra a tabela normal.",
+    });
+  });
+
+  it("sem duração e sem tempo permitido usa as frases neutras", () => {
+    const neutro = { previsao: "Sem previsão de término.", permanencia: "O estacionamento é cobrado normalmente." };
+    expect(textoDoComprovante({})).toEqual(neutro);
+    expect(textoDoComprovante({ duracaoMinutos: null, tempoPermitidoMinutos: 0 })).toEqual(neutro);
   });
 });

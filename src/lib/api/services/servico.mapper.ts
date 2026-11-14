@@ -36,6 +36,8 @@ function fromPreco(raw: unknown): PrecoServico | null {
     categoria,
     descricao: toText(raw.categoriaDescricao) ?? CATEGORIA_ROTULO[categoria] ?? `Categoria ${categoria}`,
     valorCentavos: Math.round(valor * 100),
+    duracaoMinutos: minutosOuNulo(raw.duracaoMinutos),
+    tempoPermitidoMinutos: minutosOuNulo(raw.tempoPermitidoMinutos),
   };
 }
 
@@ -81,11 +83,24 @@ function fromServicoDoVeiculo(raw: unknown): ServicoDoVeiculo | null {
   };
 }
 
-// Previsão e hora em que ficou pronto: o back ainda não confirmou os nomes, então aceita mais de um.
+const dois = (numero: number) => String(numero).padStart(2, "0");
+
+// "2026-11-13T07:42:47" + 30 min = "2026-11-13T08:12:47". As datas do back vêm sem fuso, no horário local, e a soma devolve o
+// mesmo formato. Data inválida ou duração ausente: nulo.
+function somarMinutos(inicio: string | null, minutos: number | null): string | null {
+  if (inicio === null || minutos === null || minutos <= 0) return null;
+  const data = new Date(inicio);
+  if (Number.isNaN(data.getTime())) return null;
+  data.setMinutes(data.getMinutes() + minutos);
+  return `${data.getFullYear()}-${dois(data.getMonth() + 1)}-${dois(data.getDate())}T${dois(data.getHours())}:${dois(data.getMinutes())}:${dois(data.getSeconds())}`;
+}
+
+// Previsão de término e hora em que ficou pronto. O back manda o início (`dataHoraInicio`), a duração e `dataHoraPronto`; a
+// previsão é o início somado à duração (um `previsaoEm` explícito, se vier, vale mais).
 function momentosDoServico(raw: Record<string, unknown>): { previsaoEm: string | null; prontoEm: string | null } {
   return {
-    previsaoEm: toText(primeiro(raw, "previsaoEm", "previsaoConclusao")),
-    prontoEm: toText(primeiro(raw, "prontoEm", "dataPronto", "concluidoEm")),
+    previsaoEm: toText(primeiro(raw, "previsaoEm", "previsaoConclusao")) ?? somarMinutos(toText(raw.dataHoraInicio), minutosOuNulo(raw.duracaoMinutos)),
+    prontoEm: toText(primeiro(raw, "dataHoraPronto", "prontoEm", "dataPronto", "concluidoEm")),
   };
 }
 
@@ -117,6 +132,15 @@ function textoOuNumero(valor: unknown): string | null {
   return toText(valor) ?? (numero === null ? null : String(numero));
 }
 
+// A fila manda a categoria do veículo como número (`"categoria": 3`); a tela mostra o nome ("Carro médio"). Texto ou número
+// desconhecido ficam como vieram.
+function categoriaDaFila(raw: Record<string, unknown>): string | null {
+  const descricao = toText(raw.categoriaDescricao);
+  if (descricao !== null) return descricao;
+  const numero = toNumber(raw.categoria);
+  return numero !== null && CATEGORIA_ROTULO[numero] ? CATEGORIA_ROTULO[numero] : textoOuNumero(raw.categoria);
+}
+
 function fromItemFila(raw: unknown, statusDoGrupo?: StatusServico): ItemFila | null {
   if (!isRecord(raw)) return null;
   const patioServicoId = toNumber(primeiro(raw, "patioServicoId", "id"));
@@ -133,9 +157,14 @@ function fromItemFila(raw: unknown, statusDoGrupo?: StatusServico): ItemFila | n
     placa,
     modelo: toText(raw.modelo),
     cor: toText(raw.cor),
-    categoria: textoOuNumero(primeiro(raw, "categoriaDescricao", "categoria")),
+    categoria: categoriaDaFila(raw),
     prisma: textoOuNumero(raw.prisma),
-    entradaEm: toText(primeiro(raw, "entradaEm", "dataEntrada", "entrada")),
+    entradaEm: toText(primeiro(raw, "entradaEm", "dataEntrada", "entrada", "dataHoraEntrada")),
+    // Tempos do serviço: o back ainda não confirmou os nomes, então aceita mais de um. Ausente é nulo.
+    criadoEm: toText(primeiro(raw, "dataCriacao", "criadoEm", "adicionadoEm")),
+    iniciadoEm: toText(primeiro(raw, "dataHoraInicio", "inicioEm", "iniciadoEm")),
+    prontoEm: toText(primeiro(raw, "dataHoraPronto", "prontoEm")),
+    duracaoMinutos: minutosOuNulo(raw.duracaoMinutos),
   };
 }
 

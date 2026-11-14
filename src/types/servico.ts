@@ -22,6 +22,9 @@ export interface PrecoServico {
   categoria: number;
   descricao: string;
   valorCentavos: number;
+  // Por categoria. Ausente ou nulo até o back mandar: a tela usa então os valores do serviço.
+  duracaoMinutos?: number | null;
+  tempoPermitidoMinutos?: number | null;
 }
 
 export interface Servico {
@@ -35,13 +38,12 @@ export interface Servico {
   precos: PrecoServico[];
 }
 
-// Corpo do cadastro e da edição. O valor vai em reais, como o back espera.
+// Corpo do cadastro e da edição. O valor vai em reais, como o back espera, uma linha por categoria que recebe o serviço (1 a 6;
+// o back recusa a 99). A duração e o tempo grátis são de cada categoria.
 export interface ServicoPayload {
   nome: string;
   descricao: string | null;
-  duracaoMinutos: number | null;
-  tempoPermitidoMinutos: number | null;
-  precos: { categoria: number; valor: number }[];
+  precos: { categoria: number; valor: number; duracaoMinutos?: number; tempoPermitidoMinutos?: number }[];
 }
 
 export interface ServicoDoVeiculo {
@@ -90,6 +92,11 @@ export interface ItemFila {
   categoria: string | null;
   prisma: string | null;
   entradaEm: string | null;
+  // O back ainda não confirmou estes quatro: ausente é nulo e a tela omite o trecho que depende deles.
+  criadoEm?: string | null;
+  iniciadoEm?: string | null;
+  prontoEm?: string | null;
+  duracaoMinutos?: number | null;
 }
 
 export function isStatusServico(valor: unknown): valor is StatusServico {

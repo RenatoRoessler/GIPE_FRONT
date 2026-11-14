@@ -54,7 +54,9 @@ describe("ehSituacao", () => {
 
 describe("linhasDePreco", () => {
   it("só a categoria 99 vira uma linha única", () => {
-    expect(linhasDePreco(servico(1, "A", true, [preco(99, 5000)]))).toEqual([{ categoria: 99, rotulo: "Todas as categorias", valorCentavos: 5000, geral: false }]);
+    expect(linhasDePreco(servico(1, "A", true, [preco(99, 5000)]))).toEqual([
+      { categoria: 99, rotulo: "Todas as categorias", valorCentavos: 5000, geral: false, duracaoMinutos: null, tempoPermitidoMinutos: null },
+    ]);
   });
 
   it("com preços próprios, mostra as seis categorias e o não atendimento", () => {

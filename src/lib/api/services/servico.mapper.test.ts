@@ -24,8 +24,8 @@ describe("fromServicoResponse", () => {
       tempoPermitidoMinutos: 180,
       ativo: true,
       precos: [
-        { categoria: 2, descricao: "Carro pequeno", valorCentavos: 4010 },
-        { categoria: 99, descricao: "Todas", valorCentavos: 5000 },
+        { categoria: 2, descricao: "Carro pequeno", valorCentavos: 4010, duracaoMinutos: null, tempoPermitidoMinutos: null },
+        { categoria: 99, descricao: "Todas", valorCentavos: 5000, duracaoMinutos: null, tempoPermitidoMinutos: null },
       ],
     });
   });
@@ -114,7 +114,7 @@ describe("fromFilaResponse", () => {
 
   it("lê a lista única", () => {
     expect(fromFilaResponse([item])).toEqual([
-      { patioServicoId: 1, idPatio: 30, nomeServico: "Lavagem", status: 1, placa: "ABC1D23", modelo: "Onix", cor: "Branco", categoria: "Carro pequeno", prisma: "12", entradaEm: "2026-11-11T14:20:00" },
+      { patioServicoId: 1, idPatio: 30, nomeServico: "Lavagem", status: 1, placa: "ABC1D23", modelo: "Onix", cor: "Branco", categoria: "Carro pequeno", prisma: "12", entradaEm: "2026-11-11T14:20:00", criadoEm: null, iniciadoEm: null, prontoEm: null, duracaoMinutos: null },
     ]);
   });
 
@@ -185,5 +185,107 @@ describe("fromServicosDoComprovante", () => {
   it("descarta item inválido e aceita ausência", () => {
     expect(fromServicosDoComprovante([{ nome: "X", status: 9 }, { valor: 1, status: 1 }, null, "x"])).toEqual([]);
     expect(fromServicosDoComprovante(undefined)).toEqual([]);
+  });
+});
+
+describe("tempos por categoria e da fila", () => {
+  it("lê duração e tempo permitido do preço da categoria; ausente ou 0 vira null", () => {
+    const servico = fromServicoResponse({
+      servicoId: 1,
+      nome: "Lavagem",
+      precos: [
+        { categoria: 2, valor: 40, duracaoMinutos: 30, tempoPermitidoMinutos: 60 },
+        { categoria: 3, valor: 50, tempoPermitidoMinutos: 0 },
+      ],
+    });
+    expect(servico?.precos[0]).toMatchObject({ duracaoMinutos: 30, tempoPermitidoMinutos: 60 });
+    expect(servico?.precos[1]).toMatchObject({ duracaoMinutos: null, tempoPermitidoMinutos: null });
+  });
+
+  it("lê os tempos do item da fila e aceita os nomes alternativos", () => {
+    const base = { patioServicoId: 5, idPatio: 9, nomeServico: "Cera", status: 2, placa: "ABC1D23" };
+    const [item] = fromFilaResponse([
+      { ...base, dataCriacao: "2026-11-14T10:00:00", dataHoraInicio: "2026-11-14T10:10:00", dataHoraPronto: "2026-11-14T10:40:00", duracaoMinutos: 30 },
+    ]);
+    expect(item).toMatchObject({ criadoEm: "2026-11-14T10:00:00", iniciadoEm: "2026-11-14T10:10:00", prontoEm: "2026-11-14T10:40:00", duracaoMinutos: 30 });
+    const [alternativo] = fromFilaResponse([{ ...base, criadoEm: "a", inicioEm: "b", prontoEm: "c" }]);
+    expect(alternativo).toMatchObject({ criadoEm: "a", iniciadoEm: "b", prontoEm: "c" });
+  });
+
+  it("item da fila sem os tempos fica com nulos, sem erro", () => {
+    const [item] = fromFilaResponse([{ patioServicoId: 5, idPatio: 9, nomeServico: "Cera", status: 1, placa: "ABC1D23" }]);
+    expect(item).toMatchObject({ criadoEm: null, iniciadoEm: null, prontoEm: null, duracaoMinutos: null });
+  });
+});
+
+// Respostas reais do back (swagger de 11/11/2026), com os campos como ele os manda.
+describe("respostas reais do back", () => {
+  it("fila: a categoria vem como número e a tela mostra o nome; os tempos vêm com os nomes do back", () => {
+    const [aguardando, pronto] = fromFilaResponse([
+      { patioServicoId: 3, patioId: 117, placa: "KQY8H84", modelo: "", cor: "", categoria: 3, prisma: 123, dataHoraEntrada: "2026-11-11T11:05:11.837072", servicoId: 1, nome: "Lavagem", duracaoMinutos: 30, status: 1, statusDescricao: "Aguardando", dataCriacao: "2026-11-13T09:48:17.378766", dataHoraInicio: null, dataHoraPronto: null },
+      { patioServicoId: 2, patioId: 119, placa: "ZPW8C05", modelo: "", cor: "", categoria: 4, prisma: 5, dataHoraEntrada: "2026-11-11T12:08:57.227369", servicoId: 1, nome: "Lavagem", duracaoMinutos: 30, status: 3, statusDescricao: "Pronto", dataCriacao: "2026-11-12T20:46:07.384501", dataHoraInicio: "2026-11-13T07:42:47.570541", dataHoraPronto: "2026-11-13T09:48:35.111189" },
+    ]);
+
+    expect(aguardando).toMatchObject({ idPatio: 117, nomeServico: "Lavagem", categoria: "Carro médio", prisma: "123", modelo: null, cor: null, entradaEm: "2026-11-11T11:05:11.837072", criadoEm: "2026-11-13T09:48:17.378766", iniciadoEm: null, prontoEm: null, duracaoMinutos: 30 });
+    expect(pronto).toMatchObject({ categoria: "Caminhonete", iniciadoEm: "2026-11-13T07:42:47.570541", prontoEm: "2026-11-13T09:48:35.111189" });
+  });
+
+  it("fila: a descrição da categoria, quando vem, vale mais; categoria desconhecida fica como veio", () => {
+    const base = { patioServicoId: 1, patioId: 10, nome: "Cera", status: 1, placa: "ABC1D23" };
+    const [comDescricao, desconhecida] = fromFilaResponse([{ ...base, categoria: 2, categoriaDescricao: "Carro pequeno" }, { ...base, categoria: 42 }]);
+
+    expect(comDescricao.categoria).toBe("Carro pequeno");
+    expect(desconhecida.categoria).toBe("42");
+  });
+
+  it("serviços do veículo: a hora de pronto vem de dataHoraPronto e a previsão é o início somado à duração", () => {
+    const resposta = fromServicosDoVeiculoResponse({
+      patioId: 119,
+      dataHoraEntrada: "2026-11-11T12:08:57.227369",
+      valorServicos: 100.0,
+      tempoPermitidoMinutos: 60,
+      livreAte: "2026-11-11T13:08:57.227369",
+      servicos: [
+        { patioServicoId: 2, patioId: 119, servicoId: 1, nome: "Lavagem", valor: 100.0, tempoPermitidoMinutos: 60, duracaoMinutos: 30, status: 3, statusDescricao: "Pronto", dataCriacao: "2026-11-12T20:46:07.384501", dataHoraInicio: "2026-11-13T07:42:47", dataHoraPronto: "2026-11-13T09:48:35.111189", motivoCancelamento: null },
+        { patioServicoId: 3, patioId: 119, servicoId: 2, nome: "Cera", valor: 20.0, tempoPermitidoMinutos: null, duracaoMinutos: null, status: 1, dataCriacao: "2026-11-12T20:46:07", dataHoraInicio: null, dataHoraPronto: null },
+      ],
+    });
+
+    expect(resposta.servicos[0]).toMatchObject({ valorCentavos: 10000, prontoEm: "2026-11-13T09:48:35.111189", previsaoEm: "2026-11-13T08:12:47", adicionadoEm: "2026-11-12T20:46:07.384501" });
+    expect(resposta.servicos[1]).toMatchObject({ previsaoEm: null, prontoEm: null });
+  });
+
+  it("serviços do veículo: um previsaoEm explícito do back vale mais que o calculado", () => {
+    const { servicos } = fromServicosDoVeiculoResponse({
+      servicos: [{ patioServicoId: 1, nome: "Cera", valor: 20, status: 2, previsaoEm: "2026-11-13T10:00:00", dataHoraInicio: "2026-11-13T07:42:47", duracaoMinutos: 30 }],
+    });
+
+    expect(servicos[0].previsaoEm).toBe("2026-11-13T10:00:00");
+  });
+
+  it("serviços do veículo: a soma atravessa a meia-noite sem errar a data", () => {
+    const { servicos } = fromServicosDoVeiculoResponse({
+      servicos: [{ patioServicoId: 1, nome: "Cera", valor: 20, status: 2, dataHoraInicio: "2026-11-13T23:50:00", duracaoMinutos: 30 }],
+    });
+
+    expect(servicos[0].previsaoEm).toBe("2026-11-14T00:20:00");
+  });
+
+  it("catálogo: os tempos de cada categoria vêm no preço e o serviço não tem tempos próprios", () => {
+    const servico = fromServicoResponse({
+      servicoId: 1,
+      nome: "Lavagem",
+      descricao: "teste",
+      ativo: true,
+      precos: [{ categoria: 1, categoriaDescricao: "Moto", valor: 50.0, duracaoMinutos: 30, tempoPermitidoMinutos: 60 }, { categoria: 2, categoriaDescricao: "Carro pequeno", valor: 100.0, duracaoMinutos: null, tempoPermitidoMinutos: null }],
+      usuarioId: 47,
+      dataCriacao: "2026-11-12T17:31:38.514171",
+    });
+
+    expect(servico).toMatchObject({ duracaoMinutos: null, tempoPermitidoMinutos: null });
+    expect(servico?.precos).toEqual([
+      { categoria: 1, descricao: "Moto", valorCentavos: 5000, duracaoMinutos: 30, tempoPermitidoMinutos: 60 },
+      { categoria: 2, descricao: "Carro pequeno", valorCentavos: 10000, duracaoMinutos: null, tempoPermitidoMinutos: null },
+    ]);
   });
 });

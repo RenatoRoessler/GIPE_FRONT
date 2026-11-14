@@ -1,3 +1,4 @@
+import { formatMinutos } from "@/components/precos/format";
 import { CATEGORIA_ROTULO, CATEGORIA_TODAS, CATEGORIAS_SERVICO, type Servico } from "@/types/servico";
 
 export type SituacaoFiltro = "ativos" | "inativos" | "todos";
@@ -23,12 +24,18 @@ export function normalizarBusca(texto: string): string {
 
 // O back devolve o catálogo inteiro (dezenas de serviços por empresa): situação e busca são filtros locais, para a
 // contagem e a seleção não dependerem de uma nova chamada.
-export function filtrarServicos(servicos: Servico[], { situacao, q }: { situacao: SituacaoFiltro; q: string }): Servico[] {
+// `incluirDescricao` faz a busca casar também a descrição (a lista larga busca por ela; a do celular, só pelo nome).
+export function filtrarServicos(
+  servicos: Servico[],
+  { situacao, q, incluirDescricao = false }: { situacao: SituacaoFiltro; q: string; incluirDescricao?: boolean },
+): Servico[] {
   const busca = normalizarBusca(q);
   return servicos.filter((servico) => {
     if (situacao === "ativos" && !servico.ativo) return false;
     if (situacao === "inativos" && servico.ativo) return false;
-    return busca === "" || normalizarBusca(servico.nome).includes(busca);
+    if (busca === "") return true;
+    if (normalizarBusca(servico.nome).includes(busca)) return true;
+    return incluirDescricao && normalizarBusca(servico.descricao ?? "").includes(busca);
   });
 }
 
@@ -44,6 +51,9 @@ export interface LinhaDePreco {
   valorCentavos: number | null;
   // O valor vem do preço de "Todas as categorias", não de um preço próprio da categoria.
   geral: boolean;
+  // Duração prevista e tempo grátis no pátio desta categoria; nulos quando o back não os mandou.
+  duracaoMinutos: number | null;
+  tempoPermitidoMinutos: number | null;
 }
 
 // Preço de cada categoria. A 99 vale para as que não têm preço próprio, então quem só tem a 99 mostra uma linha única
@@ -53,7 +63,9 @@ export function linhasDePreco(servico: Servico): LinhaDePreco[] {
   const proprios = servico.precos.filter((preco) => preco.categoria !== CATEGORIA_TODAS);
 
   if (proprios.length === 0) {
-    return todas === null ? [] : [{ categoria: CATEGORIA_TODAS, rotulo: CATEGORIA_ROTULO[CATEGORIA_TODAS], valorCentavos: todas, geral: false }];
+    return todas === null
+      ? []
+      : [{ categoria: CATEGORIA_TODAS, rotulo: CATEGORIA_ROTULO[CATEGORIA_TODAS], valorCentavos: todas, geral: false, duracaoMinutos: null, tempoPermitidoMinutos: null }];
   }
 
   return CATEGORIAS_SERVICO.map((categoria) => {
@@ -63,6 +75,8 @@ export function linhasDePreco(servico: Servico): LinhaDePreco[] {
       rotulo: CATEGORIA_ROTULO[categoria],
       valorCentavos: propio?.valorCentavos ?? todas,
       geral: propio === undefined && todas !== null,
+      duracaoMinutos: propio?.duracaoMinutos ?? null,
+      tempoPermitidoMinutos: propio?.tempoPermitidoMinutos ?? null,
     };
   });
 }
@@ -74,3 +88,95 @@ export function precoParaCategoria(servico: Servico, categoria: number): number 
   const todas = servico.precos.find((preco) => preco.categoria === CATEGORIA_TODAS);
   return (propio ?? todas)?.valorCentavos ?? null;
 }
+
+// Duração prevista do serviço para a categoria de um veículo, nula quando o back não a mandou.
+export function duracaoParaCategoria(servico: Servico, categoria: number): number | null {
+  return servico.precos.find((preco) => preco.categoria === categoria)?.duracaoMinutos ?? servico.duracaoMinutos;
+}
+
+export interface FaixaDePreco {
+  minimoCentavos: number;
+  maximoCentavos: number;
+  // Todas as categorias custam o mesmo: não há "a partir de".
+  unico: boolean;
+}
+
+// Menor e maior preço entre as categorias que o serviço atende. Nulo sem nenhum preço.
+export function faixaDePreco(servico: Servico): FaixaDePreco | null {
+  const valores = linhasDePreco(servico).flatMap((linha) => (linha.valorCentavos === null ? [] : [linha.valorCentavos]));
+  if (valores.length === 0) return null;
+  const minimoCentavos = Math.min(...valores);
+  const maximoCentavos = Math.max(...valores);
+  return { minimoCentavos, maximoCentavos, unico: minimoCentavos === maximoCentavos };
+}
+
+// Minutos que valem para cada preço: o da categoria, quando o back o manda, ou o do serviço.
+function minutosPorPreco(servico: Servico, campo: "duracaoMinutos" | "tempoPermitidoMinutos"): number[] {
+  const padrao = servico[campo];
+  if (servico.precos.length === 0) return padrao === null ? [] : [padrao];
+  return servico.precos.flatMap((preco) => {
+    const minutos = preco[campo] ?? padrao;
+    return minutos === null ? [] : [minutos];
+  });
+}
+
+export interface FaixaDeDuracao {
+  minimo: number;
+  maximo: number;
+}
+
+// Menor e maior duração prevista entre as categorias. Nulo sem previsão.
+export function faixaDeDuracao(servico: Servico): FaixaDeDuracao | null {
+  const duracoes = minutosPorPreco(servico, "duracaoMinutos").filter((minutos) => minutos > 0);
+  return duracoes.length === 0 ? null : { minimo: Math.min(...duracoes), maximo: Math.max(...duracoes) };
+}
+
+// "até 2 h grátis", ou nulo quando a permanência é cobrada normalmente.
+export function gratisDoServico(servico: Servico): string | null {
+  const maior = Math.max(0, ...minutosPorPreco(servico, "tempoPermitidoMinutos"));
+  return maior > 0 ? `até ${formatMinutos(maior)} grátis` : null;
+}
+
+export interface CategoriaAtendida {
+  categoria: number;
+  rotulo: string;
+  atende: boolean;
+}
+
+// As seis categorias, na ordem do formulário, e se o serviço atende cada uma. Preço de "Todas" atende as seis.
+export function categoriasAtendidas(servico: Servico): CategoriaAtendida[] {
+  const todas = servico.precos.some((preco) => preco.categoria === CATEGORIA_TODAS);
+  return CATEGORIAS_SERVICO.map((categoria) => ({
+    categoria,
+    rotulo: CATEGORIA_ROTULO[categoria],
+    atende: todas || servico.precos.some((preco) => preco.categoria === categoria),
+  }));
+}
+
+export interface ResumoDoCatalogo {
+  ativos: number;
+  comTempoGratis: number;
+}
+
+// Chips do topo da lista: só serviços ativos contam.
+export function resumirCatalogo(servicos: Servico[]): ResumoDoCatalogo {
+  const ativos = servicos.filter((servico) => servico.ativo);
+  return { ativos: ativos.length, comTempoGratis: ativos.filter((servico) => gratisDoServico(servico) !== null).length };
+}
+
+// "30 min a 1 h · até 2 h grátis" ou "1 h · cobra permanência": a linha de tempos do item da lista. Sem duração prevista,
+// só a parte da permanência.
+export function resumoDeTempos(servico: Servico): string {
+  const faixa = faixaDeDuracao(servico);
+  const duracao =
+    faixa === null ? null : faixa.minimo === faixa.maximo ? formatMinutos(faixa.minimo) : `${formatMinutos(faixa.minimo)} a ${formatMinutos(faixa.maximo)}`;
+  return [duracao, gratisDoServico(servico) ?? "cobra permanência"].filter(Boolean).join(" · ");
+}
+
+// Exemplos de veículos de cada categoria, para o administrador não ter de adivinhar onde "Carro grande" começa.
+export const EXEMPLOS_DA_CATEGORIA: Record<number, string> = {
+  2: "Mobi, Kwid, HB20",
+  3: "Onix, Corolla, Compass",
+  4: "Hilux, S10, Ranger",
+  6: "SW4, Commander",
+};
