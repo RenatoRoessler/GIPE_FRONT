@@ -2,6 +2,38 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.450",
+      "type": "feat",
+      "scope": "menu",
+      "title": "mostra quem está logado no topo do menu Mais",
+      "description": "O menu Mais passa a mostrar o nome do operador, o perfil e, para quem\ntem acesso ao caixa, se ele está aberto ou fechado. A ordem e os itens\ndo menu continuam os mesmos.",
+      "date": "2026-11-16T17:59:26-03:00"
+    },
+    {
+      "version": "1.0.449",
+      "type": "feat",
+      "scope": "entrada",
+      "title": "placa no pátio vira atalho para a saída e a digitação ganha espaço",
+      "description": "Ao digitar ou ler uma placa que já está no pátio, a entrada mostra um\naviso amarelo com o valor a cobrar, a entrada e a permanência, e o\nbotão principal passa a ser \"Dar saída\", que abre direto a confirmação\nde saída. \"Corrigir placa\" limpa a placa para o caso de leitura errada.\n\nCom a câmera negada, o teclado da placa abre sozinho e uma faixa\noferece \"Tentar câmera\". O erro de placa inválida só aparece com a\nplaca completa; antes disso o app diz quantos caracteres faltam.\n\nCom o teclado aberto, o rodapé some e as categorias ficam compactas\n(mantendo o ícone, com fonte menor), para placa, modelo e categorias\ncaberem sem rolar. A placa ganha um anel amarelo.",
+      "date": "2026-11-16T17:59:26-03:00"
+    },
+    {
+      "version": "1.0.448",
+      "type": "feat",
+      "scope": "leitor",
+      "title": "mostra a câmera antes do leitor e confirma a leitura por vibração",
+      "description": "A imagem da câmera aparece assim que o aparelho a libera, sem esperar o\nleitor de placas carregar: \"Preparando leitura...\" vira um aviso pequeno\nsobre a imagem, e o operador já pode enquadrar a placa.\n\nLeitura certa vibra uma vez, toca um bip curto e segue sozinha em meio\nsegundo; leitura em dúvida (um caractere variou entre os quadros) vibra\nduas vezes, sem som, e leva à conferência com o caractere destacado.\nO leitor de QR da saída também confirma a leitura.\n\nQuando a câmera é negada ou indisponível, o leitor avisa quem o abriu\npara assumir, em vez de mostrar a tela de erro.",
+      "date": "2026-11-16T17:59:26-03:00"
+    },
+    {
+      "version": "1.0.447",
+      "type": "feat",
+      "scope": "saida",
+      "title": "adiciona atalhos de valor recebido e troco na saída em dinheiro",
+      "description": "Na saída em dinheiro, o operador agora escolhe quanto o cliente pagou\ncom um toque: \"Exato\" ou as próximas notas redondas acima do valor\n(ex.: R$ 220 → R$ 250 e R$ 300), ou \"Outro\" para digitar. O troco\naparece em destaque assim que um atalho é tocado, e o valor menor que\no cobrado mostra quanto falta. Uma saída em dinheiro exato fica em dois\ntoques. Pix, crédito e débito seguem sem valor recebido.\n\nEntrada e permanência passam a ocupar uma linha só no resumo da saída,\npara a tela de pagamento caber sem rolar no celular.",
+      "date": "2026-11-16T17:59:25-03:00"
+    },
+    {
       "version": "1.0.445",
       "type": "feat",
       "scope": "usuarios",
