@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.455",
+      "type": "feat",
+      "scope": "servicos",
+      "title": "destaca o prisma e adiciona ícone no card da fila",
+      "description": "O prisma agora aparece como uma etiqueta preenchida (\"P 12\") e o nome do\nserviço ganha um ícone, facilitando achar o carro na fila. O nome acessível\ndo prisma continua completo (\"Prisma 12\") para leitores de tela.",
+      "date": "2026-11-16T19:10:17-03:00"
+    },
+    {
+      "version": "1.0.453",
+      "type": "feat",
+      "scope": "leitor",
+      "title": "esconde o teclado na leitura da placa e troca Cancelar por Digitar Placa",
+      "description": "Ao abrir a leitura pela câmera, o teclado da placa continuava aparecendo\nembaixo da tela e tirava espaço da leitura. Agora ele fecha enquanto a\ncâmera está ativa e volta a funcionar na conferência da placa lida.\n\nO botão \"Cancelar\" passou a se chamar \"Digitar Placa\" e leva o operador de\nvolta ao campo da placa para digitar, deixando claro o caminho alternativo\nà leitura.",
+      "date": "2026-11-16T19:10:17-03:00"
+    },
+    {
       "version": "1.0.450",
       "type": "feat",
       "scope": "menu",
