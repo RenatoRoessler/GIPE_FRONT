@@ -5,6 +5,7 @@ import { ExplicacaoCamera, PassosLiberarCamera } from "@/components/camera/Permi
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { useTeclado } from "@/components/teclado/TecladoProvider";
 import { PlateDisplay } from "@/components/ui/PlateDisplay";
 import { formatPlacaExibicao, isValidPlaca, normalizePlaca } from "@/lib/placa";
 import { Mira, Video, VisuallyHidden } from "../LeitorQrSaida/LeitorQrSaida.styles";
@@ -93,6 +94,15 @@ function LeitorPlacaAberto({ onClose, onConfirm, onDigitar = onClose, onFalha }:
       confirmacaoRef.current = setTimeout(() => onConfirmRef.current(normalizePlaca(lida)), CONFIRMACAO_AUTOMATICA_MS);
     },
   });
+
+  // O campo da placa que abriu o leitor deixa o teclado do Murel aberto por baixo: na leitura ele só atrapalha.
+  // Na conferência o teclado volta a ser necessário, pelo campo de correção.
+  const { fechar: fecharTeclado } = useTeclado();
+  useEffect(() => {
+    if (etapa === "leitura") {
+      fecharTeclado();
+    }
+  }, [etapa, fecharTeclado]);
 
   const placaValida = isValidPlaca(placa);
 
@@ -208,8 +218,8 @@ function LeitorPlacaAberto({ onClose, onConfirm, onDigitar = onClose, onFalha }:
               </Button>
             </>
           ) : (
-            <Button type="button" variant="secondary" onClick={onClose}>
-              Cancelar
+            <Button type="button" variant="secondary" onClick={onDigitar}>
+              Digitar Placa
             </Button>
           )}
         </Acoes>

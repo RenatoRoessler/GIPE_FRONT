@@ -5,6 +5,13 @@ import { renderWithTheme } from "@/test/render";
 import { CONFIRMACAO_AUTOMATICA_MS, LeitorPlacaModal, type LeitorPlacaModalProps } from "./LeitorPlacaModal";
 import type { LeitorPlacaEstado, UseLeitorPlacaOptions } from "./useLeitorPlaca";
 
+const teclado = vi.hoisted(() => ({ fechar: vi.fn() }));
+
+vi.mock("@/components/teclado/TecladoProvider", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/components/teclado/TecladoProvider")>()),
+  useTeclado: () => ({ abrir: vi.fn(), fechar: teclado.fechar, registrar: () => () => {}, aberto: false }),
+}));
+
 const leitor = vi.hoisted(() => ({
   estado: "lendo" as LeitorPlacaEstado,
   contextoSeguro: true,
@@ -42,6 +49,7 @@ beforeEach(() => {
   leitor.contextoSeguro = true;
   leitor.options = null;
   leitor.iniciar.mockReset();
+  teclado.fechar.mockReset();
 });
 
 function renderModal(props: Partial<LeitorPlacaModalProps> = {}) {
@@ -66,14 +74,41 @@ describe("LeitorPlacaModal", () => {
     expect(screen.getByRole("heading", { name: "Ler placa" })).toBeInTheDocument();
     expect(screen.getAllByText("Aponte a câmera para a placa").length).toBeGreaterThan(0);
     expect(leitor.options?.ativo).toBe(true);
-    expect(screen.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Digitar Placa" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cancelar" })).not.toBeInTheDocument();
   });
 
-  it("cancela a leitura sem confirmar nada", async () => {
+  it("'Digitar Placa' chama a ação de digitar, sem confirmar nada", async () => {
+    const onDigitar = vi.fn();
+    const { onClose, onConfirm } = renderModal({ onDigitar });
+    await userEvent.click(screen.getByRole("button", { name: "Digitar Placa" }));
+    expect(onDigitar).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("'Digitar Placa' só fecha quando não há outra ação definida", async () => {
     const { onClose, onConfirm } = renderModal();
-    await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Digitar Placa" }));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("fecha o teclado do Murel ao abrir a leitura", () => {
+    renderModal();
+    expect(teclado.fechar).toHaveBeenCalled();
+  });
+
+  it("não fecha o teclado na conferência e fecha de novo ao voltar a ler", async () => {
+    renderModal();
+    teclado.fechar.mockClear();
+
+    await lerPlacaDuvidosa("ABC1D23");
+    expect(screen.getByRole("heading", { name: "Confirmar placa" })).toBeInTheDocument();
+    expect(teclado.fechar).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: "Ler de novo" }));
+    expect(teclado.fechar).toHaveBeenCalledTimes(1);
   });
 
   it("leitura em dúvida vai para a conferência e desliga a câmera", async () => {
@@ -142,11 +177,11 @@ describe("LeitorPlacaModal", () => {
     expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
   });
 
-  it("enquanto o navegador pergunta, explica para que a câmera serve e segue com Cancelar e a leitura", () => {
+  it("enquanto o navegador pergunta, explica para que a câmera serve e segue com Digitar Placa e a leitura", () => {
     leitor.estado = "pedindo";
     renderModal();
     expect(screen.getByRole("group", { name: "Permissão da câmera" })).toHaveTextContent("ler a placa do veículo");
-    expect(screen.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Digitar Placa" })).toBeInTheDocument();
   });
 
   it("avisa quando a câmera não está disponível, sem oferecer tentar de novo", () => {
@@ -222,7 +257,7 @@ describe("LeitorPlacaModal: imagem antes do leitor", () => {
     // Pílula visível + a mesma frase para o leitor de tela.
     expect(screen.getAllByText("Preparando leitura…")).toHaveLength(2);
     expect(screen.getByRole("status")).toHaveTextContent("Preparando leitura…");
-    expect(screen.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Digitar Placa" })).toBeInTheDocument();
   });
 
   it("enquanto a câmera abre, o visor fica limpo, sem texto grande", () => {
