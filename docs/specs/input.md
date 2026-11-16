@@ -1,3 +1,2 @@
-para a tela de catalogo de serviços
-quere que na web seja assim [text](<../../../../Users/renat/Downloads/serviços/Murel Serviços.html>)
-no mobile assim [text](<../../../../Users/renat/Downloads/serviços/Murel Serviços Mobile.html>)
+quando estiver na parte da leitura pela câmera tem como não mostrar o Teclado?![alt text](<WhatsApp Image 2026-11-16 at 18.36.52.jpeg>)
+tambem quero que troque o texto do botão cancelar para Digitar Placa
