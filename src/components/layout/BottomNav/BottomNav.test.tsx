@@ -15,6 +15,9 @@ vi.mock("@/components/veiculos/VeiculoModais", () => ({ useVeiculoModais: () => 
 const barra = vi.hoisted(() => ({ capacidade: 5 as number | null }));
 vi.mock("./useBarCapacity", () => ({ useBarCapacity: () => ({ ref: vi.fn(), capacidade: barra.capacidade }) }));
 
+// O cartão do usuário (e a consulta do caixa dele) é testado à parte.
+vi.mock("./MenuUsuario", () => ({ MenuUsuario: () => null }));
+
 import { BottomNav } from "./BottomNav";
 
 // Fechado, o painel é escondido pelo navegador e fora da árvore de acessibilidade.

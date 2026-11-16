@@ -18,7 +18,7 @@ import {
   listMovimentos,
   listMovimentosCaixa,
 } from "@/lib/api/services/caixa";
-import { CAIXA_KEY, useCaixa } from "./useCaixa";
+import { CAIXA_KEY, useCaixa, useCaixaAberto } from "./useCaixa";
 import { useHistoricoCaixas } from "./useHistoricoCaixas";
 import { useMovimentosCaixa } from "./useMovimentosCaixa";
 
@@ -127,5 +127,66 @@ describe("useMovimentosCaixa", () => {
     renderHook(() => useMovimentosCaixa(Number.NaN), { wrapper });
 
     expect(listMovimentosCaixa).not.toHaveBeenCalled();
+  });
+});
+
+describe("useCaixaAberto", () => {
+  it("diz que o caixa está aberto sem buscar turno nem movimentos", async () => {
+    vi.mocked(getCaixa).mockResolvedValue(aberto);
+    const { wrapper } = setup();
+
+    const { result } = renderHook(() => useCaixaAberto(), { wrapper });
+
+    expect(result.current.carregando).toBe(true);
+    await waitFor(() => expect(result.current.carregando).toBe(false));
+    expect(result.current.aberto).toBe(true);
+    expect(getTurnoAtual).not.toHaveBeenCalled();
+    expect(listMovimentos).not.toHaveBeenCalled();
+  });
+
+  it("sem caixa (404) ou com data de fechamento, está fechado", async () => {
+    vi.mocked(getCaixa).mockResolvedValue(null);
+    const { wrapper } = setup();
+    const { result } = renderHook(() => useCaixaAberto(), { wrapper });
+    await waitFor(() => expect(result.current.carregando).toBe(false));
+    expect(result.current.aberto).toBe(false);
+    expect(result.current.erro).toBe(false);
+
+    vi.mocked(getCaixa).mockResolvedValue({ ...aberto, dataHoraFechamento: "2026-10-23T18:00:00" });
+    const outro = renderHook(() => useCaixaAberto(), { wrapper: setup().wrapper });
+    await waitFor(() => expect(outro.result.current.carregando).toBe(false));
+    expect(outro.result.current.aberto).toBe(false);
+  });
+
+  it("com enabled falso não consulta nada nem fica carregando", () => {
+    const { wrapper } = setup();
+
+    const { result } = renderHook(() => useCaixaAberto({ enabled: false }), { wrapper });
+
+    expect(getCaixa).not.toHaveBeenCalled();
+    expect(result.current).toEqual({ aberto: false, carregando: false, erro: false });
+  });
+
+  it("falha na consulta é reportada sem derrubar a tela", async () => {
+    vi.mocked(getCaixa).mockRejectedValue(new Error("falhou"));
+    const { wrapper } = setup();
+
+    const { result } = renderHook(() => useCaixaAberto(), { wrapper });
+
+    await waitFor(() => expect(result.current.erro).toBe(true));
+    expect(result.current.aberto).toBe(false);
+    expect(result.current.carregando).toBe(false);
+  });
+
+  it("compartilha a consulta (e o cache) com o useCaixa", async () => {
+    vi.mocked(getCaixa).mockResolvedValue(aberto);
+    vi.mocked(getTurnoAtual).mockResolvedValue(null);
+    vi.mocked(listMovimentos).mockResolvedValue([]);
+    const { wrapper } = setup();
+
+    const { result } = renderHook(() => ({ leve: useCaixaAberto(), completo: useCaixa() }), { wrapper });
+
+    await waitFor(() => expect(result.current.leve.aberto).toBe(true));
+    expect(getCaixa).toHaveBeenCalledTimes(1);
   });
 });

@@ -4,6 +4,9 @@ import { createRef } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { navItemsPermitidos, ordenarPeloMenu, type NavItem } from "@/lib/nav";
 import { renderWithTheme } from "@/test/render";
+// O cartão do usuário é testado à parte: aqui ele só precisa estar no topo, antes da lista.
+vi.mock("./MenuUsuario", () => ({ MenuUsuario: () => <div data-testid="cartao-usuario" /> }));
+
 import { MenuSheet } from "./MenuSheet";
 
 // Fechado, o painel é escondido pelo navegador e fora da árvore de acessibilidade.
@@ -98,5 +101,22 @@ describe("MenuSheet: grupos", () => {
     renderizar([]);
 
     expect(screen.queryAllByRole("list", opcoes)).toHaveLength(0);
+  });
+});
+
+describe("MenuSheet: cartão do usuário", () => {
+  it("fica no topo, depois do cabeçalho e antes da lista de telas", () => {
+    renderizar(doAdministrador());
+
+    const cartao = screen.getByTestId("cartao-usuario");
+    const nav = screen.getByRole("navigation", { name: "Outras telas", ...opcoes });
+    expect(cartao.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Mais", ...opcoes }).compareDocumentPosition(cartao) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("não muda a ordem nem os grupos dos itens", () => {
+    renderizar(doAdministrador());
+    expect(nomesDoGrupo("Operação")).toEqual(["Conferência de pátio"]);
+    expect(nomesDoGrupo("Configurações")).toEqual(["Minha Empresa", "Configurações", "Gestão de Preços", "Catálogo de serviços", "Quadros de Chaves", "Mensalistas", "Gestão de Usuários", "Empresas conveniadas"]);
   });
 });

@@ -6,6 +6,7 @@ import { AlterarSenhaModal } from "@/components/usuarios/AlterarSenhaModal";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
 import { useToast } from "@/hooks/useToast";
 import { useLogout } from "@/hooks/useLogout";
+import { iniciais } from "@/lib/iniciais";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import {
   Avatar,
@@ -17,11 +18,6 @@ import {
   LogoutButton,
   Wrapper,
 } from "./UserMenu.styles";
-
-function getInitials(name: string) {
-  const [first, second] = name.split(" ");
-  return `${first?.[0] ?? ""}${second?.[0] ?? ""}`.toUpperCase();
-}
 
 export function UserMenu() {
   const { user } = useCurrentUser();
@@ -69,7 +65,7 @@ export function UserMenu() {
         aria-expanded={isOpen}
         aria-label="Menu do usuário"
       >
-        {user ? getInitials(user.name) : ""}
+        {user ? iniciais(user.name) : ""}
       </Avatar>
       {isOpen && (
         <Dropdown role="menu">

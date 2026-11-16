@@ -321,3 +321,53 @@ export const VersaoRow = styled.p`
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   text-align: center;
 `;
+
+// Quem está logado, no topo do menu estendido.
+export const UsuarioCartao = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[3]}px;
+  margin-bottom: ${({ theme }) => theme.space[3]}px;
+  padding: ${({ theme }) => theme.space[3]}px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  background-color: ${({ theme }) => theme.colors.background};
+`;
+
+export const UsuarioAvatar = styled.span`
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: ${({ theme }) => theme.layout.touchTarget};
+  height: ${({ theme }) => theme.layout.touchTarget};
+  border-radius: ${({ theme }) => theme.radii.full};
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+`;
+
+export const UsuarioDados = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[1]}px;
+  min-width: 0;
+`;
+
+export const UsuarioNome = styled.p`
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+`;
+
+export const UsuarioDetalhe = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[2]}px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+`;

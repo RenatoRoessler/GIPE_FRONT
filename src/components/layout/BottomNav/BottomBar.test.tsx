@@ -214,3 +214,29 @@ describe("BottomBar", () => {
     });
   });
 });
+
+// Ajuste 7: todo item da barra tem nome para leitor de tela e para testes automáticos.
+describe("BottomBar: nomes acessíveis", () => {
+  it("cada item da barra tem um nome acessível, pelo texto que mostra", () => {
+    pathname = "/dashboard";
+    renderBar();
+    const barra = screen.getByRole("navigation", { name: "Navegação principal" });
+
+    const itens = Array.from(barra.querySelectorAll<HTMLElement>("a, button"));
+    expect(itens).toHaveLength(5);
+    for (const item of itens) {
+      expect(item).toHaveAccessibleName();
+    }
+    expect(screen.getByRole("link", { name: "Pátio" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Caixa" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Entrada" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Saída" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mais" })).toBeInTheDocument();
+  });
+
+  it("o botão de Entrada em destaque (círculo) também é achado pelo nome", () => {
+    pathname = "/dashboard";
+    renderBar({ entradaEmDestaque: true, itens: montarBarraFixa(1)!.itens });
+    expect(screen.getByRole("button", { name: "Entrada" })).toBeInTheDocument();
+  });
+});

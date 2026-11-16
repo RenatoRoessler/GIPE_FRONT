@@ -10,6 +10,8 @@ vi.mock("@/components/layout/InstallPwaButton", () => ({ InstallPwaButton: () =>
 // O tour tem testes próprios; aqui só interessa que o shell o hospeda sem mudar o resto.
 vi.mock("@/components/onboarding", () => ({ OnboardingProvider: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/veiculos/useModelos", () => ({ useModelos: vi.fn() }));
+// O cartão do usuário no menu "Mais" tem testes próprios (e consulta o caixa).
+vi.mock("@/components/layout/BottomNav/MenuUsuario", () => ({ MenuUsuario: () => null }));
 // A largura real não existe no jsdom: a barra cabe 5 espaços.
 vi.mock("@/components/layout/BottomNav/useBarCapacity", () => ({ useBarCapacity: () => ({ ref: vi.fn(), capacidade: 5 }) }));
 

@@ -5,6 +5,7 @@ import { useId, type Ref } from "react";
 import { NavIcon } from "@/components/layout/NavIcons";
 import { getVersionLabel } from "@/lib/version";
 import { agruparItens, isNavAction, isNavActive, navItemKey, type NavAction, type NavItem } from "@/lib/nav";
+import { MenuUsuario } from "./MenuUsuario";
 import { CloseButton, Grabber, GrupoPainel, GrupoTitulo, IconTile, Sheet, SheetHeader, SheetList, SheetRow, SheetTitle, VersaoRow } from "./BottomNav.styles";
 
 export interface MenuSheetProps {
@@ -54,6 +55,7 @@ export function MenuSheet({ id, dialogRef, pathname, itens, onRequestClose, onAc
           </svg>
         </CloseButton>
       </SheetHeader>
+      <MenuUsuario />
       <nav aria-label="Outras telas">
         {grupos.map((grupo) => {
           const tituloId = `${idBase}-${grupo.id}`;

@@ -28,3 +28,17 @@ export function useCaixa() {
 
   return { caixaQuery, caixa, turnoQuery, movimentosQuery };
 }
+
+export interface UseCaixaAbertoOptions {
+  // Sem permissão para o caixa (ou sem necessidade do dado) a consulta nem sai.
+  enabled?: boolean;
+}
+
+// Só a situação do caixa (aberto ou fechado), para quem apenas mostra o estado: não busca turno nem movimentos.
+// Usa a mesma consulta e a mesma chave do `useCaixa`, então o cache é compartilhado com a tela do caixa.
+export function useCaixaAberto({ enabled = true }: UseCaixaAbertoOptions = {}) {
+  const query = useQuery({ queryKey: CAIXA_KEY, queryFn: getCaixa, refetchOnWindowFocus: false, enabled });
+  const carregando = enabled && query.isPending;
+  const aberto = query.data ? isCaixaAberto(query.data) : false;
+  return { aberto, carregando, erro: query.isError };
+}
