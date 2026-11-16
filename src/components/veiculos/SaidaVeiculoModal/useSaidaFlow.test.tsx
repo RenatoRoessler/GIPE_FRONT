@@ -818,3 +818,98 @@ describe("useSaidaFlow: meios de pagamento da empresa", () => {
   });
 });
 
+
+describe("useSaidaFlow: atalhos de valor recebido", () => {
+  it("começa sem atalho escolhido", async () => {
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    expect(flow.result.current.atalho).toBeNull();
+    expect(flow.result.current.recebido).toBe("");
+  });
+
+  it("'exato' preenche o recebido com o valor cobrado e libera a confirmação", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(220));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+
+    act(() => flow.result.current.selecionarAtalho("exato"));
+
+    expect(flow.result.current.atalho).toBe("exato");
+    expect(flow.result.current.recebido).toBe("R$ 220,00");
+    expect(flow.result.current.pagamento?.canConfirm).toBe(true);
+  });
+
+  it("uma nota preenche o recebido com o valor da nota", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(220));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+
+    act(() => flow.result.current.selecionarAtalho(250));
+
+    expect(flow.result.current.atalho).toBe(250);
+    expect(flow.result.current.recebido).toBe("R$ 250,00");
+    expect(flow.result.current.pagamento?.canConfirm).toBe(true);
+  });
+
+  it("'outro' limpa o recebido e deixa a confirmação para quando o operador digitar", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(220));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.selecionarAtalho(250));
+
+    act(() => flow.result.current.selecionarAtalho("outro"));
+
+    expect(flow.result.current.atalho).toBe("outro");
+    expect(flow.result.current.recebido).toBe("");
+    expect(flow.result.current.pagamento?.canConfirm).toBe(false);
+  });
+
+  it("trocar a forma de pagamento descarta o atalho e o valor recebido", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(220));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.selecionarAtalho("exato"));
+
+    act(() => flow.result.current.setForma(forma("Pix")));
+    act(() => flow.result.current.setForma(FORMA_DINHEIRO));
+
+    expect(flow.result.current.atalho).toBeNull();
+    expect(flow.result.current.recebido).toBe("");
+  });
+
+  it("quando o valor cobrado muda, o atalho é descartado", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(220));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.selecionarAtalho("exato"));
+
+    api.consultarSaida.mockResolvedValue(consulta(225));
+    await avancar(INTERVALO_SAIDA_MS);
+    await waitFor(() => expect(flow.result.current.consulta?.valor).toBe(225));
+
+    expect(flow.result.current.atalho).toBeNull();
+    expect(flow.result.current.recebido).toBe("");
+  });
+
+  it("voltar para a pesquisa descarta o atalho", async () => {
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.selecionarAtalho("exato"));
+
+    act(() => flow.result.current.voltar());
+
+    expect(flow.result.current.atalho).toBeNull();
+    expect(flow.result.current.recebido).toBe("");
+  });
+
+  it("o exato entra no registro com troco zero", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(20));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.selecionarAtalho("exato"));
+    act(() => flow.result.current.confirmar());
+    await waitFor(() => expect(flow.result.current.fase).toBe("recibo"));
+
+    expect(flow.result.current.resultado).toMatchObject({ recebido: 20, troco: 0 });
+  });
+});

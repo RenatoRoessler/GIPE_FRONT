@@ -58,13 +58,6 @@ export const Notice = styled.div`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
 `;
 
-export const TrocoLine = styled.p<{ $tone: "success" | "danger" | "muted" }>`
-  font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-  font-variant-numeric: tabular-nums;
-  color: ${({ theme, $tone }) => ($tone === "muted" ? theme.colors.textMuted : theme.colors[$tone])};
-`;
-
 export const VisuallyHidden = styled.span`
   position: absolute;
   width: 1px;

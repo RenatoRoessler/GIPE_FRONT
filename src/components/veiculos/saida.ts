@@ -72,3 +72,18 @@ export function getPagamentoStatus(forma: string, recebido: string, valor: numbe
   }
   return { canConfirm: true, motivo: undefined };
 }
+
+const PASSO_NOTA_CENTAVOS = 5000;
+const PASSO_NOTA_GRANDE_CENTAVOS = 10000;
+
+// Atalhos de "cliente pagou com": as duas próximas notas redondas acima do valor (múltiplo de R$ 50 e, depois, de R$ 100).
+// Sempre maiores que o cobrado: o valor exato tem o próprio atalho. Sem cobrança (mensalista), não há o que sugerir.
+export function sugerirValoresRecebidos(valor: number): number[] {
+  const centavos = toCents(valor);
+  if (!(centavos > 0)) {
+    return [];
+  }
+  const primeira = (Math.floor(centavos / PASSO_NOTA_CENTAVOS) + 1) * PASSO_NOTA_CENTAVOS;
+  const segunda = (Math.floor(primeira / PASSO_NOTA_GRANDE_CENTAVOS) + 1) * PASSO_NOTA_GRANDE_CENTAVOS;
+  return [primeira / 100, segunda / 100];
+}

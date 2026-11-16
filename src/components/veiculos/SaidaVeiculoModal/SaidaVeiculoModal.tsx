@@ -146,6 +146,8 @@ export function SaidaVeiculoModal({ onClose, onSuccess, buscaInicial }: SaidaVei
                   meios={flow.meios}
                   forma={flow.forma}
                   recebido={flow.recebido}
+                  atalho={flow.atalho}
+                  onAtalhoChange={flow.selecionarAtalho}
                   onFormaChange={flow.setForma}
                   onRecebidoChange={flow.setRecebido}
                   onEnter={flow.confirmar}

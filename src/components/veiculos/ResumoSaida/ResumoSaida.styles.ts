@@ -32,35 +32,37 @@ export const VehicleMeta = styled.span`
   color: ${({ theme }) => theme.colors.textMuted};
 `;
 
+// Entrada e permanência lado a lado, uma linha só: o pagamento cabe na tela do celular sem rolar.
 export const Rows = styled.dl`
-  display: flex;
-  flex-direction: column;
-  padding: 0 ${({ theme }) => theme.space[3]}px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
   background-color: ${({ theme }) => theme.colors.surface};
 
   div {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: ${({ theme }) => theme.space[3]}px;
-    padding: ${({ theme }) => theme.space[2]}px 0;
-    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+    flex-direction: column;
+    gap: ${({ theme }) => theme.space[1]}px;
+    min-width: 0;
+    padding: ${({ theme }) => theme.space[2]}px ${({ theme }) => theme.space[3]}px;
     font-size: ${({ theme }) => theme.fontSizes.sm};
   }
 
-  div:last-child {
-    border-bottom: 0;
+  div + div {
+    border-left: 1px solid ${({ theme }) => theme.colors.border};
   }
 
   dt {
     color: ${({ theme }) => theme.colors.textMuted};
+    font-size: ${({ theme }) => theme.fontSizes.xs};
   }
 
   dd {
+    margin: 0;
     font-weight: ${({ theme }) => theme.fontWeights.bold};
-    text-align: right;
     font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
   }
 `;

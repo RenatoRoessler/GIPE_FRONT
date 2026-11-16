@@ -45,6 +45,17 @@ describe("ResumoSaida", () => {
     expect(screen.getByText(/R\$\s20,00/)).toBeInTheDocument();
   });
 
+  it("mantém entrada e permanência como pares termo/descrição da mesma lista", () => {
+    const { container } = renderWithTheme(<ResumoSaida consulta={consulta} />);
+    const lista = container.querySelector("dl");
+    expect(lista).not.toBeNull();
+    expect(Array.from(lista!.querySelectorAll("dt")).map((dt) => dt.textContent)).toEqual(["Entrada", "Permanência"]);
+    expect(Array.from(lista!.querySelectorAll("dd")).map((dd) => dd.textContent)).toEqual([
+      formatDateTime(consulta.dataHoraEntrada),
+      formatMinutos(consulta.minutosPermanencia),
+    ]);
+  });
+
   it("omite modelo e cor ausentes sem escrever null", () => {
     renderWithTheme(<ResumoSaida consulta={{ ...consulta, modelo: null, cor: "AZUL" }} />);
     expect(screen.getByText("AZUL")).toBeInTheDocument();

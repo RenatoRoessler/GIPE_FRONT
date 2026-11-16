@@ -261,15 +261,42 @@ describe("SaidaVeiculoModal: fase de pagamento", () => {
     await lerTicket();
     const botao = confirmar("20,00");
     expect(botao).toBeDisabled();
+    expect(screen.getByText("Escolha quanto o cliente pagou.")).toBeInTheDocument();
 
+    await user.click(screen.getByRole("radio", { name: "Outro" }));
     await user.type(screen.getByLabelText("Valor recebido"), "10");
-    expect(await screen.findByText(/^Faltam R\$\s10,00\.$/)).toBeInTheDocument();
+    expect(await screen.findByText(/^Faltam R\$\s10,00 para o valor cobrado\.$/)).toBeInTheDocument();
     expect(botao).toBeDisabled();
 
     await user.clear(screen.getByLabelText("Valor recebido"));
     await user.type(screen.getByLabelText("Valor recebido"), "50");
-    expect(await screen.findByText(/^Troco: R\$\s30,00$/)).toBeInTheDocument();
+    expect(await screen.findByText("Troco")).toBeInTheDocument();
+    expect(screen.getByText(/^R\$\s30,00$/)).toBeInTheDocument();
     expect(botao).toBeEnabled();
+  });
+
+  it("em Dinheiro, o atalho Exato libera a confirmação sem digitar nada e sem troco", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+
+    await user.click(screen.getByRole("radio", { name: "Exato" }));
+
+    expect(screen.getByText("Sem troco")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Valor recebido")).not.toBeInTheDocument();
+    expect(confirmar("20,00")).toBeEnabled();
+  });
+
+  it("em Dinheiro, uma nota sugerida mostra o troco", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+
+    await user.click(screen.getByRole("radio", { name: "R$ 50" }));
+
+    expect(screen.getByText("Troco")).toBeInTheDocument();
+    expect(screen.getByText(/^R\$\s30,00$/)).toBeInTheDocument();
+    expect(confirmar("20,00")).toBeEnabled();
   });
 
   it("em Pix não há valor recebido e a saída pode ser confirmada direto", async () => {
@@ -285,7 +312,7 @@ describe("SaidaVeiculoModal: fase de pagamento", () => {
     const user = userEvent.setup();
     renderModal();
     await lerTicket();
-    await user.type(screen.getByLabelText("Valor recebido"), "50");
+    await user.click(screen.getByRole("radio", { name: "Exato" }));
     await user.click(confirmar("20,00"));
 
     expect(await screen.findByRole("heading", { level: 2, name: "Saída registrada" })).toBeInTheDocument();
@@ -321,6 +348,7 @@ describe("SaidaVeiculoModal: fase de pagamento", () => {
     const user = userEvent.setup();
     renderModal();
     await lerTicket();
+    await user.click(screen.getByRole("radio", { name: "Outro" }));
     await user.type(screen.getByLabelText("Valor recebido"), "50");
     await user.click(confirmar("20,00"));
 
@@ -403,7 +431,7 @@ describe("SaidaVeiculoModal: mensalista", () => {
     renderModal();
     await lerTicket();
     expect(screen.queryByText("Saída sem cobrança.")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Valor recebido")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Exato" })).not.toBeChecked();
     expect(confirmar("20,00")).toBeDisabled();
   });
 });
@@ -437,6 +465,7 @@ describe("SaidaVeiculoModal: voltar para a pesquisa", () => {
     const user = userEvent.setup();
     renderModal();
     await lerTicket();
+    await user.click(screen.getByRole("radio", { name: "Outro" }));
     await user.type(screen.getByLabelText("Valor recebido"), "50");
     await user.click(screen.getByRole("radio", { name: "Pix" }));
     await user.click(voltar());
@@ -446,7 +475,8 @@ describe("SaidaVeiculoModal: voltar para a pesquisa", () => {
     lerQr("https://gipe.com.br/comprovante/P4M8TQ");
     expect(await screen.findByText("HB20 · PRATA")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Dinheiro" })).toBeChecked();
-    expect(screen.getByLabelText("Valor recebido")).toHaveValue("");
+    expect(screen.queryByLabelText("Valor recebido")).not.toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Exato" })).not.toBeChecked();
     expect(confirmar("12,00")).toBeDisabled();
   });
 });

@@ -2,15 +2,18 @@
 
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
+import { ChangeDisplay } from "@/components/ui/ChangeDisplay";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Input } from "@/components/ui/Input";
 import { OptionGroup } from "@/components/ui/OptionGroup";
+import { QuickAmountChips, type QuickAmountOption } from "@/components/ui/QuickAmountChips";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatBRL, maskMoney, parseMoney } from "@/lib/money";
 import { FORMA_PAGAMENTO } from "@/types/caixa";
 import type { SaidaConsulta } from "@/types/saida";
-import { Hint, TrocoLine, VisuallyHidden } from "../Saida.styles";
-import { calcularTroco, FORMA_DINHEIRO, FORMAS_SAIDA, getPagamentoStatus } from "../saida";
+import { Hint, VisuallyHidden } from "../Saida.styles";
+import { FORMA_DINHEIRO, FORMAS_SAIDA, getPagamentoStatus, sugerirValoresRecebidos } from "../saida";
+import type { AtalhoRecebido } from "../SaidaVeiculoModal/useSaidaFlow";
 import type { MeiosPagamento } from "../useMeiosPagamento";
 import { CreditoIcon, DebitoIcon, DinheiroIcon, PixIcon } from "../saidaIcons";
 import { Wrapper } from "./PagamentoSaida.styles";
@@ -30,6 +33,13 @@ export const MEIO_UNICO_HINT = "Único meio de pagamento aceito pela empresa.";
 export const SEM_MEIOS_MESSAGE =
   "Nenhum meio de pagamento configurado. Peça ao administrador para revisar em Minha Empresa.";
 
+export const ESCOLHA_ATALHO_MESSAGE = "Escolha quanto o cliente pagou.";
+export const DIGITE_VALOR_HINT = "Digite o valor que o cliente entregou.";
+
+// O atalho escolhido vira o valor do chip correspondente (e o inverso).
+const atalhoParaChip = (atalho: AtalhoRecebido | null): string | null => (atalho === null ? null : String(atalho));
+const chipParaAtalho = (chip: string): AtalhoRecebido => (chip === "exato" || chip === "outro" ? chip : Number(chip));
+
 export interface PagamentoSaidaProps {
   // Nulo enquanto nenhum veículo foi identificado: o pagamento fica visível, porém inativo.
   consulta: SaidaConsulta | null;
@@ -37,6 +47,9 @@ export interface PagamentoSaidaProps {
   meios?: MeiosPagamento;
   forma: string;
   recebido: string;
+  // Atalho de "cliente pagou com" (só em dinheiro); nulo enquanto o operador não escolheu.
+  atalho: AtalhoRecebido | null;
+  onAtalhoChange: (atalho: AtalhoRecebido) => void;
   onFormaChange: (value: string) => void;
   onRecebidoChange: (value: string) => void;
   // Enter no valor recebido pede a confirmação.
@@ -49,6 +62,8 @@ export function PagamentoSaida({
   meios = TODOS_OS_MEIOS,
   forma,
   recebido,
+  atalho,
+  onAtalhoChange,
   onFormaChange,
   onRecebidoChange,
   onEnter,
@@ -62,6 +77,12 @@ export function PagamentoSaida({
   const { canConfirm, motivo } = getPagamentoStatus(forma, recebido, valor);
   const valorRecebido = parseMoney(recebido);
   const trocoOk = isDinheiro && canConfirm;
+  const opcoesAtalho: QuickAmountOption[] = [
+    { value: "exato", label: "Exato" },
+    ...sugerirValoresRecebidos(valor).map((nota) => ({ value: String(nota), label: `R$ ${nota}` })),
+    { value: "outro", label: "Outro" },
+  ];
+  const faltaOutro = atalho === "outro" && recebido.trim() !== "" && !canConfirm;
 
   if (meios.status === "carregando") {
     return (
@@ -103,6 +124,15 @@ export function PagamentoSaida({
       />
       {opcoes.length === 1 && <Hint>{MEIO_UNICO_HINT}</Hint>}
       {isDinheiro && (
+        <QuickAmountChips
+          legend="Cliente pagou com"
+          options={opcoesAtalho}
+          value={atalhoParaChip(atalho)}
+          onChange={(chip) => onAtalhoChange(chipParaAtalho(chip))}
+          disabled={inativo}
+        />
+      )}
+      {isDinheiro && atalho === "outro" && (
         <Input
           label="Valor recebido"
           inputMode="decimal"
@@ -117,15 +147,15 @@ export function PagamentoSaida({
             }
           }}
           autoComplete="off"
+          autoFocus
+          error={faltaOutro ? `Faltam ${formatBRL(valor - valorRecebido)} para o valor cobrado.` : undefined}
+          hint={faltaOutro ? undefined : DIGITE_VALOR_HINT}
           disabled={inativo}
         />
       )}
+      {consulta && trocoOk && <ChangeDisplay recebido={valorRecebido} valor={valor} />}
       <div aria-live="polite">
-        {consulta && isDinheiro && (
-          <TrocoLine $tone={trocoOk ? "success" : recebido.trim() === "" ? "muted" : "danger"}>
-            {trocoOk ? `Troco: ${formatBRL(calcularTroco(valorRecebido, valor))}` : motivo}
-          </TrocoLine>
-        )}
+        {consulta && isDinheiro && atalho === null && <Hint>{ESCOLHA_ATALHO_MESSAGE}</Hint>}
         {consulta && !canConfirm && !isDinheiro && <Hint>{motivo}</Hint>}
       </div>
     </Wrapper>

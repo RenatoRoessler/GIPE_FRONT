@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
 import { QUADROS_QUERY_KEY } from "@/components/quadros/quadrosKeys";
 import { consultarSaida, registrarSaida, resolverBuscaPorToken } from "@/lib/api/services/patio";
-import { parseMoney } from "@/lib/money";
+import { maskMoney, parseMoney } from "@/lib/money";
 import { saidaBuscaSchema, toSaidaBusca, type SaidaBuscaValues } from "@/lib/schemas/saida";
 import type { SaidaBusca, SaidaConsulta } from "@/types/saida";
 import type { SaidaBuscaField } from "../BuscaManualSaida";
@@ -28,6 +28,14 @@ const MOTIVO_SEM_MEIOS = {
   vazio: "Nenhum meio de pagamento configurado.",
 } as const;
 const ATUALIZACAO_FALHOU = "Não foi possível atualizar o valor. Mantida a última consulta.";
+
+// Atalho de "cliente pagou com" (só em dinheiro): o valor exato, uma nota redonda ou "outro" (o operador digita).
+export type AtalhoRecebido = "exato" | "outro" | number;
+
+// Valor em reais no formato do campo "Valor recebido" (mesma máscara da digitação).
+function valorParaCampo(valor: number): string {
+  return maskMoney(valor.toFixed(2).replace(".", ","));
+}
 
 // Derivada dos dados: recibo com a saída registrada, pagamento com um veículo consultado, pesquisa nos demais casos.
 export type SaidaFase = "pesquisa" | "pagamento" | "recibo";
@@ -56,6 +64,7 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
   // Escolha do operador; a forma usada é derivada dela e dos meios que a empresa aceita.
   const [formaEscolhida, setForma] = useState<string | null>(null);
   const [recebido, setRecebido] = useState("");
+  const [atalho, setAtalho] = useState<AtalhoRecebido | null>(null);
   const [resultado, setResultado] = useState<SaidaResultado | null>(null);
   const [consultaRecibo, setConsultaRecibo] = useState<SaidaConsulta | null>(null);
 
@@ -113,6 +122,9 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
       if (data.tipo === "mudou") {
         ultimoValorRef.current = valorACobrar(data.nova);
         setValorAnterior(valorACobrar(variables.consulta));
+        // O que o cliente pagaria foi calculado sobre o valor antigo: o operador escolhe de novo.
+        setAtalho(null);
+        setRecebido("");
         queryClient.setQueryData([SAIDA_CONSULTA_KEY, variables.busca], data.nova);
         return;
       }
@@ -138,6 +150,8 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
       const anterior = ultimoValorRef.current;
       if (anterior !== null && !valoresIguais(anterior, valorACobrar(nova))) {
         setValorAnterior(anterior);
+        setAtalho(null);
+        setRecebido("");
       }
       ultimoValorRef.current = valorACobrar(nova);
       return nova;
@@ -154,6 +168,7 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
     ultimoValorRef.current = null;
     setValorAnterior(null);
     setRecebido("");
+    setAtalho(null);
     setBusca(proxima);
   }, []);
 
@@ -177,6 +192,25 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
   const opcoes = meios.status === "pronto" ? meios.opcoes : [];
   // A escolha vale enquanto ainda for aceita; senão, a primeira aceita (Dinheiro, quando aceito) vem marcada.
   const forma = opcoes.some((opcao) => opcao.value === formaEscolhida) ? (formaEscolhida as string) : (opcoes[0]?.value ?? "");
+
+  // Trocar a forma de pagamento descarta o valor recebido: ao voltar para dinheiro, o operador escolhe de novo.
+  const escolherForma = useCallback((value: string) => {
+    setForma(value);
+    setAtalho(null);
+    setRecebido("");
+  }, []);
+
+  function selecionarAtalho(proximo: AtalhoRecebido) {
+    if (!consulta) {
+      return;
+    }
+    setAtalho(proximo);
+    if (proximo === "outro") {
+      setRecebido("");
+      return;
+    }
+    setRecebido(valorParaCampo(proximo === "exato" ? valorACobrar(consulta) : proximo));
+  }
 
   // ---- Leitura por QR ----
 
@@ -329,6 +363,7 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
     forma,
     meios,
     recebido,
+    atalho,
     resultado,
     pagamento,
     semCobranca,
@@ -342,8 +377,9 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
     handleQrInvalido,
     handleBuscaChange,
     handleBuscaEnter,
-    setForma,
+    setForma: escolherForma,
     setRecebido,
+    selecionarAtalho,
     voltar,
     confirmar,
   };

@@ -7,6 +7,7 @@ import {
   FORMA_PADRAO,
   FORMAS_SAIDA,
   getPagamentoStatus,
+  sugerirValoresRecebidos,
   valoresIguais,
   valorACobrar,
 } from "./saida";
@@ -81,5 +82,28 @@ describe("formas aceitas pela empresa", () => {
 
   it("devolve lista vazia quando tudo está desligado", () => {
     expect(filtrarFormasAceitas({ dinheiro: false, pix: false, cartaoCredito: false, cartaoDebito: false })).toEqual([]);
+  });
+});
+
+describe("sugerirValoresRecebidos", () => {
+  it("sugere as duas próximas notas redondas acima do valor", () => {
+    expect(sugerirValoresRecebidos(220)).toEqual([250, 300]);
+    expect(sugerirValoresRecebidos(250)).toEqual([300, 400]);
+    expect(sugerirValoresRecebidos(20)).toEqual([50, 100]);
+    expect(sugerirValoresRecebidos(220.5)).toEqual([250, 300]);
+    expect(sugerirValoresRecebidos(1180)).toEqual([1200, 1300]);
+  });
+
+  it("nunca sugere valor menor ou igual ao cobrado", () => {
+    for (const valor of [0.01, 10, 49.99, 50, 99.99, 100, 220, 999.99]) {
+      for (const sugerido of sugerirValoresRecebidos(valor)) {
+        expect(sugerido).toBeGreaterThan(valor);
+      }
+    }
+  });
+
+  it("não sugere nada sem cobrança", () => {
+    expect(sugerirValoresRecebidos(0)).toEqual([]);
+    expect(sugerirValoresRecebidos(Number.NaN)).toEqual([]);
   });
 });
