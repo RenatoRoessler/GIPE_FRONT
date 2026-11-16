@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ExplicacaoCamera, PassosLiberarCamera } from "@/components/camera/PermissaoCamera";
+import { confirmarLeitura } from "@/lib/feedbackLeitura";
 import { extrairTokenComprovante } from "@/lib/qr";
 import {
   Mensagem,
@@ -46,9 +47,7 @@ export function LeitorQrSaida({ onToken, onInvalido, buscando = false }: LeitorQ
     onTexto: (texto) => {
       const tokenLido = extrairTokenComprovante(texto);
       if (tokenLido) {
-        if (navigator.vibrate) {
-          navigator.vibrate(80);
-        }
+        confirmarLeitura();
         onToken(tokenLido);
         return;
       }

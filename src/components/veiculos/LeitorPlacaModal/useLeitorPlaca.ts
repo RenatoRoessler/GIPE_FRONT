@@ -1,17 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { confirmarLeitura, leituraDuvidosa } from "@/lib/feedbackLeitura";
 import { criarConsenso, extrairPlaca } from "@/lib/ocrPlaca";
 import { consultarPermissaoCamera } from "@/lib/permissaoCamera";
 import { criarReconhecedorPlaca, type ReconhecedorPlaca } from "@/lib/reconhecedorPlaca";
 
-export type LeitorPlacaEstado = "ocioso" | "abrindo" | "pedindo" | "lendo" | "negada" | "indisponivel" | "sem-leitura";
+// "pre-leitura": a imagem da câmera já aparece, mas o leitor de placas ainda está carregando (o operador já pode enquadrar).
+export type LeitorPlacaEstado =
+  | "ocioso"
+  | "abrindo"
+  | "pedindo"
+  | "pre-leitura"
+  | "lendo"
+  | "negada"
+  | "indisponivel"
+  | "sem-leitura";
+
+export interface LeituraDePlaca {
+  duvida: number | null;
+}
 
 export interface UseLeitorPlacaOptions {
   // Câmera ligada enquanto true; ao virar false (ou desmontar) tudo é liberado.
   ativo: boolean;
-  // Placa válida, lida de forma consistente em quadros seguidos.
-  onPlaca: (placa: string) => void;
+  // Placa válida, lida de forma consistente em quadros seguidos. `duvida` é a posição do caractere que variou entre os
+  // quadros (null quando as leituras sempre concordaram).
+  onPlaca: (placa: string, leitura?: LeituraDePlaca) => void;
   // Tempo sem placa válida até desistir. No modo contínuo, conta a partir da última placa lida.
   tempoLimiteMs?: number;
   // Segue lendo depois de cada placa (a câmera só para ao desistir, ao desativar ou ao desmontar), para conferir vários carros em sequência.
@@ -27,6 +42,11 @@ export interface UseLeitorPlaca {
   contextoSeguro: boolean;
   // Abre a câmera (ou tenta de novo); com "pedindo" o navegador está perguntando se pode usá-la.
   iniciar: () => void;
+}
+
+// Leitor que terminou de carregar depois de a abertura ser cancelada (ou de a câmera falhar): ninguém vai usá-lo.
+function descartarReconhecedor(pendente: Promise<ReconhecedorPlaca | null> | null) {
+  void pendente?.then((reconhecedor) => reconhecedor?.encerrar());
 }
 
 const TEMPO_LIMITE_MS = 15000;
@@ -92,6 +112,8 @@ export function useLeitorPlaca({
     const sessao = sessaoRef.current;
     abrindoRef.current = true;
     setEstado("abrindo");
+    // O leitor (OCR) carrega em paralelo com a câmera e sem segurá-la: a imagem aparece assim que o aparelho a libera.
+    let reconhecedorPendente: Promise<ReconhecedorPlaca | null> | null = null;
     try {
       const permissao = await consultarPermissaoCamera();
       if (sessao !== sessaoRef.current) {
@@ -103,35 +125,42 @@ export function useLeitorPlaca({
       if (permissao === "prompt" || permissao === "desconhecida") {
         setEstado("pedindo");
       }
-      // A câmera e o OCR carregam juntos; o OCR é baixado só na primeira vez.
-      const [stream, reconhecedor] = await Promise.all([
-        navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: false,
-        }),
-        criarReconhecedorPlaca().catch(() => null),
-      ]);
+      // O OCR é baixado só na primeira vez.
+      reconhecedorPendente = criarReconhecedorPlaca().catch(() => null);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
       const video = videoRef.current;
       if (sessao !== sessaoRef.current || !video) {
         stream.getTracks().forEach((track) => track.stop());
+        descartarReconhecedor(reconhecedorPendente);
+        return;
+      }
+      streamRef.current = stream;
+      video.srcObject = stream;
+      await video.play();
+      if (sessao !== sessaoRef.current) {
+        descartarReconhecedor(reconhecedorPendente);
+        return;
+      }
+      // Imagem na tela: o leitor ainda pode estar carregando.
+      setEstado("pre-leitura");
+      const reconhecedor = await reconhecedorPendente;
+      if (sessao !== sessaoRef.current) {
         void reconhecedor?.encerrar();
         return;
       }
       if (!reconhecedor) {
-        stream.getTracks().forEach((track) => track.stop());
+        parar();
         setEstado("indisponivel");
         return;
       }
-      streamRef.current = stream;
       reconhecedorRef.current = reconhecedor;
-      video.srcObject = stream;
-      await video.play();
-      if (sessao !== sessaoRef.current) {
-        return;
-      }
       setEstado("lendo");
       varrer(video, reconhecedor, sessao);
     } catch (error) {
+      descartarReconhecedor(reconhecedorPendente);
       if (sessao === sessaoRef.current) {
         parar();
         // Câmera ocupada, sem câmera ou outra falha: não há o que o operador possa liberar no navegador.
@@ -172,18 +201,22 @@ export function useLeitorPlaca({
             }
             const placa = consenso.registrar(extrairPlaca(texto));
             if (placa) {
-              if (navigator.vibrate) {
-                navigator.vibrate(80);
+              // Uma vibração (e um bip) para leitura certa; duas vibrações, sem som, quando um caractere variou entre os quadros.
+              const duvida = consenso.duvida();
+              if (duvida === null) {
+                confirmarLeitura();
+              } else {
+                leituraDuvidosa();
               }
               if (!continuoRef.current) {
                 parar();
-                onPlacaRef.current(placa);
+                onPlacaRef.current(placa, { duvida });
                 return;
               }
               // Contínuo: a câmera segue ligada, a próxima placa começa um consenso novo e o limite recomeça.
               consenso = criarConsenso();
               armarLimite();
-              onPlacaRef.current(placa);
+              onPlacaRef.current(placa, { duvida });
             }
           }
         } catch {

@@ -1,2 +1,2 @@
 export { LeitorPlacaModal } from "./LeitorPlacaModal";
-export type { LeitorPlacaModalProps } from "./LeitorPlacaModal";
+export type { FalhaCamera, LeitorPlacaModalProps } from "./LeitorPlacaModal";

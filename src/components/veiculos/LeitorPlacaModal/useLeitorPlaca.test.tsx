@@ -7,6 +7,8 @@ const reconhecer = vi.hoisted(() => vi.fn());
 const encerrar = vi.hoisted(() => vi.fn());
 const criarReconhecedorPlaca = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/reconhecedorPlaca", () => ({ criarReconhecedorPlaca }));
+const feedback = vi.hoisted(() => ({ confirmarLeitura: vi.fn(), leituraDuvidosa: vi.fn() }));
+vi.mock("@/lib/feedbackLeitura", () => feedback);
 
 interface HarnessProps {
   ativo: boolean;
@@ -44,6 +46,8 @@ function fakeStream() {
 
 beforeEach(() => {
   stopTrack.mockReset();
+  feedback.confirmarLeitura.mockReset();
+  feedback.leituraDuvidosa.mockReset();
   encerrar.mockReset().mockResolvedValue(undefined);
   reconhecer.mockReset().mockResolvedValue("");
   criarReconhecedorPlaca.mockReset().mockResolvedValue({ reconhecer, encerrar });
@@ -81,7 +85,7 @@ describe("useLeitorPlaca", () => {
     reconhecer.mockResolvedValue("ABC1D23\n");
     const onPlaca = vi.fn();
     render(<Harness ativo onPlaca={onPlaca} />);
-    await waitFor(() => expect(onPlaca).toHaveBeenCalledWith("ABC1D23"));
+    await waitFor(() => expect(onPlaca).toHaveBeenCalledWith("ABC1D23", { duvida: null }));
     expect(onPlaca).toHaveBeenCalledTimes(1);
     expect(reconhecer.mock.calls.length).toBeGreaterThanOrEqual(2);
     expect(stopTrack).toHaveBeenCalledTimes(1);
@@ -96,7 +100,7 @@ describe("useLeitorPlaca", () => {
       .mockResolvedValue("XYZ9K88");
     const onPlaca = vi.fn();
     render(<Harness ativo onPlaca={onPlaca} />);
-    await waitFor(() => expect(onPlaca).toHaveBeenCalledWith("XYZ9K88"));
+    await waitFor(() => expect(onPlaca).toHaveBeenCalledWith("XYZ9K88", { duvida: null }));
     expect(onPlaca).toHaveBeenCalledTimes(1);
   });
 
@@ -182,7 +186,7 @@ describe("useLeitorPlaca", () => {
       render(<Harness ativo continuo onPlaca={onPlaca} />);
 
       await waitFor(() => expect(onPlaca.mock.calls.length).toBeGreaterThanOrEqual(2));
-      expect(onPlaca).toHaveBeenCalledWith("ABC1D23");
+      expect(onPlaca).toHaveBeenCalledWith("ABC1D23", { duvida: null });
       expect(estado()).toBe("lendo");
       expect(stopTrack).not.toHaveBeenCalled();
     });
@@ -272,5 +276,113 @@ describe("permissão da câmera", () => {
     simularPermissao("denied");
     render(<Harness ativo />);
     await waitFor(() => expect(estado()).toBe("lendo"));
+  });
+});
+
+// Promessa que o teste resolve na hora que quiser: simula o leitor ainda carregando.
+function adiado<T>() {
+  let resolver!: (valor: T) => void;
+  const promessa = new Promise<T>((resolve) => {
+    resolver = resolve;
+  });
+  return { promessa, resolver };
+}
+
+describe("useLeitorPlaca: imagem antes do leitor", () => {
+  it("mostra a imagem da câmera enquanto o leitor ainda carrega e só então começa a ler", async () => {
+    const leitor = adiado<{ reconhecer: typeof reconhecer; encerrar: typeof encerrar }>();
+    criarReconhecedorPlaca.mockReturnValue(leitor.promessa);
+    render(<Harness ativo />);
+
+    await waitFor(() => expect(estado()).toBe("pre-leitura"));
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalled();
+    expect(screen.getByTestId("video")).toHaveProperty("srcObject");
+    expect(reconhecer).not.toHaveBeenCalled();
+
+    await act(async () => leitor.resolver({ reconhecer, encerrar }));
+
+    await waitFor(() => expect(estado()).toBe("lendo"));
+    await waitFor(() => expect(reconhecer).toHaveBeenCalled());
+  });
+
+  it("pede a câmera sem esperar o leitor terminar de carregar", async () => {
+    const leitor = adiado<{ reconhecer: typeof reconhecer; encerrar: typeof encerrar }>();
+    criarReconhecedorPlaca.mockReturnValue(leitor.promessa);
+    render(<Harness ativo />);
+
+    await waitFor(() => expect(getUserMedia).toHaveBeenCalledTimes(1));
+    expect(criarReconhecedorPlaca).toHaveBeenCalledTimes(1);
+    expect(estado()).not.toBe("lendo");
+  });
+
+  it("se o leitor falhar depois de a imagem aparecer, desliga a câmera e fica indisponível", async () => {
+    const leitor = adiado<null>();
+    criarReconhecedorPlaca.mockReturnValue(leitor.promessa);
+    render(<Harness ativo />);
+    await waitFor(() => expect(estado()).toBe("pre-leitura"));
+
+    await act(async () => leitor.resolver(null));
+
+    await waitFor(() => expect(estado()).toBe("indisponivel"));
+    expect(stopTrack).toHaveBeenCalledTimes(1);
+  });
+
+  it("desligar no meio da abertura solta a câmera e encerra o leitor que chegar depois", async () => {
+    const leitor = adiado<{ reconhecer: typeof reconhecer; encerrar: typeof encerrar }>();
+    criarReconhecedorPlaca.mockReturnValue(leitor.promessa);
+    const { rerender } = render(<Harness ativo />);
+    await waitFor(() => expect(estado()).toBe("pre-leitura"));
+
+    rerender(<Harness ativo={false} />);
+    expect(stopTrack).toHaveBeenCalledTimes(1);
+
+    await act(async () => leitor.resolver({ reconhecer, encerrar }));
+
+    await waitFor(() => expect(encerrar).toHaveBeenCalledTimes(1));
+    expect(estado()).toBe("ocioso");
+    expect(reconhecer).not.toHaveBeenCalled();
+  });
+
+  it("se a câmera falhar, o leitor que ainda carregava é encerrado quando chegar", async () => {
+    const leitor = adiado<{ reconhecer: typeof reconhecer; encerrar: typeof encerrar }>();
+    criarReconhecedorPlaca.mockReturnValue(leitor.promessa);
+    getUserMedia.mockRejectedValue(new DOMException("negado", "NotAllowedError"));
+    render(<Harness ativo />);
+    await waitFor(() => expect(estado()).toBe("negada"));
+
+    await act(async () => leitor.resolver({ reconhecer, encerrar }));
+
+    await waitFor(() => expect(encerrar).toHaveBeenCalledTimes(1));
+  });
+});
+
+describe("useLeitorPlaca: confirmação da leitura", () => {
+  it("leitura sempre igual: confirma uma vez, sem dúvida", async () => {
+    reconhecer.mockResolvedValue("ABC1D23");
+    const onPlaca = vi.fn();
+    render(<Harness ativo onPlaca={onPlaca} />);
+
+    await waitFor(() => expect(onPlaca).toHaveBeenCalledWith("ABC1D23", { duvida: null }));
+    expect(feedback.confirmarLeitura).toHaveBeenCalledTimes(1);
+    expect(feedback.leituraDuvidosa).not.toHaveBeenCalled();
+  });
+
+  it("um caractere que variou entre os quadros: avisa a dúvida e não confirma", async () => {
+    reconhecer.mockResolvedValueOnce("ABC1D28").mockResolvedValue("ABC1D23");
+    const onPlaca = vi.fn();
+    render(<Harness ativo onPlaca={onPlaca} />);
+
+    await waitFor(() => expect(onPlaca).toHaveBeenCalledWith("ABC1D23", { duvida: 6 }));
+    expect(feedback.leituraDuvidosa).toHaveBeenCalledTimes(1);
+    expect(feedback.confirmarLeitura).not.toHaveBeenCalled();
+  });
+
+  it("no modo contínuo confirma cada placa lida, uma vez por leitura", async () => {
+    reconhecer.mockResolvedValueOnce("ABC1D23").mockResolvedValueOnce("ABC1D23").mockResolvedValue("XYZ9K88");
+    const onPlaca = vi.fn();
+    render(<Harness ativo continuo onPlaca={onPlaca} />);
+
+    await waitFor(() => expect(onPlaca).toHaveBeenCalledWith("XYZ9K88", { duvida: null }));
+    expect(feedback.confirmarLeitura).toHaveBeenCalledTimes(2);
   });
 });

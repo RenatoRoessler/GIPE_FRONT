@@ -17,6 +17,7 @@ export const TEMPO_LIMITE_CONFERENCIA_MS = 120_000;
 const MENSAGENS: Record<Exclude<LeitorPlacaEstado, "indisponivel">, string> = {
   ocioso: "Preparando a câmera…",
   abrindo: "Preparando a câmera…",
+  "pre-leitura": "Preparando a leitura…",
   pedindo: "Aguardando a permissão da câmera…",
   lendo: "Aponte a câmera para a placa",
   negada: "Permita o acesso à câmera nas configurações do navegador, ou digite a placa.",

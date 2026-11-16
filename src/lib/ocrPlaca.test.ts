@@ -56,3 +56,53 @@ describe("criarConsenso", () => {
     expect(consenso.registrar("ABC1D23")).toBeNull();
   });
 });
+
+describe("criarConsenso: dúvida entre as leituras", () => {
+  it("sem divergência não há dúvida", () => {
+    const consenso = criarConsenso();
+    consenso.registrar("ABC1D23");
+    expect(consenso.registrar("ABC1D23")).toBe("ABC1D23");
+    expect(consenso.duvida()).toBeNull();
+  });
+
+  it("aponta o caractere em que uma leitura anterior divergia", () => {
+    const consenso = criarConsenso();
+    consenso.registrar("ABC1D28");
+    consenso.registrar("ABC1D23");
+    expect(consenso.registrar("ABC1D23")).toBe("ABC1D23");
+    expect(consenso.duvida()).toBe(6);
+  });
+
+  it("divergência em mais de um caractere é outro carro, não dúvida", () => {
+    const consenso = criarConsenso();
+    consenso.registrar("XYZ9K88");
+    consenso.registrar("ABC1D23");
+    expect(consenso.registrar("ABC1D23")).toBe("ABC1D23");
+    expect(consenso.duvida()).toBeNull();
+  });
+
+  it("a divergência vale mesmo com um quadro sem placa no meio", () => {
+    const consenso = criarConsenso();
+    consenso.registrar("ABC1D28");
+    consenso.registrar(null);
+    consenso.registrar("ABC1D23");
+    expect(consenso.registrar("ABC1D23")).toBe("ABC1D23");
+    expect(consenso.duvida()).toBe(6);
+  });
+
+  it("reiniciar esquece as divergências", () => {
+    const consenso = criarConsenso();
+    consenso.registrar("ABC1D28");
+    consenso.registrar("ABC1D23");
+    consenso.reiniciar();
+    consenso.registrar("ABC1D23");
+    expect(consenso.registrar("ABC1D23")).toBe("ABC1D23");
+    expect(consenso.duvida()).toBeNull();
+  });
+
+  it("não muda quando a placa ainda não foi confirmada", () => {
+    const consenso = criarConsenso();
+    expect(consenso.registrar("ABC1D23")).toBeNull();
+    expect(consenso.duvida()).toBeNull();
+  });
+});

@@ -2,7 +2,8 @@
 
 import styled, { css, keyframes, type DefaultTheme } from "styled-components";
 
-export type VisorTom = "neutro" | "buscando" | "invalido";
+// "ok": leitura certa; "duvida": leitura que o operador precisa conferir (borda amarela, como a mira neutra, mas no visor todo).
+export type VisorTom = "neutro" | "buscando" | "invalido" | "ok" | "duvida";
 
 const MIRA = 34;
 const MIRA_RECUO = 14;
@@ -14,7 +15,7 @@ const varredura = keyframes`
 `;
 
 const corDaMira = (tom: VisorTom, theme: DefaultTheme) =>
-  tom === "buscando" ? theme.colors.success : tom === "invalido" ? theme.colors.danger : theme.colors.warn;
+  tom === "buscando" || tom === "ok" ? theme.colors.success : tom === "invalido" ? theme.colors.danger : theme.colors.warn;
 
 export const Wrapper = styled.div`
   display: flex;
@@ -58,7 +59,10 @@ export const Mira = styled.span<{ $canto: "tl" | "tr" | "bl" | "br"; $tom: Visor
   width: ${MIRA}px;
   height: ${MIRA}px;
   border: 4px solid ${({ theme, $tom }) => corDaMira($tom, theme)};
-  transition: border-color 0.2s ease;
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: border-color 0.2s ease;
+  }
 
   ${({ $canto, theme }) => {
     const raio = theme.radii.md;
