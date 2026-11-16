@@ -1,6 +1,7 @@
 "use client";
 
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+import { Label } from "@/components/ui/Input/Input.styles";
 
 const ACTION_SIZE = 40;
 
@@ -31,8 +32,18 @@ export const PlateInput = styled.input<{ $hasAction?: boolean }>`
 `;
 
 // O foco mostra um anel na placa inteira, já que o input não tem borda própria.
-export const PlateFrame = styled.div`
+// Com `$destaque` a placa traz sempre um anel amarelo, mesmo sem foco (como no desenho da entrada).
+export const PlateFrame = styled.div<{ $destaque?: boolean }>`
   border-radius: ${({ theme }) => theme.radii.md};
+
+  ${({ $destaque, theme }) =>
+    $destaque &&
+    css`
+      outline-width: 3px;
+      outline-style: solid;
+      outline-color: ${theme.colors.warn};
+      outline-offset: 2px;
+    `}
 
   &:focus-within {
     outline: 2px solid ${({ theme }) => theme.colors.focus};
@@ -52,4 +63,21 @@ export const PlateAction = styled.div`
   right: ${({ theme }) => theme.space[2]}px;
   display: flex;
   transform: translateY(-50%);
+`;
+
+// Rótulo que só o leitor de tela lê: a placa desenhada já diz o que o campo é.
+export const PlateLabel = styled(Label)<{ $hidden: boolean }>`
+  ${({ $hidden }) =>
+    $hidden &&
+    css`
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    `}
 `;

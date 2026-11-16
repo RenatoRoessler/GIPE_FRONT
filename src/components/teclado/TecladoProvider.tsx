@@ -25,9 +25,11 @@ export interface TecladoContexto {
   fechar: () => void;
   // Avisa que o campo existe; o cleanup fecha o teclado se ele ainda estiver apontado para o campo.
   registrar: (campo: HTMLInputElement) => () => void;
+  // Há um teclado do Murel aberto (quem fica fixo no rodapé pode sair da frente).
+  aberto: boolean;
 }
 
-const SEM_PROVIDER: TecladoContexto = { abrir: () => {}, fechar: () => {}, registrar: () => () => {} };
+const SEM_PROVIDER: TecladoContexto = { abrir: () => {}, fechar: () => {}, registrar: () => () => {}, aberto: false };
 
 const Contexto = createContext<TecladoContexto>(SEM_PROVIDER);
 
@@ -217,7 +219,8 @@ export function TecladoProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const contexto = useMemo(() => ({ abrir, fechar, registrar }), [abrir, fechar, registrar]);
+  const aberto = alvo !== null && config !== null;
+  const contexto = useMemo(() => ({ abrir, fechar, registrar, aberto }), [abrir, fechar, registrar, aberto]);
   const rotuloAcao = alvo && proximoCampo(alvo) ? "Próximo" : "OK";
   const destino = alvo ? (alvo.closest("dialog") ?? document.body) : null;
 

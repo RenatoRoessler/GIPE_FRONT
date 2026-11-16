@@ -1,23 +1,26 @@
 "use client";
 
 import { useStore } from "@tanstack/react-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useConfiguracao } from "@/components/configuracoes/useConfiguracao";
 import { useAppForm, zodFieldErrors } from "@/components/form";
-import { formatDateTime, formatTime } from "@/components/caixa/format";
+import { formatTime } from "@/components/caixa/format";
+import { useTecladoAberto } from "@/hooks/useTecladoAberto";
 import { Button } from "@/components/ui/Button";
+import { PassosLiberarCamera } from "@/components/camera/PermissaoCamera";
 import { CameraButton } from "@/components/ui/CameraButton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
-import { Link } from "@/components/ui/Link";
+import { InlineNotice } from "@/components/ui/InlineNotice";
 import { Modal } from "@/components/ui/Modal";
 import { MEDIA_TOQUE } from "@/components/teclado/useTecladoCampo";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
 import { usePatio } from "@/components/patio/usePatio";
 import { EscolherGancho } from "@/components/quadros/EscolherGancho";
 import { ApiError } from "@/lib/api/errors";
-import { registrarEntrada } from "@/lib/api/services/patio";
+import { consultarSaida, registrarEntrada } from "@/lib/api/services/patio";
+import { formatBRL } from "@/lib/money";
 import { isValidPlaca, normalizePlaca } from "@/lib/placa";
 import { PRISMA_INTERVALO_MESSAGE, prismaDoTexto } from "@/lib/prisma";
 import { prismaExigido } from "@/lib/schemas/regrasEntrada";
@@ -29,18 +32,24 @@ import {
   matchCor,
   type EntradaRegistrada,
 } from "@/types/veiculo";
+import type { SaidaBusca } from "@/types/saida";
 import { CardMensalista } from "../CardMensalista";
 import { CategoriaIcon } from "../categoriaIcons";
-import { LeitorPlacaModal } from "../LeitorPlacaModal";
+import { JaNoPatioCard, type ValorJaNoPatio } from "../JaNoPatioCard";
+import { LeitorPlacaModal, type FalhaCamera } from "../LeitorPlacaModal";
 import { ReciboEntradaStep } from "../ReciboEntradaStep";
+import { valorACobrar } from "../saida";
+import { SAIDA_CONSULTA_KEY } from "../SaidaVeiculoModal/useSaidaFlow";
 import { ModeloField } from "../ModeloField";
 import { useModelos } from "../useModelos";
 import { usePlacaLookup, type PlacaLookupStatus } from "../usePlacaLookup";
-import { Confirmacao, Form, JaNoPatio, Pendencia } from "./EntradaVeiculoModal.styles";
+import { Confirmacao, Form, Pendencia } from "./EntradaVeiculoModal.styles";
 
 export interface EntradaVeiculoModalProps {
   onClose: () => void;
   onSuccess: (message: string) => void;
+  // Placa que já está no pátio: o botão principal leva direto à confirmação da saída dela.
+  onDarSaida: (busca: SaidaBusca) => void;
 }
 
 const CATEGORIAS = CATEGORIA_VEICULO_OPTIONS.map((option) => String(option.value));
@@ -101,8 +110,10 @@ function mensagensDoErro(error: Error): string[] {
   return detalhes.length > 0 ? detalhes : [error.message];
 }
 
-export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalProps) {
+export function EntradaVeiculoModal({ onClose, onSuccess, onDarSaida }: EntradaVeiculoModalProps) {
   const formId = useId();
+  // Com um teclado na tela o formulário ganha o espaço do rodapé: os botões voltam quando ele fecha.
+  const tecladoAberto = useTecladoAberto();
   const pendenciaId = useId();
   const { status, cadastro, lookup, reset: resetLookup } = usePlacaLookup();
   // Com a entrada registrada, o modal passa do formulário para a escolha do gancho da chave e, depois, para o comprovante.
@@ -172,6 +183,21 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
   const { data: patio } = usePatio({ pausado: true });
   const placaNormalizada = normalizePlaca(placaAtual);
   const jaNoPatio = isValidPlaca(placaNormalizada) ? patio?.find((veiculo) => veiculo.placa === placaNormalizada) : undefined;
+  // Valor da saída de agora, na mesma consulta (e no mesmo cache) da tela de saída: ela abre sem nova espera.
+  const placaNoPatio = jaNoPatio?.placa;
+  const buscaSaida = useMemo<SaidaBusca | null>(() => (placaNoPatio ? { tipo: "placa", valor: placaNoPatio } : null), [placaNoPatio]);
+  const consultaSaida = useQuery({
+    queryKey: [SAIDA_CONSULTA_KEY, buscaSaida],
+    queryFn: () => consultarSaida(buscaSaida as SaidaBusca),
+    enabled: buscaSaida !== null,
+    retry: false,
+  });
+  const valorNoPatio: ValorJaNoPatio = consultaSaida.isError
+    ? { status: "erro" }
+    : consultaSaida.data
+      ? { status: "pronto", valor: valorACobrar(consultaSaida.data) }
+      : { status: "carregando" };
+  const rotuloDarSaida = valorNoPatio.status === "pronto" && valorNoPatio.valor > 0 ? `Dar saída · ${formatBRL(valorNoPatio.valor)}` : "Dar saída";
   // Placa e categoria sempre; modelo, cor e prisma conforme a empresa: o rodapé diz o que falta.
   const faltando = [
     exigeModelo && modeloAtual.trim() === "" && "modelo",
@@ -180,17 +206,19 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
     exigePrisma && prismaAtual.trim() === "" && "prisma",
   ].filter((item): item is string => item !== false);
   const prismaInvalido = exigePrisma && prismaAtual.trim() !== "" && prismaDoTexto(prismaAtual) === null;
-  const motivoPendente = jaNoPatio
-    ? "Esta placa já está no pátio."
-    : !isValidPlaca(placaAtual)
-      ? "Informe a placa completa."
-      : faltando.length > 0
-        ? `Falta: ${listaEmPortugues(faltando)}.`
-        : prismaInvalido
-          ? `${PRISMA_INTERVALO_MESSAGE}.`
-          : null;
+  const motivoPendente = !isValidPlaca(placaAtual)
+    ? "Informe a placa completa."
+    : faltando.length > 0
+      ? `Falta: ${listaEmPortugues(faltando)}.`
+      : prismaInvalido
+        ? `${PRISMA_INTERVALO_MESSAGE}.`
+        : null;
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [leitorAberto, setLeitorAberto] = useState(false);
+  // Câmera negada ou indisponível: o formulário já segue com o teclado e a faixa oferece tentar a câmera de novo.
+  const [cameraFalhou, setCameraFalhou] = useState<FalhaCamera | null>(null);
+  const [mostrarPassosCamera, setMostrarPassosCamera] = useState(false);
+  const tentandoCameraDeNovo = useRef(false);
   // No celular a leitura da placa pela câmera já abre junto com a tela. Abre depois que o modal da entrada
   // está aberto: um modal aberto antes ficaria por baixo dele, escondendo a câmera e o pedido de permissão.
   useEffect(() => {
@@ -302,17 +330,43 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
     alvo?.focus();
   }
 
+  // Leitura errada: limpa a placa e devolve o teclado para digitar de novo.
+  function handleCorrigirPlaca() {
+    form.setFieldValue("placa", "");
+    setTimeout(() => document.getElementById(formId)?.querySelector<HTMLInputElement>('input[name="placa"]')?.focus());
+  }
+
   function handlePlacaLida(placa: string) {
     setLeitorAberto(false);
+    setCameraFalhou(null);
+    setMostrarPassosCamera(false);
     // Mesmo caminho da digitação: preenche o campo e consulta o cadastro da placa, sem registrar nada.
     form.setFieldValue("placa", placa);
     void handlePlacaBlur(placa);
   }
 
-  function handleDigitarPlaca() {
-    setLeitorAberto(false);
+  function focarPlaca() {
     // O modal devolve o foco ao botão que o abriu ao fechar; o campo da placa toma o foco logo depois.
     setTimeout(() => document.getElementById(formId)?.querySelector<HTMLInputElement>('input[name="placa"]')?.focus());
+  }
+
+  function handleDigitarPlaca() {
+    setLeitorAberto(false);
+    focarPlaca();
+  }
+
+  function handleFalhaCamera(motivo: FalhaCamera) {
+    setLeitorAberto(false);
+    setCameraFalhou(motivo);
+    // Falhou de novo depois de "Tentar câmera": agora vale explicar como liberar a câmera.
+    setMostrarPassosCamera(tentandoCameraDeNovo.current && motivo === "negada");
+    tentandoCameraDeNovo.current = false;
+    focarPlaca();
+  }
+
+  function handleTentarCamera() {
+    tentandoCameraDeNovo.current = true;
+    setLeitorAberto(true);
   }
 
   function handleModeloChange(texto: string) {
@@ -333,7 +387,16 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
       onClose={handleClose}
       closeOnBackdrop={false}
       footer={
-        entrada ? undefined : (
+        entrada || tecladoAberto ? undefined : jaNoPatio && buscaSaida ? (
+          <>
+            <Button type="button" variant="secondary" onClick={handleCorrigirPlaca}>
+              Corrigir placa
+            </Button>
+            <Button type="button" onClick={() => onDarSaida(buscaSaida)}>
+              {rotuloDarSaida}
+            </Button>
+          </>
+        ) : (
           <>
             <Button type="button" variant="secondary" onClick={handleClose} disabled={isSending}>
               Cancelar
@@ -379,6 +442,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
           )}
           <Form
             id={formId}
+            $compacto={tecladoAberto}
             noValidate
             onSubmit={(event) => {
               event.preventDefault();
@@ -389,6 +453,15 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
               void form.handleSubmit();
             }}
           >
+            {cameraFalhou && !jaNoPatio && (
+              <InlineNotice
+                actionLabel="Tentar câmera"
+                onAction={handleTentarCamera}
+                details={mostrarPassosCamera ? <PassosLiberarCamera /> : undefined}
+              >
+                Câmera indisponível. Digite a placa.
+              </InlineNotice>
+            )}
             <form.AppField
               name="placa"
               listeners={{
@@ -402,28 +475,20 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
               {(field) => (
                 <field.PlateField
                   label="Placa"
+                  hideLabel
+                  destaque
                   data-autofocus=""
-                  hint={hint}
+                  hint={jaNoPatio ? undefined : hint}
                   hintTone={tone}
                   disabled={isSending}
                   onKeyDown={handlePlacaKeyDown}
                   // A câmera é uma alternativa para digitar: fora da ordem do Tab, que vai da placa direto à categoria.
-                  action={<CameraButton tabIndex={-1} disabled={isSending} onClick={() => setLeitorAberto(true)} />}
+                  action={<CameraButton tabIndex={-1} disabled={isSending} onClick={handleTentarCamera} />}
                 />
               )}
             </form.AppField>
-            {jaNoPatio && (
-              <JaNoPatio role="alert">
-                <p>
-                  <strong>{jaNoPatio.placa}</strong> já está no pátio desde {formatDateTime(jaNoPatio.dataHoraEntrada)}.
-                </p>
-                <p>Para registrar uma nova entrada, dê a saída antes.</p>
-                <Link href={`/patio/${jaNoPatio.patioId}`} onClick={onClose}>
-                  Ver o ticket e dar saída
-                </Link>
-              </JaNoPatio>
-            )}
-            {cadastro?.dadosMensalista && (
+            {jaNoPatio && <JaNoPatioCard veiculo={jaNoPatio} valor={valorNoPatio} />}
+            {!jaNoPatio && cadastro?.dadosMensalista && (
               <CardMensalista
                 contexto="entrada"
                 variante={cadastro.mensalista ? "mensalista" : "rotativo"}
@@ -431,17 +496,25 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
                 horario={cadastro.dadosMensalista.intervaloPermitido}
               />
             )}
-            {exigeModelo && (
+            {!jaNoPatio && exigeModelo && (
               <form.AppField name="modelo" listeners={{ onChange: ({ value }) => handleModeloChange(value) }}>
                 {() => <ModeloField maxLength={60} disabled={isSending} required />}
               </form.AppField>
             )}
+            {!jaNoPatio && (
             <form.AppField name="categoria">
               {(field) => (
-                <field.OptionField legend="Categoria (define a tarifa)" options={CATEGORIA_OPTIONS} disabled={isSending} />
+                <field.OptionField
+                  legend="Categoria (define a tarifa)"
+                  options={CATEGORIA_OPTIONS}
+                  disabled={isSending}
+                  compact
+                  columns={3}
+                />
               )}
             </form.AppField>
-            {exigeCor && (
+            )}
+            {!jaNoPatio && exigeCor && (
               <form.AppField name="cor">
                 {(field) => (
                   <field.ColorField
@@ -453,7 +526,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
                 )}
               </form.AppField>
             )}
-            {exigePrisma && (
+            {!jaNoPatio && exigePrisma && (
               <form.AppField name="prisma">
                 {(field) => <field.PrismaField disabled={isSending} />}
               </form.AppField>
@@ -466,6 +539,7 @@ export function EntradaVeiculoModal({ onClose, onSuccess }: EntradaVeiculoModalP
         onClose={() => setLeitorAberto(false)}
         onConfirm={handlePlacaLida}
         onDigitar={handleDigitarPlaca}
+        onFalha={handleFalhaCamera}
       />
       {confirmingClose && (
         <ConfirmDialog

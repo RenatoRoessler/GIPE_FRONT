@@ -56,6 +56,7 @@ export const Tile = styled.label<{
   $card?: boolean;
   $highlight?: boolean;
   $inline?: boolean;
+  $compact?: boolean;
 }>`
   position: relative;
   display: flex;
@@ -94,6 +95,23 @@ export const Tile = styled.label<{
         background-color: ${theme.colors.text};
         color: ${theme.colors.background};
       `}
+    `}
+
+  /* Compacto (só no celular): mantém o ícone, com fonte, ícone e altura menores para o nome caber. */
+  ${({ $compact, theme }) =>
+    $compact &&
+    css`
+      @media (max-width: calc(${theme.breakpoints.md} - 1px)) {
+        gap: ${theme.space[1]}px;
+        min-height: 72px;
+        padding: ${theme.space[1]}px;
+        font-size: ${theme.fontSizes.xs};
+
+        svg {
+          width: 24px;
+          height: 24px;
+        }
+      }
     `}
 
   /* Cartão: conteúdo livre; o destaque (com selo) tem borda de acento fixa e a seleção também engrossa a borda. */

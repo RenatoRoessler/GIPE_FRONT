@@ -30,3 +30,15 @@ export function formatPlacaExibicao(value: string): string {
   const placa = normalizePlaca(value);
   return /^[A-Z]{3}\d{4}$/.test(placa) ? `${placa.slice(0, 3)}-${placa.slice(3)}` : placa;
 }
+
+const TAMANHO_PLACA = 7;
+
+// Quantos caracteres ainda faltam para a placa ficar completa.
+export function caracteresFaltando(value: string): number {
+  return TAMANHO_PLACA - normalizePlaca(value).length;
+}
+
+// Dica enquanto o operador digita ("Faltam 4 caracteres"); não é erro.
+export function mensagemFaltam(faltam: number): string {
+  return faltam === 1 ? "Falta 1 caractere" : `Faltam ${faltam} caracteres`;
+}

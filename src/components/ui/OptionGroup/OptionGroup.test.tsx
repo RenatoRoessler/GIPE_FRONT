@@ -134,4 +134,20 @@ describe("OptionGroup: variante inline", () => {
     await userEvent.click(screen.getByRole("radio", { name: "Sequencial" }));
     expect(onChange).toHaveBeenCalledWith("b");
   });
+
+  it("no modo compacto mantém o ícone e continua escolhendo", () => {
+    const onChange = vi.fn();
+    renderWithTheme(<OptionGroup legend="Forma" options={options} value="2" onChange={onChange} compact columns={3} />);
+
+    expect(screen.getByTestId("icone-dinheiro")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Dinheiro" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Crédito" })).toBeChecked();
+    fireEvent.click(screen.getByRole("radio", { name: "Pix" }));
+    expect(onChange).toHaveBeenCalledWith("4");
+  });
+
+  it("fora do modo compacto o ícone continua aparecendo", () => {
+    renderWithTheme(<OptionGroup legend="Forma" options={options} value="2" onChange={() => {}} />);
+    expect(screen.getByTestId("icone-dinheiro")).toBeInTheDocument();
+  });
 });

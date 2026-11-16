@@ -2,10 +2,11 @@
 
 import styled from "styled-components";
 
-export const Form = styled.form`
+// Com um teclado aberto o espaço vertical é curto: o respiro entre os campos diminui.
+export const Form = styled.form<{ $compacto?: boolean }>`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.space[3]}px;
+  gap: ${({ theme, $compacto }) => ($compacto ? theme.space[2] : theme.space[3])}px;
 `;
 
 // O que falta para registrar. No rodapé em coluna (celular) o último filho fica no topo, logo acima do botão principal;
@@ -31,22 +32,4 @@ export const Confirmacao = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   font-variant-numeric: tabular-nums;
-`;
-
-// Placa que já está no pátio: bloqueia o registro e leva ao ticket dela.
-export const JaNoPatio = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: ${({ theme }) => theme.space[1]}px;
-  padding: ${({ theme }) => theme.space[3]}px;
-  border: 1px solid ${({ theme }) => theme.colors.danger};
-  border-radius: ${({ theme }) => theme.radii.md};
-  background-color: ${({ theme }) => theme.colors.dangerSoft};
-  color: ${({ theme }) => theme.colors.text};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-
-  p {
-    margin: 0;
-  }
 `;

@@ -1,15 +1,24 @@
-import { screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { TecladoProvider } from "@/components/teclado/TecladoProvider";
 import { MEDIA_TOQUE } from "@/components/teclado/useTecladoCampo";
 import { PATIO_QUERY_KEY } from "@/components/patio/patioKeys";
 import { ApiError } from "@/lib/api/errors";
 import { renderWithProviders } from "@/test/render";
 import type { QuadroChaves } from "@/types/quadroChaves";
 import type { PatioVeiculo } from "@/types/patio";
+import type { SaidaConsulta } from "@/types/saida";
 import type { EntradaRegistrada } from "@/types/veiculo";
 
-vi.mock("@/lib/api/services/patio", () => ({ registrarEntrada: vi.fn(), listPatio: vi.fn() }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+vi.mock("@/lib/api/services/patio", () => ({
+  registrarEntrada: vi.fn(),
+  listPatio: vi.fn(),
+  consultarSaida: vi.fn(),
+  registrarSaida: vi.fn(),
+  resolverBuscaPorToken: vi.fn(),
+}));
 vi.mock("@/lib/api/services/veiculo", () => ({ consultarPlaca: vi.fn(), listModelos: vi.fn().mockResolvedValue([]) }));
 vi.mock("@/lib/api/services/quadroChaves", () => ({ listQuadros: vi.fn().mockResolvedValue([]), escolherQuadroChave: vi.fn() }));
 vi.mock("@/lib/api/services/configuracao", () => ({ getConfiguracao: vi.fn(), updateConfiguracao: vi.fn() }));
@@ -17,9 +26,22 @@ vi.mock("@/lib/api/services/empresa", () => ({ getEmpresa: vi.fn().mockRejectedV
 
 // O leitor em si é testado à parte: aqui ele só devolve uma placa lida.
 vi.mock("../LeitorPlacaModal", () => ({
-  LeitorPlacaModal: ({ open, onConfirm, onDigitar }: { open: boolean; onConfirm: (placa: string) => void; onDigitar: () => void }) =>
+  LeitorPlacaModal: ({
+    open,
+    onConfirm,
+    onDigitar,
+    onFalha,
+  }: {
+    open: boolean;
+    onConfirm: (placa: string) => void;
+    onDigitar: () => void;
+    onFalha: (motivo: "negada" | "indisponivel") => void;
+  }) =>
     open ? (
       <div role="dialog" aria-label="Leitor de placa">
+        <button type="button" onClick={() => onFalha("negada")}>
+          câmera negada
+        </button>
         <button type="button" onClick={() => onConfirm("ABC1D23")}>
           confirmar leitura
         </button>
@@ -31,7 +53,7 @@ vi.mock("../LeitorPlacaModal", () => ({
 }));
 
 import { getConfiguracao } from "@/lib/api/services/configuracao";
-import { listPatio, registrarEntrada } from "@/lib/api/services/patio";
+import { consultarSaida, listPatio, registrarEntrada } from "@/lib/api/services/patio";
 import { escolherQuadroChave, listQuadros } from "@/lib/api/services/quadroChaves";
 import { consultarPlaca } from "@/lib/api/services/veiculo";
 import { EntradaVeiculoModal } from "./EntradaVeiculoModal";
@@ -46,11 +68,13 @@ beforeAll(() => {
   };
 });
 
-const handlers = { onClose: vi.fn(), onSuccess: vi.fn() };
+const handlers = { onClose: vi.fn(), onSuccess: vi.fn(), onDarSaida: vi.fn() };
 
 // Pátio vazio por padrão; os testes de "já está no pátio" põem um veículo na lista.
 beforeEach(() => {
   vi.mocked(listPatio).mockReset().mockResolvedValue([]);
+  vi.mocked(consultarSaida).mockReset().mockResolvedValue({ patioId: 77, placa: "ABC1D23", valor: 220, mensalista: false } as SaidaConsulta);
+  handlers.onDarSaida.mockReset();
   // Padrão da empresa: modelo e cor obrigatórios, prisma opcional.
   vi.mocked(getConfiguracao).mockReset().mockResolvedValue({ modelo: true, cor: true, prisma: false, servicos: false, entradaDiretoCamera: true, alteradoPorId: null, alteradoEm: null });
 });
@@ -435,28 +459,82 @@ const noPatio = {
 } as PatioVeiculo;
 
 describe("EntradaVeiculoModal: placa que já está no pátio", () => {
-  it("avisa, bloqueia o registro e leva ao ticket", async () => {
+  async function digitarPlacaNoPatio(user: User) {
     vi.mocked(listPatio).mockResolvedValue([noPatio]);
-    const user = userEvent.setup();
     renderModal();
     await user.type(screen.getByLabelText("Placa"), "abc1d23");
-    await user.click(screen.getByRole("radio", { name: "Carro pequeno" }));
+    return screen.findByRole("heading", { name: "Este veículo já está no pátio" });
+  }
 
-    const aviso = await screen.findByRole("alert");
-    expect(aviso).toHaveTextContent("ABC1D23 já está no pátio desde");
-    expect(screen.getByRole("link", { name: "Ver o ticket e dar saída" })).toHaveAttribute("href", "/patio/77");
-    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeDisabled();
-    expect(screen.getByText("Esta placa já está no pátio.")).toBeInTheDocument();
+  it("troca o formulário por um cartão com valor, entrada e permanência", async () => {
+    const user = userEvent.setup();
+    await digitarPlacaNoPatio(user);
+
+    expect(await screen.findByText(/^R\$\s220,00$/)).toBeInTheDocument();
+    expect(screen.getByText("1h 40min")).toBeInTheDocument();
+    expect(screen.getByText("ONIX · PRATA · Carro pequeno")).toBeInTheDocument();
+    // Não há entrada a registrar: modelo, categoria e cor somem.
+    expect(screen.queryByLabelText("Modelo")).not.toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: "Carro pequeno" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("o Enter também não registra", async () => {
-    vi.mocked(listPatio).mockResolvedValue([noPatio]);
+  it("o botão principal vira Dar saída com o valor e some o Registrar entrada", async () => {
     const user = userEvent.setup();
-    renderModal();
-    await user.type(screen.getByLabelText("Placa"), "abc1d23");
-    await screen.findByRole("alert");
+    await digitarPlacaNoPatio(user);
+
+    expect(await screen.findByRole("button", { name: /^Dar saída · R\$\s220,00$/ })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Registrar entrada" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cancelar" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Esta placa já está no pátio.")).not.toBeInTheDocument();
+  });
+
+  it("Dar saída leva a placa para a confirmação de saída", async () => {
+    const user = userEvent.setup();
+    await digitarPlacaNoPatio(user);
+
+    await user.click(await screen.findByRole("button", { name: /^Dar saída/ }));
+
+    expect(handlers.onDarSaida).toHaveBeenCalledWith({ tipo: "placa", valor: "ABC1D23" });
+    expect(registrarEntrada).not.toHaveBeenCalled();
+  });
+
+  it("enquanto o valor não chega, o botão já aparece sem valor", async () => {
+    vi.mocked(consultarSaida).mockReturnValue(new Promise(() => {}));
+    const user = userEvent.setup();
+    await digitarPlacaNoPatio(user);
+
+    expect(screen.getByRole("button", { name: "Dar saída" })).toBeEnabled();
+    expect(screen.getByText("Calculando o valor…")).toBeInTheDocument();
+  });
+
+  it("se o valor falhar, ainda dá para dar a saída, sem o valor", async () => {
+    vi.mocked(consultarSaida).mockRejectedValue(new Error("falha"));
+    const user = userEvent.setup();
+    await digitarPlacaNoPatio(user);
+
+    expect(await screen.findByRole("button", { name: "Dar saída" })).toBeEnabled();
+    expect(screen.queryByText(/R\$/)).not.toBeInTheDocument();
+  });
+
+  it("Corrigir placa limpa a placa e volta ao formulário de entrada", async () => {
+    const user = userEvent.setup();
+    await digitarPlacaNoPatio(user);
+
+    await user.click(screen.getByRole("button", { name: "Corrigir placa" }));
+
+    await waitFor(() => expect(screen.getByLabelText("Placa")).toHaveValue(""));
+    expect(screen.queryByRole("heading", { name: "Este veículo já está no pátio" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Carro pequeno" })).toBeInTheDocument();
+  });
+
+  it("o Enter na placa também não registra", async () => {
+    const user = userEvent.setup();
+    await digitarPlacaNoPatio(user);
     await user.type(screen.getByLabelText("Placa"), "{Enter}");
     expect(registrarEntrada).not.toHaveBeenCalled();
+    expect(handlers.onDarSaida).not.toHaveBeenCalled();
   });
 
   it("sem a placa na lista, nenhum aviso", async () => {
@@ -465,6 +543,7 @@ describe("EntradaVeiculoModal: placa que já está no pátio", () => {
     await user.type(screen.getByLabelText("Placa"), "abc1d23");
     await waitFor(() => expect(listPatio).toHaveBeenCalled());
     expect(screen.queryByText(/já está no pátio/)).not.toBeInTheDocument();
+    expect(consultarSaida).not.toHaveBeenCalled();
   });
 });
 
@@ -669,5 +748,177 @@ describe("EntradaVeiculoModal: regras da empresa", () => {
     expect(payload).toMatchObject({ placa: "ABC1D23", categoria: 2 });
     expect(payload).not.toHaveProperty("modelo");
     expect(payload).not.toHaveProperty("cor");
+  });
+});
+
+describe("EntradaVeiculoModal: com o teclado aberto", () => {
+  function renderComTeclado() {
+    return renderWithProviders(
+      <TecladoProvider>
+        <EntradaVeiculoModal {...handlers} />
+      </TecladoProvider>,
+    );
+  }
+
+  function simularToque() {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === MEDIA_TOQUE,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    Object.defineProperty(window, "visualViewport", { value: undefined, configurable: true });
+  });
+
+  it("o rótulo Placa sai da tela, mas o campo segue com o nome acessível", () => {
+    renderModal();
+    expect(screen.getByLabelText("Placa")).toBeInTheDocument();
+    expect(screen.getByText("Placa", { selector: "label" })).toHaveStyle({ position: "absolute" });
+  });
+
+  it("sem teclado os botões ficam no rodapé", () => {
+    renderModal();
+    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+  });
+
+  it("com o teclado de placa aberto esconde Registrar entrada e Cancelar, e eles voltam ao completar a placa", async () => {
+    simularToque();
+    renderComTeclado();
+    // No celular a leitura abre junto; o operador escolhe digitar.
+    fireEvent.click(await screen.findByRole("button", { name: "digitar leitura" }));
+    await screen.findByRole("group", { name: "Teclado de placa" });
+
+    expect(screen.queryByRole("button", { name: "Registrar entrada" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cancelar" })).not.toBeInTheDocument();
+    // Cancelar continua possível pelo X do cabeçalho.
+    expect(screen.getByRole("button", { name: "Fechar" })).toBeInTheDocument();
+
+    for (const tecla of ["A", "B", "C", "1", "D", "2", "3"]) {
+      fireEvent.click(screen.getByRole("button", { name: tecla }));
+    }
+
+    expect(await screen.findByRole("button", { name: "Registrar entrada" })).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Teclado de placa" })).not.toBeInTheDocument();
+  });
+
+  it("com o teclado do sistema aberto (área visível reduzida) esconde os botões e depois os devolve", () => {
+    const ouvintes = new Set<() => void>();
+    const area = {
+      height: 800,
+      addEventListener: (_: string, ouvinte: () => void) => ouvintes.add(ouvinte),
+      removeEventListener: (_: string, ouvinte: () => void) => ouvintes.delete(ouvinte),
+    };
+    Object.defineProperty(window, "visualViewport", { value: area, configurable: true });
+    vi.stubGlobal("innerHeight", 800);
+    renderModal();
+    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeInTheDocument();
+
+    area.height = 400;
+    act(() => ouvintes.forEach((ouvinte) => ouvinte()));
+    expect(screen.queryByRole("button", { name: "Registrar entrada" })).not.toBeInTheDocument();
+
+    area.height = 800;
+    act(() => ouvintes.forEach((ouvinte) => ouvinte()));
+    expect(screen.getByRole("button", { name: "Registrar entrada" })).toBeInTheDocument();
+  });
+
+  it("fechar pelo cabeçalho com dados preenchidos ainda pede confirmação", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await user.type(screen.getByLabelText("Placa"), "abc");
+
+    await user.click(screen.getByRole("button", { name: "Fechar" }));
+
+    expect(await screen.findByText("Descartar entrada?")).toBeInTheDocument();
+    expect(handlers.onClose).not.toHaveBeenCalled();
+  });
+});
+
+describe("EntradaVeiculoModal: câmera negada", () => {
+  function simularToque() {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === MEDIA_TOQUE,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  async function abrirComCameraNegada() {
+    simularToque();
+    renderModal();
+    fireEvent.click(await screen.findByRole("button", { name: "câmera negada" }));
+  }
+
+  it("fecha o leitor, foca a placa e mostra a faixa com Tentar câmera", async () => {
+    await abrirComCameraNegada();
+
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Leitor de placa" })).not.toBeInTheDocument());
+    expect(screen.getByText("Câmera indisponível. Digite a placa.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tentar câmera" })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText("Placa")).toHaveFocus());
+    // Os passos do cadeado só aparecem depois de tentar de novo.
+    expect(screen.queryByRole("group", { name: "Como liberar a câmera" })).not.toBeInTheDocument();
+  });
+
+  it("Tentar câmera reabre o leitor", async () => {
+    await abrirComCameraNegada();
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Leitor de placa" })).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "Tentar câmera" }));
+
+    expect(await screen.findByRole("dialog", { name: "Leitor de placa" })).toBeInTheDocument();
+  });
+
+  it("se falhar de novo depois de Tentar câmera, explica como liberar a câmera", async () => {
+    await abrirComCameraNegada();
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Leitor de placa" })).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "Tentar câmera" }));
+    fireEvent.click(await screen.findByRole("button", { name: "câmera negada" }));
+
+    expect(await screen.findByRole("group", { name: "Como liberar a câmera" })).toBeInTheDocument();
+  });
+
+  it("a faixa some quando uma placa é lida", async () => {
+    await abrirComCameraNegada();
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Leitor de placa" })).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "Tentar câmera" }));
+    fireEvent.click(await screen.findByRole("button", { name: "confirmar leitura" }));
+
+    await waitFor(() => expect(screen.getByLabelText("Placa")).toHaveValue("ABC1D23"));
+    expect(screen.queryByText("Câmera indisponível. Digite a placa.")).not.toBeInTheDocument();
+  });
+
+  it("sem falha de câmera não há faixa", () => {
+    renderModal();
+    expect(screen.queryByText("Câmera indisponível. Digite a placa.")).not.toBeInTheDocument();
+  });
+});
+
+// Ajuste 7: as categorias são anunciadas pelo nome ("Carro médio"), não pelo código ("1", "2", "6").
+describe("EntradaVeiculoModal: nomes acessíveis das categorias", () => {
+  it.each(["Carro pequeno", "Carro médio", "Carro grande", "Moto", "Caminhonete", "Caminhão"])("a categoria %s é achada pelo nome", (nome) => {
+    renderModal();
+    expect(screen.getByRole("radio", { name: nome })).toBeInTheDocument();
+  });
+
+  it("nenhuma categoria tem o código como nome", () => {
+    renderModal();
+    const grupo = screen.getByRole("group", { name: "Categoria (define a tarifa)" });
+    for (const radio of Array.from(grupo.querySelectorAll<HTMLInputElement>('input[type="radio"]'))) {
+      expect(radio).toHaveAccessibleName();
+      expect(radio).not.toHaveAccessibleName(/^\d+$/);
+    }
   });
 });

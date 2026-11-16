@@ -95,6 +95,8 @@ type ThemeColors = {
   // Texto/ícone sobre o preenchimento `danger`.
   onDanger: string;
   dangerSoft: string;
+  // Fundo suave de aviso (amarelo translúcido), para cartões de atenção que não são erro.
+  warnSoft: string;
   success: string;
   // Texto/ícone sobre o preenchimento `success`.
   onSuccess: string;
@@ -168,6 +170,7 @@ export const lightTheme: AppTheme = {
     danger: "#C8242B",
     onDanger: "#FFFFFF",
     dangerSoft: "rgba(200, 36, 43, 0.1)",
+    warnSoft: "rgba(224, 168, 0, 0.14)",
     success: "#17795A",
     onSuccess: "#FFFFFF",
     background: "#F4F1E8",
@@ -207,6 +210,7 @@ export const darkTheme: AppTheme = {
     danger: "#FF5A5F",
     onDanger: "#0E1729",
     dangerSoft: "rgba(255, 90, 95, 0.16)",
+    warnSoft: "rgba(255, 194, 14, 0.14)",
     success: "#3CCB7F",
     onSuccess: "#0E1729",
     background: "#0E1729",

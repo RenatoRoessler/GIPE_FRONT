@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPlacaExibicao, getPlacaTipo } from "./placa";
+import { caracteresFaltando, formatPlacaExibicao, getPlacaTipo, mensagemFaltam } from "./placa";
 
 describe("getPlacaTipo", () => {
   it("reconhece o padrão antigo pelo 5º caractere numérico", () => {
@@ -28,5 +28,19 @@ describe("formatPlacaExibicao", () => {
     expect(formatPlacaExibicao("BRA2E19")).toBe("BRA2E19");
     expect(formatPlacaExibicao("")).toBe("");
     expect(formatPlacaExibicao("AB")).toBe("AB");
+  });
+});
+
+describe("caracteresFaltando e mensagemFaltam", () => {
+  it("conta o que falta para os 7 caracteres", () => {
+    expect(caracteresFaltando("")).toBe(7);
+    expect(caracteresFaltando("ABC")).toBe(4);
+    expect(caracteresFaltando("abc-1d")).toBe(2);
+    expect(caracteresFaltando("ABC1D23")).toBe(0);
+  });
+
+  it("escreve a dica no singular e no plural", () => {
+    expect(mensagemFaltam(4)).toBe("Faltam 4 caracteres");
+    expect(mensagemFaltam(1)).toBe("Falta 1 caractere");
   });
 });

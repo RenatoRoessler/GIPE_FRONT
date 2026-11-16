@@ -43,6 +43,8 @@ export interface OptionGroupProps {
   mobileColumns?: number;
   // "card" mostra cada opção como um cartão com mais conteúdo; "inline" só o rádio e o texto, sem caixa; o padrão são tiles de uma linha.
   variant?: "tile" | "card" | "inline";
+  // Celular: mantém o ícone, mas com fonte, ícone e altura menores, para caberem mais opções na tela.
+  compact?: boolean;
 }
 
 // Escolha única em tiles; usa radios nativos, então setas, foco e leitor de tela vêm do navegador.
@@ -56,6 +58,7 @@ export function OptionGroup({
   columns,
   mobileColumns,
   variant = "tile",
+  compact = false,
 }: OptionGroupProps) {
   const name = useId();
   const card = variant === "card";
@@ -78,6 +81,7 @@ export function OptionGroup({
               $card={card}
               $inline={inline}
               $highlight={card && Boolean(option.badge)}
+              $compact={compact}
             >
               <RadioInput
                 type="radio"
