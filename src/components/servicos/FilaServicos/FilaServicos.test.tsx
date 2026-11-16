@@ -92,7 +92,7 @@ describe("FilaServicos: desktop", () => {
 
     const aguardando = await screen.findByRole("region", { name: "Na fila, 2 serviços" });
     expect(within(aguardando).getByText("Lavagem completa")).toBeInTheDocument();
-    expect(within(aguardando).getByText("Prisma 12")).toBeInTheDocument();
+    expect(within(aguardando).getByLabelText("Prisma 12")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Em andamento, 1 serviço" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Pronto, 1 serviço" })).toBeInTheDocument();
   });

@@ -30,9 +30,10 @@ export const Entrada = styled.span`
 `;
 
 export const Prisma = styled.span`
-  padding: 2px ${({ theme }) => theme.space[2]}px;
-  border: 1px solid ${({ theme }) => theme.colors.borderStrong};
+  padding: 3px ${({ theme }) => theme.space[2]}px;
   border-radius: ${({ theme }) => theme.radii.sm};
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.onPrimary};
   font-family: ${({ theme }) => theme.fontFamilies.mono};
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
@@ -54,6 +55,14 @@ export const NomeServico = styled.h3`
   margin: 0;
   font-size: ${({ theme }) => theme.fontSizes.lg};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
+
+  svg {
+    align-self: center;
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: ${({ theme }) => theme.colors.accent};
+  }
 `;
 
 export const Mais = styled.span`

@@ -4,6 +4,7 @@ import { formatTime } from "@/components/caixa/format";
 import { PlateDisplay } from "@/components/ui/PlateDisplay";
 import { STATUS_SERVICO, type ItemFila } from "@/types/servico";
 import { atrasado as passouDaPrevisao } from "../fila";
+import { IconeLava } from "../Catalogo/icones";
 import { FilaTempo } from "../FilaTempo";
 import { acaoDeStatus, acaoSecundaria, podeCancelar, type AcaoDeStatus } from "../status";
 import { Acao, Acoes, Cartao, Detalhe, Discreta, Entrada, Identificacao, Mais, NomeServico, Prisma, Topo } from "./FilaCard.styles";
@@ -33,11 +34,12 @@ export function FilaCard({ item, podeCancelarServico, agora, outros = 0, onAcao,
       <Topo>
         <Identificacao>
           <PlateDisplay value={item.placa} size="sm" />
-          {item.prisma && <Prisma>Prisma {item.prisma}</Prisma>}
+          {item.prisma && <Prisma aria-label={`Prisma ${item.prisma}`}>P {item.prisma}</Prisma>}
         </Identificacao>
         {item.entradaEm && <Entrada>entrou {formatTime(item.entradaEm)}</Entrada>}
       </Topo>
       <NomeServico>
+        <IconeLava aria-hidden="true" />
         {item.nomeServico}
         {outros > 0 && <Mais>+{outros} no carro</Mais>}
       </NomeServico>
