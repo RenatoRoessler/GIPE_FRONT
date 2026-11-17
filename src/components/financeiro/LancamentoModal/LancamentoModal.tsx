@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
-import type { Lancamento, TipoLancamento } from "@/types/financeiro";
+import type { CategoriaFormValues, Lancamento, TipoLancamento } from "@/types/financeiro";
 import { useCategorias } from "../useCategorias";
 import { useLancamento } from "../useLancamento";
 import { LancamentoForm } from "./LancamentoForm";
@@ -18,6 +18,7 @@ export interface LancamentoModalProps {
   onSuccess: (message: string) => void;
   onCancelar: (lancamento: Lancamento) => void;
   onCriarCategoria: () => void;
+  categoriaCriada?: CategoriaFormValues;
 }
 
 // A edição parte do lançamento como está no back: enquanto ele carrega, a janela mostra só o carregamento.

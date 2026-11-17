@@ -435,3 +435,21 @@ describe("LancamentoModal: edição", () => {
     expect(await screen.findByLabelText("Descrição")).toHaveValue("Conta de luz");
   });
 });
+
+describe("LancamentoModal: categoria criada por cima", () => {
+  it("seleciona a categoria nova e mantém o que já foi digitado", async () => {
+    // A página recarrega as categorias ao criar; aqui a nova já está na lista desde o começo.
+    vi.mocked(listCategorias).mockResolvedValue([...categorias, cat(9, "Seguros", 2)]);
+    const user = userEvent.setup();
+    const { rerender } = renderWithProviders(<LancamentoModal {...handlers} />);
+    await screen.findByRole("option", { name: "↳ Energia" });
+    await user.type(screen.getByLabelText("Descrição"), "Conta de luz");
+    await user.type(screen.getByLabelText("Valor (R$)"), "450,00");
+
+    rerender(<LancamentoModal {...handlers} categoriaCriada={{ nome: "Seguros", tipo: "2", financeiroCategoriaPaiId: "", ativo: true }} />);
+
+    await waitFor(() => expect(screen.getByLabelText("Categoria")).toHaveValue("9"));
+    expect(screen.getByLabelText("Descrição")).toHaveValue("Conta de luz");
+    expect(screen.getByLabelText("Valor (R$)")).toHaveValue("R$ 450,00");
+  });
+});

@@ -207,3 +207,18 @@ describe("CategoriaModal: edição", () => {
     expect(screen.getByLabelText("Categoria pai")).toHaveValue("5");
   });
 });
+
+describe("CategoriaModal: aviso de categoria criada", () => {
+  it("ao criar, entrega os valores salvos para quem abriu o modal", async () => {
+    vi.mocked(createCategoria).mockResolvedValue();
+    const onCriada = vi.fn();
+    const user = userEvent.setup();
+    renderWithProviders(<CategoriaModal {...handlers} onCriada={onCriada} />);
+
+    await user.type(screen.getByLabelText("Nome"), "Seguros");
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() => expect(onCriada).toHaveBeenCalledWith({ nome: "Seguros", tipo: "2", financeiroCategoriaPaiId: "", ativo: true }));
+    expect(handlers.onClose).toHaveBeenCalled();
+  });
+});

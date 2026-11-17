@@ -7,7 +7,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Text } from "@/components/ui/Text";
 import { Toast } from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
-import { TIPO_LANCAMENTO, type FinanceiroCategoria, type Lancamento, type TipoLancamento } from "@/types/financeiro";
+import { TIPO_LANCAMENTO, type CategoriaFormValues, type FinanceiroCategoria, type Lancamento, type TipoLancamento } from "@/types/financeiro";
 import { CancelarLancamentoDialog } from "../CancelarLancamentoDialog";
 import { CategoriaModal } from "../CategoriaModal";
 import { CategoriasLista } from "../CategoriasLista";
@@ -31,6 +31,9 @@ export function FinanceiroPage() {
   const searchParams = useSearchParams();
   const aba = parseAba(searchParams.get("aba"));
   const [modal, setModal] = useState<ModalFinanceiro>(null);
+  // Categoria criada por cima do lançamento: o lançamento continua aberto e a escolhe ao salvar.
+  const [criandoCategoria, setCriandoCategoria] = useState(false);
+  const [categoriaCriada, setCategoriaCriada] = useState<CategoriaFormValues | undefined>();
   const { toast, showToast, dismissToast } = useToast();
 
   function changeAba(proxima: string) {
@@ -84,14 +87,18 @@ export function FinanceiroPage() {
         <LancamentoModal
           id={modal.id}
           tipoInicial={modal.tipoInicial}
-          onClose={() => setModal(null)}
+          onClose={() => {
+            setModal(null);
+            setCategoriaCriada(undefined);
+          }}
           onSuccess={showToast}
           onCancelar={(lancamento) => setModal({ kind: "cancelar", lancamento })}
-          onCriarCategoria={() => {
-            changeAba("categorias");
-            setModal({ kind: "categoria" });
-          }}
+          onCriarCategoria={() => setCriandoCategoria(true)}
+          categoriaCriada={categoriaCriada}
         />
+      )}
+      {criandoCategoria && (
+        <CategoriaModal onClose={() => setCriandoCategoria(false)} onSuccess={showToast} onCriada={setCategoriaCriada} />
       )}
       {modal?.kind === "cancelar" && <CancelarLancamentoDialog lancamento={modal.lancamento} onClose={() => setModal(null)} onSuccess={showToast} />}
       {modal?.kind === "categoria" && <CategoriaModal categoria={modal.categoria} onClose={() => setModal(null)} onSuccess={showToast} />}

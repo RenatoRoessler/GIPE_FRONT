@@ -20,6 +20,8 @@ export interface CategoriaModalProps {
   categoria?: FinanceiroCategoria;
   onClose: () => void;
   onSuccess: (message: string) => void;
+  // Só na criação: quem abriu o modal (ex.: o lançamento) fica sabendo qual categoria nasceu.
+  onCriada?: (values: CategoriaFormValues) => void;
 }
 
 const NOME_MAX = 100;
@@ -48,7 +50,7 @@ function valoresIniciais(categoria?: FinanceiroCategoria): CategoriaFormValues {
   };
 }
 
-export function CategoriaModal({ categoria, onClose, onSuccess }: CategoriaModalProps) {
+export function CategoriaModal({ categoria, onClose, onSuccess, onCriada }: CategoriaModalProps) {
   const formId = useId();
   const isEdit = Boolean(categoria);
   const initialValues = valoresIniciais(categoria);
@@ -73,7 +75,12 @@ export function CategoriaModal({ categoria, onClose, onSuccess }: CategoriaModal
       if (categoria) {
         editar.mutate({ id: categoria.financeiroCategoriaId, values: value }, { onSuccess: concluir });
       } else {
-        criar.mutate(value, { onSuccess: concluir });
+        criar.mutate(value, {
+          onSuccess: () => {
+            onCriada?.(value);
+            concluir();
+          },
+        });
       }
     },
   });

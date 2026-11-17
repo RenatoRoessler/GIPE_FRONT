@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@tanstack/react-form";
-import { useId, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { formaPagamentoLabel } from "@/components/caixa/format";
 import { useAppForm, zodFieldErrors } from "@/components/form";
 import { Button } from "@/components/ui/Button";
@@ -13,7 +13,7 @@ import { formatBRL, maskMoney, parseMoney } from "@/lib/money";
 import { formatDataInput } from "@/lib/periodo";
 import { createLancamentoSchema } from "@/lib/schemas/financeiro";
 import { FORMA_PAGAMENTO, FORMA_PAGAMENTO_OPTIONS } from "@/types/caixa";
-import { TIPO_LANCAMENTO, type Lancamento, type LancamentoFormValues, type TipoLancamento } from "@/types/financeiro";
+import { TIPO_LANCAMENTO, type CategoriaFormValues, type Lancamento, type LancamentoFormValues, type TipoLancamento } from "@/types/financeiro";
 import { opcoesDeCategoria, tipoDoLancamento, tipoPorCategoria } from "../categorias";
 import { excedeDisponivel, estadoPelaGaveta } from "../pelaGaveta";
 import { useCategorias } from "../useCategorias";
@@ -30,6 +30,8 @@ export interface LancamentoFormProps {
   onSuccess: (message: string) => void;
   onCancelar: (lancamento: Lancamento) => void;
   onCriarCategoria: () => void;
+  // Categoria que acabou de ser criada por cima deste formulário: vira a escolhida.
+  categoriaCriada?: CategoriaFormValues;
 }
 
 const DESCRICAO_MAX = 200;
@@ -70,14 +72,14 @@ function valoresIniciais(hoje: string, tipoInicial: TipoLancamento | undefined, 
   };
 }
 
-export function LancamentoForm({ lancamento, tipoInicial, onClose, onSuccess, onCancelar, onCriarCategoria }: LancamentoFormProps) {
+export function LancamentoForm({ lancamento, tipoInicial, onClose, onSuccess, onCancelar, onCriarCategoria, categoriaCriada }: LancamentoFormProps) {
   const formId = useId();
   const avisoId = useId();
   const isEdit = Boolean(lancamento);
   const [hoje] = useState(() => formatDataInput(new Date()));
   const [confirmingClose, setConfirmingClose] = useState(false);
   const categoriasQuery = useCategorias();
-  const categorias = categoriasQuery.data ?? [];
+  const categorias = useMemo(() => categoriasQuery.data ?? [], [categoriasQuery.data]);
   const { criar, editar } = useLancamentoMutations();
   const mutation = isEdit ? editar : criar;
   // O turno só interessa no cadastro: é de lá que o lançamento pode sair pela gaveta.
@@ -121,6 +123,23 @@ export function LancamentoForm({ lancamento, tipoInicial, onClose, onSuccess, on
       }
     },
   });
+
+  // A API de criar não devolve o id: a categoria nova é achada na lista já atualizada, por tipo e nome.
+  const categoriaAplicada = useRef<CategoriaFormValues | null>(null);
+  useEffect(() => {
+    if (!categoriaCriada || categoriaAplicada.current === categoriaCriada) {
+      return;
+    }
+    const nova = categorias
+      .filter((item) => item.ativo && String(item.tipo) === categoriaCriada.tipo && item.nome.trim().toLowerCase() === categoriaCriada.nome.trim().toLowerCase())
+      .sort((a, b) => b.financeiroCategoriaId - a.financeiroCategoriaId)[0];
+    if (!nova) {
+      return;
+    }
+    categoriaAplicada.current = categoriaCriada;
+    form.setFieldValue("tipo", categoriaCriada.tipo);
+    form.setFieldValue("financeiroCategoriaId", String(nova.financeiroCategoriaId));
+  }, [categoriaCriada, categorias, form]);
 
   const values = useStore(form.store, (state) => state.values);
   const hasChanges = JSON.stringify(values) !== JSON.stringify(initialValues);
