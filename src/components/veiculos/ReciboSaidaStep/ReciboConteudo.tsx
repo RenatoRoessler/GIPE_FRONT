@@ -21,7 +21,8 @@ export type ReciboData = {
   dataHoraEntrada: string;
   dataHoraSaida: string;
   minutosPermanencia: number;
-  formaPagamento: number;
+  // Vazia quando a saída não tem cobrança (valor R$ 0,00).
+  formaPagamento: number | null | undefined;
   valor: number;
   // Só em dinheiro.
   recebido: number | null;
@@ -80,8 +81,8 @@ export function ReciboConteudo({ data }: { data: ReciboData }) {
         <>
           <Rows>
             <dt>Pagamento</dt>
-            <dd>{getFormaPagamentoLabel(data.formaPagamento)}</dd>
-            {data.recebido !== null && (
+            <dd>{data.formaPagamento == null ? "Sem cobrança" : getFormaPagamentoLabel(data.formaPagamento)}</dd>
+            {data.recebido !== null && data.formaPagamento != null && (
               <>
                 <dt>Valor recebido</dt>
                 <dd>{formatBRL(data.recebido)}</dd>

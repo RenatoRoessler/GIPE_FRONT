@@ -2,7 +2,11 @@ import { parseApiDate } from "@/lib/date";
 import { formatBRL } from "@/lib/money";
 import { FORMA_PAGAMENTO_OPTIONS, type Caixa, type Turno } from "@/types/caixa";
 
-export function formaPagamentoLabel(id: number): string {
+// A API pode mandar a forma vazia (ex.: saída de R$ 0,00): nunca montar "Forma null".
+export function formaPagamentoLabel(id: number | null | undefined): string {
+  if (id === null || id === undefined) {
+    return "—";
+  }
   return FORMA_PAGAMENTO_OPTIONS.find((option) => option.value === id)?.label ?? `Forma ${id}`;
 }
 

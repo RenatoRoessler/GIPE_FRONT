@@ -43,6 +43,13 @@ describe("ReciboConteudo: QR do recibo", () => {
     expect(screen.getByRole("img", { name: "QR code do recibo de saída" })).toBeInTheDocument();
   });
 
+  it("sem forma, esconde valor recebido e troco mesmo com recebido R$ 0,00", () => {
+    renderWithTheme(<ReciboConteudo data={{ ...data, formaPagamento: null, valor: 0, recebido: 0, troco: 0 }} />);
+    expect(screen.getByText("Sem cobrança")).toBeInTheDocument();
+    expect(screen.queryByText("Valor recebido")).not.toBeInTheDocument();
+    expect(screen.queryByText("Troco")).not.toBeInTheDocument();
+  });
+
   it.each([null, undefined])("sem link (%s) não mostra QR nem sobra espaço", (link) => {
     renderWithTheme(<ReciboConteudo data={{ ...data, link }} />);
     expect(screen.queryByRole("img", { name: "QR code do recibo de saída" })).not.toBeInTheDocument();
@@ -71,5 +78,24 @@ describe("ReciboConteudo", () => {
     expect(screen.queryByText("Valor recebido")).not.toBeInTheDocument();
     expect(screen.queryByText("Troco")).not.toBeInTheDocument();
     expect(screen.queryByText("Total pago")).not.toBeInTheDocument();
+  });
+});
+
+describe("ReciboConteudo: forma de pagamento", () => {
+  it.each([
+    [1, "Dinheiro"],
+    [2, "Pix"],
+  ])("forma %i mostra o nome '%s'", (forma, nome) => {
+    renderWithTheme(<ReciboConteudo data={{ ...data, formaPagamento: forma }} />);
+    expect(screen.getByText(nome)).toBeInTheDocument();
+  });
+
+  it.each([null, undefined])("sem forma (%s) mostra 'Sem cobrança' e nunca 'null'", (forma) => {
+    renderWithTheme(<ReciboConteudo data={{ ...data, formaPagamento: forma, valor: 0, recebido: null, troco: null }} />);
+    expect(screen.getByText("Pagamento")).toBeInTheDocument();
+    expect(screen.getByText("Sem cobrança")).toBeInTheDocument();
+    expect(screen.queryByText(/null/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Valor recebido")).not.toBeInTheDocument();
+    expect(screen.queryByText("Troco")).not.toBeInTheDocument();
   });
 });
