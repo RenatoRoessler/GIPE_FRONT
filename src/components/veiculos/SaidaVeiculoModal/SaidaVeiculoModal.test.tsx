@@ -77,7 +77,7 @@ const registrada: SaidaRegistrada = {
 };
 
 const confirmar = (valor?: string) =>
-  screen.getByRole("button", { name: valor ? new RegExp(`Confirmar (Saída|novo valor) · R\\$\\s${valor}`) : /^Confirmar Saída$/ });
+  screen.getByRole("button", { name: valor ? new RegExp(`Confirmar (Saída|novo valor) · R\\$\\s${valor}`) : /^Confirmar Saída( · Sem cobrança)?$/ });
 const voltar = () => screen.getByRole("button", { name: "Voltar para a pesquisa" });
 const visor = () => screen.queryByRole("button", { name: /Área de leitura do QR Code/ });
 
@@ -432,6 +432,70 @@ describe("SaidaVeiculoModal: mensalista", () => {
     await lerTicket();
     expect(screen.queryByText("Saída sem cobrança.")).not.toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Exato" })).not.toBeChecked();
+    expect(confirmar("20,00")).toBeDisabled();
+  });
+});
+
+describe("SaidaVeiculoModal: avulso sem nada a cobrar", () => {
+  beforeEach(() => {
+    api.consultarSaida.mockResolvedValue(consulta(0));
+  });
+
+  it("esconde o pagamento e libera a confirmação com o rótulo sem cobrança", async () => {
+    renderModal();
+    await lerTicket();
+
+    expect(screen.getByText("Nada a cobrar")).toBeInTheDocument();
+    expect(screen.getByText("Sem pagamento nesta saída.")).toBeInTheDocument();
+    expect(screen.queryByRole("radiogroup", { name: "Forma de pagamento" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Cliente pagou com")).not.toBeInTheDocument();
+    // Não é mensalista: sem o card.
+    expect(screen.queryByText("Saída sem cobrança.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar Saída · Sem cobrança" })).toBeEnabled();
+  });
+
+  it("o anúncio da fase não fala em pagamento", async () => {
+    renderModal();
+    await lerTicket();
+    expect(screen.getByText("Veículo encontrado. Confirme os dados.")).toBeInTheDocument();
+    expect(screen.queryByText(/Confirme os dados e o pagamento/)).not.toBeInTheDocument();
+  });
+
+  it("confirma com um toque e registra a saída com valor 0", async () => {
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+    await user.click(screen.getByRole("button", { name: "Confirmar Saída · Sem cobrança" }));
+
+    expect(await screen.findByRole("heading", { level: 2, name: "Saída registrada" })).toBeInTheDocument();
+    expect(api.registrarSaida).toHaveBeenCalledWith(7, { valor: 0, formaPagamento: 1 });
+  });
+
+  it("o recibo mostra 'Sem cobrança', sem valor recebido, sem troco e sem 'null', mesmo com a forma vazia vinda da API", async () => {
+    // Na homologação a API devolve a forma de pagamento vazia quando o valor é zero.
+    api.registrarSaida.mockResolvedValue({ ...registrada, valor: 0, formaPagamento: null as unknown as number });
+    const user = userEvent.setup();
+    renderModal();
+    await lerTicket();
+    await user.click(screen.getByRole("button", { name: "Confirmar Saída · Sem cobrança" }));
+
+    expect(await screen.findByRole("heading", { level: 2, name: "Saída registrada" })).toBeInTheDocument();
+    // O recibo aparece também na cópia de impressão: pode haver mais de um texto igual.
+    expect(screen.getAllByText("Pagamento").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Sem cobrança").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Valor recebido")).not.toBeInTheDocument();
+    expect(screen.queryByText("Troco")).not.toBeInTheDocument();
+    expect(screen.queryByText(/null/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /nota fiscal/i })).not.toBeInTheDocument();
+  });
+
+  it("avulso com valor maior que zero continua exigindo a escolha do pagamento", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(20));
+    renderModal();
+    await lerTicket();
+
+    expect(screen.queryByText("Sem pagamento nesta saída.")).not.toBeInTheDocument();
+    expect(screen.getByText("Veículo encontrado. Confirme os dados e o pagamento.")).toBeInTheDocument();
     expect(confirmar("20,00")).toBeDisabled();
   });
 });

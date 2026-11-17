@@ -128,7 +128,7 @@ describe("SaidaVeiculoModal: aberta a partir da lista do pátio", () => {
     expect(await screen.findByText("Saída sem cobrança.")).toBeInTheDocument();
     expect(screen.getByText("Sem pagamento nesta saída.")).toBeInTheDocument();
     expect(screen.queryByLabelText("Valor recebido")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Confirmar Saída$/ })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Confirmar Saída · Sem cobrança" })).toBeEnabled();
   });
 
   it("dá para desistir enquanto o veículo ainda carrega, sem pedir confirmação (a placa veio da lista)", async () => {

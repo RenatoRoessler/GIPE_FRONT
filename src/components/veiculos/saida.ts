@@ -43,6 +43,11 @@ export function valorACobrar(consulta: Pick<SaidaConsulta, "mensalista" | "valor
   return consulta.mensalista ? 0 : consulta.valor;
 }
 
+// Saída em que ninguém paga: mensalista ou avulso com valor zero (ex.: dentro do tempo grátis).
+export function semCobranca(consulta: Pick<SaidaConsulta, "mensalista" | "valor">): boolean {
+  return valoresIguais(valorACobrar(consulta), 0);
+}
+
 export function calcularTroco(recebido: number, valor: number): number {
   return Math.max(0, (toCents(recebido) - toCents(valor)) / 100);
 }
@@ -51,7 +56,7 @@ export function getCategoriaVeiculoLabel(categoria: number): string {
   return CATEGORIA_VEICULO_OPTIONS.find((option) => option.value === categoria)?.label ?? `Categoria ${categoria}`;
 }
 
-export function getFormaPagamentoLabel(forma: number): string {
+export function getFormaPagamentoLabel(forma: number | null | undefined): string {
   return formaPagamentoLabel(forma);
 }
 

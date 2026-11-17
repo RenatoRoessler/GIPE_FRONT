@@ -30,12 +30,16 @@ const TITULOS: Record<SaidaFase, string> = {
   recibo: "Saída registrada",
 };
 
-// Lido pelo leitor de tela quando o foco chega ao título da fase.
-const ANUNCIOS: Record<SaidaFase, string> = {
-  pesquisa: "Pesquisa de veículo.",
-  pagamento: "Veículo encontrado. Confirme os dados e o pagamento.",
-  recibo: "",
-};
+// Lido pelo leitor de tela quando o foco chega ao título da fase. Sem cobrança não há pagamento a confirmar.
+function anuncioDaFase(fase: SaidaFase, semCobranca: boolean): string {
+  if (fase === "pesquisa") {
+    return "Pesquisa de veículo.";
+  }
+  if (fase === "pagamento") {
+    return semCobranca ? "Veículo encontrado. Confirme os dados." : "Veículo encontrado. Confirme os dados e o pagamento.";
+  }
+  return "";
+}
 
 export function SaidaVeiculoModal({ onClose, onSuccess, buscaInicial }: SaidaVeiculoModalProps) {
   const flow = useSaidaFlow({ buscaInicial });
@@ -79,10 +83,11 @@ export function SaidaVeiculoModal({ onClose, onSuccess, buscaInicial }: SaidaVei
     );
   }
 
+  const textoConfirmar = valorAnterior !== null ? "Confirmar novo valor" : "Confirmar Saída";
   const rotulo = flow.enviando
     ? "Registrando…"
-    : consulta && !semCobranca
-      ? `${valorAnterior !== null ? "Confirmar novo valor" : "Confirmar Saída"} · ${formatBRL(valorACobrar(consulta))}`
+    : consulta
+      ? `${textoConfirmar} · ${semCobranca ? "Sem cobrança" : formatBRL(valorACobrar(consulta))}`
       : "Confirmar Saída";
 
   const footer =
@@ -109,7 +114,7 @@ export function SaidaVeiculoModal({ onClose, onSuccess, buscaInicial }: SaidaVei
     <Modal open title={TITULOS[fase]} size="lg" closeOnBackdrop={false} onClose={handleClose} footer={footer}>
       <FaseConteudo key={fase}>
         <FaseTitulo ref={tituloRef} tabIndex={-1}>
-          {fase === "pagamento" && !consulta ? "Procurando o veículo no pátio." : ANUNCIOS[fase]}
+          {fase === "pagamento" && !consulta ? "Procurando o veículo no pátio." : anuncioDaFase(fase, semCobranca)}
         </FaseTitulo>
         {fase === "pesquisa" ? (
           <Layout>

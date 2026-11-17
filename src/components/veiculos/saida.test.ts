@@ -7,6 +7,7 @@ import {
   FORMA_PADRAO,
   FORMAS_SAIDA,
   getPagamentoStatus,
+  semCobranca,
   sugerirValoresRecebidos,
   valoresIguais,
   valorACobrar,
@@ -105,5 +106,20 @@ describe("sugerirValoresRecebidos", () => {
   it("não sugere nada sem cobrança", () => {
     expect(sugerirValoresRecebidos(0)).toEqual([]);
     expect(sugerirValoresRecebidos(Number.NaN)).toEqual([]);
+  });
+});
+
+describe("semCobranca", () => {
+  it("vale para avulso com valor zero", () => {
+    expect(semCobranca({ mensalista: false, valor: 0 })).toBe(true);
+  });
+
+  it("vale para mensalista, mesmo com valor calculado", () => {
+    expect(semCobranca({ mensalista: true, valor: 12.5 })).toBe(true);
+  });
+
+  it("não vale para avulso com valor maior que zero", () => {
+    expect(semCobranca({ mensalista: false, valor: 0.01 })).toBe(false);
+    expect(semCobranca({ mensalista: false, valor: 12.5 })).toBe(false);
   });
 });

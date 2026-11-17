@@ -540,6 +540,73 @@ describe("useSaidaFlow: mensalista", () => {
   });
 });
 
+describe("useSaidaFlow: avulso sem nada a cobrar", () => {
+  it("confirma sem escolher forma nem valor recebido e envia valor 0 com a forma padrão", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(0));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    expect(flow.result.current.semCobranca).toBe(true);
+    expect(flow.result.current.pagamento).toEqual({ canConfirm: true, motivo: undefined });
+
+    act(() => flow.result.current.confirmar());
+    await waitFor(() => expect(flow.result.current.fase).toBe("recibo"));
+    expect(api.registrarSaida).toHaveBeenCalledWith(7, { valor: 0, formaPagamento: Number(FORMA_DINHEIRO) });
+    expect(flow.result.current.resultado).toMatchObject({ recebido: null, troco: null });
+  });
+
+  it.each([
+    ["carregando", () => api.getEmpresa.mockReturnValue(new Promise(() => {}))],
+    ["com erro", () => api.getEmpresa.mockRejectedValue(new ApiError("network"))],
+  ])("confirma mesmo com os meios de pagamento %s", async (_nome, configurar) => {
+    configurar();
+    api.consultarSaida.mockResolvedValue(consulta(0));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    expect(flow.result.current.pagamento?.canConfirm).toBe(true);
+  });
+
+  it("o valor subir de 0 na reconsulta limpa forma, recebido e atalho e volta a exigir pagamento", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(0));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.setForma(forma("Pix")));
+    api.consultarSaida.mockResolvedValue(consulta(20));
+    await avancar(INTERVALO_SAIDA_MS);
+    await waitFor(() => expect(flow.result.current.valorAnterior).toBe(0));
+
+    expect(flow.result.current.semCobranca).toBe(false);
+    expect(flow.result.current.forma).toBe(FORMA_DINHEIRO);
+    expect(flow.result.current.recebido).toBe("");
+    expect(flow.result.current.atalho).toBeNull();
+    expect(flow.result.current.pagamento?.canConfirm).toBe(false);
+  });
+
+  it("o valor cair para 0 na reconsulta limpa a forma escolhida", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(20));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.setForma(forma("Pix")));
+    api.consultarSaida.mockResolvedValue(consulta(0));
+    await avancar(INTERVALO_SAIDA_MS);
+    await waitFor(() => expect(flow.result.current.semCobranca).toBe(true));
+
+    expect(flow.result.current.forma).toBe(FORMA_DINHEIRO);
+    expect(flow.result.current.pagamento?.canConfirm).toBe(true);
+  });
+
+  it("mudar entre dois valores maiores que zero mantém a forma escolhida", async () => {
+    api.consultarSaida.mockResolvedValue(consulta(20));
+    const flow = renderFlow();
+    await identificarPorQr(flow);
+    act(() => flow.result.current.setForma(forma("Pix")));
+    api.consultarSaida.mockResolvedValue(consulta(35));
+    await avancar(INTERVALO_SAIDA_MS);
+    await waitFor(() => expect(flow.result.current.valorAnterior).toBe(20));
+
+    expect(flow.result.current.forma).toBe(forma("Pix"));
+  });
+});
+
 describe("useSaidaFlow: reinício", () => {
   it("volta ao estado inicial e libera nova leitura", async () => {
     const flow = renderFlow();

@@ -11,7 +11,7 @@ import type { SaidaBusca, SaidaConsulta } from "@/types/saida";
 import type { SaidaBuscaField } from "../BuscaManualSaida";
 import { QR_INVALIDO_MESSAGE } from "../LeitorQrSaida";
 import type { SaidaResultado } from "../ReciboSaidaStep";
-import { calcularTroco, FORMA_DINHEIRO, getPagamentoStatus, valoresIguais, valorACobrar } from "../saida";
+import { calcularTroco, FORMA_DINHEIRO, getPagamentoStatus, semCobranca as saidaSemCobranca, valoresIguais, valorACobrar } from "../saida";
 import { useMeiosPagamento } from "../useMeiosPagamento";
 
 // O valor e a permanência dependem do instante da consulta: o servidor recalcula a cada ciclo.
@@ -96,14 +96,15 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
       if (!valoresIguais(valorACobrar(nova), valorACobrar(input.consulta))) {
         return { tipo: "mudou", nova };
       }
-      const mensalista = input.consulta.mensalista;
+      // Mensalista ou avulso com valor zero: ninguém paga, então não há forma de pagamento a escolher.
+      const semPagamento = saidaSemCobranca(input.consulta);
       // [A CONFIRMAR] O backend pode recusar valor divergente do calculado; a mensagem aparece junto ao pagamento.
-      // [A CONFIRMAR] Mensalista: o back aceita valor 0 com a forma padrão (Dinheiro), sem lançar nada no caixa.
+      // O back aceita valor 0 com a forma padrão (Dinheiro), sem lançar nada no caixa (confirmado para mensalista e para avulso a R$ 0,00).
       const saida = await registrarSaida(input.consulta.patioId, {
         valor: valorACobrar(input.consulta),
-        formaPagamento: Number(mensalista ? FORMA_DINHEIRO : input.forma),
+        formaPagamento: Number(semPagamento ? FORMA_DINHEIRO : input.forma),
       });
-      const emDinheiro = !mensalista && input.forma === FORMA_DINHEIRO;
+      const emDinheiro = !semPagamento && input.forma === FORMA_DINHEIRO;
       const valorRecebido = emDinheiro ? parseMoney(input.recebido) : null;
       return {
         tipo: "registrada",
@@ -125,6 +126,10 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
         // O que o cliente pagaria foi calculado sobre o valor antigo: o operador escolhe de novo.
         setAtalho(null);
         setRecebido("");
+        // Passou de "sem cobrança" para "com cobrança" (ou o inverso): a forma escolhida antes não vale mais.
+        if (saidaSemCobranca(data.nova) !== saidaSemCobranca(variables.consulta)) {
+          setForma(null);
+        }
         queryClient.setQueryData([SAIDA_CONSULTA_KEY, variables.busca], data.nova);
         return;
       }
@@ -152,6 +157,9 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
         setValorAnterior(anterior);
         setAtalho(null);
         setRecebido("");
+        if (valoresIguais(anterior, 0) !== valoresIguais(valorACobrar(nova), 0)) {
+          setForma(null);
+        }
       }
       ultimoValorRef.current = valorACobrar(nova);
       return nova;
@@ -320,8 +328,8 @@ export function useSaidaFlow({ buscaInicial }: UseSaidaFlowOptions = {}) {
     limpar();
   }, [confirmMutation.isPending, limpar]);
 
-  // Mensalista não paga: a confirmação não depende da forma de pagamento nem dos meios da empresa.
-  const semCobranca = consulta?.mensalista === true;
+  // Mensalista e avulso a R$ 0,00 não pagam: a confirmação não depende da forma de pagamento nem dos meios da empresa.
+  const semCobranca = consulta !== null && saidaSemCobranca(consulta);
   const pagamento = consulta
     ? semCobranca
       ? { canConfirm: true, motivo: undefined }
