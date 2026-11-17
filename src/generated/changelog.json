@@ -2,6 +2,46 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.461",
+      "type": "feat",
+      "scope": "servicos",
+      "title": "abre a fila do lavador no que é mais urgente e deixa os contadores tocáveis",
+      "description": "No celular, a fila agora abre na primeira aba com serviços, começando por \"Em\nandamento\", em vez de sempre abrir em \"Na fila\". Os serviços atrasados ficam no\ntopo da coluna. As abas mostram a contagem em cima e o nome embaixo, em uma\nlinha, com um ponto vermelho quando há atraso. Os contadores do topo viram\nbotões de 44px que levam à aba correspondente; \"passou da previsão\" abre em\nandamento e leva ao primeiro cartão. A aba escolhida pela pessoa não muda sozinha\nnas atualizações. No desktop nada muda.",
+      "date": "2026-11-17T19:47:48-03:00"
+    },
+    {
+      "version": "1.0.460",
+      "type": "feat",
+      "scope": "saida",
+      "title": "confirma a saída sem perguntar o pagamento quando não há nada a cobrar",
+      "description": "Quando o valor a cobrar é R$ 0,00 (por exemplo, dentro do tempo grátis), a tela\nde saída pedia forma de pagamento e \"Cliente pagou com\", e o botão ficava\ndesabilitado até escolher \"Exato\". Agora essas perguntas somem, o botão já vem\nhabilitado como \"Confirmar Saída · Sem cobrança\" e a saída é registrada com um\ntoque. A saída com cobrança continua igual. Se o valor mudar entre zero e maior\nque zero com a tela aberta, as escolhas de pagamento são limpas.",
+      "date": "2026-11-17T19:47:48-03:00"
+    },
+    {
+      "version": "1.0.459",
+      "type": "feat",
+      "scope": "usuarios",
+      "title": "avisa que o CPF é inválido assim que os 11 dígitos são digitados",
+      "description": "Antes a mensagem \"CPF inválido\" só aparecia depois de sair do campo, e até lá o\nbotão Continuar ficava desabilitado sem explicação. Agora a mensagem aparece\nlogo que o CPF está completo e inválido.",
+      "date": "2026-11-17T19:47:48-03:00"
+    },
+    {
+      "version": "1.0.458",
+      "type": "fix",
+      "scope": "financeiro",
+      "title": "mantém o lançamento aberto ao criar uma categoria",
+      "description": "Criar uma categoria de dentro de \"Novo lançamento\" fechava o formulário e\ntrocava para a aba Categorias, e o que já tinha sido digitado se perdia. Agora a\njanela de categoria abre por cima do lançamento, sem trocar de aba, e ao salvar\na categoria nova já vem selecionada, com descrição, valor e demais campos\npreservados.",
+      "date": "2026-11-17T19:47:48-03:00"
+    },
+    {
+      "version": "1.0.457",
+      "type": "fix",
+      "scope": "recibo",
+      "title": "mostra \"Sem cobrança\" em vez de \"Forma null\" no recibo de saída",
+      "description": "Quando a saída tinha valor zero, a API devolvia a forma de pagamento vazia e o\nrecibo imprimia \"Forma null\". Agora o recibo mostra \"Pagamento: Sem cobrança\" e\nesconde valor recebido e troco, e o rótulo da forma de pagamento nunca monta\ntexto com \"null\" (mostra \"—\" quando a forma vem vazia).",
+      "date": "2026-11-17T19:47:48-03:00"
+    },
+    {
       "version": "1.0.455",
       "type": "feat",
       "scope": "servicos",
