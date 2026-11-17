@@ -33,7 +33,9 @@ export function EtapaCpf({
   bloqueado,
   onEditarExistente,
 }: EtapaCpfProps) {
-  const invalido = touched && cpf !== "" && !isValidCPF(cpf);
+  // Com os 11 dígitos digitados já dá para dizer que o CPF não vale, sem esperar o campo perder o foco.
+  const completo = cpf.replace(/\D/g, "").length === 11;
+  const invalido = (touched || completo) && cpf !== "" && !isValidCPF(cpf);
 
   return (
     <Form

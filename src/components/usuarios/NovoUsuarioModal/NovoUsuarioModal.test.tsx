@@ -69,6 +69,15 @@ describe("NovoUsuarioModal", () => {
     expect(consultar).not.toHaveBeenCalled();
   });
 
+  it("acusa CPF inválido assim que os 11 dígitos são digitados, sem sair do campo", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<NovoUsuarioModal {...handlers} />);
+    await user.type(screen.getByLabelText("CPF"), "111.111.111-1");
+    expect(screen.queryByText("CPF inválido")).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText("CPF"), "1");
+    expect(screen.getByText("CPF inválido")).toBeInTheDocument();
+  });
+
   it("CPF novo: pede nome, e-mail, celular e perfil e cadastra com senha temporária", async () => {
     const user = userEvent.setup();
     consultar.mockResolvedValue(naoEncontrado);
