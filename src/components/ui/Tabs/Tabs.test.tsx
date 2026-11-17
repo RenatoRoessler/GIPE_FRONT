@@ -83,3 +83,26 @@ describe("Tabs", () => {
     expect(screen.getByText("Conteúdo de b")).toBeInTheDocument();
   });
 });
+
+describe("Tabs: rótulo com conteúdo", () => {
+  it("aceita JSX no rótulo e usa o ariaLabel como nome da aba", () => {
+    renderWithTheme(
+      <Tabs
+        tabs={[
+          { id: "a", label: <span data-testid="conteudo-a">1 Em andamento</span>, ariaLabel: "Em andamento, 1 serviço, 1 passou da previsão" },
+          { id: "b", label: "Pronto" },
+        ]}
+        value="a"
+        onChange={() => {}}
+        aria-label="Colunas"
+      >
+        <p>Painel</p>
+      </Tabs>,
+    );
+
+    expect(screen.getByTestId("conteudo-a")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Em andamento, 1 serviço, 1 passou da previsão" })).toBeInTheDocument();
+    // Sem ariaLabel o nome vem do texto.
+    expect(screen.getByRole("tab", { name: "Pronto" })).not.toHaveAttribute("aria-label");
+  });
+});

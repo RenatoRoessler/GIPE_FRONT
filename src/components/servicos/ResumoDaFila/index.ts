@@ -1,1 +1,1 @@
-export { ResumoDaFila, type ResumoDaFilaProps } from "./ResumoDaFila";
+export { ResumoDaFila, type AlvoDoResumo, type ResumoDaFilaProps } from "./ResumoDaFila";

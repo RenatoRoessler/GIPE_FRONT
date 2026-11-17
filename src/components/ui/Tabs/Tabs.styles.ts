@@ -50,6 +50,9 @@ export const Tab = styled.button<{ $active: boolean; $variant: TabsVariant }>`
     css`
       flex: 1;
       justify-content: center;
+      // O nome da aba não quebra: em celular estreito, um rótulo em 3 linhas custa leitura e toque.
+      white-space: nowrap;
+      padding: 0 ${theme.space[2]}px;
       margin-bottom: 0;
       border-bottom: none;
       border-radius: ${theme.radii.sm};

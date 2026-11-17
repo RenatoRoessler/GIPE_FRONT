@@ -225,19 +225,151 @@ describe("FilaServicos: cancelar", () => {
   });
 });
 
+describe("FilaServicos: resumo no desktop", () => {
+  it("os contadores do topo são só leitura (sem botões)", async () => {
+    renderWithProviders(<FilaServicos />);
+    const resumo = await screen.findByRole("list", { name: "Resumo da fila" });
+
+    expect(within(resumo).queryByRole("button")).not.toBeInTheDocument();
+    expect(within(resumo).getByText("2 na fila")).toBeInTheDocument();
+  });
+});
+
 describe("FilaServicos: celular", () => {
   beforeEach(() => {
     navegacao.celular = true;
   });
 
-  it("mostra abas com a contagem e só a coluna escolhida", async () => {
+  it("mostra abas com a contagem e só a coluna escolhida (abre em andamento, que tem prioridade)", async () => {
     renderWithProviders(<FilaServicos />);
 
-    expect(await screen.findByRole("tab", { name: "Na fila (2)" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("tab", { name: "Em andamento (1)" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Pronto (1)" })).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Em andamento, 1 serviço" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Na fila, 2 serviços" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "Pronto, 1 serviço" })).toBeInTheDocument();
+    expect(screen.getByText("Cera")).toBeInTheDocument();
+    expect(screen.queryByText("Lavagem completa")).not.toBeInTheDocument();
+  });
+
+  it("sem nada em andamento abre na fila", async () => {
+    api.listFila.mockResolvedValue([item(1, "Lavagem completa", STATUS_SERVICO.Aguardando, "ABC1D23"), item(4, "Higienização", STATUS_SERVICO.Pronto, "JKL0M12")]);
+    renderWithProviders(<FilaServicos />);
+
+    expect(await screen.findByRole("tab", { name: "Na fila, 1 serviço" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("Lavagem completa")).toBeInTheDocument();
-    expect(screen.queryByText("Cera")).not.toBeInTheDocument();
+  });
+
+  it("só com prontos abre em pronto", async () => {
+    api.listFila.mockResolvedValue([item(4, "Higienização", STATUS_SERVICO.Pronto, "JKL0M12")]);
+    renderWithProviders(<FilaServicos />);
+
+    expect(await screen.findByRole("tab", { name: "Pronto, 1 serviço" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Higienização")).toBeInTheDocument();
+  });
+
+  it("fila vazia mostra a mensagem de fila vazia, sem abas", async () => {
+    api.listFila.mockResolvedValue([]);
+    renderWithProviders(<FilaServicos />);
+
+    expect(await screen.findByText(/Nenhum serviço na fila/)).toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+  });
+
+  it("o endereço manda: com ?status= a aba pedida abre, mesmo com coisa em andamento", async () => {
+    navegacao.params = new URLSearchParams("status=1");
+    renderWithProviders(<FilaServicos />);
+
+    expect(await screen.findByRole("tab", { name: "Na fila, 2 serviços" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Lavagem completa")).toBeInTheDocument();
+  });
+
+  it("uma atualização automática da fila não troca a aba aberta", async () => {
+    api.listFila.mockResolvedValue([item(1, "Lavagem completa", STATUS_SERVICO.Aguardando, "ABC1D23")]);
+    const { queryClient } = renderWithProviders(<FilaServicos />);
+    expect(await screen.findByRole("tab", { name: "Na fila, 1 serviço" })).toHaveAttribute("aria-selected", "true");
+
+    // Chega um serviço em andamento: a pessoa continua onde estava.
+    api.listFila.mockResolvedValue([item(1, "Lavagem completa", STATUS_SERVICO.Aguardando, "ABC1D23"), item(3, "Cera", STATUS_SERVICO.EmExecucao, "GHI7J89")]);
+    await queryClient.invalidateQueries();
+
+    expect(await screen.findByRole("tab", { name: "Em andamento, 1 serviço" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "Na fila, 1 serviço" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("cada aba mostra a contagem e o nome, e a de em andamento diz quando há atraso", async () => {
+    const atras = (minutos: number) => new Date(Date.now() - minutos * 60_000).toISOString();
+    api.listFila.mockResolvedValue([
+      item(1, "Lavagem completa", STATUS_SERVICO.Aguardando, "ABC1D23"),
+      item(2, "Polimento atrasado", STATUS_SERVICO.EmExecucao, "BBB2B22", { iniciadoEm: atras(120), duracaoMinutos: 60 }),
+    ]);
+    renderWithProviders(<FilaServicos />);
+
+    const andamento = await screen.findByRole("tab", { name: "Em andamento, 1 serviço, 1 passou da previsão" });
+    expect(andamento).toHaveTextContent("1");
+    expect(andamento).toHaveTextContent("Em andamento");
+    expect(screen.getByRole("tab", { name: "Na fila, 1 serviço" })).toHaveTextContent("Na fila");
+    // O nome fica em um elemento próprio, separado da contagem.
+    expect(within(andamento).getByText("Em andamento")).toBeInTheDocument();
+  });
+
+  it("sem atraso o nome da aba não cita a previsão", async () => {
+    renderWithProviders(<FilaServicos />);
+    expect(await screen.findByRole("tab", { name: "Em andamento, 1 serviço" })).toBeInTheDocument();
+  });
+
+  it("os contadores do topo levam à aba certa", async () => {
+    renderWithProviders(<FilaServicos />);
+    await screen.findByRole("tab", { name: "Em andamento, 1 serviço" });
+    const resumo = screen.getByRole("list", { name: "Resumo da fila" });
+
+    await userEvent.click(within(resumo).getByRole("button", { name: "2 na fila" }));
+    expect(navegacao.replace).toHaveBeenLastCalledWith("/servicos?status=1", { scroll: false });
+    await userEvent.click(within(resumo).getByRole("button", { name: "1 pronto" }));
+    expect(navegacao.replace).toHaveBeenLastCalledWith("/servicos?status=3", { scroll: false });
+    await userEvent.click(within(resumo).getByRole("button", { name: "1 em andamento" }));
+    expect(navegacao.replace).toHaveBeenLastCalledWith("/servicos?status=2", { scroll: false });
+  });
+
+  it("'passou da previsão' abre em andamento e leva o primeiro cartão à vista, sem tirar o foco do botão", async () => {
+    const rolar = vi.fn();
+    Element.prototype.scrollIntoView = rolar;
+    const atras = (minutos: number) => new Date(Date.now() - minutos * 60_000).toISOString();
+    api.listFila.mockResolvedValue([
+      item(1, "Lavagem completa", STATUS_SERVICO.Aguardando, "ABC1D23"),
+      item(2, "Polimento atrasado", STATUS_SERVICO.EmExecucao, "BBB2B22", { iniciadoEm: atras(120), duracaoMinutos: 60 }),
+    ]);
+    navegacao.params = new URLSearchParams("status=1");
+    renderWithProviders(<FilaServicos />);
+    const botao = await screen.findByRole("button", { name: "1 passou da previsão" });
+    // O endereço não muda sozinho no teste: a aba em andamento aparece por mudar o parâmetro.
+    navegacao.params = new URLSearchParams("status=2");
+
+    await userEvent.click(botao);
+
+    expect(navegacao.replace).toHaveBeenLastCalledWith("/servicos?status=2", { scroll: false });
+    await waitFor(() => expect(rolar).toHaveBeenCalledWith({ block: "nearest" }));
+    expect(botao).toHaveFocus();
+  });
+
+  it("o botão do resumo da aba aberta fica pressionado", async () => {
+    renderWithProviders(<FilaServicos />);
+    const resumo = await screen.findByRole("list", { name: "Resumo da fila" });
+
+    expect(within(resumo).getByRole("button", { name: "1 em andamento" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(resumo).getByRole("button", { name: "2 na fila" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("o serviço atrasado fica no topo da coluna em andamento", async () => {
+    const agora = Date.now();
+    const atras = (minutos: number) => new Date(agora - minutos * 60_000).toISOString();
+    api.listFila.mockResolvedValue([
+      item(1, "Cera no prazo", STATUS_SERVICO.EmExecucao, "AAA1A11", { iniciadoEm: atras(10), duracaoMinutos: 60 }),
+      item(2, "Polimento atrasado", STATUS_SERVICO.EmExecucao, "BBB2B22", { iniciadoEm: atras(120), duracaoMinutos: 60 }),
+    ]);
+    renderWithProviders(<FilaServicos />);
+
+    await screen.findByText("Polimento atrasado");
+    const nomes = screen.getAllByRole("heading", { level: 3 }).map((titulo) => titulo.textContent);
+    expect(nomes.indexOf("Polimento atrasado")).toBeLessThan(nomes.indexOf("Cera no prazo"));
   });
 
   it("abre na coluna do endereço e troca de aba pelo endereço", async () => {
@@ -245,7 +377,7 @@ describe("FilaServicos: celular", () => {
     renderWithProviders(<FilaServicos />);
 
     expect(await screen.findByText("Cera")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("tab", { name: "Pronto (1)" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Pronto, 1 serviço" }));
 
     expect(navegacao.replace).toHaveBeenCalledWith("/servicos?status=3", { scroll: false });
   });

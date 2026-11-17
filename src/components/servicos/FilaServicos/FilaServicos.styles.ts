@@ -28,6 +28,39 @@ export const Eyebrow = styled.span`
   font-variant-numeric: tabular-nums;
 `;
 
+// Rótulo de cada aba no celular: a contagem em cima e o nome embaixo, para o nome nunca quebrar em várias linhas.
+export const AbaConteudo = styled.span`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: ${({ theme }) => theme.space[1]}px 0;
+  line-height: 1.1;
+`;
+
+export const AbaContagem = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[1]}px;
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  font-variant-numeric: tabular-nums;
+`;
+
+export const AbaNome = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+`;
+
+// Marca a aba que tem serviço passado da previsão; o texto da aba também diz isso (a cor só reforça).
+export const PontoAtraso = styled.span`
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background-color: ${({ theme }) => theme.colors.danger};
+`;
+
 export const Busca = styled.div`
   max-width: 360px;
 `;

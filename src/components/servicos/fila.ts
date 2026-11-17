@@ -1,5 +1,5 @@
 import { STATUS_SERVICO, type ItemFila, type StatusServico } from "@/types/servico";
-import { STATUS_DA_FILA } from "./status";
+import { STATUS_DA_FILA, type StatusDaFila } from "./status";
 
 // Tudo aqui devolve nulo (ou falso) quando falta dado: o back ainda não confirmou os tempos do item, e a tela nunca
 // estima um tempo que ele não mandou.
@@ -100,4 +100,18 @@ export function resumirFila(itens: ItemFila[], agora: number): ResumoDaFila {
     },
     atrasados: itens.filter((item) => atrasado(item, agora)).length,
   };
+}
+
+// Ordem em que o lavador precisa olhar a fila: o que já começou (e é onde o atraso aparece), depois quem espera, depois o pronto.
+const PRIORIDADE_DA_ABA = [STATUS_SERVICO.EmExecucao, STATUS_SERVICO.Aguardando, STATUS_SERVICO.Pronto] as const;
+
+// Aba em que a fila do celular abre: a primeira com itens na ordem de prioridade; sem nenhum item, "Na fila". Um serviço
+// atrasado está sempre em andamento, então já cai na primeira.
+export function statusInicialDaFila(itens: ItemFila[]): StatusDaFila {
+  return PRIORIDADE_DA_ABA.find((status) => itens.some((item) => item.status === status)) ?? STATUS_SERVICO.Aguardando;
+}
+
+// Atrasados primeiro, do mais atrasado para o menos; os demais ficam na ordem em que vieram (a ordenação é estável).
+export function ordenarColuna(itens: ItemFila[], agora: number): ItemFila[] {
+  return [...itens].sort((a, b) => minutosAtrasado(b, agora) - minutosAtrasado(a, agora));
 }

@@ -6,11 +6,13 @@ import {
   filtrarFila,
   instanteLocal,
   minutosAtrasado,
+  ordenarColuna,
   outrosNoCarro,
   previsaoDeTermino,
   progresso,
   prontoHa,
   resumirFila,
+  statusInicialDaFila,
   tempoNaFila,
 } from "./fila";
 
@@ -158,5 +160,56 @@ describe("instanteLocal", () => {
   it("o resultado volta a ser lido como o mesmo instante", () => {
     const data = new Date(2026, 10, 14, 15, 30, 5);
     expect(new Date(instanteLocal(data)).getTime()).toBe(data.getTime());
+  });
+});
+
+describe("statusInicialDaFila", () => {
+  const com = (status: StatusServico, extra: Partial<ItemFila> = {}) => item({ status, ...extra });
+
+  it("com serviço atrasado abre em andamento, mesmo havendo gente na fila", () => {
+    const atrasadoEmAndamento = com(STATUS_SERVICO.EmExecucao, { iniciadoEm: atras(80), duracaoMinutos: 60 });
+    expect(statusInicialDaFila([com(STATUS_SERVICO.Aguardando), atrasadoEmAndamento])).toBe(STATUS_SERVICO.EmExecucao);
+  });
+
+  it("só em andamento abre em andamento", () => {
+    expect(statusInicialDaFila([com(STATUS_SERVICO.EmExecucao)])).toBe(STATUS_SERVICO.EmExecucao);
+  });
+
+  it("em andamento vem antes de na fila e de pronto", () => {
+    expect(statusInicialDaFila([com(STATUS_SERVICO.Pronto), com(STATUS_SERVICO.Aguardando), com(STATUS_SERVICO.EmExecucao)])).toBe(STATUS_SERVICO.EmExecucao);
+  });
+
+  it("sem nada em andamento abre na fila", () => {
+    expect(statusInicialDaFila([com(STATUS_SERVICO.Pronto), com(STATUS_SERVICO.Aguardando)])).toBe(STATUS_SERVICO.Aguardando);
+  });
+
+  it("só pronto abre em pronto", () => {
+    expect(statusInicialDaFila([com(STATUS_SERVICO.Pronto)])).toBe(STATUS_SERVICO.Pronto);
+  });
+
+  it("fila vazia abre na fila", () => {
+    expect(statusInicialDaFila([])).toBe(STATUS_SERVICO.Aguardando);
+  });
+});
+
+describe("ordenarColuna", () => {
+  const andamento = (id: number, decorrido: number, duracao: number | null = 60) =>
+    item({ patioServicoId: id, status: STATUS_SERVICO.EmExecucao, iniciadoEm: atras(decorrido), duracaoMinutos: duracao });
+
+  it("coloca os atrasados primeiro, do mais atrasado para o menos", () => {
+    const ordenados = ordenarColuna([andamento(1, 30), andamento(2, 70), andamento(3, 100)], AGORA);
+    expect(ordenados.map((outro) => outro.patioServicoId)).toEqual([3, 2, 1]);
+  });
+
+  it("mantém a ordem original dos que não estão atrasados e dos empatados", () => {
+    const ordenados = ordenarColuna([andamento(1, 10), andamento(2, 20), andamento(3, 70), andamento(4, 70), andamento(5, 5, null)], AGORA);
+    expect(ordenados.map((outro) => outro.patioServicoId)).toEqual([3, 4, 1, 2, 5]);
+  });
+
+  it("não muda a lista recebida e não mexe nas colunas sem atraso", () => {
+    const original = [item({ patioServicoId: 1 }), item({ patioServicoId: 2 })];
+    const copia = [...original];
+    expect(ordenarColuna(original, AGORA).map((outro) => outro.patioServicoId)).toEqual([1, 2]);
+    expect(original).toEqual(copia);
   });
 });

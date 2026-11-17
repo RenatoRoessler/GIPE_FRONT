@@ -18,13 +18,16 @@ import { AREA } from "@/lib/permissoes";
 import { STATUS_SERVICO, type ItemFila, type StatusServico } from "@/types/servico";
 import { CancelarServicoDialog } from "../CancelarServicoDialog";
 import { FilaCard } from "../FilaCard";
-import { filtrarFila, outrosNoCarro } from "../fila";
+import { atrasado, filtrarFila, ordenarColuna, outrosNoCarro, statusInicialDaFila } from "../fila";
 import { PARAM_STATUS } from "../params";
-import { ResumoDaFila } from "../ResumoDaFila";
+import { ResumoDaFila, type AlvoDoResumo } from "../ResumoDaFila";
 import { avisoDeStatus, STATUS_DA_FILA, STATUS_ROTULO, type AcaoDeStatus, type StatusDaFila } from "../status";
 import { useAtualizarStatusServico } from "../useAtualizarStatusServico";
 import { useFilaServicos } from "../useFilaServicos";
 import {
+  AbaConteudo,
+  AbaContagem,
+  AbaNome,
   Atualizado,
   BotaoDesfazer,
   Busca,
@@ -34,6 +37,7 @@ import {
   Desfazer,
   Estado,
   Eyebrow,
+  PontoAtraso,
   Topo,
   TituloColuna,
   Vazio,
@@ -102,6 +106,12 @@ export function FilaServicos() {
   const [desfazimento, setDesfazimento] = useState<Desfazimento | null>(null);
   const [anunciado, setAnunciado] = useState("");
   const [busca, setBusca] = useState("");
+  // Aba em que a fila abre no celular: decidida uma única vez, na primeira resposta. Depois disso quem manda é a pessoa
+  // (pelo endereço), e as atualizações automáticas não trocam a aba.
+  const [statusInicial, setStatusInicial] = useState<StatusDaFila | null>(null);
+  if (statusInicial === null && fila.atualizadoEm !== 0) {
+    setStatusInicial(statusInicialDaFila(fila.itens));
+  }
   const agora = useAgora(INTERVALO_DOS_TEMPOS_MS);
   useEffect(() => {
     if (!desfazimento) return;
@@ -113,7 +123,8 @@ export function FilaServicos() {
   const visiveis = filtrarFila(fila.itens, busca);
   const buscando = busca.trim() !== "";
   const porStatus = (status: StatusServico) => visiveis.filter((item) => item.status === status);
-  const statusAtual = statusDaUrl(searchParams.get(PARAM_STATUS));
+  const statusDoEndereco = searchParams.get(PARAM_STATUS);
+  const statusAtual = statusDoEndereco !== null ? statusDaUrl(statusDoEndereco) : (statusInicial ?? STATUS_SERVICO.Aguardando);
 
   function trocarStatus(item: ItemFila, destino: StatusServico, comDesfazer: boolean) {
     // O foco vai ao cartão vizinho da mesma coluna, que ocupa o lugar do que saiu.
@@ -156,12 +167,24 @@ export function FilaServicos() {
     router.replace(`${pathname}?${PARAM_STATUS}=${id}`, { scroll: false });
   }
 
+  // Tocar numa pílula do resumo abre a aba dela. "Passou da previsão" abre a de em andamento, onde os atrasados vêm
+  // primeiro, e leva o primeiro cartão à vista (só rola: o foco fica no botão tocado).
+  function selecionarDoResumo(alvo: AlvoDoResumo) {
+    const destino: StatusDaFila =
+      alvo === "aguardando" ? STATUS_SERVICO.Aguardando : alvo === "pronto" ? STATUS_SERVICO.Pronto : STATUS_SERVICO.EmExecucao;
+    escolherStatus(String(destino));
+    if (alvo === "atrasados") {
+      requestAnimationFrame(() => document.querySelector<HTMLElement>("[data-acao-card]")?.scrollIntoView?.({ block: "nearest" }));
+    }
+  }
+
   if (fila.erro instanceof ApiError && fila.erro.kind === "forbidden") {
     return <ErroSemPermissao />;
   }
 
   function colunaDe(status: StatusDaFila) {
-    const itens = porStatus(status);
+    // Os atrasados ficam no topo da coluna (só há atraso em andamento).
+    const itens = ordenarColuna(porStatus(status), agora);
     const rotulo = STATUS_ROTULO[status];
     return (
       <Coluna key={status} aria-label={`${rotulo}, ${contar(itens.length)}`}>
@@ -215,7 +238,26 @@ export function FilaServicos() {
       );
     }
     if (celular) {
-      const abas = STATUS_DA_FILA.map((status) => ({ id: String(status), label: `${STATUS_ROTULO[status]} (${porStatus(status).length})` }));
+      const atrasados = porStatus(STATUS_SERVICO.EmExecucao).filter((item) => atrasado(item, agora)).length;
+      const abas = STATUS_DA_FILA.map((status) => {
+        const total = porStatus(status).length;
+        const rotulo = STATUS_ROTULO[status];
+        const comAtraso = status === STATUS_SERVICO.EmExecucao && atrasados > 0;
+        const aviso = comAtraso ? `, ${atrasados} ${atrasados === 1 ? "passou" : "passaram"} da previsão` : "";
+        return {
+          id: String(status),
+          label: (
+            <AbaConteudo>
+              <AbaContagem>
+                {comAtraso && <PontoAtraso aria-hidden="true" />}
+                {total}
+              </AbaContagem>
+              <AbaNome>{rotulo}</AbaNome>
+            </AbaConteudo>
+          ),
+          ariaLabel: `${rotulo}, ${contar(total)}${aviso}`,
+        };
+      });
       return (
         <Tabs tabs={abas} value={String(statusAtual)} onChange={escolherStatus} aria-label="Colunas da fila" variant="segmentada">
           {colunaDe(statusAtual)}
@@ -232,7 +274,9 @@ export function FilaServicos() {
           <Eyebrow>Lava-rápido · agora {hora.format(agora)}</Eyebrow>
           <AtualizadoHa atualizadoEm={fila.atualizadoEm} />
         </Topo>
-        {!fila.carregando && !fila.erro && <ResumoDaFila itens={fila.itens} agora={agora} />}
+        {!fila.carregando && !fila.erro && (
+          <ResumoDaFila itens={fila.itens} agora={agora} statusAtual={statusAtual} onSelecionar={celular ? selecionarDoResumo : undefined} />
+        )}
         <Busca>
           <Input
             label="Placa ou prisma"

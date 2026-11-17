@@ -5,7 +5,10 @@ import { Panel, Tab, TabList, type TabsVariant } from "./Tabs.styles";
 
 export interface TabsItem {
   id: string;
-  label: string;
+  // Texto, ou conteúdo próprio (ex.: contagem + nome) quando a aba precisa de mais que uma frase.
+  label: ReactNode;
+  // Nome lido pelo leitor de tela quando o conteúdo visual não basta (ex.: "Em andamento, 1 serviço, 1 atrasado").
+  ariaLabel?: string;
 }
 
 export interface TabsProps {
@@ -65,6 +68,7 @@ export function Tabs({ tabs, value, onChange, "aria-label": ariaLabel, variant =
               type="button"
               role="tab"
               id={`${baseId}-tab-${tab.id}`}
+              aria-label={tab.ariaLabel}
               aria-selected={active}
               aria-controls={`${baseId}-panel-${tab.id}`}
               tabIndex={active ? 0 : -1}
