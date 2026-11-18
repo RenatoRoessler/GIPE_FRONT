@@ -181,7 +181,7 @@ describe("TicketView: dados", () => {
     abrir([veiculo({ token: null })]);
     await screen.findByText("FLP3C88");
 
-    expect(screen.queryByRole("button", { name: /Mostrar QR/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Comprovante cliente" })).not.toBeInTheDocument();
     expect(screen.getByText("Comprovante indisponível para este veículo.")).toBeInTheDocument();
     expect(consultarComprovante).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Registrar saída" })).toBeInTheDocument();
@@ -231,11 +231,11 @@ describe("TicketView: navegação", () => {
     expect(nav.replace).toHaveBeenCalledWith("/patio?q=gol&tipo=avulsos");
   });
 
-  it("Mostrar QR abre o comprovante, levando os filtros", async () => {
+  it("Comprovante cliente abre o comprovante, levando os filtros", async () => {
     nav.query = "tipo=avulsos";
     abrir();
 
-    await userEvent.click(await screen.findByRole("button", { name: "Mostrar QR do ticket ao cliente" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Comprovante cliente" }));
 
     expect(nav.push).toHaveBeenCalledWith("/patio/7/comprovante?tipo=avulsos&de=ticket");
   });
@@ -322,8 +322,57 @@ describe("TicketView: popup", () => {
   it("abre como um diálogo com o título e o código do ticket", async () => {
     abrir();
 
-    const dialogo = await screen.findByRole("dialog", { name: "Ticket de entrada · 24024" });
+    const dialogo = await screen.findByRole("dialog", { name: "Ticket Entrada - 24024" });
     expect(within(dialogo).getByText("FLP3C88")).toBeInTheDocument();
+  });
+});
+
+describe("TicketView: layout", () => {
+  function cartaoDoValor() {
+    return screen.getByText("Valor até agora").closest("dl");
+  }
+
+  it("com cobrança, o cartão do valor fica em destaque", async () => {
+    abrir();
+    await screen.findByText("R$ 12,00");
+
+    expect(cartaoDoValor()).toHaveAttribute("data-destaque", "true");
+  });
+
+  it("mensalista não destaca o cartão do valor", async () => {
+    abrir([veiculo({ mensalista: true })]);
+    await screen.findByText("Mensal");
+
+    expect(cartaoDoValor()).toHaveAttribute("data-destaque", "false");
+  });
+
+  it("valor zero não destaca o cartão nem põe o valor no botão", async () => {
+    vi.mocked(consultarComprovante).mockResolvedValue({ ...comprovante, valorAtual: 0 });
+    abrir();
+    await screen.findByText("R$ 0,00");
+
+    expect(cartaoDoValor()).toHaveAttribute("data-destaque", "false");
+    expect(screen.getByRole("button", { name: "Registrar saída" })).toBeInTheDocument();
+  });
+
+  it("sem token, o aviso de comprovante indisponível fica junto às ações, sem o botão do comprovante", async () => {
+    abrir([veiculo({ token: null })]);
+    await screen.findByText("FLP3C88");
+
+    const aviso = screen.getByText("Comprovante indisponível para este veículo.");
+    const saida = screen.getByRole("button", { name: "Registrar saída" });
+    expect(aviso.parentElement).toContainElement(saida);
+    expect(screen.queryByRole("button", { name: "Comprovante cliente" })).not.toBeInTheDocument();
+  });
+
+  it("os detalhes seguem a ordem Entrada, Tabela de preço, Registrado por e Ticket", async () => {
+    abrir();
+    await screen.findByText("FLP3C88");
+
+    const rotulos = within(screen.getByLabelText("Detalhes do ticket"))
+      .getAllByRole("term")
+      .map((dt) => dt.textContent);
+    expect(rotulos.slice(0, 4)).toEqual(["Entrada", "Tabela de preço", "Registrado por", "Ticket"]);
   });
 });
 

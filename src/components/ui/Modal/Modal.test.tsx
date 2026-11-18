@@ -43,6 +43,26 @@ describe("Modal", () => {
     expect(screen.getByLabelText("Campo")).toHaveFocus();
   });
 
+  it("com o título centralizado o diálogo continua nomeado pelo título e o Fechar continua acessível", () => {
+    renderWithTheme(
+      <Modal open title="Ticket Entrada - 7895" titleAlign="center" onClose={vi.fn()}>
+        <p>Conteúdo</p>
+      </Modal>,
+    );
+    expect(screen.getByRole("dialog", { name: "Ticket Entrada - 7895" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fechar" })).toHaveFocus();
+  });
+
+  it("sem titleAlign o cabeçalho tem só o título e o Fechar", () => {
+    renderWithTheme(
+      <Modal open title="Teste" onClose={vi.fn()}>
+        <p>Conteúdo</p>
+      </Modal>,
+    );
+    const titulo = screen.getByRole("heading", { name: "Teste" });
+    expect(titulo.parentElement?.children).toHaveLength(2);
+  });
+
   describe("com o teclado do celular", () => {
     function simularToque() {
       vi.stubGlobal("matchMedia", (query: string) => ({
