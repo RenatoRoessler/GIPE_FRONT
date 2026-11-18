@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/Button";
 
 const desktop = ({ theme }: { theme: { breakpoints: { md: string } } }) => `@media (min-width: ${theme.breakpoints.md})`;
 
-// Celular: uma coluna. Computador: veículo e destaques à esquerda; itens e ações à direita.
+// Celular: uma coluna. Computador: veículo e valor à esquerda; detalhes e serviços à direita.
 export const Colunas = styled.div`
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
 
@@ -20,81 +19,109 @@ export const Colunas = styled.div`
   }
 `;
 
-// No celular a última coluna ocupa a altura que sobra, para empurrar as ações ao pé do popup.
 export const Coluna = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
   min-width: 0;
-
-  &:last-child {
-    flex: 1;
-  }
-
-  ${desktop} {
-    &:last-child {
-      flex: none;
-    }
-  }
 `;
 
-export const VeiculoBloco = styled.section`
+// Cartão do veículo: só contorno; a placa é o rosto e a permanência fecha o cartão.
+export const VeiculoCartao = styled.section`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.space[2]}px;
+  min-width: 0;
   padding: ${({ theme }) => theme.space[3]}px;
-  border-radius: ${({ theme }) => theme.radii.xl};
-  background-color: ${({ theme }) => theme.colors.background};
+  border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: inset 0 0 0 1px ${({ theme }) => theme.colors.border};
+`;
+
+export const PlacaLinha = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${({ theme }) => theme.space[2]}px;
 `;
 
 export const PlacaGrande = styled.b`
   font-family: ${({ theme }) => theme.fontFamilies.mono};
   font-size: ${({ theme }) => theme.fontSizes.xl};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   line-height: 1.1;
 `;
 
 export const Descricao = styled.span`
+  margin-top: ${({ theme }) => theme.space[1]}px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
   letter-spacing: 0.02em;
   text-transform: uppercase;
 `;
 
-export const Destaques = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: ${({ theme }) => theme.space[3]}px;
-`;
-
-export const Destaque = styled.div`
+export const PermanenciaLinha = styled.dl`
   display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.space[1]}px;
-  min-width: 0;
-  padding: ${({ theme }) => theme.space[3]}px;
-  border-radius: ${({ theme }) => theme.radii.lg};
-  background-color: ${({ theme }) => theme.colors.background};
-  box-shadow: inset 0 0 0 1px ${({ theme }) => theme.colors.border};
+  align-items: center;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.space[3]}px;
+  margin: ${({ theme }) => theme.space[3]}px 0 0;
+  padding-top: ${({ theme }) => theme.space[3]}px;
+  border-top: 1px dashed ${({ theme }) => theme.colors.border};
 
   dt {
+    display: inline-flex;
+    align-items: center;
+    gap: ${({ theme }) => theme.space[1]}px;
     color: ${({ theme }) => theme.colors.textMuted};
-    font-size: ${({ theme }) => theme.fontSizes.xs};
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+  }
+
+  dd {
+    margin: 0;
+    font-size: ${({ theme }) => theme.fontSizes.lg};
+    font-weight: ${({ theme }) => theme.fontWeights.bold};
+    font-variant-numeric: tabular-nums;
+  }
+`;
+
+// Valor até agora: o único bloco com cor. Âmbar só quando há o que cobrar; neutro (mesmas medidas) no resto.
+export const ValorCartao = styled.dl<{ $destaque: boolean }>`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.space[1]}px ${({ theme }) => theme.space[3]}px;
+  margin: 0;
+  padding: ${({ theme }) => theme.space[3]}px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  background-color: ${({ $destaque, theme }) => ($destaque ? theme.colors.warnSoft : "transparent")};
+  box-shadow: inset 0 0 0 1px ${({ $destaque, theme }) => ($destaque ? theme.colors.warn : theme.colors.border)};
+
+  dt {
+    color: ${({ $destaque, theme }) => ($destaque ? theme.colors.accent : theme.colors.textMuted)};
+    font-size: ${({ theme }) => theme.fontSizes.sm};
     font-weight: ${({ theme }) => theme.fontWeights.semibold};
   }
 
   dd {
     margin: 0;
+  }
+
+  /* O valor; os dd seguintes são apoio (divisão do total, tentar de novo), cada um numa linha. */
+  dd:first-of-type {
+    margin-left: auto;
     font-size: ${({ theme }) => theme.fontSizes.xl};
     font-weight: ${({ theme }) => theme.fontWeights.extrabold};
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
+    text-align: right;
   }
 `;
 
-// Como o valor se divide: a estadia e os serviços, abaixo do total.
-export const Apoio = styled.small`
+// Linha de apoio do valor (dd): como o total se divide ou o "Tentar novamente", abaixo do total.
+export const Apoio = styled.dd`
+  flex-basis: 100%;
+  text-align: right;
   color: ${({ theme }) => theme.colors.textMuted};
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-variant-numeric: tabular-nums;
@@ -116,7 +143,6 @@ export const Pendencia = styled.p`
 `;
 
 export const TentarValor = styled.button`
-  align-self: flex-start;
   min-height: 44px;
   padding: 0;
   border: 0;
@@ -138,7 +164,6 @@ export const Itens = styled.dl`
   margin: 0;
   padding: 0 ${({ theme }) => theme.space[3]}px;
   border-radius: ${({ theme }) => theme.radii.lg};
-  background-color: ${({ theme }) => theme.colors.background};
   box-shadow: inset 0 0 0 1px ${({ theme }) => theme.colors.border};
 `;
 
@@ -166,7 +191,7 @@ export const Item = styled.div`
     gap: ${({ theme }) => theme.space[2]}px;
     min-width: 0;
     margin: 0;
-    font-weight: ${({ theme }) => theme.fontWeights.bold};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
     text-align: right;
     overflow-wrap: anywhere;
   }
@@ -226,22 +251,27 @@ export const Aviso = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.sm};
 `;
 
-// Celular: as ações ficam no pé do popup (rodapé colado ao fundo, sangrando o respiro do corpo), com o conteúdo
-// rolando por trás quando não cabe.
-export const Acoes = styled.div`
+// Rodapé fixo do popup (o footer do Modal): filho único que ocupa a largura toda. Celular: tudo empilhado.
+// Computador: o aviso numa linha e os dois botões lado a lado, a saída por último.
+export const AcoesRodape = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space[2]}px;
+  min-width: 0;
+`;
+
+export const Botoes = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[2]}px;
 
-  @media (max-width: calc(${({ theme }) => theme.breakpoints.md} - 1px)) {
-    position: sticky;
-    bottom: -${({ theme }) => theme.space[4]}px;
-    z-index: 10;
-    margin: auto -${({ theme }) => theme.space[4]}px -${({ theme }) => theme.space[4]}px;
-    padding: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[4]}px
-      calc(${({ theme }) => theme.space[3]}px + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid ${({ theme }) => theme.colors.border};
-    background-color: ${({ theme }) => theme.colors.surface};
+  ${desktop} {
+    flex-direction: row;
+
+    & > * {
+      flex: 1;
+    }
   }
 `;
 
@@ -252,6 +282,7 @@ export const SaidaBotao = styled(Button)`
 `;
 
 export const QrBotao = styled(Button)`
+  gap: ${({ theme }) => theme.space[2]}px;
   min-height: 48px;
   box-shadow: inset 0 0 0 1px ${({ theme }) => theme.colors.borderStrong};
 `;

@@ -26,21 +26,23 @@ import { useComprovanteTicket } from "../useComprovanteTicket";
 import { usePatioVeiculo } from "../usePatioVeiculo";
 import { TicketItens } from "./TicketItens";
 import {
-  Acoes,
+  AcoesRodape,
   Apoio,
   Aviso,
+  Botoes,
   Coluna,
   Colunas,
   Descricao,
-  Destaque,
-  Destaques,
   Estado,
+  PermanenciaLinha,
   Pendencia,
   PlacaGrande,
+  PlacaLinha,
   QrBotao,
   SaidaBotao,
   TentarValor,
-  VeiculoBloco,
+  ValorCartao,
+  VeiculoCartao,
 } from "./TicketView.styles";
 
 export const QR_BOTAO_ID = "ticket-qr-botao";
@@ -48,6 +50,26 @@ const SEM_LINK_ID = "ticket-sem-link";
 
 export interface TicketViewProps {
   patioId: number;
+}
+
+function IconeRelogio() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
+function IconeQr() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4" y="4" width="6" height="6" rx="1" />
+      <rect x="14" y="4" width="6" height="6" rx="1" />
+      <rect x="4" y="14" width="6" height="6" rx="1" />
+      <path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2" />
+    </svg>
+  );
 }
 
 function descricaoDoVeiculo(veiculo: PatioVeiculo): string {
@@ -131,9 +153,10 @@ export function TicketView({ patioId }: TicketViewProps) {
   );
 
   // O ticket abre como popup sobre a lista do Pátio; fechar volta à lista, com a busca e os filtros.
-  const janela = (conteudo: React.ReactNode, codigo?: string) => (
+  // As ações vão no rodapé fixo do popup; só o ticket carregado tem rodapé.
+  const janela = (conteudo: React.ReactNode, codigo?: string, rodape?: React.ReactNode) => (
     <>
-      <Modal open title={codigo ? `Ticket de entrada · ${codigo}` : "Ticket de entrada"} size="lg" onClose={voltar}>
+      <Modal open title={codigo ? `Ticket Entrada - ${codigo}` : "Ticket Entrada"} titleAlign="center" size="lg" onClose={voltar} footer={rodape}>
         {conteudo}
       </Modal>
       {modais}
@@ -148,9 +171,9 @@ export function TicketView({ patioId }: TicketViewProps) {
     return janela(
       <div role="status" aria-label="Carregando o ticket">
         <Coluna>
-          <Skeleton height="120px" radius="18px" />
-          <Skeleton height="76px" radius="14px" />
-          <Skeleton height="220px" radius="14px" />
+          <Skeleton height="120px" radius="14px" />
+          <Skeleton height="64px" radius="14px" />
+          <Skeleton height="150px" radius="14px" />
         </Coluna>
       </div>,
     );
@@ -171,6 +194,7 @@ export function TicketView({ patioId }: TicketViewProps) {
   const mensalista = veiculo.mensalista;
   const semToken = veiculo.token === null;
   const valor = comprovante.data?.valorAtual ?? null;
+  // Uma condição só para a cor do cartão e para o valor no botão: os dois nunca divergem.
   const cobrando = !mensalista && valor !== null && valor > 0;
 
   let valorTexto: React.ReactNode = "—";
@@ -181,38 +205,66 @@ export function TicketView({ patioId }: TicketViewProps) {
   // Com serviços, mostra como o total se divide; o total é o do back (o mesmo que a saída cobra).
   const divisao = servicosHabilitados && !mensalista && valor !== null && resumoServicos.ativos.length > 0 ? dividirValor(valor, resumoServicos.subtotalCentavos) : null;
 
+  const rodape = (
+    <AcoesRodape>
+      {avisoPendentes && (
+        <Pendencia role="status">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v6M12 16.5v.5" />
+          </svg>
+          {avisoPendentes}
+        </Pendencia>
+      )}
+      {semToken && <Aviso id={SEM_LINK_ID}>Comprovante indisponível para este veículo.</Aviso>}
+      <Botoes>
+        {!semToken && (
+          <QrBotao id={QR_BOTAO_ID} type="button" variant="secondary" onClick={() => abrirComprovante(veiculo.patioId)}>
+            <IconeQr />
+            Comprovante cliente
+          </QrBotao>
+        )}
+        <SaidaBotao type="button" onClick={() => setSaida(veiculo)}>
+          {cobrando ? `Registrar saída · ${formatBRL(valor)}` : "Registrar saída"}
+        </SaidaBotao>
+      </Botoes>
+    </AcoesRodape>
+  );
+
   return janela(
     <Colunas>
       <Coluna>
-        <VeiculoBloco aria-label="Veículo">
-          <PlacaGrande>{veiculo.placa}</PlacaGrande>
-          <Descricao>{descricaoDoVeiculo(veiculo)}</Descricao>
-          <span>
+        <VeiculoCartao aria-label="Veículo">
+          <PlacaLinha>
+            <PlacaGrande>{veiculo.placa}</PlacaGrande>
             <StatusBadge tone={mensalista ? "mensal" : "avulso"}>{rotuloTipo(veiculo)}</StatusBadge>
-          </span>
-        </VeiculoBloco>
-
-        <Destaques as="dl">
-          <Destaque>
-            <dt>Permanência</dt>
+          </PlacaLinha>
+          <Descricao>{descricaoDoVeiculo(veiculo)}</Descricao>
+          <PermanenciaLinha>
+            <dt>
+              <IconeRelogio />
+              Permanência
+            </dt>
             <dd>{comprovante.data?.permanencia ?? veiculo.permanencia}</dd>
-          </Destaque>
-          <Destaque>
-            <dt>Valor até agora</dt>
-            <dd>{valorTexto}</dd>
-            {divisao && (
-              <Apoio>
-                {formatCentavos(divisao.estadiaCentavos)} estadia + {formatCentavos(divisao.servicosCentavos)} serviços
-              </Apoio>
-            )}
-            {!mensalista && comprovante.isError && (
+          </PermanenciaLinha>
+        </VeiculoCartao>
+
+        <ValorCartao $destaque={cobrando} data-destaque={cobrando ? "true" : "false"}>
+          <dt>Valor até agora</dt>
+          <dd>{valorTexto}</dd>
+          {divisao && (
+            <Apoio>
+              {formatCentavos(divisao.estadiaCentavos)} estadia + {formatCentavos(divisao.servicosCentavos)} serviços
+            </Apoio>
+          )}
+          {!mensalista && comprovante.isError && (
+            <Apoio>
               <TentarValor type="button" onClick={() => void comprovante.refetch()}>
                 Tentar novamente
               </TentarValor>
-            )}
-          </Destaque>
-        </Destaques>
-        {semToken && <Aviso id={SEM_LINK_ID}>Comprovante indisponível para este veículo.</Aviso>}
+            </Apoio>
+          )}
+        </ValorCartao>
       </Coluna>
 
       <Coluna>
@@ -225,28 +277,9 @@ export function TicketView({ patioId }: TicketViewProps) {
         />
 
         <ServicosDoVeiculo idPatio={veiculo.patioId} placa={veiculo.placa} categoria={veiculo.categoria} onAviso={setAviso} onFolhaAberta={setFolhaServicos} />
-
-        <Acoes>
-          {avisoPendentes && (
-            <Pendencia role="status">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7v6M12 16.5v.5" />
-              </svg>
-              {avisoPendentes}
-            </Pendencia>
-          )}
-          {!semToken && (
-            <QrBotao id={QR_BOTAO_ID} type="button" variant="secondary" onClick={() => abrirComprovante(veiculo.patioId)}>
-              Mostrar QR do ticket ao cliente
-            </QrBotao>
-          )}
-          <SaidaBotao type="button" onClick={() => setSaida(veiculo)}>
-            {cobrando ? `Registrar saída · ${formatBRL(valor)}` : "Registrar saída"}
-          </SaidaBotao>
-        </Acoes>
       </Coluna>
     </Colunas>,
     veiculo.codigoTicket !== null ? String(veiculo.codigoTicket) : `Seq. ${veiculo.sequencial}`,
+    rodape,
   );
 }

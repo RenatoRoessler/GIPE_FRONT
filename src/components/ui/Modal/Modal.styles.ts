@@ -81,25 +81,46 @@ export const Dialog = styled.dialog<{ $size: ModalSize; $fullScreenOnMobile: boo
   }
 `;
 
-export const Header = styled.div`
+export type ModalTitleAlign = "start" | "center";
+
+// Lado do botão de fechar; com o título centralizado, um espaçador do mesmo tamanho fica à esquerda.
+const CLOSE_SIZE = "36px";
+
+export const Header = styled.div<{ $titleAlign: ModalTitleAlign }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: ${({ theme }) => theme.space[3]}px;
   padding: ${({ theme }) => theme.space[3]}px ${({ theme }) => theme.space[4]}px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+
+  ${({ $titleAlign }) =>
+    $titleAlign === "center" &&
+    css`
+      display: grid;
+      grid-template-columns: ${CLOSE_SIZE} minmax(0, 1fr) ${CLOSE_SIZE};
+    `}
 `;
 
-export const Title = styled.h2`
+export const Title = styled.h2<{ $titleAlign: ModalTitleAlign }>`
   font-size: ${({ theme }) => theme.fontSizes.lg};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
+
+  ${({ $titleAlign }) =>
+    $titleAlign === "center" &&
+    css`
+      overflow: hidden;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    `}
 `;
 
 export const CloseButton = styled.button`
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: ${CLOSE_SIZE};
+  height: ${CLOSE_SIZE};
   border: none;
   border-radius: ${({ theme }) => theme.radii.full};
   background-color: transparent;

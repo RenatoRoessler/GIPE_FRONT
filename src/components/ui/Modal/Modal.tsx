@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useId, useRef } from "react";
-import { Body, CloseButton, Dialog, Footer, Header, ModalSize, Title } from "./Modal.styles";
+import { Body, CloseButton, Dialog, Footer, Header, ModalSize, ModalTitleAlign, Title } from "./Modal.styles";
 
 export interface ModalProps {
   open: boolean;
@@ -14,10 +14,12 @@ export interface ModalProps {
   closeOnBackdrop?: boolean;
   // No celular o modal ocupa a tela toda; desligue em diálogos curtos (ex.: confirmação).
   fullScreenOnMobile?: boolean;
+  // Título centralizado no cabeçalho (o botão de fechar continua à direita).
+  titleAlign?: ModalTitleAlign;
 }
 
 // Usa o <dialog> nativo: foco preso, Esc e backdrop vêm do navegador.
-export function Modal({ open, title, onClose, children, footer, size = "sm", closeOnBackdrop = true, fullScreenOnMobile = true }: ModalProps) {
+export function Modal({ open, title, onClose, children, footer, size = "sm", closeOnBackdrop = true, fullScreenOnMobile = true, titleAlign = "start" }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -53,8 +55,11 @@ export function Modal({ open, title, onClose, children, footer, size = "sm", clo
         }
       }}
     >
-      <Header>
-        <Title id={titleId}>{title}</Title>
+      <Header $titleAlign={titleAlign}>
+        {titleAlign === "center" && <span aria-hidden="true" />}
+        <Title id={titleId} $titleAlign={titleAlign}>
+          {title}
+        </Title>
         <CloseButton type="button" aria-label="Fechar" onClick={onClose}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />

@@ -26,14 +26,6 @@ export interface ServicosDoVeiculoProps {
   onFolhaAberta?: (aberta: boolean) => void;
 }
 
-function Gota() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z" />
-    </svg>
-  );
-}
-
 // Serviços do veículo dentro do ticket do Pátio: o que foi pedido, em que pé está e quanto vale. Só existe quando a
 // empresa liga os serviços na configuração. Cancelados não aparecem: o ticket mostra o que vai ser cobrado.
 export function ServicosDoVeiculo({ idPatio, placa, categoria, onAviso, onFolhaAberta }: ServicosDoVeiculoProps) {
@@ -99,7 +91,6 @@ export function ServicosDoVeiculo({ idPatio, placa, categoria, onAviso, onFolhaA
     <Secao aria-label="Serviços do veículo">
       <Cabecalho>
         <Titulo>
-          <Gota />
           {comServicos ? `Serviços · ${ativos.length}` : "Serviços adicionais"}
         </Titulo>
         {podeGerir && comServicos && (

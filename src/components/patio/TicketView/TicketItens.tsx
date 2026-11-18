@@ -16,7 +16,7 @@ export interface TicketItensProps {
   onEditarPrisma: () => void;
 }
 
-// Entrada, tabela de preço, quem registrou e onde está a chave. Não há "próxima faixa": o back não entrega esse valor.
+// Entrada, tabela de preço, quem registrou, o ticket, o prisma e onde está a chave. Não há "próxima faixa": o back não entrega esse valor.
 export function TicketItens({ veiculo, comQuadros, prismaAtivo, onGuardarChave, onEditarPrisma }: TicketItensProps) {
   const temGancho = Boolean(veiculo.posicaoChave);
 
@@ -28,14 +28,6 @@ export function TicketItens({ veiculo, comQuadros, prismaAtivo, onGuardarChave, 
           <Mono>{formatDateTime(veiculo.dataHoraEntrada)}</Mono>
         </dd>
       </Item>
-      {veiculo.codigoTicket !== null && (
-        <Item>
-          <dt>Ticket</dt>
-          <dd>
-            <Mono>{veiculo.codigoTicket}</Mono>
-          </dd>
-        </Item>
-      )}
       <Item>
         <dt>Tabela de preço</dt>
         <dd>{veiculo.rotatividadeDescricao ?? TRACO}</dd>
@@ -44,6 +36,14 @@ export function TicketItens({ veiculo, comQuadros, prismaAtivo, onGuardarChave, 
         <dt>Registrado por</dt>
         <dd>{veiculo.usuarioEntrada ?? TRACO}</dd>
       </Item>
+      {veiculo.codigoTicket !== null && (
+        <Item>
+          <dt>Ticket</dt>
+          <dd>
+            <Mono>{veiculo.codigoTicket}</Mono>
+          </dd>
+        </Item>
+      )}
       {(prismaAtivo || veiculo.prisma !== null) && (
         <Item>
           <dt>Prisma</dt>

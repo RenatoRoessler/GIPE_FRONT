@@ -2,16 +2,15 @@
 
 import styled from "styled-components";
 
-// Cartão com identidade própria dentro do ticket: um degrau acima do fundo, com a gota e o rótulo em mono.
+// Área de trabalho dentro do ticket: um degrau acima do fundo, sem contorno, com o rótulo em mono.
 export const Secao = styled.section`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[2]}px;
   min-width: 0;
   padding: ${({ theme }) => theme.space[3]}px;
-  border-radius: ${({ theme }) => theme.radii.xl};
+  border-radius: ${({ theme }) => theme.radii.lg};
   background-color: ${({ theme }) => theme.colors.surfaceMuted};
-  box-shadow: inset 0 0 0 1px ${({ theme }) => theme.colors.border};
 `;
 
 export const Cabecalho = styled.div`
@@ -62,11 +61,12 @@ export const BotaoVazio = styled.button`
   min-height: ${({ theme }) => theme.layout.touchTarget};
   padding: ${({ theme }) => theme.space[3]}px;
   border: 1px dashed ${({ theme }) => theme.colors.borderStrong};
-  border-radius: ${({ theme }) => theme.radii.lg};
+  border-radius: ${({ theme }) => theme.radii.md};
   background: transparent;
   color: ${({ theme }) => theme.colors.text};
   font: inherit;
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
   cursor: pointer;
 
   &:hover {
