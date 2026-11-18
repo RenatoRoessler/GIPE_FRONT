@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import {
   Acoes,
   Apoio,
@@ -60,14 +60,31 @@ function MarcaIcone({ estado }: { estado: EstadoSecao }) {
   );
 }
 
+const ALTURA_VAR = "--painel-cadastro-altura";
+
 // Painel de conclusão dos formulários de cadastro: progresso por seção, atalho para cada uma e as ações.
-// Em telas grandes fica fixo ao lado do formulário; no celular e no tablet vira uma barra fixa acima da navegação.
+// Em telas grandes fica fixo ao lado do formulário; no celular e no tablet vira uma barra fixa acima da navegação,
+// e publica a própria altura em `--painel-cadastro-altura` (no <html>) para o fim do formulário não ficar atrás dela.
 export function PainelCadastro({ secoes, onSelect, status, children }: PainelCadastroProps) {
+  const ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const raiz = document.documentElement;
+    const publicar = () => raiz.style.setProperty(ALTURA_VAR, `${ref.current?.offsetHeight ?? 0}px`);
+    publicar();
+    const observador = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(publicar);
+    if (ref.current) observador?.observe(ref.current);
+    return () => {
+      observador?.disconnect();
+      raiz.style.removeProperty(ALTURA_VAR);
+    };
+  }, []);
+
   const prontas = secoes.filter((secao) => secao.estado === "pronta").length;
   const texto = status ?? `${prontas} de ${secoes.length} ${secoes.length === 1 ? "seção pronta" : "seções prontas"}`;
 
   return (
-    <Painel aria-label="Conclusão do cadastro">
+    <Painel ref={ref} aria-label="Conclusão do cadastro">
       <Progresso>
         <Status>{texto}</Status>
         <Trilho aria-hidden="true">

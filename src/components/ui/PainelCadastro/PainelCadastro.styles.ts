@@ -3,14 +3,17 @@
 import styled, { css } from "styled-components";
 import type { EstadoSecao } from "./PainelCadastro";
 
-// Formulário à esquerda e painel à direita em telas grandes; abaixo disso, uma coluna só com o painel no fim.
-// Em uma coluna é flex, e não grid: o sticky de um item de grid fica preso à própria célula, e a barra não grudaria.
+// Formulário à esquerda e painel à direita em telas grandes; abaixo disso, uma coluna só, com o painel fixo
+// acima do menu inferior. O fim do formulário reserva a altura da barra (`--painel-cadastro-altura`, publicada
+// pelo painel), menos a sobra do botão de Entrada, que a página já reserva junto com o menu.
 export const Corpo = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[4]}px;
+  padding-bottom: calc(var(--painel-cadastro-altura, 0px) - ${({ theme }) => theme.layout.bottomNavOverhang});
 
   @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+    padding-bottom: 0;
     display: grid;
     grid-template-columns:
       minmax(0, 1fr)
@@ -19,30 +22,34 @@ export const Corpo = styled.div`
   }
 `;
 
-// Celular e tablet: barra de ações fixa logo acima da navegação inferior, enquanto o formulário estiver na tela.
+// Celular e tablet: barra de ações fixa na base, de ponta a ponta, encostada no menu inferior. O botão de Entrada
+// sobressai sobre a folga de baixo da barra (o menu fica por cima), nunca sobre os botões.
 // Telas grandes: painel lateral fixo abaixo do cabeçalho.
 export const Painel = styled.aside`
-  position: sticky;
-  bottom: calc(
-    ${({ theme }) => theme.layout.bottomNavReserved} + env(safe-area-inset-bottom, 0px) +
-      ${({ theme }) => theme.space[2]}px
-  );
+  position: fixed;
+  right: 0;
+  bottom: calc(${({ theme }) => theme.layout.bottomNavHeight} + env(safe-area-inset-bottom, 0px));
+  left: 0;
   z-index: 10;
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[2]}px;
   padding: ${({ theme }) => theme.space[3]}px;
-  border-radius: ${({ theme }) => theme.radii.lg};
-  background-color: ${({ theme }) => theme.colors.background};
-  box-shadow: ${({ theme }) => theme.shadows.md};
+  padding-bottom: calc(${({ theme }) => theme.space[3]}px + ${({ theme }) => theme.layout.bottomNavOverhang});
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  background-color: ${({ theme }) => theme.colors.surface};
 
   @media (min-width: ${({ theme }) => theme.breakpoints.lg}) {
+    position: sticky;
     top: ${({ theme }) => theme.layout.stickyTop};
+    right: auto;
     bottom: auto;
+    left: auto;
     gap: ${({ theme }) => theme.space[4]}px;
     padding: ${({ theme }) => theme.space[4]}px;
     border: 1px solid ${({ theme }) => theme.colors.border};
-    box-shadow: none;
+    border-radius: ${({ theme }) => theme.radii.lg};
+    background-color: ${({ theme }) => theme.colors.background};
   }
 `;
 
