@@ -13,6 +13,8 @@ const FOLGA_FORA_DA_VISTA = 40;
 const DELTA_MAXIMO_MS = 50;
 // Parar some com o carro, põe na vaga e mostra de novo (a transição de opacidade fica no CSS do Logo).
 export const FADE_PARADA_MS = 150;
+// Terminada sozinha (carro estacionado), a animação recomeça depois deste intervalo. Parada pelo usuário, não.
+export const INTERVALO_REINICIO_MS = 2 * 60 * 1000;
 
 const MOVIMENTO_REDUZIDO = "(prefers-reduced-motion: reduce)";
 
@@ -70,23 +72,41 @@ function criarAnimacao(elementos: ElementosDoCarro, area: HTMLElement | null, es
 
   const preferencia = window.matchMedia(MOVIMENTO_REDUZIDO);
   let ativa = true;
+  // false depois que o usuário para (ou liga o movimento reduzido): aí não há mais reinício.
+  let viva = true;
   let quadro: number | null = null;
   let fade: ReturnType<typeof setTimeout> | null = null;
+  let reinicio: ReturnType<typeof setTimeout> | null = null;
   let tempo = 0;
   let ultimo: number | null = null;
 
   function soltar() {
     ativa = false;
+    viva = false;
     if (quadro !== null) cancelAnimationFrame(quadro);
     quadro = null;
+    if (reinicio !== null) clearTimeout(reinicio);
+    reinicio = null;
     observador?.disconnect();
     preferencia.removeEventListener?.("change", aoMudarPreferencia);
   }
 
+  function iniciar() {
+    reinicio = null;
+    tempo = 0;
+    ultimo = null;
+    ativa = true;
+    quadro = requestAnimationFrame(passo);
+  }
+
+  // Parar durante a animação devolve true (quem é link deixa de navegar). Em repouso, entre um ciclo e outro,
+  // devolve false, mas cancela o próximo reinício: o usuário já interagiu com o logo.
   function parar() {
-    if (!ativa) return false;
+    if (!viva) return false;
+    const estavaAnimando = ativa;
     soltar();
     aoEncerrar();
+    if (!estavaAnimando) return false;
     const grupo = elementos.carro;
     if (grupo) grupo.style.opacity = "0";
     fade = setTimeout(() => {
@@ -109,28 +129,30 @@ function criarAnimacao(elementos: ElementosDoCarro, area: HTMLElement | null, es
     ultimo = agora;
     tempo += delta / 1000;
     if (terminou(tempo)) {
+      // Terminou sozinha: carro na vaga, e daqui a 2 minutos começa de novo.
       aplicar(elementos, POSE_REPOUSO);
-      soltar();
-      aoEncerrar();
+      ativa = false;
+      quadro = null;
+      reinicio = setTimeout(iniciar, INTERVALO_REINICIO_MS);
       return;
     }
     aplicar(elementos, poseNoTempo(tempo, trilho));
     quadro = requestAnimationFrame(passo);
   }
-  quadro = requestAnimationFrame(passo);
+  iniciar();
 
   return {
     parar,
     destruir() {
-      if (ativa) soltar();
+      if (viva) soltar();
       if (fade !== null) clearTimeout(fade);
     },
   };
 }
 
-// Roda o trajeto do carro (carroTrajeto) no cliente, com `ativo` e sem preferência por movimento reduzido;
-// termina sozinha com o carro na vaga, ou antes, por `parar()`. Depois de parada ou terminada, não recomeça
-// enquanto o logo estiver montado.
+// Roda o trajeto do carro (carroTrajeto) no cliente, com `ativo` e sem preferência por movimento reduzido.
+// Termina sozinha com o carro na vaga e recomeça a cada 2 minutos; `parar()` encerra de vez (não recomeça
+// enquanto o logo estiver montado).
 export function useAnimacaoDoCarro({ ativo, area, alturaSimbolo }: AnimacaoDoCarroOpcoes): AnimacaoDoCarro {
   const carro = useRef<SVGGElement>(null);
   const freio = useRef<SVGGElement>(null);
