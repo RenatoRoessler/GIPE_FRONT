@@ -24,6 +24,7 @@ O logo do Murel tem a animação do exemplo (o carro entra pela rua, estaciona n
   5. O logo fica vazio por um instante antes do próximo ciclo.
 - RF2: Os detalhes do carro do exemplo fazem parte da animação: faróis com facho de luz, luz de freio e luz de ré.
 - RF3: A animação roda **2 ciclos** (cerca de 30 segundos no total) e **para com o carro estacionado na vaga do meio**, ou seja, o logo termina igual ao logo estático de hoje.
+- RF3a: **Reinício (revisão de 2026-11-18):** terminada sozinha, a animação espera **2 minutos** com o carro estacionado e roda os 2 ciclos de novo, enquanto a página estiver aberta. Se o usuário parar pelo logo (RF14), ela não recomeça mais.
 - RF4: O carro segue as regras de cor da marca: amarelo nos temas claro e escuro; sobre fundo amarelo, tudo em asfalto, como o logo já faz hoje.
 
 ### Onde anima
@@ -66,7 +67,7 @@ O logo do Murel tem a animação do exemplo (o carro entra pela rua, estaciona n
 - [ ] O logo do cabeçalho continua levando ao início e mantém o nome acessível.
 
 ## Decisões
-- **Ciclos:** 2 (cerca de 30 segundos), terminando com o carro estacionado.
+- **Ciclos:** 2 (cerca de 30 segundos), terminando com o carro estacionado; recomeça a cada 2 minutos, salvo se o usuário parar pelo logo.
 - **Acessibilidade (WCAG 2.2.2):** como a animação passa de 5 segundos, ela pode ser parada pelo próprio logo (RF14 a RF16), além de não rodar com a preferência de movimento reduzido.
 - **Contrato:** as páginas de aceite e de mensagem do contrato contam como páginas públicas e animam.
 

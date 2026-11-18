@@ -72,7 +72,7 @@ export function useAnimacaoDoCarro(opcoes: {
 - **Trilho**: medido no início e com `ResizeObserver` na `area`: `inicioX = larguraDaArea / escala + 40`, `fimX = −40` (40 = meia-comprimento do carro + folga). Com `compactOnMobile` a palavra some e a largura medida é a do símbolo, sem caso especial.
 - **Movimento reduzido no meio**: listener em `matchMedia(...).addEventListener("change")`; se passar a `reduce`, chama `parar()`.
 - **`parar()`**: se estava animando, cancela o quadro, aplica o fade (opacidade do grupo 1 → 0 em 150 ms, `POSE_REPOUSO`, 0 → 1 em 150 ms, via transição CSS em `opacity`), marca como parado e devolve `true`. Se já estava em repouso, devolve `false`. Depois de parar, não recomeça.
-- **Fim natural**: ao `terminou(t)`, aplica `POSE_REPOUSO` e marca `animando = false` (um único `setState`, no fim).
+- **Fim natural**: ao `terminou(t)`, aplica `POSE_REPOUSO` e agenda o reinício com `setTimeout(INTERVALO_REINICIO_MS = 2 min)`, que zera o tempo e volta ao laço. `parar()` durante a espera cancela o reinício e devolve `false` (revisão de 2026-11-18).
 - **Limpeza**: `cancelAnimationFrame`, `disconnect` do observer e remoção do listener no desmontar.
 
 ### 3. `src/components/ui/Logo/MurelSymbol.tsx`

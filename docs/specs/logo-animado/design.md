@@ -71,7 +71,8 @@ Com a palavra "murel", o carro entra pela direita da palavra e passa por baixo d
 
 - **Gatilhos**: `pointerenter` com mouse, `focus` (incluindo `focus-visible` do link do cabeçalho) e toque (`pointerdown` com dedo ou caneta).
 - **Transição**: o carro some em 150 ms (opacidade 1 → 0), é posicionado na vaga e reaparece em 150 ms (0 → 1), com as luzes apagadas. Sem trajeto de volta: parar não pode ser mais movimento.
-- Depois de parada, a animação **não recomeça** enquanto a página estiver aberta (nem ao tirar o mouse ou perder o foco).
+- Depois de parada, a animação **não recomeça** enquanto a página estiver aberta (nem ao tirar o mouse ou perder o foco), nem pelo reinício de 2 minutos.
+- **Reinício (revisão de 2026-11-18):** terminada sozinha, a sequência recomeça 2 minutos depois, com o carro saindo da vaga. Interagir com o logo durante esse intervalo cancela o próximo reinício (o toque, nesse caso, não é uma parada: no cabeçalho, ele navega).
 - **Cabeçalho** (o logo é o link "Murel — ir para o início"):
   - Toque ou clique **durante** a animação: só para; a navegação daquele toque é cancelada.
   - Toque ou clique **com a animação em repouso**: navega para o início, como hoje.
