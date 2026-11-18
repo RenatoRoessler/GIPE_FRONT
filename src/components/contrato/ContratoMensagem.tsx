@@ -52,7 +52,7 @@ export function ContratoMensagem({ kind }: { kind: ContratoMensagemKind }) {
     <Screen data-print-area="">
       <Column>
         <LogoBox>
-          <Logo />
+          <Logo animated />
         </LogoBox>
         <Message>
           <Icon kind={kind} />

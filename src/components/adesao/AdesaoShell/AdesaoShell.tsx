@@ -52,7 +52,7 @@ export function AdesaoShell({
   return (
     <Pagina>
       <Topo>
-        <Logo align="start" size={32} compactOnMobile />
+        <Logo align="start" size={32} compactOnMobile animated />
         <StepperArea>
           <Stepper steps={etapas} currentStep={etapaAtual} onStepClick={onEtapaClick} compact />
         </StepperArea>

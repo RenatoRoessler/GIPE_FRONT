@@ -129,7 +129,7 @@ function Comprovante({ comprovante }: { comprovante: ComprovanteCliente }) {
   return (
     <Page>
       <Top>
-        <Logo align="start" size={28} />
+        <Logo align="start" size={28} animated />
         <Eyebrow>Comprovante de entrada</Eyebrow>
         <Company>{comprovante.razaoSocial}</Company>
         {comprovante.endereco && <p>{comprovante.endereco}</p>}

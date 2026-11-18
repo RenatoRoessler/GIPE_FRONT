@@ -102,7 +102,7 @@ export function ConsultaTicketPublica({ empresaGuid }: ConsultaTicketPublicaProp
   return (
     <Page>
       <Top>
-        <Logo align="start" size={28} />
+        <Logo align="start" size={28} animated />
         <Eyebrow>Ticket digital</Eyebrow>
         <Company>Consulte seu ticket</Company>
         <p>Digite a placa do seu veículo.</p>

@@ -131,7 +131,7 @@ function Recibo({ recibo, token }: { recibo: ReciboCliente; token: string }) {
   return (
     <Page>
       <ReciboTop>
-        <Logo align="start" size={28} />
+        <Logo align="start" size={28} animated />
         <ReciboEyebrow>Recibo de saída</ReciboEyebrow>
         <Company>{recibo.razaoSocial}</Company>
         {recibo.cnpj && <p>CNPJ {formatCNPJ(recibo.cnpj)}</p>}

@@ -44,7 +44,7 @@ function Moldura({ children }: { children: ReactNode }) {
     <Screen data-print-area="">
       <Column>
         <LogoBox data-no-print="">
-          <Logo />
+          <Logo animated />
         </LogoBox>
         {children}
       </Column>
