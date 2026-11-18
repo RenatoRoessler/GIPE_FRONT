@@ -1,2 +1,1 @@
-melhorias no ticket de entrada
-deve ficar igual ao [text](../../../../Users/renat/Downloads/murel_ticket_entrada_redesign_v5.html)
+criar animação no logo do murel igual ao exemplo [text](../../../../Users/renat/Downloads/murel-patio-celular.html)
