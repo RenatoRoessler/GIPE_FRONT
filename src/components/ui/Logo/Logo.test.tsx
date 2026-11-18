@@ -186,4 +186,76 @@ describe("Logo animado", () => {
     });
     expect(carro?.getAttribute("transform")).toBe("translate(0.00 0.00) rotate(0.00 120 95)");
   });
+
+  describe("reinício", () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    // Roda quadros de 50ms até a sequência acabar (o laço para de agendar).
+    function rodarAteOFim() {
+      act(() => {
+        let agora = 0;
+        for (let i = 0; i < 600; i += 1) {
+          quadros.at(-1)?.(agora);
+          agora += 50;
+        }
+      });
+    }
+
+    it("terminada sozinha, recomeça depois de 2 minutos", () => {
+      simularMovimento(false);
+      renderWithTheme(<Logo animated />);
+      rodarAteOFim();
+      const agendados = quadros.length;
+
+      act(() => {
+        vi.advanceTimersByTime(2 * 60 * 1000 - 1);
+      });
+      expect(quadros).toHaveLength(agendados);
+
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(quadros).toHaveLength(agendados + 1);
+    });
+
+    it("parada pelo usuário, não recomeça", () => {
+      simularMovimento(false);
+      const ref = createRef<LogoHandle>();
+      renderWithTheme(<Logo animated ref={ref} />);
+      act(() => {
+        ref.current?.parar();
+      });
+      const agendados = quadros.length;
+
+      act(() => {
+        vi.advanceTimersByTime(10 * 60 * 1000);
+      });
+      expect(quadros).toHaveLength(agendados);
+    });
+
+    it("interagir com o logo em repouso cancela o próximo reinício, sem contar como parada", () => {
+      simularMovimento(false);
+      const ref = createRef<LogoHandle>();
+      renderWithTheme(<Logo animated ref={ref} />);
+      rodarAteOFim();
+      const agendados = quadros.length;
+
+      let parou = true;
+      act(() => {
+        parou = ref.current?.parar() ?? true;
+      });
+      expect(parou).toBe(false);
+
+      act(() => {
+        vi.advanceTimersByTime(10 * 60 * 1000);
+      });
+      expect(quadros).toHaveLength(agendados);
+    });
+  });
 });
