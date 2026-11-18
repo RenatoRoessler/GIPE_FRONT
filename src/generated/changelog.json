@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.464",
+      "type": "feat",
+      "scope": "ticket",
+      "title": "redesenha o ticket de entrada com o valor em destaque",
+      "description": "O ticket aberto a partir do Pátio agora se lê de cima para baixo: primeiro\no carro, depois quanto ele deve, depois os detalhes e os serviços.\n\n- A placa, o tipo, o modelo e a permanência ficam juntos num só cartão.\n- O valor até agora ganha um cartão próprio, em amarelo, sempre que há\n  algo a cobrar; para mensalistas ou sem cobrança ele fica neutro.\n- \"Comprovante cliente\" e \"Registrar saída\" ficam fixos no rodapé, sempre\n  à mão, mesmo quando o ticket é longo.\n- O título passa a ser \"Ticket Entrada - <código>\", centralizado.\n- O número do ticket aparece depois de \"Registrado por\" na lista de\n  detalhes, e a seção de serviços adicionais ficou mais leve.",
+      "date": "2026-11-18T16:00:07-03:00"
+    },
+    {
       "version": "1.0.461",
       "type": "feat",
       "scope": "servicos",
