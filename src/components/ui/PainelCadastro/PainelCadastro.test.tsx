@@ -51,4 +51,16 @@ describe("PainelCadastro", () => {
 
     expect(onSelect).toHaveBeenCalledWith("b");
   });
+
+  it("publica a altura da barra para o formulário reservar o espaço, e a retira ao sair", () => {
+    const { unmount } = renderWithTheme(
+      <PainelCadastro secoes={SECOES} onSelect={() => {}}>
+        <button type="button">Salvar</button>
+      </PainelCadastro>,
+    );
+
+    expect(document.documentElement.style.getPropertyValue("--painel-cadastro-altura")).toMatch(/^\d+px$/);
+    unmount();
+    expect(document.documentElement.style.getPropertyValue("--painel-cadastro-altura")).toBe("");
+  });
 });
