@@ -2,6 +2,22 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.470",
+      "type": "feat",
+      "scope": "logo",
+      "title": "anima o logo do Murel com o carro entrando e saindo da vaga",
+      "description": "O carro do logo agora \"vive\" o pátio: sai de ré da vaga, vai embora pela\nrua, volta, faz a curva e estaciona, com faróis, luz de freio e luz de\nré. São duas idas e vindas, e no fim o carro fica estacionado, como no\nlogo de sempre.\n\n- Aparece no topo do sistema, no login, na adesão, no comprovante, na\n  consulta do ticket, no recibo e nas páginas do contrato.\n- Passar o mouse, focar ou tocar no logo para a animação na hora. No\n  topo do sistema, o primeiro toque durante a animação só para; depois,\n  o logo leva ao início como sempre.\n- Quem prefere menos movimento no aparelho vê o logo parado, e a\n  impressão sai sempre com o carro estacionado.",
+      "date": "2026-11-18T16:45:45-03:00"
+    },
+    {
+      "version": "1.0.468",
+      "type": "fix",
+      "scope": "cadastro",
+      "title": "fixa a barra de salvar no rodapé, encostada no menu",
+      "description": "No celular e no tablet, a barra com \"Descartar alterações\" e \"Salvar\"\nflutuava acima do menu inferior, com um vão por onde aparecia o campo\nde baixo. Agora ela fica fixa na base da tela, de ponta a ponta, logo\nacima do menu, e o fim do formulário reserva o espaço dela para nenhum\ncampo ficar escondido. Vale para Minha empresa, nova empresa, nova\nconveniada e cadastro de preços. No computador o painel lateral não muda.",
+      "date": "2026-11-18T16:45:45-03:00"
+    },
+    {
       "version": "1.0.464",
       "type": "feat",
       "scope": "ticket",
