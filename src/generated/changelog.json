@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.475",
+      "type": "feat",
+      "scope": "logo",
+      "title": "repete a animação do logo a cada 2 minutos",
+      "description": "Depois das duas idas e vindas, o carro fica estacionado por 2 minutos e\na animação começa de novo, enquanto a página estiver aberta. Se você\nparar a animação pelo logo (mouse, foco ou toque), ela não volta mais.\nCom \"menos movimento\" ligado no aparelho, continua sem animação.",
+      "date": "2026-11-18T18:15:50-03:00"
+    },
+    {
       "version": "1.0.470",
       "type": "feat",
       "scope": "logo",
