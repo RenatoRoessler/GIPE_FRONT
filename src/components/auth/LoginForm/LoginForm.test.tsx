@@ -28,6 +28,17 @@ import { LoginForm } from "./LoginForm";
 import { PrimeiroAcessoForm } from "../PrimeiroAcessoForm";
 
 const entrar = vi.mocked(login);
+
+const EMAIL = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress";
+const ROLE = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+
+// Token com a role do perfil, como o back-end emite: a tela inicial depende dele.
+function tokenDoPerfil(perfil: number) {
+  const encode = (valor: object) => btoa(JSON.stringify(valor)).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+  return `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ [EMAIL]: "a@b.co", [ROLE]: String(perfil) })}.assinatura`;
+}
+
+const TOKEN_ADMIN = tokenDoPerfil(1);
 const CPF = "529.982.247-25";
 
 type User = ReturnType<typeof userEvent.setup>;
@@ -85,19 +96,44 @@ describe("LoginForm: primeiro acesso", () => {
 
   it("sessão: salva o token e vai ao dashboard", async () => {
     const user = userEvent.setup();
-    entrar.mockResolvedValue({ kind: "sessao", token: "sessao-token" });
+    entrar.mockResolvedValue({ kind: "sessao", token: TOKEN_ADMIN });
     renderWithProviders(<LoginForm />);
     await preencherEEnviar(user);
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/dashboard"));
-    expect(saveToken).toHaveBeenCalledWith("sessao-token");
+    expect(saveToken).toHaveBeenCalledWith(TOKEN_ADMIN);
     expect(clearRememberedLogin).toHaveBeenCalled();
     expect(getPasswordChange()).toBeNull();
   });
 
+  it("cada perfil abre na primeira tela que pode usar: o Gerente no Pátio e o Financeiro no Financeiro", async () => {
+    for (const [perfil, destino] of [
+      [2, "/patio"],
+      [8, "/financeiro"],
+    ] as const) {
+      push.mockClear();
+      entrar.mockResolvedValue({ kind: "sessao", token: tokenDoPerfil(perfil) });
+      const user = userEvent.setup();
+      const { unmount } = renderWithProviders(<LoginForm />);
+      await preencherEEnviar(user);
+
+      await waitFor(() => expect(push).toHaveBeenCalledWith(destino));
+      unmount();
+    }
+  });
+
+  it("token sem perfil conhecido abre a própria conta, não uma área", async () => {
+    const user = userEvent.setup();
+    entrar.mockResolvedValue({ kind: "sessao", token: "sem-perfil" });
+    renderWithProviders(<LoginForm />);
+    await preencherEEnviar(user);
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/usuario"));
+  });
+
   it("sessão com Lembrar CPF marcado: salva só o CPF", async () => {
     const user = userEvent.setup();
-    entrar.mockResolvedValue({ kind: "sessao", token: "sessao-token" });
+    entrar.mockResolvedValue({ kind: "sessao", token: TOKEN_ADMIN });
     renderWithProviders(<LoginForm />);
     await preencherEEnviar(user, { lembrar: true });
 
@@ -185,20 +221,20 @@ describe("LoginForm: usuário com mais de uma empresa", () => {
 
   it("escolher a empresa envia o token de pré-autenticação e o guid, salva a sessão e vai ao dashboard", async () => {
     const user = userEvent.setup();
-    selecionar.mockResolvedValue("token-da-empresa");
+    selecionar.mockResolvedValue(TOKEN_ADMIN);
     await ateAEscolha(user);
 
     await user.click(screen.getByRole("button", { name: /Entrar em Filial Norte/ }));
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/dashboard"));
     expect(selecionar).toHaveBeenCalledWith({ preAuthToken: "pre", empresaGuid: "guid-b" });
-    expect(saveToken).toHaveBeenCalledWith("token-da-empresa");
+    expect(saveToken).toHaveBeenCalledWith(TOKEN_ADMIN);
     expect(clearRememberedLogin).toHaveBeenCalled();
   });
 
   it("com Lembrar CPF marcado, a credencial só é salva depois de escolher a empresa", async () => {
     const user = userEvent.setup();
-    selecionar.mockResolvedValue("token-da-empresa");
+    selecionar.mockResolvedValue(TOKEN_ADMIN);
     await ateAEscolha(user, { lembrar: true });
     expect(saveRememberedLogin).not.toHaveBeenCalled();
 
@@ -230,7 +266,7 @@ describe("LoginForm: usuário com mais de uma empresa", () => {
     expect(screen.getByRole("button", { name: /Entrar em Central/ })).toBeEnabled();
     expect(push).not.toHaveBeenCalled();
 
-    selecionar.mockResolvedValue("token-da-empresa");
+    selecionar.mockResolvedValue(TOKEN_ADMIN);
     await user.click(screen.getByRole("button", { name: /Entrar em Central/ }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/dashboard"));
   });
@@ -272,7 +308,7 @@ describe("LoginForm: usuário com mais de uma empresa", () => {
 
   it("uma só empresa continua entrando direto, sem a etapa de escolha", async () => {
     const user = userEvent.setup();
-    entrar.mockResolvedValue({ kind: "sessao", token: "sessao-token" });
+    entrar.mockResolvedValue({ kind: "sessao", token: TOKEN_ADMIN });
     renderWithProviders(<LoginForm />);
     await preencherEEnviar(user);
 

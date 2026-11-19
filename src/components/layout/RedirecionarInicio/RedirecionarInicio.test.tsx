@@ -30,11 +30,25 @@ describe("RedirecionarInicio", () => {
     expect(replace).toHaveBeenCalledWith("/patio");
   });
 
-  it("tela pequena sem acesso ao Pátio vai ao Dashboard", () => {
+  it("quem não vê a Visão Geral vai ao Pátio mesmo em tela grande", () => {
+    telaDe(true);
+    sessao.atual = { user: { perfil: 2 }, isLoading: false };
+    render(<RedirecionarInicio />);
+    expect(replace).toHaveBeenCalledWith("/patio");
+  });
+
+  it("sem acesso ao Pátio nem à Visão Geral, vai à primeira tela do menu (Financeiro)", () => {
     telaDe(false);
     sessao.atual = { user: { perfil: 8 }, isLoading: false };
     render(<RedirecionarInicio />);
-    expect(replace).toHaveBeenCalledWith("/dashboard");
+    expect(replace).toHaveBeenCalledWith("/financeiro");
+  });
+
+  it("perfil desconhecido vai à própria conta", () => {
+    telaDe(true);
+    sessao.atual = { user: { perfil: null }, isLoading: false };
+    render(<RedirecionarInicio />);
+    expect(replace).toHaveBeenCalledWith("/usuario");
   });
 
   it("espera a sessão carregar antes de decidir", () => {

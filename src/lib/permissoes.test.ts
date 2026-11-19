@@ -10,7 +10,7 @@ const { Administrador, Gerente, Caixa, Manobrista, Financeiro, Lavador, Administ
 const TODOS: PerfilUsuario[] = [Administrador, Gerente, Caixa, Manobrista, Financeiro, Lavador, AdministradorConveniada, GerenteConveniada, UsuarioConveniada];
 
 const PERMITIDOS: Record<Area, PerfilUsuario[]> = {
-  [AREA.Inicio]: [Administrador, Gerente, Caixa, Manobrista, Financeiro, Lavador],
+  [AREA.Inicio]: [Administrador],
   [AREA.Patio]: [Administrador, Gerente, Caixa, Manobrista],
   [AREA.Caixa]: [Administrador, Gerente, Caixa, Manobrista],
   [AREA.CaixaSangria]: [Administrador, Gerente, Caixa],
@@ -44,11 +44,20 @@ describe("podeAcessar", () => {
     }
   }
 
-  it("sem perfil conhecido só libera o início", () => {
+  it("sem perfil conhecido não libera nenhuma área", () => {
     for (const area of Object.values(AREA)) {
-      expect(podeAcessar(null, area)).toBe(area === AREA.Inicio);
-      expect(podeAcessar(undefined, area)).toBe(area === AREA.Inicio);
+      expect(podeAcessar(null, area)).toBe(false);
+      expect(podeAcessar(undefined, area)).toBe(false);
     }
+  });
+
+  it("a Visão Geral é só do Administrador por padrão, e a permissão por módulo pode liberá-la a outro perfil", () => {
+    expect(podeAcessar(Administrador, AREA.Inicio)).toBe(true);
+    for (const perfil of [Gerente, Caixa, Manobrista, Financeiro, Lavador]) {
+      expect(podeAcessar(perfil, AREA.Inicio)).toBe(false);
+    }
+    expect(podeAcessar(Gerente, AREA.Inicio, { [AREA.Inicio]: [Administrador, Gerente] })).toBe(true);
+    expect(podeAcessar(Administrador, AREA.Inicio, { [AREA.Inicio]: [Gerente] })).toBe(false);
   });
 
   it("a permissão por módulo substitui a regra padrão da área", () => {

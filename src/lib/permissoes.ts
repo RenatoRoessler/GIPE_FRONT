@@ -47,17 +47,12 @@ export type PermissoesPorModulo = Partial<Record<Area, readonly PerfilUsuario[]>
 const { Administrador, Gerente, Caixa, Manobrista, Financeiro, Lavador, AdministradorConveniada, GerenteConveniada, UsuarioConveniada } =
   PERFIL_USUARIO;
 
-const TODOS: readonly PerfilUsuario[] = Object.values(PERFIL_USUARIO);
-
-// A conveniada vive no Carimbo e no Pátio da conveniada: não tem Dashboard nem gestão de usuários.
-const SEM_CONVENIADA: readonly PerfilUsuario[] = TODOS.filter(
-  (perfil) => perfil !== AdministradorConveniada && perfil !== GerenteConveniada && perfil !== UsuarioConveniada,
-);
-
 // Regra padrão por perfil, igual à do back-end. Perfis fora da lista não acessam a área.
 // Provisório (não consta no levantamento do back): A consulta de Mensalistas segue Administrador e Gerente.
 export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
-  [AREA.Inicio]: SEM_CONVENIADA,
+  // Início é a Visão Geral (/dashboard): faturamento, pátio e pendências. Só o Administrador a vê por padrão; a permissão por módulo
+  // pode liberá-la a outros perfis. Quem não a acessa abre na primeira tela que pode usar (ver `telaInicial`).
+  [AREA.Inicio]: [Administrador],
   [AREA.Patio]: [Administrador, Gerente, Caixa, Manobrista],
   [AREA.Caixa]: [Administrador, Gerente, Caixa, Manobrista],
   [AREA.CaixaSangria]: [Administrador, Gerente, Caixa],
@@ -81,10 +76,10 @@ export const PERMISSOES_PADRAO: Record<Area, readonly PerfilUsuario[]> = {
   [AREA.ServicosPatio]: [Administrador, Gerente, Caixa, Manobrista],
 };
 
-// Sem perfil conhecido, só o acesso mínimo: o Início (e, fora das áreas, a troca da própria senha e o sair).
+// Sem perfil conhecido, nenhuma área: sobram só as rotas fora das áreas (a troca da própria senha e o sair).
 export function podeAcessar(perfil: PerfilUsuario | null | undefined, area: Area, overrides?: PermissoesPorModulo): boolean {
   if (perfil === null || perfil === undefined) {
-    return area === AREA.Inicio;
+    return false;
   }
   const perfis = overrides?.[area] ?? PERMISSOES_PADRAO[area];
   return perfis.includes(perfil);

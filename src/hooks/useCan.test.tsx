@@ -33,9 +33,9 @@ describe("useCan", () => {
     expect(pode(AREA.Patio)).toBe(false);
   });
 
-  it("perfil desconhecido só tem o início", () => {
+  it("perfil desconhecido não tem nenhuma área", () => {
     sessao.atual = { user: { name: "Zé", perfil: null }, isLoading: false };
-    expect(pode(AREA.Inicio)).toBe(true);
+    expect(pode(AREA.Inicio)).toBe(false);
     expect(pode(AREA.Caixa)).toBe(false);
   });
 

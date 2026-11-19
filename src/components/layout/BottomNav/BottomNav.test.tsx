@@ -114,7 +114,8 @@ describe("BottomNav: itens da barra", () => {
     sessao.atual = { user: { name: "Ana", perfil: 8 }, isLoading: false };
     renderWithTheme(<BottomNav />);
 
-    expect(screen.getByRole("link", { name: "Visão Geral" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Visão Geral" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Financeiro" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Notas" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Catálogo" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrada" })).not.toBeInTheDocument();
@@ -165,7 +166,7 @@ describe("BottomNav: menu estendido", () => {
     barra.capacidade = 4;
     await abrir();
 
-    expect(itensDoPainel()).toEqual(["Visão Geral", "Conferência de pátio", "Financeiro", "Faturas", "Notas Fiscais", "Configurações", "Gestão de Preços", "Catálogo de serviços", "Quadros de Chaves", "Mensalistas"]);
+    expect(itensDoPainel()).toEqual(["Conferência de pátio", "Financeiro", "Faturas", "Notas Fiscais", "Configurações", "Gestão de Preços", "Catálogo de serviços", "Quadros de Chaves", "Mensalistas"]);
   });
 
   it("marca a tela atual no painel, e só ela", async () => {
@@ -313,11 +314,11 @@ describe("BottomNav: Fila e Catálogo de serviços", () => {
     expect(within(painel()).getByRole("link", { name: "Catálogo de serviços", ...opcoes })).toHaveAttribute("href", "/servicos/catalogo");
   });
 
-  it("o Lavador vê a Visão Geral e a Fila na barra, com o rótulo curto, sem Mais", () => {
+  it("o Lavador vê só a Fila na barra, com o rótulo curto, sem Mais", () => {
     sessao.atual = { user: { name: "Lu", perfil: 9 }, isLoading: false };
     renderWithTheme(<BottomNav />);
 
-    expect(nomesDaBarra()).toEqual(["Visão Geral", "Fila"]);
+    expect(nomesDaBarra()).toEqual(["Fila"]);
     expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
   });
 
@@ -326,7 +327,7 @@ describe("BottomNav: Fila e Catálogo de serviços", () => {
     barra.capacidade = 4;
     renderWithTheme(<BottomNav />);
 
-    expect(nomesDaBarra()).toEqual(["Visão Geral", "Financeiro", "Faturas", "Notas"]);
+    expect(nomesDaBarra()).toEqual(["Financeiro", "Faturas", "Notas"]);
     expect(screen.queryByRole("button", { name: "Mais" })).not.toBeInTheDocument();
   });
 });

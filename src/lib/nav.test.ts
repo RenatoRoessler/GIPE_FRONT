@@ -205,7 +205,6 @@ describe("navItemsPermitidos", () => {
 
   it("o Gerente não vê usuários nem a empresa", () => {
     expect(rotulos(2)).toEqual([
-      "Visão Geral",
       "Pátio",
       "Entrada de Veículos",
       "Saída de Veículos",
@@ -223,13 +222,13 @@ describe("navItemsPermitidos", () => {
   });
 
   it("o Caixa e o Manobrista só veem o dia a dia do pátio e do caixa, com a fila de serviços", () => {
-    const esperado = ["Visão Geral", "Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio", "Fila de serviços", "Caixa"];
+    const esperado = ["Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio", "Fila de serviços", "Caixa"];
     expect(rotulos(4)).toEqual(esperado);
     expect(rotulos(3)).toEqual(esperado);
   });
 
-  it("o Financeiro vê a visão geral, o financeiro, as faturas e as notas fiscais, e nada de serviços", () => {
-    expect(rotulos(8)).toEqual(["Visão Geral", "Financeiro", "Faturas", "Notas Fiscais"]);
+  it("o Financeiro vê o financeiro, as faturas e as notas fiscais, e nada de serviços", () => {
+    expect(rotulos(8)).toEqual(["Financeiro", "Faturas", "Notas Fiscais"]);
   });
 
   it("o Administrador da conveniada vê só o carimbo e o pátio da conveniada", () => {
@@ -241,13 +240,20 @@ describe("navItemsPermitidos", () => {
     expect(rotulos(7)).toEqual(["Carimbar ticket", "Pátio da conveniada"]);
   });
 
-  it("o Lavador vê a visão geral e a fila de serviços", () => {
-    expect(rotulos(9)).toEqual(["Visão Geral", "Fila de serviços"]);
+  it("o Lavador vê só a fila de serviços", () => {
+    expect(rotulos(9)).toEqual(["Fila de serviços"]);
   });
 
-  it("sem perfil conhecido só o Início", () => {
-    expect(rotulos(null)).toEqual(["Visão Geral"]);
-    expect(rotulos(undefined)).toEqual(["Visão Geral"]);
+  it("a Visão Geral é só do Administrador: nenhum outro perfil a vê no menu", () => {
+    expect(rotulos(1)).toContain("Visão Geral");
+    for (const perfil of [2, 3, 4, 5, 6, 7, 8, 9] as const) {
+      expect(rotulos(perfil)).not.toContain("Visão Geral");
+    }
+  });
+
+  it("sem perfil conhecido, nenhum item do menu", () => {
+    expect(rotulos(null)).toEqual([]);
+    expect(rotulos(undefined)).toEqual([]);
   });
 });
 
@@ -272,9 +278,9 @@ describe("navItemsPorPrioridade", () => {
   });
 
   it("só traz o que o perfil pode abrir", () => {
-    expect(rotulos(4)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Visão Geral", "Conferência", "Fila"]);
-    expect(rotulos(8)).toEqual(["Visão Geral", "Financeiro", "Faturas", "Notas"]);
-    expect(rotulos(null)).toEqual(["Visão Geral"]);
+    expect(rotulos(4)).toEqual(["Pátio", "Entrada", "Saída", "Caixa", "Conferência", "Fila"]);
+    expect(rotulos(8)).toEqual(["Financeiro", "Faturas", "Notas"]);
+    expect(rotulos(null)).toEqual([]);
   });
 
   it("tem os mesmos itens do menu, só em outra ordem", () => {
@@ -328,9 +334,9 @@ describe("dividirItensDaBarra", () => {
     }
   });
 
-  it("perfil com poucos itens: em tela estreita o Dashboard vai para o Mais, em tela larga cabe tudo", () => {
+  it("perfil com poucos itens: em tela estreita o que sobra vai para o Mais, em tela larga cabe tudo", () => {
     const operador = navItemsPorPrioridade(4);
-    expect(dividirItensDaBarra(operador, 5).excedentes.map((item) => item.shortLabel)).toEqual(["Visão Geral", "Conferência", "Fila"]);
+    expect(dividirItensDaBarra(operador, 5).excedentes.map((item) => item.shortLabel)).toEqual(["Conferência", "Fila"]);
     expect(dividirItensDaBarra(operador, 8).excedentes).toEqual([]);
     // O Financeiro tem quatro itens: cabem nos espaços mínimos, sem Mais, em qualquer largura.
     const financeiro = navItemsPorPrioridade(8);
@@ -429,14 +435,10 @@ describe("agruparItens", () => {
 
   it("grupo sem item permitido não aparece", () => {
     expect(rotulos(4)).toEqual([
-      [null, ["Visão Geral"]],
       ["Operação", ["Pátio", "Entrada de Veículos", "Saída de Veículos", "Conferência de pátio", "Fila de serviços"]],
       ["Financeiro", ["Caixa"]],
     ]);
-    expect(rotulos(8)).toEqual([
-      [null, ["Visão Geral"]],
-      ["Financeiro", ["Financeiro", "Faturas", "Notas Fiscais"]],
-    ]);
+    expect(rotulos(8)).toEqual([["Financeiro", ["Financeiro", "Faturas", "Notas Fiscais"]]]);
   });
 
   it("os itens da conveniada ficam num bloco sem título", () => {

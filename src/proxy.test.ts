@@ -127,18 +127,26 @@ describe("proxy: permissão por perfil", () => {
     expect(chamar("/precos", tokenDoPerfil("Caixa")).headers.get("location")).toBe("http://localhost/acesso-negado");
   });
 
-  it.each(["/acesso-negado", "/usuario/editar", "/dashboard"])("%s abre para qualquer perfil", (caminho) => {
+  it.each(["/acesso-negado", "/usuario/editar"])("%s abre para qualquer perfil", (caminho) => {
     for (const perfil of [ADMINISTRADOR, MANOBRISTA, FINANCEIRO]) {
       expect(chamar(caminho, tokenDoPerfil(String(perfil))).headers.get("location")).toBeNull();
     }
   });
 
-  it("token ilegível ou sem role conhecida só acessa o início", () => {
+  it("a Visão Geral (/dashboard) é só do Administrador: os demais perfis vão ao acesso negado", () => {
+    expect(chamar("/dashboard", tokenDoPerfil(String(ADMINISTRADOR))).headers.get("location")).toBeNull();
+    for (const perfil of [MANOBRISTA, FINANCEIRO]) {
+      expect(chamar("/dashboard", tokenDoPerfil(String(perfil))).headers.get("location")).toBe("http://localhost/acesso-negado");
+    }
+  });
+
+  it("token ilegível ou sem role conhecida não acessa nenhuma área, só as rotas livres", () => {
     for (const token of ["token", tokenDoPerfil(undefined), tokenDoPerfil("99"), tokenDoPerfil("Auditor")]) {
       expect(chamar("/precos", token).headers.get("location")).toBe("http://localhost/acesso-negado");
       expect(chamar("/patio", token).headers.get("location")).toBe("http://localhost/acesso-negado");
-      expect(chamar("/dashboard", token).headers.get("location")).toBeNull();
+      expect(chamar("/dashboard", token).headers.get("location")).toBe("http://localhost/acesso-negado");
       expect(chamar("/acesso-negado", token).headers.get("location")).toBeNull();
+      expect(chamar("/usuario", token).headers.get("location")).toBeNull();
     }
   });
 

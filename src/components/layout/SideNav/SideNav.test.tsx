@@ -54,7 +54,7 @@ describe("SideNav", () => {
     sessao.atual = { user: { name: "Ana", perfil: 8 }, isLoading: false };
     renderWithTheme(<SideNav />);
 
-    expect(nomes()).toEqual(["Visão Geral", "Financeiro", "Faturas", "Notas Fiscais"]);
+    expect(nomes()).toEqual(["Financeiro", "Faturas", "Notas Fiscais"]);
   });
 
   it("não mostra itens enquanto a sessão carrega", () => {
@@ -126,11 +126,12 @@ describe("SideNav: grupos", () => {
     expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
   });
 
-  it("o Financeiro vê a Visão Geral e só o grupo Financeiro, sem serviços", () => {
+  it("o Financeiro vê só o grupo Financeiro, sem a Visão Geral nem serviços", () => {
     sessao.atual = { user: { name: "Ana", perfil: 8 }, isLoading: false };
     renderWithTheme(<SideNav />);
 
-    expect(nomes()[0]).toBe("Visão Geral");
+    expect(screen.queryByText("Visão Geral")).not.toBeInTheDocument();
+    expect(nomes()[0]).toBe("Financeiro");
     expect(nomesDoGrupo("Financeiro")).toEqual(["Financeiro", "Faturas", "Notas Fiscais"]);
     expect(screen.queryByText("Operação")).not.toBeInTheDocument();
     expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
