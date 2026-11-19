@@ -2,6 +2,30 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.481",
+      "type": "feat",
+      "scope": "dashboard",
+      "title": "redesenha a Visão Geral com os dados de uma única chamada",
+      "description": "A tela passa a consumir GET /Dashboard (período dia, semana ou mês, com data na\nURL) e mostra faturamento, pátio agora, indicadores, pendências, gráfico diário,\norigem, forma de recebimento, categorias e movimento por hora, em web e celular.\nCampos nulos da API ficam escondidos. Os atalhos antigos saem da tela e o\n\"Repetir tour\" vai para o menu do usuário.",
+      "date": "2026-11-19T18:24:17-03:00"
+    },
+    {
+      "version": "1.0.480",
+      "type": "feat",
+      "scope": "permissoes",
+      "title": "restringe o Início ao Administrador",
+      "description": "Os demais perfis passam a cair na primeira tela que podem acessar depois do\nlogin ou na raiz, e o acesso sem perfil não libera nenhuma área. Testes de\nnavegação, proxy e login ajustados à nova regra.",
+      "date": "2026-11-19T18:24:17-03:00"
+    },
+    {
+      "version": "1.0.479",
+      "type": "feat",
+      "scope": "ui",
+      "title": "adiciona cores de apoio ao tema e opções em ProgressBar e Tabs",
+      "description": "Cria os tokens successSoft, caution, info e seus tons suaves (claro e escuro),\ncom teste de contraste. ProgressBar ganha a prop tone para trocar a cor da\nbarra e Tabs passa a aceitar uso sem painel, necessários à nova Visão Geral.",
+      "date": "2026-11-19T18:24:17-03:00"
+    },
+    {
       "version": "1.0.475",
       "type": "feat",
       "scope": "logo",
