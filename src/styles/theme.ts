@@ -100,6 +100,14 @@ type ThemeColors = {
   success: string;
   // Texto/ícone sobre o preenchimento `success`.
   onSuccess: string;
+  // Fundo suave de sucesso (verde translúcido): pílula de alta e ícone de "tudo em dia".
+  successSoft: string;
+  // Atenção que não é erro (laranja): ícone e contagem de pendência. Diferente de `warn`, que no escuro é o amarelo de destaque.
+  caution: string;
+  cautionSoft: string;
+  // Informativo (azul): ícone e contagem de pendência que só pede acompanhamento.
+  info: string;
+  infoSoft: string;
   background: string;
   surface: string;
   // Trilhos de barra e estado pressionado de cartões: um degrau acima de `surface`.
@@ -173,6 +181,11 @@ export const lightTheme: AppTheme = {
     warnSoft: "rgba(224, 168, 0, 0.14)",
     success: "#17795A",
     onSuccess: "#FFFFFF",
+    successSoft: "rgba(23, 121, 90, 0.12)",
+    caution: "#B35A12",
+    cautionSoft: "rgba(179, 90, 18, 0.12)",
+    info: "#2F63E0",
+    infoSoft: "rgba(47, 99, 224, 0.12)",
     background: "#F4F1E8",
     surface: "#FFFFFF",
     surfaceMuted: "#ECE8DA",
@@ -213,6 +226,11 @@ export const darkTheme: AppTheme = {
     warnSoft: "rgba(255, 194, 14, 0.14)",
     success: "#3CCB7F",
     onSuccess: "#0E1729",
+    successSoft: "rgba(60, 203, 127, 0.14)",
+    caution: "#FFA53D",
+    cautionSoft: "rgba(255, 165, 61, 0.16)",
+    info: "#5B8CFF",
+    infoSoft: "rgba(91, 140, 255, 0.16)",
     background: "#0E1729",
     surface: "#16223A",
     surfaceMuted: "#22304B",

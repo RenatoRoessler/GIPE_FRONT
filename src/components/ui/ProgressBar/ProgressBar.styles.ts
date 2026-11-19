@@ -10,11 +10,13 @@ export const Track = styled.div`
 `;
 
 // A largura final é um valor entre 0 e 1 aplicado por `scaleX`: animar `transform` evita recalcular o layout.
-export const Fill = styled.div<{ $ratio: number }>`
+export type ProgressBarTone = "success" | "primary";
+
+export const Fill = styled.div<{ $ratio: number; $tone: ProgressBarTone }>`
   width: 100%;
   height: 100%;
   border-radius: ${({ theme }) => theme.radii.full};
-  background-color: ${({ theme }) => theme.colors.success};
+  background-color: ${({ theme, $tone }) => theme.colors[$tone]};
   transform: scaleX(${({ $ratio }) => $ratio});
   transform-origin: left center;
   transition: transform 0.3s ease;

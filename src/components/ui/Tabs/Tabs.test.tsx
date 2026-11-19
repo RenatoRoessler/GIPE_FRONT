@@ -105,4 +105,28 @@ describe("Tabs: rótulo com conteúdo", () => {
     // Sem ariaLabel o nome vem do texto.
     expect(screen.getByRole("tab", { name: "Pronto" })).not.toHaveAttribute("aria-label");
   });
+
+  it("sem conteúdo funciona como seletor: não cria painel nem aria-controls", async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    renderWithTheme(
+      <Tabs
+        aria-label="Período"
+        variant="segmentada"
+        value="dia"
+        onChange={onChange}
+        tabs={[
+          { id: "dia", label: "Dia" },
+          { id: "semana", label: "Semana" },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByRole("tabpanel")).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Dia" })).not.toHaveAttribute("aria-controls");
+
+    await user.click(screen.getByRole("tab", { name: "Semana" }));
+
+    expect(onChange).toHaveBeenCalledWith("semana");
+  });
 });

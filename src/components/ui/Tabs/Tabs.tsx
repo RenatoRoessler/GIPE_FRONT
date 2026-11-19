@@ -18,14 +18,16 @@ export interface TabsProps {
   "aria-label": string;
   // "segmentada": controle compacto de toque (celular); "linha": abas com sublinhado.
   variant?: TabsVariant;
-  // Conteúdo do painel da aba ativa.
-  children: ReactNode;
+  // Conteúdo do painel da aba ativa. Sem ele, as abas funcionam como um seletor (ex.: Dia, Semana, Mês) e a tela mostra o
+  // resultado por fora: não há painel nem `aria-controls`.
+  children?: ReactNode;
 }
 
 // Abas com seleção automática ao navegar por setas, Home e End; só a aba ativa entra na ordem de Tab.
 export function Tabs({ tabs, value, onChange, "aria-label": ariaLabel, variant = "linha", children }: TabsProps) {
   const baseId = useId();
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const temPainel = children !== undefined;
 
   function focusAndSelect(index: number) {
     const target = tabs[(index + tabs.length) % tabs.length];
@@ -70,7 +72,7 @@ export function Tabs({ tabs, value, onChange, "aria-label": ariaLabel, variant =
               id={`${baseId}-tab-${tab.id}`}
               aria-label={tab.ariaLabel}
               aria-selected={active}
-              aria-controls={`${baseId}-panel-${tab.id}`}
+              aria-controls={temPainel ? `${baseId}-panel-${tab.id}` : undefined}
               tabIndex={active ? 0 : -1}
               $active={active}
               $variant={variant}
@@ -82,9 +84,11 @@ export function Tabs({ tabs, value, onChange, "aria-label": ariaLabel, variant =
           );
         })}
       </TabList>
-      <Panel role="tabpanel" id={`${baseId}-panel-${value}`} aria-labelledby={`${baseId}-tab-${value}`}>
-        {children}
-      </Panel>
+      {temPainel && (
+        <Panel role="tabpanel" id={`${baseId}-panel-${value}`} aria-labelledby={`${baseId}-tab-${value}`}>
+          {children}
+        </Panel>
+      )}
     </div>
   );
 }

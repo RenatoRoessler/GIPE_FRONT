@@ -1,5 +1,6 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { lightTheme } from "@/styles/theme";
 import { renderWithTheme } from "@/test/render";
 import { ProgressBar } from "./ProgressBar";
 
@@ -28,5 +29,13 @@ describe("ProgressBar", () => {
     const barra = screen.getByRole("progressbar");
     expect(barra).toHaveAttribute("aria-valuenow", esperado);
     expect(barra.firstChild).toHaveStyle({ transform });
+  });
+
+  it("o preenchimento é verde por padrão e pode usar o amarelo da marca", () => {
+    const { rerender } = renderWithTheme(<ProgressBar value={1} max={2} aria-label="Progresso" />);
+    expect(screen.getByRole("progressbar").firstChild).toHaveStyle({ backgroundColor: lightTheme.colors.success });
+
+    rerender(<ProgressBar value={1} max={2} tone="primary" aria-label="Progresso" />);
+    expect(screen.getByRole("progressbar").firstChild).toHaveStyle({ backgroundColor: lightTheme.colors.primary });
   });
 });
