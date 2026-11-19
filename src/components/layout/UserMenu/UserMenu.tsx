@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useOnboardingTour } from "@/components/onboarding";
 import { Toast } from "@/components/ui/Toast";
 import { AlterarSenhaModal } from "@/components/usuarios/AlterarSenhaModal";
 import { useCurrentUser } from "@/contexts/CurrentUserContext";
@@ -27,6 +28,7 @@ export function UserMenu() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
   const { canInstall, showIosHint, install } = usePwaInstall();
+  const { abrirTour } = useOnboardingTour();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -78,6 +80,17 @@ export function UserMenu() {
             }}
           >
             Alterar senha
+          </DropdownItemButton>
+          <DropdownItemButton
+            type="button"
+            role="menuitem"
+            aria-haspopup="dialog"
+            onClick={() => {
+              setIsOpen(false);
+              abrirTour();
+            }}
+          >
+            Repetir tour
           </DropdownItemButton>
           {canInstall && (
             <InstallButton

@@ -1,24 +1,25 @@
-import { screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { renderWithProviders } from "@/test/render";
 
-// Cada peça é testada à parte: aqui só interessa o que a Home mostra e a ordem dos botões.
-vi.mock("@/components/layout/InstallPwaButton", () => ({ InstallPwaButton: () => null }));
-vi.mock("@/components/home/DashboardContent", () => ({ DashboardContent: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }));
-vi.mock("@/components/home/IndicadoresPatio", () => ({ IndicadoresPatio: () => null }));
-vi.mock("@/components/veiculos/RegistrarEntradaButton", () => ({ RegistrarEntradaButton: () => <button type="button">Registrar entrada</button> }));
-vi.mock("@/components/veiculos/RegistrarSaidaButton", () => ({ RegistrarSaidaButton: () => <button type="button">Registrar saída</button> }));
-vi.mock("@/components/empresa/CartazTicket", () => ({ GerarCartazButton: () => <button type="button">Gerar Cartaz do Ticket</button> }));
+// A página em si é testada à parte: aqui só interessa o que a rota monta e o título da aba.
+vi.mock("@/components/dashboard/DashboardPage", () => ({ DashboardPage: () => <div data-testid="visao-geral" /> }));
 
-vi.mock("@/components/onboarding", () => ({ RepetirTourButton: () => <button type="button">Repetir tour</button> }));
+import Page, { metadata } from "./page";
 
-import DashboardPage from "./page";
+describe("rota /dashboard (Visão Geral)", () => {
+  it("monta a Visão Geral", () => {
+    render(<Page />);
 
-describe("Home (dashboard)", () => {
-  it("mostra Gerar Cartaz do Ticket e Repetir tour depois de Entrada e Saída", () => {
-    renderWithProviders(<DashboardPage />);
+    expect(screen.getByTestId("visao-geral")).toBeInTheDocument();
+  });
 
-    const botoes = screen.getAllByRole("button").map((botao) => botao.textContent);
-    expect(botoes).toEqual(["Registrar entrada", "Registrar saída", "Gerar Cartaz do Ticket", "Repetir tour"]);
+  it("não traz mais os atalhos de entrada, saída, cartaz e tour", () => {
+    render(<Page />);
+
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("título da aba", () => {
+    expect(metadata.title).toBe("Visão Geral — Murel");
   });
 });

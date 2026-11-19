@@ -7,7 +7,7 @@ export type ConteudoModulo = { texto: string };
 export const CONTEUDO_MODULOS: Record<string, ConteudoModulo> = {
   "/dashboard": {
     texto:
-      "É a tela inicial. Mostra o resumo do pátio agora, como quantos veículos estão dentro e há quanto tempo, e traz os atalhos para registrar entrada, saída e gerar o cartaz do ticket digital.",
+      "Mostra como está o negócio: o faturamento do dia, da semana ou do mês comparado ao período anterior, de onde vem o dinheiro e como foi recebido, o pátio agora e as pendências que pedem sua atenção. As setas levam a períodos anteriores.",
   },
   "/patio": {
     texto:

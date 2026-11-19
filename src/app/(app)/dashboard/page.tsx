@@ -1,23 +1,16 @@
-import { GerarCartazButton } from "@/components/empresa/CartazTicket";
-import { InstallPwaButton } from "@/components/layout/InstallPwaButton";
-import { DashboardContent } from "@/components/home/DashboardContent";
-import { IndicadoresPatio } from "@/components/home/IndicadoresPatio";
-import { RepetirTourButton } from "@/components/onboarding";
-import { ActionRow } from "@/components/veiculos/ActionRow";
-import { RegistrarEntradaButton } from "@/components/veiculos/RegistrarEntradaButton";
-import { RegistrarSaidaButton } from "@/components/veiculos/RegistrarSaidaButton";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { DashboardPage } from "@/components/dashboard/DashboardPage";
 
-export default function DashboardPage() {
+export const metadata: Metadata = {
+  title: "Visão Geral — Murel",
+};
+
+export default function Page() {
   return (
-    <DashboardContent>
-      <InstallPwaButton variant="full" />
-      <ActionRow>
-        <RegistrarEntradaButton />
-        <RegistrarSaidaButton />
-        <GerarCartazButton />
-        <RepetirTourButton />
-      </ActionRow>
-      <IndicadoresPatio />
-    </DashboardContent>
+    // useSearchParams (período e data na URL) exige Suspense.
+    <Suspense fallback={null}>
+      <DashboardPage />
+    </Suspense>
   );
 }

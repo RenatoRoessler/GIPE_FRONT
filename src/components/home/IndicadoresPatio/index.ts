@@ -1,1 +1,0 @@
-export { IndicadoresPatio } from "./IndicadoresPatio";
