@@ -174,7 +174,7 @@ function categorias(valor: unknown): DashboardCategoria[] {
     .map((item) => {
       const d = dto(item) ?? {};
       return {
-        categoria: toText(d.categoria ?? d.descricao ?? d.nome) ?? "Sem categoria",
+        categoria: toText(d.descricao ?? d.nome ?? d.categoria) ?? "Sem categoria",
         saidas: numero(d.saidas ?? d.quantidade),
         valor: numero(d.valor ?? d.faturamento),
       };

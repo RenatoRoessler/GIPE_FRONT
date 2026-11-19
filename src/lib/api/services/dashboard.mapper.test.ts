@@ -134,6 +134,21 @@ describe("fromDashboardResponse", () => {
     expect(dashboard.categorias).toEqual([{ categoria: "Carro", saidas: 2, valor: 40 }]);
   });
 
+  it("usa a descrição da categoria quando `categoria` vem como id numérico", () => {
+    const dashboard = fromDashboardResponse({
+      ...dashboardDto,
+      categorias: [
+        { categoria: 2, descricao: "Carro pequeno", saidas: 4, faturamento: 175 },
+        { categoria: 1, descricao: "Moto", saidas: 2, faturamento: 5 },
+      ],
+    });
+
+    expect(dashboard.categorias).toEqual([
+      { categoria: "Carro pequeno", saidas: 4, valor: 175 },
+      { categoria: "Moto", saidas: 2, valor: 5 },
+    ]);
+  });
+
   it("campo ausente ou fora do formato nunca chega como undefined nem NaN", () => {
     const respostas = [{}, null, undefined, "texto", { periodo: { faturamento: "abc" }, mes: { faturado: undefined }, patio: { ocupados: "x" } }];
     for (const resposta of respostas) {
