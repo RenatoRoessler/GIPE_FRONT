@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.484",
+      "type": "fix",
+      "scope": "dashboard",
+      "title": "mostra o nome da categoria no painel Por categoria",
+      "description": "O painel exibia \"Sem categoria\" em todas as linhas porque a API envia\nno campo `categoria` o id numérico e o nome em `descricao`. O mapper\nagora lê primeiro `descricao`, depois `nome` e `categoria`. Inclui teste\ncom o formato real da resposta.",
+      "date": "2026-11-19T19:00:08-03:00"
+    },
+    {
       "version": "1.0.481",
       "type": "feat",
       "scope": "dashboard",
