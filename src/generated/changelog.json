@@ -2,6 +2,14 @@
   "complete": true,
   "entries": [
     {
+      "version": "1.0.486",
+      "type": "fix",
+      "scope": "mensalistas",
+      "title": "separa a busca e o botão de novo da listagem",
+      "description": "A barra com a busca e o botão \"Novo mensalista\" ficava colada na\ntabela. Agora há um espaço entre ela e a listagem, também na aba\nde tipos de mensalidade.",
+      "date": "2026-11-20T09:50:27-03:00"
+    },
+    {
       "version": "1.0.484",
       "type": "fix",
       "scope": "dashboard",
