@@ -57,6 +57,8 @@ export const Toolbar = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space[3]}px;
+  /* Respiro entre a barra de ferramentas e a listagem logo abaixo. */
+  margin-bottom: ${({ theme }) => theme.space[4]}px;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
     flex-direction: row;
